@@ -32,10 +32,10 @@ diagnostico(mtcars)
 diagnostico(mtcars$mpg)
 
 # Estatísticas resumidas e tabelas de frequência (Polimórfica)
-descrever(mtcars)           # Resumo completo do banco
-descrever(mtcars$mpg)       # Estatísticas da variável numérica
-descrever(mtcars$cyl)       # Tabela de frequência da variável categórica
-descrever(mtcars$mpg, por = mtcars$cyl) # Numérica agrupada
+descrever(mtcars)                        # Resumo completo do banco
+descrever(mtcars$mpg)                    # Estatísticas da variável numérica
+descrever(mtcars$cyl)                    # Tabela de frequência da variável categórica
+descrever(mtcars$mpg, por = mtcars$cyl)  # Numérica agrupada
 
 # Tabela de contingência (Cruzamento de duas variáveis)
 tabela_contingencia(mtcars, cyl, am)
@@ -133,17 +133,9 @@ gerar_amostra(n = 1000, distribuicao = "exponencial", taxa = 0.5)
 
 ---
 
-## Roadmap
-
-- [ ] Módulo de Simulações (Bootstrap, Teorema do Limite Central)
-- [ ] Módulo de Testes de Hipótese (Teste-t, Qui-Quadrado, Wilcoxon)
-- [ ] Módulo de ANOVA e Delineamento Experimental (Tukey, Duncan)
-
----
-
 ## Autor
 
-**Elizeu Medeiros**  
+**Elizeu S. de Medeiros, Estatístico.**  
 [GitHub](https://github.com/elizeumedeirosest)
 
 ---
