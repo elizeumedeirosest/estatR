@@ -35,14 +35,17 @@ devtools::install_github("elizeumedeirosest/estatR")
 ```r
 # Visão geral (diagnóstico) de um banco ou variável
 diagnostico(mtcars)
+diagnostico(mtcars$mpg)
 
-# Tabela de frequência e contingência
-tabela_contingencia(mtcars, cyl)
-tabela_contingencia(mtcars, cyl, am)
+# Estatísticas resumidas e tabelas de frequência (Polimórfica)
+descrever(mtcars)           # Resumo completo do banco
+descrever(mtcars$mpg)       # Estatísticas da variável numérica
+descrever(mtcars$cyl)       # Tabela de frequência da variável categórica
+descrever(mtcars$mpg, por = mtcars$cyl) # Numérica agrupada
 
-# Estatísticas resumidas numéricas
-descrever(mtcars, mpg)
-descrever(mtcars, mpg, grupo = cyl)
+# Tabela de contingência (Cruzamento de duas variáveis)
+tabela_contingencia(mtcars$cyl, mtcars$am)
+tabela_contingencia(mtcars$cyl, mtcars$am, proporcao = "linha")
 ```
 
 ---
