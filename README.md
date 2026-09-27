@@ -1,7 +1,7 @@
 # estatR <img src="man/figures/logo.png" align="right" height="120" alt="" />
 
 > **Uma camada estatística intuitiva e didática para o R.**  
-> Saídas em português, formatação limpa e gráficos automáticos integrados com o pacote [`metaR`](https://github.com/elizeumedeirosest/metaR).
+> Saídas em português, formatação limpa e gráficos automáticos.
 
 ---
 
