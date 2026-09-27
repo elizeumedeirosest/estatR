@@ -1,0 +1,13 @@
+Package: estatR
+Type: Package
+Title: Interface Estatística em Português para o R
+Version: 0.1.0
+Authors@R: 
+    person("Elizeu", "Medeiros", email = "elizeu@estatr.local", role = c("aut", "cre"))
+Description: Camada de abstração e localização em português sobre o ecossistema 
+    estatístico do R, fornecendo funções intuitivas, argumentos traduzidos, 
+    diagnósticos padronizados e formatação visual limpa no console.
+License: MIT
+Encoding: UTF-8
+Roxygen: list(markdown = TRUE)
+Config/roxygen2/version: 8.0.0

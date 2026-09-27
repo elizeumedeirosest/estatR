@@ -1,0 +1,17 @@
+# R
+.Rproj.user
+.Rhistory
+.RData
+.Ruserdata
+
+# Pacote R gerado
+*.Rcheck/
+*.tar.gz
+*.zip
+
+# Documentação gerada
+/doc/
+/Meta/
+
+# Cache devtools
+man/*.Rd
