@@ -1,4 +1,4 @@
-# estatR <img src="man/figures/logo.png" align="right" height="120" alt="" />
+﻿# estatR <img src="man/figures/logo.png" align="right" height="120" alt="" />
 
 > **Uma camada estatística intuitiva e didática para o R.**  
 > Saídas em português, formatação limpa e gráficos automáticos.
@@ -59,6 +59,18 @@ amostra_estratificada(iris, estrato = Species, n = 30, alocacao = "otima", varia
 
 ### 📈 Regressão Linear
 
+`
+# Construir o modelo, exibir análise e gráficos automaticamente
+modelo_simples <- regressao_linear(dados = mtcars, mpg ~ wt)
+
+# Regressão múltipla com transformações
+modelo_multiplo <- regressao_linear(dados = mtcars, mpg ~ log(wt) + hp)
+
+# Métricas de ajuste
+metricas(modelo_simples)
+
+# Diagnóstico de resíduos
+analise_residual(modelo_simples)
 ```r
 # Regressão simples
 modelo <- lm(mpg ~ wt, data = mtcars)
@@ -131,3 +143,4 @@ gerar_amostra(n = 1000, distribuicao = "exponencial", taxa = 0.5)
 ## Licença
 
 MIT © Elizeu Medeiros
+
