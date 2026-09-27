@@ -591,13 +591,32 @@ descrever <- function(x, por = NULL, numericas = TRUE, categoricas = TRUE, decim
 #' @param proporcao Tipo de proporção a exibir: "nenhuma" (apenas N), "linha" (%), "coluna" (%) ou "total" (%).
 #' @param decimais Casas decimais para as porcentagens (padrão 1).
 #' @export
-tabela_contingencia <- function(x, y, proporcao = c("nenhuma", "linha", "coluna", "total"), decimais = 1) {
+tabela_contingencia <- function(dados, var_x = NULL, var_y = NULL, proporcao = c("nenhuma", "linha", "coluna", "total"), decimais = 1) {
   proporcao <- match.arg(proporcao)
   
-  var_x_expr <- deparse(substitute(x))
-  var_y_expr <- deparse(substitute(y))
-  x_nome <- sub(".*\\$", "", var_x_expr)
-  y_nome <- sub(".*\\$", "", var_y_expr)
+  sub_dados <- substitute(dados)
+  sub_x <- substitute(var_x)
+  sub_y <- substitute(var_y)
+  
+  if (is.data.frame(dados)) {
+    if (missing(var_x) || missing(var_y)) stop("Informe as variaveis x e y. Ex: tabela_contingencia(banco, var1, var2)")
+    
+    x_nome <- deparse(sub_x)
+    y_nome <- deparse(sub_y)
+    
+    x <- eval(sub_x, dados, parent.frame())
+    y <- eval(sub_y, dados, parent.frame())
+    
+    if (is.null(x)) stop(sprintf("Variavel '%s' nao encontrada.", x_nome))
+    if (is.null(y)) stop(sprintf("Variavel '%s' nao encontrada.", y_nome))
+  } else {
+    # Comportamento antigo: vetores diretos
+    x <- dados
+    y <- var_x
+    x_nome <- sub(".*\\$", "", deparse(sub_dados))
+    y_nome <- sub(".*\\$", "", deparse(sub_x))
+    if (missing(var_x) || is.null(y)) stop("Informe as duas variaveis validas.")
+  }
   
   valido <- !is.na(x) & !is.na(y)
   x_c <- x[valido]

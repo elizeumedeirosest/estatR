@@ -38,8 +38,8 @@ descrever(mtcars$cyl)       # Tabela de frequência da variável categórica
 descrever(mtcars$mpg, por = mtcars$cyl) # Numérica agrupada
 
 # Tabela de contingência (Cruzamento de duas variáveis)
-tabela_contingencia(mtcars$cyl, mtcars$am)
-tabela_contingencia(mtcars$cyl, mtcars$am, proporcao = "linha")
+tabela_contingencia(mtcars, cyl, am)
+tabela_contingencia(mtcars, cyl, am, proporcao = "linha")
 ```
 
 ---
