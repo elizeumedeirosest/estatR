@@ -7,7 +7,7 @@
 
 ## Visão Geral
 
-O estatR é um pacote R que oferece uma interface amigável e didática sobre as principais funções estatísticas do R base. Pensado para **ensino e análise de dados**, ele produz saídas no console com formatação em português e gráficos automáticos, de modo à representar os resultados.
+O estatR é um pacote R que oferece uma interface amigável e didática sobre as principais funções estatísticas do R base. Pensado para **ensino e análise de dados**, ele produz saídas no console com formatação em português e gráficos automáticos, permitindo representar visualmente os resultados das análises.
 
 ---
 
