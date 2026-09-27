@@ -1,20 +1,12 @@
-﻿# ============================================
+# ============================================
 # MÓDULO INTERNO: GRÁFICOS (Adaptado do metaR)
 # ============================================
 # Este arquivo contém as funções de tema e visualização essenciais
 # para tornar o estatR auto-suficiente, sem depender do metaR.
 
-#' Tema padronizado para gráficos do estatR
-#'
-#' @param fonte Nome da família da fonte (ex: "Segoe UI", "Arial").
-#' @param estilo Inteiro: 1 (classic limpo), 2 (minimal com grade no valor), 3 (branco puro).
-#' @param escala Multiplicador de tamanho para fontes e espaçamentos.
-#' @param inclinar Lógico ou numérico. Se TRUE, inclina o eixo X a 45 graus.
-#' @param modo "light" (padrão) ou "dark".
-#' @param grade "auto" (padrão), "x", "y", "dupla", "nenhuma".
-#' @export
+#' @keywords internal
 meu_tema <- function(fonte = "Segoe UI", estilo = 2, escala = 1, inclinar = FALSE,
-                     modo = "light", grade = "auto") {
+                     grade = "auto") {
 
   if (is.numeric(fonte)) {
     estilo <- fonte
@@ -22,7 +14,7 @@ meu_tema <- function(fonte = "Segoe UI", estilo = 2, escala = 1, inclinar = FALS
   }
 
   estrutura <- list(fonte = fonte, estilo = estilo, escala = escala,
-                     inclinar = inclinar, modo = modo, grade = grade)
+                     inclinar = inclinar, grade = grade)
   class(estrutura) <- "meu_tema_layer"
   estrutura
 }
@@ -57,20 +49,18 @@ meu_tema <- function(fonte = "Segoe UI", estilo = 2, escala = 1, inclinar = FALS
 }
 
 #' @keywords internal
-#' @export
+#' @exportS3Method ggplot2::ggplot_add
 ggplot_add.meu_tema_layer <- function(object, plot, object_name) {
   fonte     <- object$fonte
   estilo    <- object$estilo
   escala    <- object$escala
   inclinar  <- object$inclinar
-  modo      <- object$modo
   grade_opt <- object$grade %||% "auto"
 
-  is_dark <- modo == "dark"
-  cor_fundo  <- if (is_dark) "#1A1A1A" else "white"
-  cor_texto  <- if (is_dark) "#E5E5E5" else "black"
-  cor_sub    <- if (is_dark) "#A0A0A0" else "gray40"
-  cor_linha  <- if (is_dark) "#E5E5E5" else "black"
+  cor_fundo <- "white"
+  cor_texto <- "black"
+  cor_sub   <- "gray40"
+  cor_linha <- "black"
 
   angulo_inclinacao <- if (is.numeric(inclinar)) inclinar else if (isTRUE(inclinar)) 45 else NULL
 
@@ -97,12 +87,12 @@ ggplot_add.meu_tema_layer <- function(object, plot, object_name) {
     legend.key        = ggplot2::element_rect(fill = cor_fundo, color = cor_fundo),
     legend.spacing.y  = ggplot2::unit(2 * escala, "pt"),
     strip.text        = ggplot2::element_text(size = 14 * escala, face = "bold", color = cor_texto),
-    strip.background  = ggplot2::element_rect(fill = if(is_dark) "#333333" else "gray90", color = if(is_dark) "#333333" else "gray90"),
+    strip.background  = ggplot2::element_rect(fill = "gray90", color = "gray90"),
     plot.background   = ggplot2::element_rect(fill = cor_fundo, color = cor_fundo, linewidth = 1)
   )
 
   tema_base <- if (estilo == 2) {
-    cor_grade_estilo2 <- if (is_dark) "gray30" else "gray92"
+    cor_grade_estilo2 <- "gray92"
     eixo_grade <- if (identical(grade_opt, "auto")) .detectar_eixo_grade(plot) else if (grade_opt %in% c("x", "y", "dupla")) grade_opt else NA_character_
     
     grid_theme <- if (is.na(eixo_grade)) {
