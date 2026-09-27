@@ -20,12 +20,6 @@ install.packages("devtools")
 # Instale o estatR diretamente do GitHub
 devtools::install_github("elizeumedeirosest/estatR")
 ```
-
-> **Dependência recomendada:** Para os gráficos funcionarem com o tema visual padrão, instale também o [`metaR`](https://github.com/elizeumedeirosest/metaR):
-> ```r
-> devtools::install_github("elizeumedeirosest/metaR")
-> ```
-
 ---
 
 ## Módulos Disponíveis
