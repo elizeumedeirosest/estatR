@@ -33,11 +33,16 @@ devtools::install_github("elizeumedeirosest/estatR")
 ### 📊 Estatística Descritiva
 
 ```r
-# Tabela de frequência
-frequencia(mtcars, cyl)
+# Visão geral (diagnóstico) de um banco ou variável
+diagnostico(mtcars)
 
-# Estatísticas resumidas
-descritiva(mtcars, mpg)
+# Tabela de frequência e contingência
+tabela_contingencia(mtcars, cyl)
+tabela_contingencia(mtcars, cyl, am)
+
+# Estatísticas resumidas numéricas
+descrever(mtcars, mpg)
+descrever(mtcars, mpg, grupo = cyl)
 ```
 
 ---
