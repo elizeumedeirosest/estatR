@@ -13,20 +13,20 @@ O estatR é um pacote R que oferece uma interface amigável e didática sobre as
 
 ## Instalação
 
-`
+```
 # Instale o devtools se ainda não tiver
 install.packages("devtools")
 
 # Instale o estatR diretamente do GitHub
 devtools::install_github("elizeumedeirosest/estatR")
-`
+```
 ---
 
 ## Módulos Disponíveis
 
 ### 📊 Estatística Descritiva
 
-`
+```
 # Visão geral (diagnóstico) de um banco ou variável
 diagnostico(mtcars)
 diagnostico(mtcars$mpg)
@@ -50,13 +50,13 @@ med_forma(mtcars$mpg)
 quartis(mtcars$mpg)
 quintis(mtcars$mpg)
 decis(mtcars$mpg)
-`
+```
 
 ---
 
 ### 📐 Amostragem
 
-`
+```
 # Calcular tamanho de amostra (proporção ou média)
 tamanho_amostra(populacao = 50000, erro = 0.03)
 tamanho_amostra(desvio_padrao = 15, erro = 2, confianca = 0.95)
@@ -73,13 +73,13 @@ amostra_estratificada(iris, estrato = Species, n = 30, alocacao = "otima", varia
 
 # Amostragem por Conglomerados
 amostra_conglomerados(iris, conglomerado = Species, n_conglomerados = 2)
-`
+```
 
 ---
 
 ### 📈 Regressão Linear
 
-`
+```
 # Regressão simples
 modelo <- lm(mpg ~ wt, data = mtcars)
 regressao_linear(modelo)
@@ -93,13 +93,13 @@ metricas(modelo)
 
 # Diagnóstico de resíduos (tabela + painel 4 gráficos)
 analise_residual(modelo)
-`
+```
 
 ---
 
 ### 🔗 Correlação
 
-`
+```
 # Teste de correlação bivariada (Pearson, Spearman ou Kendall)
 teste_correlacao(mtcars, wt, mpg)
 teste_correlacao(mtcars, wt, mpg, metodo = "spearman")
@@ -107,13 +107,13 @@ teste_correlacao(mtcars, wt, mpg, metodo = "spearman")
 # Correlograma completo do banco de dados
 matriz_correlacao(mtcars)
 matriz_correlacao(mtcars, c("mpg", "wt", "hp", "disp"), metodo = "kendall")
-`
+```
 
 ---
 
 ### 🎲 Probabilidade
 
-`
+```
 # Probabilidade da distribuição Normal (com gráfico de área sombreada)
 prob_normal(media = 100, dp = 15, q1 = 120, tipo = "maior")
 prob_normal(media = 100, dp = 15, q1 = 85, q2 = 115, tipo = "entre")
@@ -129,7 +129,7 @@ gerar_amostra(n = 1000, distribuicao = "normal", media = 50, dp = 5)
 gerar_amostra(n = 500,  distribuicao = "binomial", ensaios = 10, prob = 0.5)
 gerar_amostra(n = 300,  distribuicao = "poisson",  lambda = 3)
 gerar_amostra(n = 1000, distribuicao = "exponencial", taxa = 0.5)
-`
+```
 
 ---
 
