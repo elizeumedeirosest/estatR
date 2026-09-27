@@ -1,0 +1,33 @@
+﻿  proporcao <- match.arg(proporcao)
+  
+  sub_dados <- substitute(dados)
+  sub_x <- substitute(var_x)
+  sub_y <- substitute(var_y)
+  
+  if (is.data.frame(dados)) {
+    if (missing(var_x) || missing(var_y)) stop("Informe as variáveis x e y. Ex: tabela_contingencia(banco, var1, var2)")
+    
+    x_nome <- deparse(sub_x)
+    y_nome <- deparse(sub_y)
+    
+    # Avalia os nomes no escopo do dataframe
+    x <- eval(sub_x, dados, parent.frame())
+    y <- eval(sub_y, dados, parent.frame())
+    
+    if (is.null(x)) stop(sprintf("Variável '%s' não encontrada no banco de dados.", x_nome))
+    if (is.null(y)) stop(sprintf("Variável '%s' não encontrada no banco de dados.", y_nome))
+  } else {
+    # Suporte ao modo antigo com vetores diretos: tabela_contingencia(vetor1, vetor2)
+    x <- dados
+    y <- var_x
+    x_nome <- sub(".*\\\\$", "", deparse(sub_dados))
+    y_nome <- sub(".*\\\\$", "", deparse(sub_x))
+    
+    if (missing(var_x) || is.null(y)) stop("Informe dois vetores válidos para a tabela cruzada.")
+  }
+  
+  valido <- !is.na(x) & !is.na(y)
+  x_c <- x[valido]
+  y_c <- y[valido]
+  
+  tab <- table(x_c, y_c)

@@ -1,25 +1,25 @@
-#' Cálculo de Tamanho Amostral Ótimo
+﻿#' CÃ¡lculo de Tamanho Amostral Ã“timo
 #'
-#' Calcula o tamanho mínimo de amostra necessário para estimar uma proporção
-#' ou uma média com nível de confiança e margem de erro especificados.
+#' Calcula o tamanho mÃ­nimo de amostra necessÃ¡rio para estimar uma proporÃ§Ã£o
+#' ou uma mÃ©dia com nÃ­vel de confianÃ§a e margem de erro especificados.
 #'
-#' @param populacao Tamanho da população (N). Se NULL, considera população infinita.
-#' @param erro Margem de erro máxima permitida (ex: 0.05 para 5% ou valor na mesma unidade da média).
-#' @param confianca Nível de confiança da estimativa (padrão 0.95 para 95%).
-#' @param proporcao Proporção esperada do evento (padrão 0.5 para cenário conservador de variância máxima).
-#' @param desvio_padrao Desvio-padrão populacional ou preliminar. Se informado, calcula para média em vez de proporção.
-#' @return Retorna o número inteiro do tamanho da amostra (n) invisivelmente.
+#' @param populacao Tamanho da populaÃ§Ã£o (N). Se NULL, considera populaÃ§Ã£o infinita.
+#' @param erro Margem de erro mÃ¡xima permitida (ex: 0.05 para 5% ou valor na mesma unidade da mÃ©dia).
+#' @param confianca NÃ­vel de confianÃ§a da estimativa (padrÃ£o 0.95 para 95%).
+#' @param proporcao ProporÃ§Ã£o esperada do evento (padrÃ£o 0.5 para cenÃ¡rio conservador de variÃ¢ncia mÃ¡xima).
+#' @param desvio_padrao Desvio-padrÃ£o populacional ou preliminar. Se informado, calcula para mÃ©dia em vez de proporÃ§Ã£o.
+#' @return Retorna o nÃºmero inteiro do tamanho da amostra (n) invisivelmente.
 #' @export
 #' @examples
-#' # Para proporção com população de 50.000, 3% de erro e 95% de confiança:
+#' # Para proporÃ§Ã£o com populaÃ§Ã£o de 50.000, 3% de erro e 95% de confianÃ§a:
 #' tamanho_amostra(populacao = 50000, erro = 0.03, confianca = 0.95)
 #'
-#' # Para média com desvio-padrão de 15, erro de 2 unidades e confiança de 95%:
+#' # Para mÃ©dia com desvio-padrÃ£o de 15, erro de 2 unidades e confianÃ§a de 95%:
 #' tamanho_amostra(desvio_padrao = 15, erro = 2, confianca = 0.95)
 tamanho_amostra <- function(populacao = NULL, erro = 0.05, confianca = 0.95,
                             proporcao = 0.5, desvio_padrao = NULL) {
   if (erro <= 0) stop("A margem de erro deve ser maior que zero.")
-  if (confianca <= 0 || confianca >= 1) stop("O nível de confiança deve estar entre 0 e 1 (ex: 0.95).")
+  if (confianca <= 0 || confianca >= 1) stop("O nÃ­vel de confianÃ§a deve estar entre 0 e 1 (ex: 0.95).")
   
   alfa <- 1 - confianca
   z <- qnorm(1 - alfa / 2)
@@ -27,41 +27,41 @@ tamanho_amostra <- function(populacao = NULL, erro = 0.05, confianca = 0.95,
   se_media <- !is.null(desvio_padrao)
   
   if (se_media) {
-    if (desvio_padrao <= 0) stop("O desvio-padrão deve ser maior que zero.")
+    if (desvio_padrao <= 0) stop("O desvio-padrÃ£o deve ser maior que zero.")
     n0 <- (z^2 * desvio_padrao^2) / (erro^2)
-    tipo_param <- sprintf("Média (DP = %s)", .fmt_num(desvio_padrao, 2))
+    tipo_param <- sprintf("MÃ©dia (DP = %s)", .fmt_num(desvio_padrao, 2))
     var_info <- sprintf("Margem de Erro:          %s unidades", .fmt_num(erro, 2))
   } else {
-    if (proporcao <= 0 || proporcao >= 1) stop("A proporção esperada deve estar entre 0 e 1 (ex: 0.5).")
+    if (proporcao <= 0 || proporcao >= 1) stop("A proporÃ§Ã£o esperada deve estar entre 0 e 1 (ex: 0.5).")
     n0 <- (z^2 * proporcao * (1 - proporcao)) / (erro^2)
-    tipo_conservador <- if (proporcao == 0.5) " (Cenário Conservador)" else ""
-    tipo_param <- sprintf("Proporção (p = %s%s)", .fmt_pct(proporcao, 1), tipo_conservador)
+    tipo_conservador <- if (proporcao == 0.5) " (CenÃ¡rio Conservador)" else ""
+    tipo_param <- sprintf("ProporÃ§Ã£o (p = %s%s)", .fmt_pct(proporcao, 1), tipo_conservador)
     var_info <- sprintf("Margem de Erro:          %s", .fmt_pct(erro, 1))
   }
   
   if (!is.null(populacao)) {
-    if (populacao <= 1) stop("O tamanho da população deve ser maior que 1.")
+    if (populacao <= 1) stop("O tamanho da populaÃ§Ã£o deve ser maior que 1.")
     n_final <- (populacao * n0) / (populacao + n0 - 1)
     pop_str <- sprintf("%s (Finita)", format(populacao, big.mark = ".", decimal.mark = ","))
     frac_amostral <- (n_final / populacao)
-    frac_str <- sprintf("  Fração Amostral:             %s da população\n", .fmt_pct(frac_amostral, 2))
+    frac_str <- sprintf("  FraÃ§Ã£o Amostral:             %s da populaÃ§Ã£o\n", .fmt_pct(frac_amostral, 2))
   } else {
     n_final <- n0
-    pop_str <- "Infinita (ou não informada)"
+    pop_str <- "Infinita (ou nÃ£o informada)"
     frac_str <- ""
   }
   
   n_otimo <- ceiling(n_final)
   
-  .print_header("DIMENSIONAMENTO DE AMOSTRA (TAMANHO ÓTIMO)")
-  cat("Parâmetros do Estudo:\n")
-  cat(sprintf("  • Tipo de Parâmetro:       %s\n", tipo_param))
-  cat(sprintf("  • Nível de Confiança:      %s (Z = %s)\n", .fmt_pct(confianca, 1), .fmt_num(z, 2)))
-  cat(sprintf("  • %s\n", var_info))
-  cat(sprintf("  • População (N):           %s\n\n", pop_str))
+  .print_header("DIMENSIONAMENTO DE AMOSTRA (TAMANHO Ã“TIMO)")
+  cat("ParÃ¢metros do Estudo:\n")
+  cat(sprintf("  â€¢ Tipo de ParÃ¢metro:       %s\n", tipo_param))
+  cat(sprintf("  â€¢ NÃ­vel de ConfianÃ§a:      %s (Z = %s)\n", .fmt_pct(confianca, 1), .fmt_num(z, 2)))
+  cat(sprintf("  â€¢ %s\n", var_info))
+  cat(sprintf("  â€¢ PopulaÃ§Ã£o (N):           %s\n\n", pop_str))
   
-  cat("\033[1m▶ Resultado do Dimensionamento\033[0m\n")
-  cat(sprintf("  Tamanho Amostral Mínimo (n): %s observações\n", format(n_otimo, big.mark = ".", decimal.mark = ",")))
+  cat("\033[1mâ–¶ Resultado do Dimensionamento\033[0m\n")
+  cat(sprintf("  Tamanho Amostral MÃ­nimo (n): %s observaÃ§Ãµes\n", format(n_otimo, big.mark = ".", decimal.mark = ",")))
   cat(frac_str)
   
   .print_footer()
@@ -70,16 +70,16 @@ tamanho_amostra <- function(populacao = NULL, erro = 0.05, confianca = 0.95,
 }
 
 
-#' Amostragem Aleatória Simples (AAS)
+#' Amostragem AleatÃ³ria Simples (AAS)
 #'
-#' Seleciona uma amostra aleatória simples de um conjunto de dados ou vetor,
-#' com ou sem reposição.
+#' Seleciona uma amostra aleatÃ³ria simples de um conjunto de dados ou vetor,
+#' com ou sem reposiÃ§Ã£o.
 #'
-#' @param dados Um data.frame ou vetor representando a população.
-#' @param n Quantidade exata de observações a sortear.
-#' @param proporcao Proporção da população a sortear (ex: 0.20 para 20%).
-#' @param reposicao Lógico. Se TRUE, permite sortear o mesmo elemento mais de uma vez.
-#' @param semente Número inteiro para semente aleatória (garante reprodutibilidade).
+#' @param dados Um data.frame ou vetor representando a populaÃ§Ã£o.
+#' @param n Quantidade exata de observaÃ§Ãµes a sortear.
+#' @param proporcao ProporÃ§Ã£o da populaÃ§Ã£o a sortear (ex: 0.20 para 20%).
+#' @param reposicao LÃ³gico. Se TRUE, permite sortear o mesmo elemento mais de uma vez.
+#' @param semente NÃºmero inteiro para semente aleatÃ³ria (garante reprodutibilidade).
 #' @return Retorna o subconjunto de dados sorteado.
 #' @export
 #' @examples
@@ -103,36 +103,36 @@ amostra_aleatoria <- function(dados, n = NULL, proporcao = NULL, reposicao = FAL
   }
   
   if (!reposicao && n_sorteio > N) {
-    stop("O tamanho da amostra (n) não pode ser maior que a população em sorteios sem reposição.")
+    stop("O tamanho da amostra (n) nÃ£o pode ser maior que a populaÃ§Ã£o em sorteios sem reposiÃ§Ã£o.")
   }
   
   indices <- sample(1:N, size = n_sorteio, replace = reposicao)
   amostra <- if (e_df) dados[indices, , drop = FALSE] else dados[indices]
   
   pct_amostrada <- (n_sorteio / N) * 100
-  tipo_rep <- if (reposicao) "Com reposição" else "Sem reposição"
+  tipo_rep <- if (reposicao) "Com reposiÃ§Ã£o" else "Sem reposiÃ§Ã£o"
   
-  .print_header("AMOSTRAGEM ALEATÓRIA SIMPLES")
-  cat(sprintf("População (N):       %s observações\n", format(N, big.mark = ".", decimal.mark = ",")))
-  cat(sprintf("Amostra Sorteada (n):%s observações (%s%% da população)\n",
+  .print_header("AMOSTRAGEM ALEATÃ“RIA SIMPLES")
+  cat(sprintf("PopulaÃ§Ã£o (N):       %s observaÃ§Ãµes\n", format(N, big.mark = ".", decimal.mark = ",")))
+  cat(sprintf("Amostra Sorteada (n):%s observaÃ§Ãµes (%s%% da populaÃ§Ã£o)\n",
               format(n_sorteio, big.mark = ".", decimal.mark = ","),
               .fmt_num(pct_amostrada, 1)))
   cat(sprintf("Tipo de Sorteio:     %s\n", tipo_rep))
   .print_footer()
   
-  amostra
+  invisible(amostra)
 }
 
 
-#' Amostragem Sistemática
+#' Amostragem SistemÃ¡tica
 #'
-#' Seleciona uma amostra sistemática a cada salto de k elementos a partir de um
+#' Seleciona uma amostra sistemÃ¡tica a cada salto de k elementos a partir de um
 #' ponto inicial sorteado aleatoriamente.
 #'
-#' @param dados Um data.frame ou vetor representando a população.
+#' @param dados Um data.frame ou vetor representando a populaÃ§Ã£o.
 #' @param n Quantidade desejada de elementos na amostra.
 #' @param salto Intervalo de salto (k). Se informado, seleciona 1 elemento a cada k.
-#' @param semente Número inteiro para semente aleatória.
+#' @param semente NÃºmero inteiro para semente aleatÃ³ria.
 #' @return Retorna o subconjunto de dados sorteado.
 #' @export
 #' @examples
@@ -149,11 +149,11 @@ amostra_sistematica <- function(dados, n = NULL, salto = NULL, semente = NULL) {
   }
   
   if (!is.null(salto)) {
-    if (salto <= 0 || salto > N) stop("O 'salto' deve ser maior que zero e menor que o tamanho da população.")
+    if (salto <= 0 || salto > N) stop("O 'salto' deve ser maior que zero e menor que o tamanho da populaÃ§Ã£o.")
     k <- round(salto)
     n_calculado <- floor(N / k)
   } else {
-    if (n <= 0 || n > N) stop("O tamanho da amostra (n) deve ser maior que zero e menor ou igual à população.")
+    if (n <= 0 || n > N) stop("O tamanho da amostra (n) deve ser maior que zero e menor ou igual Ã  populaÃ§Ã£o.")
     k <- floor(N / n)
     if (k < 1) k <- 1
     n_calculado <- n
@@ -166,31 +166,31 @@ amostra_sistematica <- function(dados, n = NULL, salto = NULL, semente = NULL) {
   n_real <- length(indices)
   pct_amostrada <- (n_real / N) * 100
   
-  .print_header("AMOSTRAGEM SISTEMÁTICA")
-  cat(sprintf("População (N):       %s observações\n", format(N, big.mark = ".", decimal.mark = ",")))
-  cat(sprintf("Amostra Sorteada (n):%s observações (%s%% da população)\n",
+  .print_header("AMOSTRAGEM SISTEMÃTICA")
+  cat(sprintf("PopulaÃ§Ã£o (N):       %s observaÃ§Ãµes\n", format(N, big.mark = ".", decimal.mark = ",")))
+  cat(sprintf("Amostra Sorteada (n):%s observaÃ§Ãµes (%s%% da populaÃ§Ã£o)\n",
               format(n_real, big.mark = ".", decimal.mark = ","),
               .fmt_num(pct_amostrada, 1)))
   cat(sprintf("Salto (Intervalo k): A cada %d elementos\n", k))
   cat(sprintf("Ponto de Partida:    Elemento %d (sorteado aleatoriamente entre 1 e %d)\n", ponto_partida, k))
   .print_footer()
   
-  amostra
+  invisible(amostra)
 }
 
 
 #' Amostragem Estratificada
 #'
 #' Seleciona uma amostra estratificada de um data.frame,
-#' com suporte a três tipos de alocação.
+#' com suporte a trÃªs tipos de alocaÃ§Ã£o.
 #'
-#' @param dados Um data.frame representando a população.
+#' @param dados Um data.frame representando a populaÃ§Ã£o.
 #' @param estrato Nome da coluna do estrato (sem aspas ou como string).
-#' @param n Quantidade total de observações desejadas na amostra.
-#' @param proporcao Proporção da população total a sortear (ex: 0.20 para 20%).
-#' @param alocacao Tipo de alocação: "proporcional" (padrão), "uniforme" ou "otima" (Neyman).
-#' @param variavel Nome da coluna numérica para cálculo do desvio-padrão por estrato (obrigatório para alocação ótima).
-#' @param semente Número inteiro para semente aleatória.
+#' @param n Quantidade total de observaÃ§Ãµes desejadas na amostra.
+#' @param proporcao ProporÃ§Ã£o da populaÃ§Ã£o total a sortear (ex: 0.20 para 20%).
+#' @param alocacao Tipo de alocaÃ§Ã£o: "proporcional" (padrÃ£o), "uniforme" ou "otima" (Neyman).
+#' @param variavel Nome da coluna numÃ©rica para cÃ¡lculo do desvio-padrÃ£o por estrato (obrigatÃ³rio para alocaÃ§Ã£o Ã³tima).
+#' @param semente NÃºmero inteiro para semente aleatÃ³ria.
 #' @return Retorna o data.frame com a amostra estratificada selecionada.
 #' @export
 #' @examples
@@ -224,15 +224,15 @@ amostra_estratificada <- function(dados, estrato, n = NULL, proporcao = NULL,
       estrato_vec <- estrato_val
       nome_exibicao <- estrato_nome
     } else {
-      stop(sprintf("A coluna de estrato '%s' não foi encontrada no banco de dados.", estrato_nome))
+      stop(sprintf("A coluna de estrato '%s' nÃ£o foi encontrada no banco de dados.", estrato_nome))
     }
   }
   
-  # Captura variável para alocação ótima (NSE)
+  # Captura variÃ¡vel para alocaÃ§Ã£o Ã³tima (NSE)
   if (alocacao == "otima") {
     var_sub <- substitute(variavel)
     if (is.null(var_sub) || identical(var_sub, quote(expr=))) {
-      stop("Para alocação ótima (Neyman), informe o parâmetro 'variavel' (coluna numérica para o cálculo do desvio-padrão).")
+      stop("Para alocaÃ§Ã£o Ã³tima (Neyman), informe o parÃ¢metro 'variavel' (coluna numÃ©rica para o cÃ¡lculo do desvio-padrÃ£o).")
     }
     var_nome <- deparse(var_sub)
     var_nome <- sub(".*\\$", "", var_nome)
@@ -245,10 +245,10 @@ amostra_estratificada <- function(dados, estrato, n = NULL, proporcao = NULL,
         var_vec <- dados[[var_val]]
         var_nome <- var_val
       } else {
-        stop(sprintf("A coluna '%s' não foi encontrada no banco de dados.", var_nome))
+        stop(sprintf("A coluna '%s' nÃ£o foi encontrada no banco de dados.", var_nome))
       }
     }
-    if (!is.numeric(var_vec)) stop(sprintf("A coluna '%s' deve ser numérica para alocação ótima.", var_nome))
+    if (!is.numeric(var_vec)) stop(sprintf("A coluna '%s' deve ser numÃ©rica para alocaÃ§Ã£o Ã³tima.", var_nome))
   }
   
   if (is.null(n) && is.null(proporcao)) {
@@ -271,7 +271,7 @@ amostra_estratificada <- function(dados, estrato, n = NULL, proporcao = NULL,
   tab_amostra_contagem <- integer(L)
   names(tab_amostra_contagem) <- niveis
   
-  # Calcula Nh e Sh por estrato (para ótima)
+  # Calcula Nh e Sh por estrato (para Ã³tima)
   Nh <- as.numeric(tab_pop)
   
   if (alocacao == "otima") {
@@ -284,7 +284,7 @@ amostra_estratificada <- function(dados, estrato, n = NULL, proporcao = NULL,
     NhSh <- Nh * Sh
     soma_NhSh <- sum(NhSh)
     if (soma_NhSh == 0) {
-      warning("Todos os estratos possuem desvio-padrão zero. Usando alocação proporcional.")
+      warning("Todos os estratos possuem desvio-padrÃ£o zero. Usando alocaÃ§Ã£o proporcional.")
       alocacao <- "proporcional"
     }
   }
@@ -313,34 +313,34 @@ amostra_estratificada <- function(dados, estrato, n = NULL, proporcao = NULL,
   amostra_final <- dados[indices_selecionados, , drop = FALSE]
   n_real_total <- length(indices_selecionados)
   
-  # Rótulo da alocação
+  # RÃ³tulo da alocaÃ§Ã£o
   rotulo_alocacao <- switch(alocacao,
                              proporcional = "Proporcional",
                              uniforme = "Uniforme (igual)",
-                             otima = sprintf("Ótima de Neyman (var: %s)", var_nome))
+                             otima = sprintf("Ã“tima de Neyman (var: %s)", var_nome))
   
-  # Impressão do painel e tabela comparativa
+  # ImpressÃ£o do painel e tabela comparativa
   tit <- sprintf("AMOSTRAGEM ESTRATIFICADA (Por: %s)", nome_exibicao)
   .print_header(tit)
   
-  cat(sprintf("População (N): %s | Amostra Sorteada (n): %s (%s%%)\n",
+  cat(sprintf("PopulaÃ§Ã£o (N): %s | Amostra Sorteada (n): %s (%s%%)\n",
               format(N, big.mark = ".", decimal.mark = ","),
               format(n_real_total, big.mark = ".", decimal.mark = ","),
               .fmt_num((n_real_total / N) * 100, 1)))
-  cat(sprintf("Alocação:      %s\n\n", rotulo_alocacao))
+  cat(sprintf("AlocaÃ§Ã£o:      %s\n\n", rotulo_alocacao))
   
   w_est <- max(14, max(nchar(niveis)), nchar("Estrato"), nchar("Total")) + 2
   w_col <- 15
   
   col_titulos <- c(
     .pad_string("Estrato", w_est, "left"),
-    .pad_string("População (%)", w_col, "center"),
+    .pad_string("PopulaÃ§Ã£o (%)", w_col, "center"),
     .pad_string("Amostra (N)", w_col, "center"),
     .pad_string("Amostra (%)", w_col, "center")
   )
   hdr <- paste(col_titulos, collapse = " ")
   cat("  ", hdr, "\n", sep = "")
-  cat("  ", paste(rep("─", nchar(hdr)), collapse = ""), "\n", sep = "")
+  cat("  ", paste(rep("â”€", nchar(hdr)), collapse = ""), "\n", sep = "")
   
   for (i in seq_along(niveis)) {
     niv <- niveis[i]
@@ -360,7 +360,7 @@ amostra_estratificada <- function(dados, estrato, n = NULL, proporcao = NULL,
     cat("  ", paste(col_valores, collapse = " "), "\n", sep = "")
   }
   
-  cat("  ", paste(rep("─", nchar(hdr)), collapse = ""), "\n", sep = "")
+  cat("  ", paste(rep("â”€", nchar(hdr)), collapse = ""), "\n", sep = "")
   col_totais <- c(
     .pad_string("Total", w_est, "left"),
     .pad_string(sprintf("%d (100,0%%)", N), w_col, "center"),
@@ -370,30 +370,30 @@ amostra_estratificada <- function(dados, estrato, n = NULL, proporcao = NULL,
   cat("  ", paste(col_totais, collapse = " "), "\n", sep = "")
   
   nota <- switch(alocacao,
-                  proporcional = "As proporções populacionais de cada estrato foram preservadas.",
-                  uniforme = "Cada estrato recebeu o mesmo número de observações, independente do seu tamanho.",
-                  otima = sprintf("A alocação priorizou estratos com maior variabilidade em '%s' (Neyman, 1934).", var_nome))
+                  proporcional = "As proporÃ§Ãµes populacionais de cada estrato foram preservadas.",
+                  uniforme = "Cada estrato recebeu o mesmo nÃºmero de observaÃ§Ãµes, independente do seu tamanho.",
+                  otima = sprintf("A alocaÃ§Ã£o priorizou estratos com maior variabilidade em '%s' (Neyman, 1934).", var_nome))
   cat(sprintf("\n  * %s\n", nota))
   .print_footer()
   
-  amostra_final
+  invisible(amostra_final)
 }
 
 
 #' Amostragem por Conglomerados (Clusters)
 #'
 #' Seleciona aleatoriamente conglomerados (grupos inteiros) de um data.frame,
-#' retornando todos os indivíduos pertencentes aos conglomerados sorteados.
+#' retornando todos os indivÃ­duos pertencentes aos conglomerados sorteados.
 #'
-#' @param dados Um data.frame representando a população.
+#' @param dados Um data.frame representando a populaÃ§Ã£o.
 #' @param conglomerado Nome da coluna do conglomerado (sem aspas ou como string).
 #' @param n_conglomerados Quantidade de conglomerados inteiros a sortear.
-#' @param proporcao Proporção dos conglomerados a sortear (ex: 0.20 para 20%).
-#' @param semente Número inteiro para semente aleatória.
+#' @param proporcao ProporÃ§Ã£o dos conglomerados a sortear (ex: 0.20 para 20%).
+#' @param semente NÃºmero inteiro para semente aleatÃ³ria.
 #' @return Retorna o data.frame contendo todos os dados dos conglomerados sorteados.
 #' @export
 #' @examples
-#' # Sorteia 2 espécies inteiras no banco iris:
+#' # Sorteia 2 espÃ©cies inteiras no banco iris:
 #' amostra_conglomerados(iris, conglomerado = Species, n_conglomerados = 2)
 amostra_conglomerados <- function(dados, conglomerado, n_conglomerados = NULL, proporcao = NULL, semente = NULL) {
   if (!is.data.frame(dados)) stop("O argumento 'dados' deve ser um data.frame.")
@@ -418,7 +418,7 @@ amostra_conglomerados <- function(dados, conglomerado, n_conglomerados = NULL, p
       cong_vec <- cong_val
       nome_exibicao <- cong_nome
     } else {
-      stop(sprintf("A coluna de conglomerado '%s' não foi encontrada no banco de dados.", cong_nome))
+      stop(sprintf("A coluna de conglomerado '%s' nÃ£o foi encontrada no banco de dados.", cong_nome))
     }
   }
   
@@ -455,13 +455,13 @@ amostra_conglomerados <- function(dados, conglomerado, n_conglomerados = NULL, p
   
   tit <- sprintf("AMOSTRAGEM POR CONGLOMERADOS (Por: %s)", nome_exibicao)
   .print_header(tit)
-  cat(sprintf("Total de Conglomerados na População: %d\n", M_congs))
+  cat(sprintf("Total de Conglomerados na PopulaÃ§Ã£o: %d\n", M_congs))
   cat(sprintf("Conglomerados Sorteados:             %d (%s%%)\n", m_sorteio, .fmt_num(pct_congs, 1)))
   cat(sprintf("Grupos Selecionados:                 %s\n", str_congs_sorteados))
-  cat(sprintf("Total de Indivíduos Amostrados:      %s observações (%s%% da população)\n",
+  cat(sprintf("Total de IndivÃ­duos Amostrados:      %s observaÃ§Ãµes (%s%% da populaÃ§Ã£o)\n",
               format(n_individuos, big.mark = ".", decimal.mark = ","),
               .fmt_num(pct_individuos, 1)))
   .print_footer()
   
-  amostra_final
+  invisible(amostra_final)
 }

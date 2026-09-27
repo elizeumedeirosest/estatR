@@ -85,7 +85,7 @@ teste_correlacao <- function(dados, var1, var2, metodo = c("pearson", "spearman"
   
   if (grafico) {
     if (exists("grafico_de_dispersao") && exists("meu_tema")) {
-      texto_legenda <- switch(metodo, pearson="R", spearman="rho", kendall="tau")
+      texto_legenda <- switch(metodo, pearson="R", spearman="\u03c1", kendall="\u03c4")
       anotacao <- sprintf("%s = %.2f\np %s", texto_legenda, r, ifelse(p < 0.001, "< 0,001", sprintf("= %.3f", p)))
       
       chamada_grafico <- bquote(
@@ -145,7 +145,7 @@ matriz_correlacao <- function(dados, variaveis = NULL, metodo = c("pearson", "sp
   
   if (exists("grafico_correlacao") && exists("meu_tema")) {
     tryCatch({
-      legenda_titulo <- switch(metodo, pearson="R", spearman="rho", kendall="tau")
+      legenda_titulo <- switch(metodo, pearson="R", spearman="\u03c1", kendall="\u03c4")
       
       p_corr <- ggplot2::ggplot() + 
                 grafico_correlacao(data = df_num, 
