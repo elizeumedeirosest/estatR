@@ -2,24 +2,24 @@
 % Please edit documentation in R/amostragem.R
 \name{amostra_sistematica}
 \alias{amostra_sistematica}
-\title{Amostragem Sistemática}
+\title{Amostragem SistemÃ¡tica}
 \usage{
 amostra_sistematica(dados, n = NULL, salto = NULL, semente = NULL)
 }
 \arguments{
-\item{dados}{Um data.frame ou vetor representando a população.}
+\item{dados}{Um data.frame ou vetor representando a populaÃ§Ã£o.}
 
 \item{n}{Quantidade desejada de elementos na amostra.}
 
 \item{salto}{Intervalo de salto (k). Se informado, seleciona 1 elemento a cada k.}
 
-\item{semente}{Número inteiro para semente aleatória.}
+\item{semente}{NÃºmero inteiro para semente aleatÃ³ria.}
 }
 \value{
 Retorna o subconjunto de dados sorteado.
 }
 \description{
-Seleciona uma amostra sistemática a cada salto de k elementos a partir de um
+Seleciona uma amostra sistemÃ¡tica a cada salto de k elementos a partir de um
 ponto inicial sorteado aleatoriamente.
 }
 \examples{

@@ -15,26 +15,26 @@ amostra_estratificada(
 )
 }
 \arguments{
-\item{dados}{Um data.frame representando a população.}
+\item{dados}{Um data.frame representando a populaÃ§Ã£o.}
 
 \item{estrato}{Nome da coluna do estrato (sem aspas ou como string).}
 
-\item{n}{Quantidade total de observações desejadas na amostra.}
+\item{n}{Quantidade total de observaÃ§Ãµes desejadas na amostra.}
 
-\item{proporcao}{Proporção da população total a sortear (ex: 0.20 para 20\%).}
+\item{proporcao}{ProporÃ§Ã£o da populaÃ§Ã£o total a sortear (ex: 0.20 para 20\%).}
 
-\item{alocacao}{Tipo de alocação: "proporcional" (padrão), "uniforme" ou "otima" (Neyman).}
+\item{alocacao}{Tipo de alocaÃ§Ã£o: "proporcional" (padrÃ£o), "uniforme" ou "otima" (Neyman).}
 
-\item{variavel}{Nome da coluna numérica para cálculo do desvio-padrão por estrato (obrigatório para alocação ótima).}
+\item{variavel}{Nome da coluna numÃ©rica para cÃ¡lculo do desvio-padrÃ£o por estrato (obrigatÃ³rio para alocaÃ§Ã£o Ã³tima).}
 
-\item{semente}{Número inteiro para semente aleatória.}
+\item{semente}{NÃºmero inteiro para semente aleatÃ³ria.}
 }
 \value{
 Retorna o data.frame com a amostra estratificada selecionada.
 }
 \description{
 Seleciona uma amostra estratificada de um data.frame,
-com suporte a três tipos de alocação.
+com suporte a trÃªs tipos de alocaÃ§Ã£o.
 }
 \examples{
 amostra_estratificada(iris, estrato = Species, n = 30)

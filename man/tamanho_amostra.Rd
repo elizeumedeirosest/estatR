@@ -2,7 +2,7 @@
 % Please edit documentation in R/amostragem.R
 \name{tamanho_amostra}
 \alias{tamanho_amostra}
-\title{Cálculo de Tamanho Amostral Ótimo}
+\title{CÃ¡lculo de Tamanho Amostral Ã“timo}
 \usage{
 tamanho_amostra(
   populacao = NULL,
@@ -13,27 +13,27 @@ tamanho_amostra(
 )
 }
 \arguments{
-\item{populacao}{Tamanho da população (N). Se NULL, considera população infinita.}
+\item{populacao}{Tamanho da populaÃ§Ã£o (N). Se NULL, considera populaÃ§Ã£o infinita.}
 
-\item{erro}{Margem de erro máxima permitida (ex: 0.05 para 5\% ou valor na mesma unidade da média).}
+\item{erro}{Margem de erro mÃ¡xima permitida (ex: 0.05 para 5\% ou valor na mesma unidade da mÃ©dia).}
 
-\item{confianca}{Nível de confiança da estimativa (padrão 0.95 para 95\%).}
+\item{confianca}{NÃ­vel de confianÃ§a da estimativa (padrÃ£o 0.95 para 95\%).}
 
-\item{proporcao}{Proporção esperada do evento (padrão 0.5 para cenário conservador de variância máxima).}
+\item{proporcao}{ProporÃ§Ã£o esperada do evento (padrÃ£o 0.5 para cenÃ¡rio conservador de variÃ¢ncia mÃ¡xima).}
 
-\item{desvio_padrao}{Desvio-padrão populacional ou preliminar. Se informado, calcula para média em vez de proporção.}
+\item{desvio_padrao}{Desvio-padrÃ£o populacional ou preliminar. Se informado, calcula para mÃ©dia em vez de proporÃ§Ã£o.}
 }
 \value{
-Retorna o número inteiro do tamanho da amostra (n) invisivelmente.
+Retorna o nÃºmero inteiro do tamanho da amostra (n) invisivelmente.
 }
 \description{
-Calcula o tamanho mínimo de amostra necessário para estimar uma proporção
-ou uma média com nível de confiança e margem de erro especificados.
+Calcula o tamanho mÃ­nimo de amostra necessÃ¡rio para estimar uma proporÃ§Ã£o
+ou uma mÃ©dia com nÃ­vel de confianÃ§a e margem de erro especificados.
 }
 \examples{
-# Para proporção com população de 50.000, 3\% de erro e 95\% de confiança:
+# Para proporÃ§Ã£o com populaÃ§Ã£o de 50.000, 3\% de erro e 95\% de confianÃ§a:
 tamanho_amostra(populacao = 50000, erro = 0.03, confianca = 0.95)
 
-# Para média com desvio-padrão de 15, erro de 2 unidades e confiança de 95\%:
+# Para mÃ©dia com desvio-padrÃ£o de 15, erro de 2 unidades e confianÃ§a de 95\%:
 tamanho_amostra(desvio_padrao = 15, erro = 2, confianca = 0.95)
 }

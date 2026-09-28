@@ -2,7 +2,7 @@
 % Please edit documentation in R/amostragem.R
 \name{amostra_aleatoria}
 \alias{amostra_aleatoria}
-\title{Amostragem Aleatória Simples (AAS)}
+\title{Amostragem AleatÃ³ria Simples (AAS)}
 \usage{
 amostra_aleatoria(
   dados,
@@ -13,22 +13,22 @@ amostra_aleatoria(
 )
 }
 \arguments{
-\item{dados}{Um data.frame ou vetor representando a população.}
+\item{dados}{Um data.frame ou vetor representando a populaÃ§Ã£o.}
 
-\item{n}{Quantidade exata de observações a sortear.}
+\item{n}{Quantidade exata de observaÃ§Ãµes a sortear.}
 
-\item{proporcao}{Proporção da população a sortear (ex: 0.20 para 20\%).}
+\item{proporcao}{ProporÃ§Ã£o da populaÃ§Ã£o a sortear (ex: 0.20 para 20\%).}
 
-\item{reposicao}{Lógico. Se TRUE, permite sortear o mesmo elemento mais de uma vez.}
+\item{reposicao}{LÃ³gico. Se TRUE, permite sortear o mesmo elemento mais de uma vez.}
 
-\item{semente}{Número inteiro para semente aleatória (garante reprodutibilidade).}
+\item{semente}{NÃºmero inteiro para semente aleatÃ³ria (garante reprodutibilidade).}
 }
 \value{
 Retorna o subconjunto de dados sorteado.
 }
 \description{
-Seleciona uma amostra aleatória simples de um conjunto de dados ou vetor,
-com ou sem reposição.
+Seleciona uma amostra aleatÃ³ria simples de um conjunto de dados ou vetor,
+com ou sem reposiÃ§Ã£o.
 }
 \examples{
 amostra_aleatoria(iris, n = 30)

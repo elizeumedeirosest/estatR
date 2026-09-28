@@ -161,6 +161,9 @@ diagnostico <- function(x) {
 #' ou para todo um conjunto de dados (data.frame).
 #'
 #' @param x Um vetor numérico, vetor categórico ou data.frame.
+#' @param por Variável de agrupamento. Aceita o nome da coluna sem aspas (ex: \code{por = cyl})
+#'   quando \code{x} for um data.frame, ou um vetor externo (ex: \code{por = mtcars$cyl})
+#'   quando \code{x} for um vetor. Quando informado, exibe estatísticas separadas por grupo.
 #' @param numericas Lógico. Se TRUE e x for um data.frame, exibe resumo das variáveis numéricas.
 #' @param categoricas Lógico. Se TRUE e x for um data.frame, exibe resumo das variáveis categóricas.
 #' @param decimais Quantidade de casas decimais para exibição (padrão 2).

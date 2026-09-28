@@ -13,24 +13,24 @@ amostra_conglomerados(
 )
 }
 \arguments{
-\item{dados}{Um data.frame representando a população.}
+\item{dados}{Um data.frame representando a populaÃ§Ã£o.}
 
 \item{conglomerado}{Nome da coluna do conglomerado (sem aspas ou como string).}
 
 \item{n_conglomerados}{Quantidade de conglomerados inteiros a sortear.}
 
-\item{proporcao}{Proporção dos conglomerados a sortear (ex: 0.20 para 20\%).}
+\item{proporcao}{ProporÃ§Ã£o dos conglomerados a sortear (ex: 0.20 para 20\%).}
 
-\item{semente}{Número inteiro para semente aleatória.}
+\item{semente}{NÃºmero inteiro para semente aleatÃ³ria.}
 }
 \value{
 Retorna o data.frame contendo todos os dados dos conglomerados sorteados.
 }
 \description{
 Seleciona aleatoriamente conglomerados (grupos inteiros) de um data.frame,
-retornando todos os indivíduos pertencentes aos conglomerados sorteados.
+retornando todos os indivÃ­duos pertencentes aos conglomerados sorteados.
 }
 \examples{
-# Sorteia 2 espécies inteiras no banco iris:
+# Sorteia 2 espÃ©cies inteiras no banco iris:
 amostra_conglomerados(iris, conglomerado = Species, n_conglomerados = 2)
 }

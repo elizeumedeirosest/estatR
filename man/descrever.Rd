@@ -9,6 +9,10 @@ descrever(x, por = NULL, numericas = TRUE, categoricas = TRUE, decimais = 2)
 \arguments{
 \item{x}{Um vetor numérico, vetor categórico ou data.frame.}
 
+\item{por}{Variável de agrupamento. Aceita o nome da coluna sem aspas (ex: \code{por = cyl})
+quando \code{x} for um data.frame, ou um vetor externo (ex: \code{por = mtcars$cyl})
+quando \code{x} for um vetor. Quando informado, exibe estatísticas separadas por grupo.}
+
 \item{numericas}{Lógico. Se TRUE e x for um data.frame, exibe resumo das variáveis numéricas.}
 
 \item{categoricas}{Lógico. Se TRUE e x for um data.frame, exibe resumo das variáveis categóricas.}
