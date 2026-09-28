@@ -74,10 +74,49 @@ diagnostico <- function(x) {
   fmt_secao("Numéricas", count_num, n_cols, names_num)
   fmt_secao("Categóricas", count_cat, n_cols, names_cat)
   
-  if (count_dt > 0) fmt_secao("Datas/Tempo", count_dt, n_cols, names_dt)
-  if (count_log > 0) fmt_secao("Lógicas", count_log, n_cols, names_log)
-  if (count_out > 0) fmt_secao("Outras", count_out, n_cols, names_out)
-  
+  if (count_dt  > 0) fmt_secao("Datas/Tempo", count_dt,  n_cols, names_dt)
+  if (count_log > 0) fmt_secao("Lógicas",     count_log, n_cols, names_log)
+  if (count_out > 0) fmt_secao("Outras",       count_out, n_cols, names_out)
+
+  # Bloco: Estrutura detalhada por variável
+  cat("\033[1m▶ Estrutura das Variáveis\033[0m\n\n")
+
+  .tipo_portugues <- function(col) {
+    cl <- class(col)
+    if (inherits(col, "POSIXct") || inherits(col, "POSIXlt")) return("Data/Hora")
+    if (inherits(col, "Date"))      return("Data")
+    if (inherits(col, "integer"))   return("Inteiro")
+    if (inherits(col, "numeric"))   return("Numérico")
+    if (inherits(col, "factor"))    return("Fator")
+    if (inherits(col, "character")) return("Caractere")
+    if (inherits(col, "logical"))   return("Lógico")
+    return(cl[1])
+  }
+
+  w_var  <- max(nchar("Variável"),  max(nchar(names(dados)))) + 2
+  w_tipo <- max(nchar("Tipo"), 12) + 2
+  w_na   <- max(nchar("NAs"), 6)
+
+  hdr_est <- paste(
+    .pad_string("Variável", w_var,  "left"),
+    .pad_string("Tipo",     w_tipo, "left"),
+    .pad_string("NAs",      w_na,   "right")
+  )
+  cat("  ", hdr_est, "\n", sep = "")
+  cat("  ", paste(rep("─", nchar(hdr_est)), collapse = ""), "\n", sep = "")
+
+  for (nm in names(dados)) {
+    tipo_str <- .tipo_portugues(dados[[nm]])
+    na_str   <- as.character(sum(is.na(dados[[nm]])))
+    linha <- paste(
+      .pad_string(nm,       w_var,  "left"),
+      .pad_string(tipo_str, w_tipo, "left"),
+      .pad_string(na_str,   w_na,   "right")
+    )
+    cat("  ", linha, "\n", sep = "")
+  }
+  cat("  ", paste(rep("─", nchar(hdr_est)), collapse = ""), "\n\n", sep = "")
+
   .print_footer()
   
   invisible(dados)
@@ -1013,4 +1052,156 @@ decis <- function(x, decimais = 2) {
   
   .print_footer()
   invisible(d_vals)
+}
+
+
+#' Análise de Outliers pelo Método IQR
+#'
+#' Detecta valores discrepantes (outliers) em um vetor numérico ou em todas as
+#' variáveis numéricas de um data.frame, usando o critério do Intervalo
+#' Interquartil (IQR): valores abaixo de Q1 - 1,5×IQR ou acima de Q3 + 1,5×IQR.
+#'
+#' @param x Um vetor numérico ou data.frame.
+#' @param decimais Casas decimais para exibição dos limites e valores (padrão 2).
+#' @return Retorna invisivelmente um data.frame com as colunas: variavel,
+#'   n_outliers, pct_outliers, valores_abaixo, valores_acima.
+#' @export
+outliers <- function(x, decimais = 2) {
+  var_expr <- deparse(substitute(x))
+  var_nome <- sub(".*\\$", "", var_expr)
+
+  .outliers_vetor <- function(vec, nome) {
+    vec_c <- vec[!is.na(vec)]
+    n     <- length(vec)
+    q1    <- quantile(vec_c, 0.25)
+    q3    <- quantile(vec_c, 0.75)
+    iqr   <- q3 - q1
+    li    <- q1 - 1.5 * iqr
+    ls    <- q3 + 1.5 * iqr
+
+    abaixo <- sort(vec_c[vec_c < li])
+    acima  <- sort(vec_c[vec_c > ls])
+    n_out  <- length(abaixo) + length(acima)
+    n_sem  <- n - n_out
+    pct_out <- n_out / n
+    pct_sem <- n_sem / n
+
+    tit <- sprintf("ANÁLISE DE OUTLIERS (%s)", nome)
+    .print_header(tit)
+    cat(sprintf("  Limite inferior (LI): %s  |  Limite superior (LS): %s\n\n",
+                .fmt_num(li, decimais), .fmt_num(ls, decimais)))
+
+    if (n_out == 0) {
+      cat("  Nenhum outlier detectado pelo método IQR.\n\n")
+    } else {
+      w  <- c(res = 24, n = 12, pct = 14)
+      hdr <- paste(
+        .pad_string("Resultado",   w["res"], "left"),
+        .pad_string("Contagem",    w["n"],   "center"),
+        .pad_string("Proporção",   w["pct"], "center")
+      )
+      sep <- paste(rep("─", nchar(hdr)), collapse = "")
+      cat("  ", hdr, "\n", sep = "")
+      cat("  ", sep, "\n", sep = "")
+      cat("  ", paste(.pad_string("Sem outliers",         w["res"], "left"),
+                      .pad_string(as.character(n_sem),    w["n"],   "center"),
+                      .pad_string(.fmt_pct(pct_sem, 1),   w["pct"], "center")), "\n", sep = "")
+      cat("  ", paste(.pad_string("Outliers detectados",  w["res"], "left"),
+                      .pad_string(as.character(n_out),    w["n"],   "center"),
+                      .pad_string(.fmt_pct(pct_out, 1),   w["pct"], "center")), "\n", sep = "")
+      cat("  ", sep, "\n", sep = "")
+      cat("  ", paste(.pad_string("Total",                w["res"], "left"),
+                      .pad_string(as.character(n),        w["n"],   "center"),
+                      .pad_string("100,0%",               w["pct"], "center")), "\n", sep = "")
+
+      cat("\n  Valores identificados como outliers:\n")
+      w_col <- 40
+      hdr_v <- paste(.pad_string("Abaixo do LI", w_col, "left"),
+                     .pad_string("Acima do LS",  w_col, "right"))
+      sep_v <- paste(rep("─", nchar(hdr_v)), collapse = "")
+      cat("  ", sep_v, "\n", sep = "")
+      cat("  ", hdr_v, "\n", sep = "")
+      cat("  ", sep_v, "\n", sep = "")
+      n_rows <- max(length(abaixo), length(acima))
+      for (i in seq_len(n_rows)) {
+        val_abaixo <- if (i <= length(abaixo)) .fmt_num(abaixo[i], decimais) else ""
+        val_acima  <- if (i <= length(acima))  .fmt_num(acima[i],  decimais) else ""
+        cat("  ", paste(.pad_string(val_abaixo, w_col, "left"),
+                        .pad_string(val_acima,  w_col, "right")), "\n", sep = "")
+      }
+      cat("\n")
+    }
+
+    .print_footer()
+    invisible(data.frame(
+      variavel       = nome,
+      n_outliers     = n_out,
+      pct_outliers   = round(pct_out * 100, 1),
+      valores_abaixo = I(list(abaixo)),
+      valores_acima  = I(list(acima))
+    ))
+  }
+
+  if (is.data.frame(x)) {
+    nums <- names(x)[sapply(x, is.numeric)]
+    if (length(nums) == 0) stop("Nenhuma variável numérica encontrada no data.frame.")
+    resultado <- lapply(nums, function(nm) .outliers_vetor(x[[nm]], nm))
+    invisible(do.call(rbind, resultado))
+  } else if (is.numeric(x)) {
+    .outliers_vetor(x, var_nome)
+  } else {
+    stop("O argumento 'x' deve ser um vetor numérico ou um data.frame.")
+  }
+}
+
+
+#' Percentis da Distribuição
+#'
+#' Calcula e exibe os percentis de um vetor numérico. Por padrão exibe
+#' P5, P10, P25, P50, P75, P90 e P95, mas o usuário pode definir quais
+#' percentis quer calcular pelo parâmetro \code{p}.
+#'
+#' @param x Vetor numérico.
+#' @param p Vetor numérico com os percentis desejados (entre 0 e 100). Padrão: c(5, 10, 25, 50, 75, 90, 95).
+#' @param decimais Casas decimais (padrão 2).
+#' @return Retorna invisivelmente um vetor nomeado com os valores dos percentis.
+#' @export
+percentis <- function(x, p = c(5, 10, 25, 50, 75, 90, 95), decimais = 2) {
+  if (!is.numeric(x)) stop("O argumento 'x' deve ser numérico.")
+  if (any(p < 0 | p > 100)) stop("Os valores de 'p' devem estar entre 0 e 100.")
+
+  var_expr <- deparse(substitute(x))
+  var_nome <- sub(".*\\$", "", var_expr)
+
+  x_c    <- x[!is.na(x)]
+  probs  <- p / 100
+  p_vals <- quantile(x_c, probs = probs)
+  nomes  <- paste0("P", p)
+
+  tit <- if (!is.null(var_nome) && nzchar(var_nome) && !identical(var_nome, "x")) {
+    sprintf("PERCENTIS (%s)", var_nome)
+  } else {
+    "PERCENTIS"
+  }
+  .print_header(tit)
+
+  w_label <- max(nchar("Percentil"), max(nchar(nomes))) + 2
+  w_val   <- max(nchar("Valor"), 8) + 2
+
+  hdr <- paste(.pad_string("Percentil", w_label, "left"),
+               .pad_string("Valor",     w_val,   "right"))
+  sep <- paste(rep("─", nchar(hdr)), collapse = "")
+  cat("  ", hdr, "\n", sep = "")
+  cat("  ", sep, "\n", sep = "")
+
+  for (i in seq_along(p_vals)) {
+    linha <- paste(.pad_string(nomes[i],                   w_label, "left"),
+                   .pad_string(.fmt_num(p_vals[i], decimais), w_val, "right"))
+    cat("  ", linha, "\n", sep = "")
+  }
+  cat("  ", sep, "\n", sep = "")
+
+  .print_footer()
+  names(p_vals) <- nomes
+  invisible(p_vals)
 }
