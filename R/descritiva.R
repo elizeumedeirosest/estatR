@@ -284,12 +284,13 @@ descrever <- function(x, por = NULL, numericas = TRUE, categoricas = TRUE, decim
   }
   
   w_grp <- max(14, max(nchar(niveis)), nchar(nome_grupo), nchar("Total")) + 2
-  w_num <- c(media = 7, dp = 6, min = 6, q1 = 6, q2 = 6, q3 = 6, max = 6, assim = 6, curt = 6)
+  w_num <- c(media = 7, dp = 6, cv = 7, min = 6, q1 = 6, q2 = 6, q3 = 6, max = 6, assim = 6, curt = 6)
   
   col_titulos <- c(
     .pad_string(nome_grupo, w_grp, "left"),
     .pad_string("Média", w_num["media"], "center"),
     .pad_string("DP", w_num["dp"], "center"),
+    .pad_string("CV(%)", w_num["cv"], "center"),
     .pad_string("Mín", w_num["min"], "center"),
     .pad_string("Q1", w_num["q1"], "center"),
     .pad_string("Q2", w_num["q2"], "center"),
@@ -306,6 +307,7 @@ descrever <- function(x, por = NULL, numericas = TRUE, categoricas = TRUE, decim
     if (length(vals) == 0) return(NULL)
     media <- mean(vals)
     sd_val <- sd(vals)
+    cv <- if (media != 0) (sd_val / media) * 100 else NA
     min_val <- min(vals)
     q1 <- quantile(vals, 0.25)
     med <- median(vals)
@@ -315,11 +317,13 @@ descrever <- function(x, por = NULL, numericas = TRUE, categoricas = TRUE, decim
     curt <- .calcular_curtose(vals)
     
     rot_trunc <- if (nchar(rotulo) > w_grp) paste0(substr(rotulo, 1, w_grp - 2), "..") else rotulo
+    cv_str <- if (!is.na(cv)) .fmt_num(cv, 1) else "-"
     
     c(
       .pad_string(rot_trunc, w_grp, "left"),
       .pad_string(.fmt_num(media, decimais), w_num["media"], "center"),
       .pad_string(.fmt_num(sd_val, decimais), w_num["dp"], "center"),
+      .pad_string(cv_str, w_num["cv"], "center"),
       .pad_string(.fmt_num(min_val, decimais), w_num["min"], "center"),
       .pad_string(.fmt_num(q1, decimais), w_num["q1"], "center"),
       .pad_string(.fmt_num(med, decimais), w_num["q2"], "center"),
@@ -387,13 +391,14 @@ descrever <- function(x, por = NULL, numericas = TRUE, categoricas = TRUE, decim
     cat("\033[1m▶ VARIÁVEIS NUMÉRICAS\033[0m\n\n")
     
     # Larguras compactas (sem N e sem NA)
-    w_num <- c(var = 16, media = 7, dp = 6, min = 6, q1 = 6, q2 = 6, q3 = 6, max = 6, assim = 6, curt = 6)
+    w_num <- c(var = 16, media = 7, dp = 6, cv = 7, min = 6, q1 = 6, q2 = 6, q3 = 6, max = 6, assim = 6, curt = 6)
     
     # Cabeçalho da Tabela (valores centralizados sob o cabeçalho)
     col_titulos <- c(
       .pad_string("Variável", w_num["var"], "left"),
       .pad_string("Média", w_num["media"], "center"),
       .pad_string("DP", w_num["dp"], "center"),
+      .pad_string("CV(%)", w_num["cv"], "center"),
       .pad_string("Mín", w_num["min"], "center"),
       .pad_string("Q1", w_num["q1"], "center"),
       .pad_string("Q2", w_num["q2"], "center"),
@@ -412,6 +417,7 @@ descrever <- function(x, por = NULL, numericas = TRUE, categoricas = TRUE, decim
       
       media <- mean(v_clean)
       sd_val <- sd(v_clean)
+      cv <- if (media != 0) (sd_val / media) * 100 else NA
       min_val <- min(v_clean)
       q1 <- quantile(v_clean, 0.25)
       med <- median(v_clean)
@@ -421,11 +427,13 @@ descrever <- function(x, por = NULL, numericas = TRUE, categoricas = TRUE, decim
       curt <- .calcular_curtose(v_clean)
       
       nome_trunc <- if (nchar(col) > w_num["var"]) paste0(substr(col, 1, w_num["var"] - 2), "..") else col
+      cv_str <- if (!is.na(cv)) .fmt_num(cv, 1) else "-"
       
       col_valores <- c(
         .pad_string(nome_trunc, w_num["var"], "left"),
         .pad_string(.fmt_num(media, decimais), w_num["media"], "center"),
         .pad_string(.fmt_num(sd_val, decimais), w_num["dp"], "center"),
+        .pad_string(cv_str, w_num["cv"], "center"),
         .pad_string(.fmt_num(min_val, decimais), w_num["min"], "center"),
         .pad_string(.fmt_num(q1, decimais), w_num["q1"], "center"),
         .pad_string(.fmt_num(med, decimais), w_num["q2"], "center"),
