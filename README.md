@@ -24,6 +24,21 @@ devtools::install_github("elizeumedeirosest/estatR")
 
 ## Módulos Disponíveis
 
+### 🔍 Diagnóstico de Dados
+
+Antes de qualquer análise, inspecione a estrutura e a saúde do seu banco de dados, incluindo a detecção automática de NAs ocultos (como `-99` ou textos vazios).
+
+```r
+# Painel completo e mesclado (Estrutura + Valores Ausentes)
+diagnostico(mtcars)
+
+# Funções fragmentadas (caso queira visualizar separadamente)
+estrutura(mtcars)
+valores_ausentes(mtcars)
+```
+
+---
+
 ### 📊 Estatística Descritiva
 
 ```r
