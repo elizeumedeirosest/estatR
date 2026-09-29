@@ -2,24 +2,21 @@
 % Please edit documentation in R/descritiva.R
 \name{descrever}
 \alias{descrever}
-\title{Descrição Estatística Completa}
+\title{Resumo Estatistico de Variaveis ou Banco de Dados}
 \usage{
 descrever(x, por = NULL, numericas = TRUE, categoricas = TRUE, decimais = 2)
 }
 \arguments{
-\item{x}{Um vetor numérico, vetor categórico ou data.frame.}
+\item{x}{Um data frame ou vetor.}
 
-\item{por}{Variável de agrupamento. Aceita o nome da coluna sem aspas (ex: \code{por = cyl})
-quando \code{x} for um data.frame, ou um vetor externo (ex: \code{por = mtcars$cyl})
-quando \code{x} for um vetor. Quando informado, exibe estatísticas separadas por grupo.}
+\item{por}{Variavel categorica para agrupar o resumo.}
 
-\item{numericas}{Lógico. Se TRUE e x for um data.frame, exibe resumo das variáveis numéricas.}
+\item{numericas}{Logico. Se TRUE, exibe numericas.}
 
-\item{categoricas}{Lógico. Se TRUE e x for um data.frame, exibe resumo das variáveis categóricas.}
+\item{categoricas}{Logico. Se TRUE, exibe categoricas.}
 
-\item{decimais}{Quantidade de casas decimais para exibição (padrão 2).}
+\item{decimais}{Casas decimais (padrao 2).}
 }
 \description{
-Exibe resumos estatísticos detalhados para vetores numéricos, categóricos
-ou para todo um conjunto de dados (data.frame).
+Gera um resumo estatistico completo.
 }
