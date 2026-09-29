@@ -27,19 +27,33 @@ devtools::install_github("elizeumedeirosest/estatR")
 ### 📊 Estatística Descritiva
 
 ```r
-# Visão geral (diagnóstico) de um banco ou variável
+# Visão geral (diagnóstico) de um banco ou variável (com NAs e tipos)
 diagnostico(mtcars)
 diagnostico(mtcars$mpg)
 
-# Estatísticas resumidas e tabelas de frequência (Polimórfica)
-descrever(mtcars)           # Resumo completo do banco
-descrever(mtcars$mpg)       # Estatísticas da variável numérica
-descrever(mtcars$cyl)       # Tabela de frequência da variável categórica
-descrever(mtcars$mpg, por = mtcars$cyl) # Numérica agrupada
+# Estatísticas resumidas completas (Polimórfica)
+descrever(mtcars)                        # Resumo completo do banco
+descrever(mtcars$mpg)                    # Estatísticas da variável numérica
+descrever(mtcars$cyl)                    # Tabela de frequência da variável categórica
+descrever(mtcars$mpg, por = mtcars$cyl)  # Numérica agrupada
 
 # Tabela de contingência (Cruzamento de duas variáveis)
 tabela_contingencia(mtcars, cyl, am)
 tabela_contingencia(mtcars, cyl, am, proporcao = "linha")
+
+# Medidas Específicas
+med_tend_central(mtcars$mpg)  # Média, Mediana, Moda
+med_dispersao(mtcars$mpg)     # Variância, DP, Erro Padrão, CV, Amplitude
+med_forma(mtcars$mpg)         # Assimetria e Curtose (com interpretação)
+
+# Separatrizes (Medidas de Posição)
+quartis(mtcars$mpg)
+quintis(mtcars$mpg)
+decis(mtcars$mpg)
+percentis(mtcars$mpg, p = c(5, 10, 50, 90, 95))
+
+# Detecção de Anomalias
+outliers(mtcars$mpg)          # Limites, quantidade de outliers e lista (método IQR)
 ```
 
 ---
