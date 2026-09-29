@@ -2,7 +2,7 @@
 % Please edit documentation in R/correlacao.R
 \name{matriz_correlacao}
 \alias{matriz_correlacao}
-\title{Matriz de Correlação (Correlograma)}
+\title{Matriz de Correlação (Tabela e Correlograma)}
 \usage{
 matriz_correlacao(
   dados,
@@ -19,9 +19,9 @@ matriz_correlacao(
 \item{metodo}{Método ("pearson", "spearman", "kendall")}
 
 \item{top}{Opcional. Se definido (ex: 5), exibe no gráfico apenas as variáveis envolvidas
-nos 'top' pares com maior correlação absoluta, ajudando a limpar gráficos muito grandes.}
+nos 'top' pares com maior correlação absoluta.}
 }
 \description{
-Plota o correlograma de todas as variáveis numéricas do data frame.
-Permite filtrar pelas variáveis mais correlacionadas para simplificar visualizações densas.
+Gera e imprime no console a matriz de correlação completa (com p-valores em asteriscos)
+e plota o correlograma.
 }

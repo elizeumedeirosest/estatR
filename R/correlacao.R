@@ -1,96 +1,21 @@
-#' @title Teste de Correlação (Bivariada ou Multivariada)
-#' @description Realiza o teste de correlação. Se duas variáveis forem fornecidas, faz o teste
-#'   detalhado entre elas. Se nenhuma variável for fornecida, calcula a correlação entre todas
-#'   as variáveis numéricas do banco de dados e exibe os pares mais correlacionados.
+#' @title Teste de Correlação (Bivariada)
+#' @description Realiza o teste de correlação entre duas variáveis.
 #' @param dados Data frame
-#' @param var1 Variável 1 (opcional, sem aspas)
-#' @param var2 Variável 2 (opcional, sem aspas)
+#' @param var1 Variável 1 (sem aspas)
+#' @param var2 Variável 2 (sem aspas)
 #' @param metodo Método ("pearson", "spearman", "kendall")
-#' @param top Quando \code{var1} e \code{var2} não são fornecidos, especifica o número de pares
-#'   mais correlacionados a serem exibidos no console (padrão 10).
-#' @param grafico Lógico. Se TRUE e for um teste bivariado, exibe o gráfico de dispersão.
+#' @param grafico Lógico. Se TRUE, exibe o gráfico de dispersão.
 #' @export
-teste_correlacao <- function(dados, var1 = NULL, var2 = NULL, metodo = c("pearson", "spearman", "kendall"), 
-                             top = 10, grafico = TRUE) {
+teste_correlacao <- function(dados, var1, var2, metodo = c("pearson", "spearman", "kendall"), grafico = TRUE) {
   metodo <- match.arg(metodo)
   
   v1_expr <- rlang::enquo(var1)
   v2_expr <- rlang::enquo(var2)
   
-  v1_nulo <- rlang::quo_is_null(v1_expr)
-  v2_nulo <- rlang::quo_is_null(v2_expr)
-  
-  # ── Helper de formatação ────────────────────────────────────────────────
-  formata_p <- function(p) {
-    if (is.na(p)) return("NA")
-    if (p < 0.001) return("< 0.001")
-    return(formatC(p, format = "f", digits = 3, decimal.mark = ","))
-  }
-  asterisk <- function(p) {
-    if (is.na(p) || p >= 0.10) return("")
-    if (p < 0.01) return("***")
-    if (p < 0.05) return("**")
-    return("*")
+  if (rlang::quo_is_missing(v1_expr) || rlang::quo_is_missing(v2_expr)) {
+    stop("Forne\u00e7a 'var1' e 'var2'. Para a matriz completa, use matriz_correlacao(dados).")
   }
   
-  linha <- paste0("\n", strrep("\u2500", 65), "\n\n")
-  
-  # ── ROTA MULTIVARIADA (Toda a base) ───────────────────────────────────────
-  if (v1_nulo && v2_nulo) {
-    df_num <- dados[, sapply(dados, is.numeric), drop = FALSE]
-    if (ncol(df_num) < 2) stop("O banco precisa ter pelo menos 2 vari\u00e1veis num\u00e9ricas.")
-    
-    vars <- names(df_num)
-    k <- length(vars)
-    res_list <- list()
-    
-    for (i in 1:(k-1)) {
-      for (j in (i+1):k) {
-        x_val <- df_num[[i]]
-        y_val <- df_num[[j]]
-        idx <- complete.cases(x_val, y_val)
-        
-        if (sum(idx) > 2) {
-          ct <- suppressWarnings(cor.test(x_val[idx], y_val[idx], method = metodo, exact = FALSE))
-          res_list[[length(res_list) + 1]] <- data.frame(
-            Var1 = vars[i], Var2 = vars[j],
-            r = ct$estimate, p = ct$p.value,
-            row.names = NULL, stringsAsFactors = FALSE
-          )
-        }
-      }
-    }
-    
-    res_df <- do.call(rbind, res_list)
-    res_df <- res_df[order(abs(res_df$r), decreasing = TRUE), ]
-    
-    n_show <- min(top, nrow(res_df))
-    df_show <- res_df[1:n_show, ]
-    
-    cat("\n\u2500\u2500 MATRIZ DE CORRELA\u00c7\u00c3O (RANKING) ", strrep("\u2500", 33), "\n")
-    cat(sprintf("  M\u00e9todo: %s   |   Total de pares testados: %d\n\n", tools::toTitleCase(metodo), nrow(res_df)))
-    cat(sprintf("  \u25b6 TOP %d PARES MAIS CORRELACIONADOS\n", n_show))
-    
-    hdr <- sprintf("  %-15s %-15s %-12s %s", "Vari\u00e1vel 1", "Vari\u00e1vel 2", "Correla\u00e7\u00e3o", "p-valor")
-    cat("  ", strrep("\u2500", 63), "\n", sep = "")
-    cat(hdr, "\n")
-    cat("  ", strrep("\u2500", 63), "\n", sep = "")
-    
-    for (i in 1:nrow(df_show)) {
-      v1_txt <- substr(df_show$Var1[i], 1, 14)
-      v2_txt <- substr(df_show$Var2[i], 1, 14)
-      r_txt  <- formatC(df_show$r[i], format="f", digits=3, decimal.mark=",")
-      p_txt  <- paste(formata_p(df_show$p[i]), asterisk(df_show$p[i]))
-      
-      cat(sprintf("  %-15s %-15s %-12s %s\n", v1_txt, v2_txt, r_txt, p_txt))
-    }
-    cat("  ", strrep("\u2500", 63), "\n", sep = "")
-    cat("  Signific\u00e2ncia: *** p < 0.01   ** p < 0.05   * p < 0.10\n\n")
-    
-    return(invisible(res_df))
-  }
-  
-  # ── ROTA BIVARIADA (Duas variáveis) ───────────────────────────────────────
   v1_str <- rlang::as_name(v1_expr)
   v2_str <- rlang::as_name(v2_expr)
   
@@ -104,6 +29,17 @@ teste_correlacao <- function(dados, var1 = NULL, var2 = NULL, metodo = c("pearso
   res <- cor.test(x, y, method = metodo, exact = FALSE)
   r <- res$estimate; p <- res$p.value
   
+  formata_p <- function(p) {
+    if (is.na(p)) return("NA")
+    if (p < 0.001) return("< 0.001")
+    return(formatC(p, format = "f", digits = 3, decimal.mark = ","))
+  }
+  asterisk <- function(p) {
+    if (is.na(p) || p >= 0.10) return("")
+    if (p < 0.01) return("***")
+    if (p < 0.05) return("**")
+    return("*")
+  }
   centraliza <- function(val, w) {
     s <- trimws(as.character(val))
     pad <- w - nchar(s)
@@ -176,14 +112,14 @@ teste_correlacao <- function(dados, var1 = NULL, var2 = NULL, metodo = c("pearso
   invisible(res)
 }
 
-#' @title Matriz de Correlação (Correlograma)
-#' @description Plota o correlograma de todas as variáveis numéricas do data frame.
-#'   Permite filtrar pelas variáveis mais correlacionadas para simplificar visualizações densas.
+#' @title Matriz de Correlação (Tabela e Correlograma)
+#' @description Gera e imprime no console a matriz de correlação completa (com p-valores em asteriscos)
+#'   e plota o correlograma.
 #' @param dados Data frame (usa todas as variáveis numéricas automaticamente)
 #' @param variaveis Vetor opcional com nomes específicos de variáveis para incluir.
 #' @param metodo Método ("pearson", "spearman", "kendall")
 #' @param top Opcional. Se definido (ex: 5), exibe no gráfico apenas as variáveis envolvidas
-#'   nos 'top' pares com maior correlação absoluta, ajudando a limpar gráficos muito grandes.
+#'   nos 'top' pares com maior correlação absoluta.
 #' @export
 matriz_correlacao <- function(dados, variaveis = NULL, metodo = c("pearson", "spearman", "kendall"), top = NULL) {
   metodo <- match.arg(metodo)
@@ -195,9 +131,81 @@ matriz_correlacao <- function(dados, variaveis = NULL, metodo = c("pearson", "sp
   
   if (ncol(df_num) < 2) stop("S\u00e3o necess\u00e1rias pelo menos 2 vari\u00e1veis num\u00e9ricas para correla\u00e7\u00e3o.")
   
-  # Filtragem do Top N mais correlacionados
+  # ── Cálculo da Matriz de Correlação e p-valores ───────────────────────────
+  k <- ncol(df_num)
+  vars <- names(df_num)
+  
+  mat_r <- cor(df_num, method = metodo, use = "pairwise.complete.obs")
+  mat_p <- matrix(NA, k, k)
+  
+  for (i in 1:(k-1)) {
+    for (j in (i+1):k) {
+      x_val <- df_num[[i]]; y_val <- df_num[[j]]
+      idx <- complete.cases(x_val, y_val)
+      if (sum(idx) > 2) {
+        ct <- suppressWarnings(cor.test(x_val[idx], y_val[idx], method = metodo, exact = FALSE))
+        mat_p[i, j] <- ct$p.value
+        mat_p[j, i] <- ct$p.value
+      }
+    }
+  }
+  
+  asterisk <- function(p) {
+    if (is.na(p) || p >= 0.10) return("")
+    if (p < 0.01) return("***")
+    if (p < 0.05) return("**")
+    return("*")
+  }
+  
+  pad <- function(s, w, align = "left") {
+    s <- as.character(s); sp <- w - nchar(s)
+    if (sp <= 0) return(s)
+    if (align == "right")  return(paste0(strrep(" ", sp), s))
+    if (align == "center") return(paste0(strrep(" ", floor(sp/2)), s, strrep(" ", ceiling(sp/2))))
+    paste0(s, strrep(" ", sp))
+  }
+  
+  # ── Impressão no Console (Tabela Arrumada) ────────────────────────────────
+  cat(sprintf("\n\u2500\u2500 MATRIZ DE CORRELA\u00c7\u00c3O %s\n", strrep("\u2500", 52)))
+  cat(sprintf("  M\u00e9todo: %s\n\n", tools::toTitleCase(metodo)))
+  
+  # Preparando a tabela de texto
+  # Para não quebrar a tela, se houver muitas variáveis, avisamos e truncamos ou imprimimos tudo.
+  # Geralmente, 10 variáveis cabem bem se usarmos 8 caracteres por coluna.
+  vars_rotulos <- sapply(vars, function(x) substr(x, 1, 8))
+  w_var <- max(nchar(vars_rotulos))
+  w_col <- 10 # Largura das colunas numéricas
+  
+  hdr_linha <- paste0("  ", pad("Vari\u00e1vel", w_var, "left"), " |")
+  for (v in vars_rotulos) {
+    hdr_linha <- paste0(hdr_linha, pad(v, w_col, "center"))
+  }
+  
+  w_total <- nchar(hdr_linha) - 2
+  cat("  ", strrep("\u2500", w_total), "\n", sep = "")
+  cat(hdr_linha, "\n")
+  cat("  ", strrep("\u2500", w_total), "\n", sep = "")
+  
+  for (i in 1:k) {
+    linha <- paste0("  ", pad(vars_rotulos[i], w_var, "left"), " |")
+    for (j in 1:k) {
+      if (i == j) {
+        val_txt <- "1.00"
+      } else {
+        r_txt <- formatC(mat_r[i, j], format="f", digits=2, decimal.mark=".") # Usando ponto para alinhar visualmente
+        ast <- asterisk(mat_p[i, j])
+        val_txt <- paste0(r_txt, ast)
+      }
+      linha <- paste0(linha, pad(val_txt, w_col, "center"))
+    }
+    cat(linha, "\n")
+  }
+  cat("  ", strrep("\u2500", w_total), "\n", sep = "")
+  cat("  Signific\u00e2ncia: *** p < 0.01   ** p < 0.05   * p < 0.10\n\n")
+  
+  # ── Gráfico (Correlograma com filtro top opcional) ────────────────────────
   if (!is.null(top) && is.numeric(top) && top > 0) {
-    mat_tmp <- cor(df_num, method = metodo, use = "pairwise.complete.obs")
+    mat_tmp <- mat_r
     mat_tmp[lower.tri(mat_tmp, diag = TRUE)] <- NA
     
     df_pairs <- as.data.frame(as.table(mat_tmp))
@@ -210,10 +218,8 @@ matriz_correlacao <- function(dados, variaveis = NULL, metodo = c("pearson", "sp
     vars_top <- unique(c(as.character(pares_selecionados$Var1), as.character(pares_selecionados$Var2)))
     df_num <- df_num[, vars_top, drop = FALSE]
     
-    message(sprintf("[estatR] Exibindo matriz reduzida: %d vari\u00e1veis mais fortemente correlacionadas.", length(vars_top)))
+    message(sprintf("[estatR] Gr\u00e1fico reduzido: exibindo as %d vari\u00e1veis mais fortemente correlacionadas.", length(vars_top)))
   }
-  
-  mat_r <- cor(df_num, method = metodo, use = "pairwise.complete.obs")
   
   if (exists("grafico_correlacao") && exists("meu_tema")) {
     tryCatch({
