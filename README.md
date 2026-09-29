@@ -1,19 +1,19 @@
-﻿# estatR <img src="man/figures/logo.png" align="right" height="120" alt="" />
+# estatR <img src="man/figures/logo.png" align="right" height="120" alt="" />
 
 > **Uma camada estatística intuitiva e didática para o R.**  
-> Saídas em português, formatação limpa e gráficos automáticos.
+> Saídas em português, formatação limpa e gráficos automáticos integrados com o pacote [`metaR`](https://github.com/elizeumedeirosest/metaR).
 
 ---
 
 ## Visão Geral
 
-O estatR é um pacote R que oferece uma interface amigável e didática sobre as principais funções estatísticas do R base. Pensado para **ensino e análise de dados**, ele produz saídas no console com formatação em português e gráficos automáticos, permitindo representar visualmente os resultados das análises.
+O `estatR` é um pacote R que oferece uma interface amigável e didática sobre as principais funções estatísticas do R base. Pensado para **ensino e análise de dados**, ele produz saídas no console com formatação profissional em português e gráficos automáticos com um tema visual consistente.
 
 ---
 
 ## Instalação
 
-```
+```r
 # Instale o devtools se ainda não tiver
 install.packages("devtools")
 
@@ -26,67 +26,47 @@ devtools::install_github("elizeumedeirosest/estatR")
 
 ### 📊 Estatística Descritiva
 
-```
+```r
 # Visão geral (diagnóstico) de um banco ou variável
 diagnostico(mtcars)
 diagnostico(mtcars$mpg)
 
 # Estatísticas resumidas e tabelas de frequência (Polimórfica)
-descrever(mtcars)                        # Resumo completo do banco
-descrever(mtcars$mpg)                    # Estatísticas da variável numérica
-descrever(mtcars$cyl)                    # Tabela de frequência da variável categórica
-descrever(mtcars$mpg, por = mtcars$cyl)  # Numérica agrupada
+descrever(mtcars)           # Resumo completo do banco
+descrever(mtcars$mpg)       # Estatísticas da variável numérica
+descrever(mtcars$cyl)       # Tabela de frequência da variável categórica
+descrever(mtcars$mpg, por = mtcars$cyl) # Numérica agrupada
 
 # Tabela de contingência (Cruzamento de duas variáveis)
 tabela_contingencia(mtcars, cyl, am)
 tabela_contingencia(mtcars, cyl, am, proporcao = "linha")
-
-# Medidas Específicas (Tendência Central, Dispersão, Forma)
-med_tend_central(mtcars$mpg)
-med_dispersao(mtcars$mpg)
-med_forma(mtcars$mpg)
-
-# Medidas de Posição (Separatrizes)
-quartis(mtcars$mpg)
-quintis(mtcars$mpg)
-decis(mtcars$mpg)
 ```
 
 ---
 
-### 📐 Amostragem
+### 🎲 Amostragem
 
-```
-# Calcular tamanho de amostra (proporção ou média)
+```r
+# Calcular tamanho de amostra
 tamanho_amostra(populacao = 50000, erro = 0.03)
-tamanho_amostra(desvio_padrao = 15, erro = 2, confianca = 0.95)
 
-# Amostragem Aleatória Simples
-amostra_aleatoria(iris, n = 30)
-
-# Amostragem Sistemática
-amostra_sistematica(iris, n = 30)
-
-# Amostragem Estratificada (proporcional, uniforme ou ótima)
+# Amostragem estratificada (proporcional, uniforme ou ótima de Neyman)
 amostra_estratificada(iris, estrato = Species, n = 30)
 amostra_estratificada(iris, estrato = Species, n = 30, alocacao = "otima", variavel = Sepal.Length)
-
-# Amostragem por Conglomerados
-amostra_conglomerados(iris, conglomerado = Species, n_conglomerados = 2)
 ```
 
 ---
 
 ### 📈 Regressão Linear
 
-```
+```r
 # Regressão simples
-modelo <- lm(mpg ~ wt, data = mtcars)
-regressao_linear(modelo)
+modelo <- regressao_linear(mpg ~ wt, dados = mtcars)
+predicao(modelo, data.frame(wt = c(2.5, 3.0)))
 
 # Regressão múltipla
-modelo2 <- lm(mpg ~ wt + hp, data = mtcars)
-regressao_linear(modelo2)
+modelo2 <- regressao_linear(mpg ~ wt + hp, dados = mtcars)
+predicao(modelo2, data.frame(wt = 2.5, hp = 110), intervalo = "predicao")
 
 # Métricas de ajuste
 metricas(modelo)
@@ -99,7 +79,7 @@ analise_residual(modelo)
 
 ### 🔗 Correlação
 
-```
+```r
 # Teste de correlação bivariada (Pearson, Spearman ou Kendall)
 teste_correlacao(mtcars, wt, mpg)
 teste_correlacao(mtcars, wt, mpg, metodo = "spearman")
@@ -111,9 +91,9 @@ matriz_correlacao(mtcars, c("mpg", "wt", "hp", "disp"), metodo = "kendall")
 
 ---
 
-### 🎲 Probabilidade
+### 🎰 Probabilidade
 
-```
+```r
 # Probabilidade da distribuição Normal (com gráfico de área sombreada)
 prob_normal(media = 100, dp = 15, q1 = 120, tipo = "maior")
 prob_normal(media = 100, dp = 15, q1 = 85, q2 = 115, tipo = "entre")
@@ -133,9 +113,17 @@ gerar_amostra(n = 1000, distribuicao = "exponencial", taxa = 0.5)
 
 ---
 
+## Roadmap
+
+- [ ] Módulo de Simulações (Bootstrap, Teorema do Limite Central)
+- [ ] Módulo de Testes de Hipótese (Teste-t, Qui-Quadrado, Wilcoxon)
+- [ ] Módulo de ANOVA e Delineamento Experimental (Tukey, Duncan)
+
+---
+
 ## Autor
 
-**Elizeu S. de Medeiros, Estatístico.**  
+**Elizeu Medeiros**  
 [GitHub](https://github.com/elizeumedeirosest)
 
 ---
