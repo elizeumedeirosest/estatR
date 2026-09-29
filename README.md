@@ -135,6 +135,78 @@ gerar_amostra(n = 1000, distribuicao = "exponencial", taxa = 0.5)
 
 ---
 
+---
+
+### 📏 Intervalos de Confiança
+
+```r
+# IC para a média de uma amostra (distribuição t)
+ic_media(mtcars$mpg)
+ic_media(mtcars$mpg, confianca = 0.99)
+
+# IC para uma proporção (aproximação Normal / Wald)
+ic_proporcao(x = 87, n = 300)
+ic_proporcao(x = 87, n = 300, confianca = 0.99)
+
+# IC para a variância e desvio padrão (distribuição Qui-Quadrado)
+ic_variancia(mtcars$mpg)
+
+# IC para a diferença de médias entre dois grupos
+ic_diferenca_medias(mtcars$mpg, mtcars$am)
+```
+
+---
+
+### 🎯 Estimação de Parâmetros
+
+```r
+# Estimador de Máxima Verossimilhança (EMV)
+# Plota a curva de log-verossimilhança com o EMV destacado
+estimar_verossimilhanca(mtcars$mpg,  distribuicao = "normal")
+estimar_verossimilhanca(mtcars$carb, distribuicao = "poisson")
+estimar_verossimilhanca(mtcars$wt,   distribuicao = "gamma")
+
+# Método dos Momentos
+# Plota histograma com a curva teórica ajustada
+estimar_momentos(mtcars$mpg, distribuicao = "normal")
+estimar_momentos(mtcars$wt,  distribuicao = "gamma")
+```
+
+---
+
+### 🎲 Simulação Estatística
+
+```r
+# Bootstrap: IC e variabilidade de qualquer estatística por reamostragem
+bootstrap(mtcars$mpg, estatistica = "media",  repeticoes = 2000, semente = 42)
+bootstrap(mtcars$mpg, estatistica = "mediana", repeticoes = 2000, semente = 42)
+bootstrap(mtcars$mpg, estatistica = function(x) quantile(x, 0.9), semente = 42)
+
+# Teorema Central do Limite: painel visual distribuicao original vs. medias
+simular_tcl(mtcars$mpg, n_amostra = 5,  repeticoes = 1000)
+simular_tcl(mtcars$mpg, n_amostra = 30, repeticoes = 1000)
+
+# Monte Carlo: estimar probabilidade de qualquer evento por simulacao
+monte_carlo(experimento = function() mean(rnorm(30)) > 0.3, repeticoes = 10000, semente = 42)
+```
+
+---
+
+### 🧪 Modelagem
+
+```r
+# Divisao treino/teste — modo aleatorio (padrao)
+partes <- dividir_dados(mtcars, proporcao = 0.8, semente = 42)
+modelo <- regressao_linear(mpg ~ wt + hp, dados = partes$treino)
+predicao(modelo, partes$teste)
+
+# Divisao estratificada (mantem proporcoes dos grupos)
+dividir_dados(mtcars, proporcao = 0.8, estrato = cyl, semente = 42)
+
+# Divisao temporal (corte cronologico sem embaralhamento — series temporais)
+dividir_dados(dados_serie, proporcao = 0.8, temporal = TRUE)
+```
+
 ## Autor
 
 **Elizeu Medeiros**  
