@@ -161,20 +161,21 @@ teste_t_uma_amostra <- function(x, mu, hipotese = c("bilateral", "maior", "menor
           df_esq <- df_curv[df_curv$x <= -abs(tc), ]
           df_dir <- df_curv[df_curv$x >= abs(tc), ]
           p_plot <- p_plot +
-            ggplot2::geom_area(data = df_esq, fill = "#D90429", alpha = 0.35) +
-            ggplot2::geom_area(data = df_dir, fill = "#D90429", alpha = 0.35)
+            ggplot2::geom_area(data = df_esq, fill = "red1", alpha = 0.35) +
+            ggplot2::geom_area(data = df_dir, fill = "red1", alpha = 0.35)
         } else if (hipotese == "maior") {
           df_crit <- df_curv[df_curv$x >= tc, ]
-          p_plot <- p_plot + ggplot2::geom_area(data = df_crit, fill = "#D90429", alpha = 0.35)
+          p_plot <- p_plot + ggplot2::geom_area(data = df_crit, fill = "red1", alpha = 0.35)
         } else {
           df_crit <- df_curv[df_curv$x <= tc, ]
-          p_plot <- p_plot + ggplot2::geom_area(data = df_crit, fill = "#D90429", alpha = 0.35)
+          p_plot <- p_plot + ggplot2::geom_area(data = df_crit, fill = "red1", alpha = 0.35)
         }
 
         p_plot <- p_plot +
+          ggplot2::scale_y_continuous(expand = ggplot2::expansion(mult = c(0, 0.20))) +
           ggplot2::geom_vline(xintercept = as.numeric(t_stat),
                               color = "#1B4F72", linetype = "dashed", linewidth = 1) +
-          ggplot2::annotate("text", x = as.numeric(t_stat), y = max(df_curv$y) * 0.85,
+          ggplot2::annotate("text", x = as.numeric(t_stat), y = max(df_curv$y) * 1.05,
                             label = sprintf("t = %s", formatC(as.numeric(t_stat), format="f", digits=3, decimal.mark=",")),
                             hjust = -0.1, color = "#1B4F72", fontface = "bold", size = 4.5) +
           ggplot2::labs(
@@ -186,7 +187,7 @@ teste_t_uma_amostra <- function(x, mu, hipotese = c("bilateral", "maior", "menor
             y = "Densidade",
             caption = "estatR"
           ) +
-          meu_tema(grade = "dupla")
+          meu_tema()
 
         suppressMessages(print(p_plot))
       }
@@ -373,11 +374,22 @@ teste_t_duas_amostras <- function(x, grupo, hipotese = c("bilateral", "maior", "
           )
         )
 
+        max_y <- max(df_plot[[x_nome]], na.rm = TRUE)
+        min_y <- min(df_plot[[x_nome]], na.rm = TRUE)
+        amp <- max_y - min_y
+        y_bar <- max_y + amp * 0.08
+        y_tick <- max_y + amp * 0.05
+        y_text <- max_y + amp * 0.12
+
         old_w <- getOption("warn"); options(warn = -1)
         p_plot <- ggplot2::ggplot() + eval(chamada_box) +
+          ggplot2::annotate("segment", x = 1, xend = 2, y = y_bar, yend = y_bar, color = "black", linewidth = 0.6) +
+          ggplot2::annotate("segment", x = 1, xend = 1, y = y_tick, yend = y_bar, color = "black", linewidth = 0.6) +
+          ggplot2::annotate("segment", x = 2, xend = 2, y = y_tick, yend = y_bar, color = "black", linewidth = 0.6) +
+          ggplot2::annotate("text", x = 1.5, y = y_text, label = p_sub, size = 4.5, fontface = "bold") +
+          ggplot2::scale_y_continuous(expand = ggplot2::expansion(mult = c(0.05, 0.20))) +
           ggplot2::labs(
-            title    = sprintf("Compara\u00e7\u00e3o: %s por %s", var_nome, grupo_nome_plot),
-            subtitle = p_sub,
+            title    = sprintf("Comparação: %s por %s", var_nome, grupo_nome_plot),
             x        = grupo_nome_plot,
             y        = var_nome,
             caption  = "estatR"
@@ -538,7 +550,7 @@ teste_t_pareado <- function(x, y, hipotese = c("bilateral", "maior", "menor"),
             subtitle = p_sub,
             x = "Momento", y = "Valor", color = NULL, caption = "estatR"
           ) +
-          meu_tema(grade = "dupla")
+          meu_tema()
         suppressMessages(print(p_plot))
         options(warn = old_w)
       }
@@ -647,12 +659,12 @@ teste_proporcao <- function(x, n, p0, hipotese = c("bilateral", "maior", "menor"
 
         if (hipotese == "bilateral") {
           p_plot <- p_plot +
-            ggplot2::geom_area(data = df_curv[df_curv$x <= -abs(zc), ], fill = "#D90429", alpha = 0.35) +
-            ggplot2::geom_area(data = df_curv[df_curv$x >= abs(zc),  ], fill = "#D90429", alpha = 0.35)
+            ggplot2::geom_area(data = df_curv[df_curv$x <= -abs(zc), ], fill = "red1", alpha = 0.35) +
+            ggplot2::geom_area(data = df_curv[df_curv$x >= abs(zc),  ], fill = "red1", alpha = 0.35)
         } else if (hipotese == "maior") {
-          p_plot <- p_plot + ggplot2::geom_area(data = df_curv[df_curv$x >= zc, ], fill = "#D90429", alpha = 0.35)
+          p_plot <- p_plot + ggplot2::geom_area(data = df_curv[df_curv$x >= zc, ], fill = "red1", alpha = 0.35)
         } else {
-          p_plot <- p_plot + ggplot2::geom_area(data = df_curv[df_curv$x <= zc, ], fill = "#D90429", alpha = 0.35)
+          p_plot <- p_plot + ggplot2::geom_area(data = df_curv[df_curv$x <= zc, ], fill = "red1", alpha = 0.35)
         }
 
         p_sub <- sprintf("p %s %s%s",
@@ -661,9 +673,10 @@ teste_proporcao <- function(x, n, p0, hipotese = c("bilateral", "maior", "menor"
                          ifelse(nchar(p_ast) > 0, paste0(" ", p_ast), ""))
 
         p_plot <- p_plot +
+          ggplot2::scale_y_continuous(expand = ggplot2::expansion(mult = c(0, 0.20))) +
           ggplot2::geom_vline(xintercept = z_stat, color = "#1B4F72",
                               linetype = "dashed", linewidth = 1) +
-          ggplot2::annotate("text", x = z_stat, y = max(df_curv$y) * 0.85,
+          ggplot2::annotate("text", x = z_stat, y = max(df_curv$y) * 1.05,
                             label = sprintf("Z = %s", formatC(z_stat, format="f", digits=3, decimal.mark=",")),
                             hjust = -0.1, color = "#1B4F72", fontface = "bold", size = 4.5) +
           ggplot2::labs(
@@ -671,7 +684,7 @@ teste_proporcao <- function(x, n, p0, hipotese = c("bilateral", "maior", "menor"
             subtitle = p_sub,
             x = "Z", y = "Densidade", caption = "estatR"
           ) +
-          meu_tema(grade = "dupla")
+          meu_tema()
 
         suppressMessages(print(p_plot))
       }
