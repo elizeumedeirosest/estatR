@@ -190,6 +190,7 @@ diagnostico <- function(dados) {
     .print_tabela_estatR(df_cat, align = align_cat)
   }
   
+  .print_rodape()
   invisible(dados)
 }
 
@@ -205,21 +206,20 @@ estrutura <- function(dados) {
   n_linhas <- nrow(dados)
   n_cols   <- ncol(dados)
   
-  w_sep <- 78
-  cat(sprintf("\n\u2500\u2500 ESTRUTURA DO BANCO DE DADOS %s\n\n", strrep("\u2500", w_sep - 33)))
+  .print_titulo("ESTRUTURA DO BANCO DE DADOS")
   
-  cat(sprintf("  Total de observa\u00e7\u00f5es (linhas): %d\n", n_linhas))
-  cat(sprintf("  Total de vari\u00e1veis (colunas):  %d\n\n", n_cols))
+  cat(sprintf("  Total de observações (linhas): %d\n", n_linhas))
+  cat(sprintf("  Total de variáveis (colunas):  %d\n\n", n_cols))
   
   df_num <- .resumo_variaveis(dados, "numerica", completo = FALSE)
   if (!is.null(df_num)) {
-    cat(sprintf("  \u25b6 NUM\u00c9RICAS (%.1f%%)\n", (nrow(df_num) / n_cols) * 100))
+    .print_topico(sprintf("NUMÉRICAS (%.1f%%)", (nrow(df_num) / n_cols) * 100))
     .print_tabela_estatR(df_num)
   }
   
   df_cat <- .resumo_variaveis(dados, "categorica", completo = FALSE)
   if (!is.null(df_cat)) {
-    cat(sprintf("  \u25b6 CATEG\u00d3RICAS E FATORES (%.1f%%)\n", (nrow(df_cat) / n_cols) * 100))
+    .print_topico(sprintf("CATEGÓRICAS E FATORES (%.1f%%)", (nrow(df_cat) / n_cols) * 100))
     
     align_cat <- rep("center", ncol(df_cat))
     align_cat[1] <- "left"
@@ -228,6 +228,7 @@ estrutura <- function(dados) {
     .print_tabela_estatR(df_cat, align = align_cat)
   }
   
+  .print_rodape()
   invisible(dados)
 }
 
@@ -242,20 +243,21 @@ valores_ausentes <- function(dados) {
   if (!is.data.frame(dados)) stop("'dados' deve ser um data frame.")
   
   n_cols <- ncol(dados)
-  w_sep <- 78
-  cat(sprintf("\n\u2500\u2500 AN\u00c1LISE DE VALORES AUSENTES %s\n\n", strrep("\u2500", w_sep - 34)))
+  
+  .print_titulo("ANÁLISE DE VALORES AUSENTES")
   
   df_num <- .resumo_variaveis(dados, "numerica", completo = FALSE, ausentes = TRUE)
   if (!is.null(df_num)) {
-    cat(sprintf("  \u25b6 NUM\u00c9RICAS (%.1f%%)\n", (nrow(df_num) / n_cols) * 100))
+    .print_topico(sprintf("NUMÉRICAS (%.1f%%)", (nrow(df_num) / n_cols) * 100))
     .print_tabela_estatR(df_num)
   }
   
   df_cat <- .resumo_variaveis(dados, "categorica", completo = FALSE, ausentes = TRUE)
   if (!is.null(df_cat)) {
-    cat(sprintf("  \u25b6 CATEG\u00d3RICAS E FATORES (%.1f%%)\n", (nrow(df_cat) / n_cols) * 100))
+    .print_topico(sprintf("CATEGÓRICAS E FATORES (%.1f%%)", (nrow(df_cat) / n_cols) * 100))
     .print_tabela_estatR(df_cat)
   }
   
+  .print_rodape()
   invisible(dados)
 }
