@@ -68,7 +68,7 @@ estimar_verossimilhanca <- function(x, distribuicao = c("normal", "poisson", "ex
 
   w_sep <- 67
 
-  cat(sprintf("\n\u2500\u2500 ESTIMAÇÃO POR M\u00c1XIMA VEROSSIMILHAN\u00c7A (EMV) %s\n", strrep("\u2500", w_sep - 45)))
+  .print_titulo("ESTIMAÇÃO POR M\u00c1XIMA VEROSSIMILHAN\u00c7A (EMV) %s")
   cat(sprintf("  Vari\u00e1vel: %s   |   N: %d   |   Distribui\u00e7\u00e3o: %s\n\n",
               var_nome, n, tools::toTitleCase(distribuicao)))
 
@@ -256,7 +256,7 @@ estimar_momentos <- function(x, distribuicao = c("normal", "poisson", "exponenci
 
   w_sep <- 67
 
-  cat(sprintf("\n\u2500\u2500 ESTIMAÇÃO PELO M\u00c9TODO DOS MOMENTOS %s\n", strrep("\u2500", w_sep - 37)))
+  .print_titulo("ESTIMAÇÃO PELO M\u00c9TODO DOS MOMENTOS %s")
   cat(sprintf("  Vari\u00e1vel: %s   |   N: %d   |   Distribui\u00e7\u00e3o: %s\n\n",
               var_nome, n, tools::toTitleCase(distribuicao)))
 

@@ -82,7 +82,7 @@ bootstrap <- function(x, estatistica = "media", repeticoes = 1000,
   lsup     <- quantile(boot_vals, 1 - alpha / 2)
 
   w_sep <- 67
-  cat(sprintf("\n\u2500\u2500 BOOTSTRAP (%d REPETI\u00c7\u00f5ES) %s\n", repeticoes, strrep("\u2500", w_sep - 21 - nchar(as.character(repeticoes)))))
+  .print_titulo("BOOTSTRAP (%d REPETI\u00c7\u00f5ES) %s")
   cat(sprintf("  Vari\u00e1vel: %s   |   N: %d   |   Estat\u00edstica: %s\n\n", var_nome, n, stat_nome))
 
   cat("  \u25b6 RESULTADOS\n")
@@ -186,7 +186,7 @@ simular_tcl <- function(x, n_amostra = 30, repeticoes = 1000, semente = NULL) {
   st <- shapiro.test(sample(medias, min(length(medias), 5000)))
 
   w_sep <- 67
-  cat(sprintf("\n\u2500\u2500 TEOREMA CENTRAL DO LIMITE — SIMULA\u00c7\u00c3O %s\n", strrep("\u2500", w_sep - 42)))
+  .print_titulo("TEOREMA CENTRAL DO LIMITE — SIMULA\u00c7\u00c3O %s")
   cat(sprintf("  Popula\u00e7\u00e3o: %s   |   N pop: %d   |   Repeti\u00e7\u00f5es: %d\n", var_nome, n, repeticoes))
   cat(sprintf("  Tamanho de cada amostra (n): %d\n\n", n_amostra))
 
@@ -290,7 +290,7 @@ monte_carlo <- function(experimento, repeticoes = 10000, confianca = 0.95,
   p_acum <- cumsum(resultados) / seq_along(resultados)
 
   w_sep <- 67
-  cat(sprintf("\n\u2500\u2500 SIMULA\u00c7\u00c3O DE MONTE CARLO %s\n", strrep("\u2500", w_sep - 26)))
+  .print_titulo("SIMULA\u00c7\u00c3O DE MONTE CARLO %s")
   cat(sprintf("  Repeti\u00e7\u00f5es: %d   |   Confian\u00e7a: %.0f%%\n\n", repeticoes, confianca * 100))
 
   cat("  \u25b6 RESULTADOS\n")

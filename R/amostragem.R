@@ -1,4 +1,4 @@
-﻿#' CÃ¡lculo de Tamanho Amostral Ã“timo
+#' CÃ¡lculo de Tamanho Amostral Ã“timo
 #'
 #' Calcula o tamanho mÃ­nimo de amostra necessÃ¡rio para estimar uma proporÃ§Ã£o
 #' ou uma mÃ©dia com nÃ­vel de confianÃ§a e margem de erro especificados.
@@ -53,7 +53,7 @@ tamanho_amostra <- function(populacao = NULL, erro = 0.05, confianca = 0.95,
   
   n_otimo <- ceiling(n_final)
   
-  .print_header("DIMENSIONAMENTO DE AMOSTRA (TAMANHO Ã“TIMO)")
+  .print_titulo("DIMENSIONAMENTO DE AMOSTRA (TAMANHO Ã“TIMO)")
   cat("ParÃ¢metros do Estudo:\n")
   cat(sprintf("  â€¢ Tipo de ParÃ¢metro:       %s\n", tipo_param))
   cat(sprintf("  â€¢ NÃ­vel de ConfianÃ§a:      %s (Z = %s)\n", .fmt_pct(confianca, 1), .fmt_num(z, 2)))
@@ -64,7 +64,7 @@ tamanho_amostra <- function(populacao = NULL, erro = 0.05, confianca = 0.95,
   cat(sprintf("  Tamanho Amostral MÃ­nimo (n): %s observaÃ§Ãµes\n", format(n_otimo, big.mark = ".", decimal.mark = ",")))
   cat(frac_str)
   
-  .print_footer()
+  .print_rodape()
   
   invisible(n_otimo)
 }
@@ -112,13 +112,13 @@ amostra_aleatoria <- function(dados, n = NULL, proporcao = NULL, reposicao = FAL
   pct_amostrada <- (n_sorteio / N) * 100
   tipo_rep <- if (reposicao) "Com reposiÃ§Ã£o" else "Sem reposiÃ§Ã£o"
   
-  .print_header("AMOSTRAGEM ALEATÃ“RIA SIMPLES")
+  .print_titulo("AMOSTRAGEM ALEATÃ“RIA SIMPLES")
   cat(sprintf("PopulaÃ§Ã£o (N):       %s observaÃ§Ãµes\n", format(N, big.mark = ".", decimal.mark = ",")))
   cat(sprintf("Amostra Sorteada (n):%s observaÃ§Ãµes (%s%% da populaÃ§Ã£o)\n",
               format(n_sorteio, big.mark = ".", decimal.mark = ","),
               .fmt_num(pct_amostrada, 1)))
   cat(sprintf("Tipo de Sorteio:     %s\n", tipo_rep))
-  .print_footer()
+  .print_rodape()
   
   invisible(amostra)
 }
@@ -166,14 +166,14 @@ amostra_sistematica <- function(dados, n = NULL, salto = NULL, semente = NULL) {
   n_real <- length(indices)
   pct_amostrada <- (n_real / N) * 100
   
-  .print_header("AMOSTRAGEM SISTEMÃTICA")
+  .print_titulo("AMOSTRAGEM SISTEMÃTICA")
   cat(sprintf("PopulaÃ§Ã£o (N):       %s observaÃ§Ãµes\n", format(N, big.mark = ".", decimal.mark = ",")))
   cat(sprintf("Amostra Sorteada (n):%s observaÃ§Ãµes (%s%% da populaÃ§Ã£o)\n",
               format(n_real, big.mark = ".", decimal.mark = ","),
               .fmt_num(pct_amostrada, 1)))
   cat(sprintf("Salto (Intervalo k): A cada %d elementos\n", k))
   cat(sprintf("Ponto de Partida:    Elemento %d (sorteado aleatoriamente entre 1 e %d)\n", ponto_partida, k))
-  .print_footer()
+  .print_rodape()
   
   invisible(amostra)
 }
@@ -321,7 +321,7 @@ amostra_estratificada <- function(dados, estrato, n = NULL, proporcao = NULL,
   
   # ImpressÃ£o do painel e tabela comparativa
   tit <- sprintf("AMOSTRAGEM ESTRATIFICADA (Por: %s)", nome_exibicao)
-  .print_header(tit)
+  .print_titulo(tit)
   
   cat(sprintf("PopulaÃ§Ã£o (N): %s | Amostra Sorteada (n): %s (%s%%)\n",
               format(N, big.mark = ".", decimal.mark = ","),
@@ -374,7 +374,7 @@ amostra_estratificada <- function(dados, estrato, n = NULL, proporcao = NULL,
                   uniforme = "Cada estrato recebeu o mesmo nÃºmero de observaÃ§Ãµes, independente do seu tamanho.",
                   otima = sprintf("A alocaÃ§Ã£o priorizou estratos com maior variabilidade em '%s' (Neyman, 1934).", var_nome))
   cat(sprintf("\n  * %s\n", nota))
-  .print_footer()
+  .print_rodape()
   
   invisible(amostra_final)
 }
@@ -454,14 +454,14 @@ amostra_conglomerados <- function(dados, conglomerado, n_conglomerados = NULL, p
   }
   
   tit <- sprintf("AMOSTRAGEM POR CONGLOMERADOS (Por: %s)", nome_exibicao)
-  .print_header(tit)
+  .print_titulo(tit)
   cat(sprintf("Total de Conglomerados na PopulaÃ§Ã£o: %d\n", M_congs))
   cat(sprintf("Conglomerados Sorteados:             %d (%s%%)\n", m_sorteio, .fmt_num(pct_congs, 1)))
   cat(sprintf("Grupos Selecionados:                 %s\n", str_congs_sorteados))
   cat(sprintf("Total de IndivÃ­duos Amostrados:      %s observaÃ§Ãµes (%s%% da populaÃ§Ã£o)\n",
               format(n_individuos, big.mark = ".", decimal.mark = ","),
               .fmt_num(pct_individuos, 1)))
-  .print_footer()
+  .print_rodape()
   
   invisible(amostra_final)
 }

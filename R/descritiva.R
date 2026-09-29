@@ -77,7 +77,7 @@ descrever <- function(x, por = NULL, numericas = TRUE, categoricas = TRUE, decim
   
   if (!dentro_df) {
     tit <- sprintf("ESTATÍSTICA DESCRITIVA POR GRUPO (%s por %s)", nome_var, nome_grupo)
-    .print_header(tit)
+    .print_titulo(tit)
   } else {
     cat(sprintf("\033[1m▶ %s (por %s)\033[0m\n\n", nome_var, nome_grupo))
   }
@@ -146,7 +146,7 @@ descrever <- function(x, por = NULL, numericas = TRUE, categoricas = TRUE, decim
   cat("  ", paste(l_tot, collapse = " "), "\n", sep = "")
   
   if (!dentro_df) {
-    .print_footer()
+    .print_rodape()
   } else {
     cat("\n")
   }
@@ -164,14 +164,14 @@ descrever <- function(x, por = NULL, numericas = TRUE, categoricas = TRUE, decim
   }
   
   tit <- sprintf("ESTATÍSTICA DESCRITIVA POR GRUPO (%s)", grupo_nome)
-  .print_header(tit)
+  .print_titulo(tit)
   
   for (col in cols_num) {
     v <- dados[[col]]
     .descrever_vetor_numerico_por_grupo(v, grupo = grupo, nome_var = col, nome_grupo = grupo_nome, decimais = decimais, dentro_df = TRUE)
   }
   
-  .print_footer()
+  .print_rodape()
   invisible(dados)
 }
 
@@ -317,7 +317,7 @@ descrever <- function(x, por = NULL, numericas = TRUE, categoricas = TRUE, decim
   } else {
     "DESCRITIVA: VARIÁVEL NUMÉRICA"
   }
-  .print_header(tit)
+  .print_titulo(tit)
   
   cat("▶ Tendência Central\n")
   cat(sprintf("  Média:        %s\n", .fmt_num(media, decimais)))
@@ -340,7 +340,7 @@ descrever <- function(x, por = NULL, numericas = TRUE, categoricas = TRUE, decim
   cat(sprintf("  Assimetria: %s\n", .fmt_num(assim, decimais)))
   cat(sprintf("  Curtose:    %s\n", .fmt_num(curt, decimais)))
   
-  .print_footer()
+  .print_rodape()
   invisible(x)
 }
 
@@ -362,7 +362,7 @@ descrever <- function(x, por = NULL, numericas = TRUE, categoricas = TRUE, decim
   } else {
     "DESCRITIVA: VARIÁVEL CATEGÓRICA"
   }
-  .print_header(tit)
+  .print_titulo(tit)
   
   w_cat_ind <- c(cat = 22, n = 8, rel = 14, acum = 14)
   col_titulos <- c(
@@ -398,7 +398,7 @@ descrever <- function(x, por = NULL, numericas = TRUE, categoricas = TRUE, decim
   )
   cat("  ", paste(col_total, collapse = " "), "\n", sep = "")
   
-  .print_footer()
+  .print_rodape()
   invisible(x)
 }
 
@@ -453,7 +453,7 @@ tabela_contingencia <- function(dados, var_x = NULL, var_y = NULL, proporcao = c
   categorias_y <- colnames(tab)
   
   tit <- sprintf("TABELA DE CONTINGÊNCIA (%s x %s)", x_nome, y_nome)
-  .print_header(tit)
+  .print_titulo(tit)
   
   w_lin <- max(14, max(nchar(categorias_x)), nchar(x_nome), nchar("Total")) + 2
   w_col <- max(12, max(nchar(categorias_y)), nchar("Total")) + 2
@@ -536,7 +536,7 @@ tabela_contingencia <- function(dados, var_x = NULL, var_y = NULL, proporcao = c
   )
   cat("  ", paste(linha_tot, collapse = " "), "\n", sep = "")
   
-  .print_footer()
+  .print_rodape()
   invisible(tab)
 }
 
@@ -590,7 +590,7 @@ med_tend_central <- function(x, decimais = 2) {
   } else {
     "MEDIDAS DE TENDÊNCIA CENTRAL"
   }
-  .print_header(tit)
+  .print_titulo(tit)
   
   w <- c(media = 10, mediana = 10, modal = max(18, nchar(str_moda) + 2))
   col_titulos <- c(
@@ -609,7 +609,7 @@ med_tend_central <- function(x, decimais = 2) {
   )
   cat("  ", paste(col_valores, collapse = " "), "\n", sep = "")
   
-  .print_footer()
+  .print_rodape()
   invisible(list(media = media, mediana = mediana, moda_ou_classe = str_moda))
 }
 
@@ -637,7 +637,7 @@ med_dispersao <- function(x, decimais = 2) {
   } else {
     "MEDIDAS DE DISPERSÃO E ESCALA"
   }
-  .print_header(tit)
+  .print_titulo(tit)
   
   w <- c(dp = 8, var = 12, amp = 11, cv = 10)
   col_titulos <- c(
@@ -658,7 +658,7 @@ med_dispersao <- function(x, decimais = 2) {
   )
   cat("  ", paste(col_valores, collapse = " "), "\n", sep = "")
   
-  .print_footer()
+  .print_rodape()
   invisible(list(desvio_padrao = dp, variancia = var_val, amplitude = amp, cv = cv))
 }
 
@@ -704,12 +704,12 @@ med_forma <- function(x, decimais = 2) {
   } else {
     "MEDIDAS DE FORMA"
   }
-  .print_header(tit)
+  .print_titulo(tit)
   
   cat(sprintf("  Assimetria: %s  (%s)\n", .fmt_num(assim, decimais), interp_assim))
   cat(sprintf("  Curtose:    %s  (%s)\n", .fmt_num(curt, decimais), interp_curt))
   
-  .print_footer()
+  .print_rodape()
   invisible(list(assimetria = assim, curtose = curt))
 }
 
@@ -733,7 +733,7 @@ quartis <- function(x, decimais = 2) {
   } else {
     "QUARTIS"
   }
-  .print_header(tit)
+  .print_titulo(tit)
   
   w <- c(min = 8, q1 = 8, q2 = 8, q3 = 8, max = 8)
   col_titulos <- c(
@@ -756,7 +756,7 @@ quartis <- function(x, decimais = 2) {
   )
   cat("  ", paste(col_valores, collapse = " "), "\n", sep = "")
   
-  .print_footer()
+  .print_rodape()
   invisible(q_vals)
 }
 
@@ -781,7 +781,7 @@ quintis <- function(x, decimais = 2) {
   } else {
     "QUINTIS"
   }
-  .print_header(tit)
+  .print_titulo(tit)
   
   w_col <- 8
   nomes_col <- c("20%", "40%", "60%", "80%")
@@ -793,7 +793,7 @@ quintis <- function(x, decimais = 2) {
   col_valores <- sapply(q_vals, function(v) .pad_string(.fmt_num(v, decimais), w_col, "center"), USE.NAMES = FALSE)
   cat("  ", paste(col_valores, collapse = " "), "\n", sep = "")
   
-  .print_footer()
+  .print_rodape()
   invisible(q_vals)
 }
 
@@ -818,7 +818,7 @@ decis <- function(x, decimais = 2) {
   } else {
     "DECIS"
   }
-  .print_header(tit)
+  .print_titulo(tit)
   
   w_col <- 7
   nomes_col <- paste0("D", 1:9)
@@ -830,7 +830,7 @@ decis <- function(x, decimais = 2) {
   col_valores <- sapply(d_vals, function(v) .pad_string(.fmt_num(v, decimais), w_col, "center"), USE.NAMES = FALSE)
   cat("  ", paste(col_valores, collapse = " "), "\n", sep = "")
   
-  .print_footer()
+  .print_rodape()
   invisible(d_vals)
 }
 
@@ -867,7 +867,7 @@ outliers <- function(x, decimais = 2) {
     pct_sem <- n_sem / n
 
     tit <- sprintf("ANÁLISE DE OUTLIERS (%s)", nome)
-    .print_header(tit)
+    .print_titulo(tit)
     cat(sprintf("  Limite inferior (LI): %s  |  Limite superior (LS): %s\n\n",
                 .fmt_num(li, decimais), .fmt_num(ls, decimais)))
 
@@ -912,7 +912,7 @@ outliers <- function(x, decimais = 2) {
       cat("\n")
     }
 
-    .print_footer()
+    .print_rodape()
     invisible(data.frame(
       variavel       = nome,
       n_outliers     = n_out,
@@ -963,7 +963,7 @@ percentis <- function(x, p = c(5, 10, 25, 50, 75, 90, 95), decimais = 2) {
   } else {
     "PERCENTIS"
   }
-  .print_header(tit)
+  .print_titulo(tit)
 
   w_label <- max(nchar("Percentil"), max(nchar(nomes))) + 2
   w_val   <- max(nchar("Valor"), 8) + 2
@@ -981,7 +981,7 @@ percentis <- function(x, p = c(5, 10, 25, 50, 75, 90, 95), decimais = 2) {
   }
   cat("  ", sep, "\n", sep = "")
 
-  .print_footer()
+  .print_rodape()
   names(p_vals) <- nomes
   invisible(p_vals)
 }

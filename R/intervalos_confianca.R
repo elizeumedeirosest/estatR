@@ -87,7 +87,7 @@ ic_media <- function(x, confianca = 0.95, decimais = 3, grafico = TRUE) {
   lsup <- media + margem
   
   w_sep <- 67
-  cat(sprintf("\n\u2500\u2500 INTERVALO DE CONFIAN\u00c7A PARA A M\u00c9DIA %s\n", strrep("\u2500", w_sep - 39)))
+  .print_titulo("INTERVALO DE CONFIAN\u00c7A PARA A M\u00c9DIA %s")
   cat(sprintf("  Vari\u00e1vel: %s   |   N v\u00e1lido: %d   |   Confian\u00e7a: %.0f%%\n", var_nome, n, confianca * 100))
   cat("  Distribui\u00e7\u00e3o utilizada: t de Student (vari\u00e2ncia desconhecida)\n\n")
   
@@ -151,7 +151,7 @@ ic_proporcao <- function(x, n, confianca = 0.95, decimais = 3, grafico = TRUE) {
   lsup <- min(1, p_hat + margem)
   
   w_sep <- 67
-  cat(sprintf("\n\u2500\u2500 INTERVALO DE CONFIAN\u00c7A PARA A PROPOR\u00c7\u00c3O %s\n", strrep("\u2500", w_sep - 42)))
+  .print_titulo("INTERVALO DE CONFIAN\u00c7A PARA A PROPOR\u00c7\u00c3O %s")
   cat(sprintf("  Sucessos: %d   |   N total: %d   |   Confian\u00e7a: %.0f%%\n", x, n, confianca * 100))
   cat("  M\u00e9todo: Aproxima\u00e7\u00e3o Normal (Wald)\n\n")
   
@@ -227,7 +227,7 @@ ic_variancia <- function(x, confianca = 0.95, decimais = 3) {
   lsup_dp <- sqrt(lsup_v)
   
   w_sep <- 67
-  cat(sprintf("\n\u2500\u2500 INTERVALO DE CONFIAN\u00c7A PARA A VARI\u00c2NCIA %s\n", strrep("\u2500", w_sep - 42)))
+  .print_titulo("INTERVALO DE CONFIAN\u00c7A PARA A VARI\u00c2NCIA %s")
   cat(sprintf("  Vari\u00e1vel: %s   |   N v\u00e1lido: %d   |   Confian\u00e7a: %.0f%%\n", var_nome, n, confianca * 100))
   cat("  Distribui\u00e7\u00e3o utilizada: Qui-Quadrado (\u03c7\u00b2)\n\n")
   
@@ -304,7 +304,7 @@ ic_diferenca_medias <- function(x, grupo, variancia_igual = FALSE, confianca = 0
   tipo_txt <- if (variancia_igual) "Student (vari\u00e2ncias iguais)" else "Welch (vari\u00e2ncias n\u00e3o iguais)"
   
   w_sep <- 67
-  cat(sprintf("\n\u2500\u2500 IC PARA A DIFEREN\u00c7A DE M\u00c9DIAS %s\n", strrep("\u2500", w_sep - 32)))
+  .print_titulo("IC PARA A DIFEREN\u00c7A DE M\u00c9DIAS %s")
   cat(sprintf("  Vari\u00e1vel: %s   |   Grupos: %s vs %s\n", var_nome, niveis[1], niveis[2]))
   cat(sprintf("  M\u00e9todo: Teste t de %s\n\n", tipo_txt))
   

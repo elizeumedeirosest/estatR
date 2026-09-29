@@ -63,7 +63,7 @@ dividir_dados <- function(dados, proporcao = 0.8, estrato = NULL,
     teste  <- dados[idx_teste,  , drop = FALSE]
 
     w_sep <- 67
-    cat(sprintf("\n\u2500\u2500 DIVIS\u00c3O TREINO / TESTE (TEMPORAL) %s\n", strrep("\u2500", w_sep - 35)))
+  .print_titulo("DIVIS\u00c3O TREINO / TESTE (TEMPORAL) %s")
     cat(sprintf("  Modo: Corte cronol\u00f3gico (sem embaralhamento)\n"))
     cat(sprintf("  Propor\u00e7\u00e3o: %.0f%% treino / %.0f%% teste\n\n",
                 proporcao * 100, (1 - proporcao) * 100))
@@ -126,7 +126,7 @@ dividir_dados <- function(dados, proporcao = 0.8, estrato = NULL,
     resumo <- do.call(rbind, resumo_list)
 
     w_sep <- 67
-    cat(sprintf("\n\u2500\u2500 DIVIS\u00c3O TREINO / TESTE (ESTRATIFICADA) %s\n", strrep("\u2500", w_sep - 39)))
+  .print_titulo("DIVIS\u00c3O TREINO / TESTE (ESTRATIFICADA) %s")
     cat(sprintf("  Modo: Estratificado por '%s'\n", estrato_nome))
     cat(sprintf("  Propor\u00e7\u00e3o: %.0f%% treino / %.0f%% teste\n\n",
                 proporcao * 100, (1 - proporcao) * 100))
@@ -169,7 +169,7 @@ dividir_dados <- function(dados, proporcao = 0.8, estrato = NULL,
   teste  <- dados[sort(idx_teste),  , drop = FALSE]
 
   w_sep <- 67
-  cat(sprintf("\n\u2500\u2500 DIVIS\u00c3O TREINO / TESTE (ALEAT\u00d3RIA) %s\n", strrep("\u2500", w_sep - 36)))
+  .print_titulo("DIVIS\u00c3O TREINO / TESTE (ALEAT\u00d3RIA) %s")
   cat(sprintf("  Modo: Sorteio aleat\u00f3rio\n"))
   cat(sprintf("  Propor\u00e7\u00e3o: %.0f%% treino / %.0f%% teste\n\n",
               proporcao * 100, (1 - proporcao) * 100))

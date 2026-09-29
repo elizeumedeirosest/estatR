@@ -166,7 +166,7 @@ matriz_correlacao <- function(dados, variaveis = NULL, metodo = c("pearson", "sp
   }
   
   # ── Impressão no Console (Tabela Arrumada) ────────────────────────────────
-  cat(sprintf("\n\u2500\u2500 MATRIZ DE CORRELA\u00c7\u00c3O %s\n", strrep("\u2500", 52)))
+  .print_titulo("MATRIZ DE CORRELA\u00c7\u00c3O %s")
   cat(sprintf("  M\u00e9todo: %s\n\n", tools::toTitleCase(metodo)))
   
   # Preparando a tabela de texto

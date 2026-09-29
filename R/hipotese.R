@@ -84,7 +84,7 @@ teste_t_uma_amostra <- function(x, mu, hipotese = c("bilateral", "maior", "menor
   lbs    <- .th_hipotese_labels(hipotese, param = "\u03bc", ref = mu)
   w_sep  <- 70
 
-  cat(sprintf("\n\u2500\u2500 TESTE T PARA UMA AMOSTRA %s\n", strrep("\u2500", w_sep - 26)))
+  .print_titulo("TESTE T PARA UMA AMOSTRA %s")
   cat(sprintf("  Vari\u00e1vel: %s   |   \u03bc\u2080: %s\n\n", var_nome, mu))
   cat(sprintf("  %s\n", lbs$h0))
   cat(sprintf("  %s\n\n", lbs$h1))
@@ -138,7 +138,7 @@ teste_t_uma_amostra <- function(x, mu, hipotese = c("bilateral", "maior", "menor
     cat(sprintf("  de %s ao n\u00edvel de %.0f%% de signific\u00e2ncia.\n",
                 mu, (1 - confianca) * 100))
   }
-  cat(strrep("\u2500", w_sep + 2), "\n\n", sep = "")
+  .print_rodape()
 
   # Gráfico
   if (grafico) {
@@ -173,6 +173,12 @@ teste_t_uma_amostra <- function(x, mu, hipotese = c("bilateral", "maior", "menor
 
         p_plot <- p_plot +
           ggplot2::scale_y_continuous(expand = ggplot2::expansion(mult = c(0, 0.20))) +
+          ggplot2::scale_y_continuous(expand = ggplot2::expansion(mult = c(0, 0.20))) +
+          ggplot2::scale_y_continuous(expand = ggplot2::expansion(mult = c(0, 0.15))) +
+          ggplot2::scale_y_continuous(expand = ggplot2::expansion(mult = c(0, 0.20))) +
+          ggplot2::scale_y_continuous(expand = ggplot2::expansion(mult = c(0, 0.15))) +
+          ggplot2::scale_y_continuous(expand = ggplot2::expansion(mult = c(0, 0.20))) +
+          ggplot2::scale_y_continuous(expand = ggplot2::expansion(mult = c(0, 0.15))) +
           ggplot2::scale_y_continuous(expand = ggplot2::expansion(mult = c(0, 0.20))) +
           ggplot2::scale_y_continuous(expand = ggplot2::expansion(mult = c(0, 0.15))) +
           ggplot2::scale_y_continuous(expand = ggplot2::expansion(mult = c(0, 0.20))) +
@@ -283,7 +289,7 @@ teste_t_duas_amostras <- function(x, grupo, hipotese = c("bilateral", "maior", "
   w_sep <- 70
 
   # ── Cabeçalho ──────────────────────────────────────────────────────────────
-  cat(sprintf("\n\u2500\u2500 TESTE T PARA DUAS AMOSTRAS INDEPENDENTES %s\n", strrep("\u2500", w_sep - 42)))
+  .print_titulo("TESTE T PARA DUAS AMOSTRAS INDEPENDENTES %s")
   cat(sprintf("  Vari\u00e1vel: %s   |   Grupos: %s (%s vs %s)\n", var_nome, grupo_nome, g1, g2))
   cat(sprintf("  Tipo: %s\n\n", tipo_txt))
   cat(sprintf("  %s\n", lbs$h0))
@@ -359,7 +365,7 @@ teste_t_duas_amostras <- function(x, grupo, hipotese = c("bilateral", "maior", "
                 g2, formatC(mean(vals2), format="f", digits=decimais, decimal.mark=",")))
     cat(sprintf("  ao n\u00edvel de %.0f%% de signific\u00e2ncia.\n", alpha * 100))
   }
-  cat(strrep("\u2500", w_sep + 2), "\n\n", sep = "")
+  .print_rodape()
 
   # ── Gráfico ────────────────────────────────────────────────────────────────
   if (grafico) {
@@ -398,6 +404,48 @@ teste_t_duas_amostras <- function(x, grupo, hipotese = c("bilateral", "maior", "
         y_bar <- max_y + amp * 0.08
         y_tick <- max_y + amp * 0.05
         y_text <- max_y + amp * 0.12
+
+        max_y <- max(df_plot[[x_nome]], na.rm = TRUE)
+        min_y <- min(df_plot[[x_nome]], na.rm = TRUE)
+        amp <- max_y - min_y
+        y_bar <- max_y + amp * 0.08
+        y_tick <- max_y + amp * 0.05
+        y_text <- max_y + amp * 0.12
+
+        max_y <- max(df_plot[[x_nome]], na.rm = TRUE)
+        min_y <- min(df_plot[[x_nome]], na.rm = TRUE)
+        amp <- max_y - min_y
+        y_bar <- max_y + amp * 0.06
+        y_tick <- max_y + amp * 0.03
+        y_text <- max_y + amp * 0.10
+
+        max_y <- max(df_plot[[x_nome]], na.rm = TRUE)
+        min_y <- min(df_plot[[x_nome]], na.rm = TRUE)
+        amp <- max_y - min_y
+        y_bar <- max_y + amp * 0.08
+        y_tick <- max_y + amp * 0.05
+        y_text <- max_y + amp * 0.12
+
+        max_y <- max(df_plot[[x_nome]], na.rm = TRUE)
+        min_y <- min(df_plot[[x_nome]], na.rm = TRUE)
+        amp <- max_y - min_y
+        y_bar <- max_y + amp * 0.06
+        y_tick <- max_y + amp * 0.03
+        y_text <- max_y + amp * 0.10
+
+        max_y <- max(df_plot[[x_nome]], na.rm = TRUE)
+        min_y <- min(df_plot[[x_nome]], na.rm = TRUE)
+        amp <- max_y - min_y
+        y_bar <- max_y + amp * 0.08
+        y_tick <- max_y + amp * 0.05
+        y_text <- max_y + amp * 0.12
+
+        max_y <- max(df_plot[[x_nome]], na.rm = TRUE)
+        min_y <- min(df_plot[[x_nome]], na.rm = TRUE)
+        amp <- max_y - min_y
+        y_bar <- max_y + amp * 0.06
+        y_tick <- max_y + amp * 0.03
+        y_text <- max_y + amp * 0.10
 
         max_y <- max(df_plot[[x_nome]], na.rm = TRUE)
         min_y <- min(df_plot[[x_nome]], na.rm = TRUE)
@@ -588,7 +636,7 @@ teste_t_pareado <- function(x, y, hipotese = c("bilateral", "maior", "menor"),
   lbs   <- .th_hipotese_labels(hipotese, param = "\u03bc\u1d30", ref = "0")
   w_sep <- 70
 
-  cat(sprintf("\n\u2500\u2500 TESTE T PAREADO %s\n", strrep("\u2500", w_sep - 17)))
+  .print_titulo("TESTE T PAREADO %s")
   cat(sprintf("  Par: %s (antes) vs %s (depois)   |   N pares: %d\n\n",
               x_nome, y_nome, length(dif_c)))
 
@@ -662,7 +710,7 @@ teste_t_pareado <- function(x, y, hipotese = c("bilateral", "maior", "menor"),
     cat(sprintf("  significativamente de zero ao n\u00edvel de %.0f%% de signific\u00e2ncia.\n",
                 alpha * 100))
   }
-  cat(strrep("\u2500", w_sep + 2), "\n\n", sep = "")
+  .print_rodape()
 
   # Gráfico
   if (grafico) {
@@ -735,7 +783,7 @@ teste_proporcao <- function(x, n, p0, hipotese = c("bilateral", "maior", "menor"
   p_ast  <- .th_asterisk(p_val)
   w_sep  <- 70
 
-  cat(sprintf("\n\u2500\u2500 TESTE DE PROPOR\u00c7\u00c3O (Z) %s\n", strrep("\u2500", w_sep - 26)))
+  .print_titulo("TESTE DE PROPOR\u00c7\u00c3O (Z) %s")
   cat(sprintf("  Sucessos: %d de %d   |   p\u2080: %.1f%%\n\n", x, n, p0 * 100))
 
   h0_txt <- sprintf("H\u2080: p = %.2f", p0)
@@ -783,7 +831,7 @@ teste_proporcao <- function(x, n, p0, hipotese = c("bilateral", "maior", "menor"
                 formatC(p_hat*100, format="f", digits=1, decimal.mark=",")))
     cat(sprintf("  de %.1f%% ao n\u00edvel de %.0f%% de signific\u00e2ncia.\n", p0*100, alpha*100))
   }
-  cat(strrep("\u2500", w_sep + 2), "\n\n", sep = "")
+  .print_rodape()
 
   # Gráfico: distribuição normal com região crítica
   if (grafico) {
@@ -818,6 +866,12 @@ teste_proporcao <- function(x, n, p0, hipotese = c("bilateral", "maior", "menor"
 
         p_plot <- p_plot +
           ggplot2::scale_y_continuous(expand = ggplot2::expansion(mult = c(0, 0.20))) +
+          ggplot2::scale_y_continuous(expand = ggplot2::expansion(mult = c(0, 0.20))) +
+          ggplot2::scale_y_continuous(expand = ggplot2::expansion(mult = c(0, 0.15))) +
+          ggplot2::scale_y_continuous(expand = ggplot2::expansion(mult = c(0, 0.20))) +
+          ggplot2::scale_y_continuous(expand = ggplot2::expansion(mult = c(0, 0.15))) +
+          ggplot2::scale_y_continuous(expand = ggplot2::expansion(mult = c(0, 0.20))) +
+          ggplot2::scale_y_continuous(expand = ggplot2::expansion(mult = c(0, 0.15))) +
           ggplot2::scale_y_continuous(expand = ggplot2::expansion(mult = c(0, 0.20))) +
           ggplot2::scale_y_continuous(expand = ggplot2::expansion(mult = c(0, 0.15))) +
           ggplot2::scale_y_continuous(expand = ggplot2::expansion(mult = c(0, 0.20))) +
@@ -896,7 +950,7 @@ teste_wilcoxon <- function(x, y = NULL, mu = 0, hipotese = c("bilateral", "maior
   p_ast  <- .th_asterisk(p_val)
   w_sep  <- 70
 
-  cat(sprintf("\n\u2500\u2500 TESTE N\u00c3O-PARAM\u00c9TRICO DE WILCOXON %s\n", strrep("\u2500", w_sep - 36)))
+  .print_titulo("TESTE N\u00c3O-PARAM\u00c9TRICO DE WILCOXON %s")
   cat(sprintf("  Tipo: %s\n", tipo))
   cat(sprintf("  Nota: Alternativa n\u00e3o-param\u00e9trica ao teste t. Testa a mediana.\n\n"))
 
@@ -938,7 +992,7 @@ teste_wilcoxon <- function(x, y = NULL, mu = 0, hipotese = c("bilateral", "maior
     if (pareado) cat("  A mediana das diferenças n\u00e3o difere significativamente de zero.\n")
     else cat(sprintf("  A mediana de %s n\u00e3o difere significativamente de %s.\n", x_nome, mu))
   }
-  cat(strrep("\u2500", w_sep + 2), "\n\n", sep = "")
+  .print_rodape()
   invisible(res)
 }
 
@@ -981,7 +1035,7 @@ teste_mann_whitney <- function(x, grupo, hipotese = c("bilateral", "maior", "men
   p_ast <- .th_asterisk(p_val)
   w_sep <- 70
 
-  cat(sprintf("\n\u2500\u2500 TESTE DE MANN-WHITNEY %s\n", strrep("\u2500", w_sep - 22)))
+  .print_titulo("TESTE DE MANN-WHITNEY %s")
   cat(sprintf("  Vari\u00e1vel: %s   |   Grupos: %s vs %s\n", x_nome, g1, g2))
   cat("  Nota: Alternativa n\u00e3o-param\u00e9trica ao teste t para grupos independentes.\n\n")
 
@@ -1041,7 +1095,7 @@ teste_mann_whitney <- function(x, grupo, hipotese = c("bilateral", "maior", "men
     cat(sprintf("  N\u00e3o h\u00e1 diferen\u00e7a significativa entre as distribui\u00e7\u00f5es\n"))
     cat(sprintf("  de %s e %s ao n\u00edvel de %.0f%% de signific\u00e2ncia.\n", g1, g2, alpha * 100))
   }
-  cat(strrep("\u2500", w_sep + 2), "\n\n", sep = "")
+  .print_rodape()
   invisible(res)
 }
 
@@ -1073,7 +1127,7 @@ teste_qui_quadrado <- function(dados, var_x, var_y, confianca = 0.95, decimais =
   p_ast <- .th_asterisk(p_val)
   w_sep <- 70
 
-  cat(sprintf("\n\u2500\u2500 TESTE QUI-QUADRADO DE INDEPEND\u00caNCIA %s\n", strrep("\u2500", w_sep - 37)))
+  .print_titulo("TESTE QUI-QUADRADO DE INDEPEND\u00caNCIA %s")
   cat(sprintf("  Vari\u00e1veis: %s  \u00d7  %s\n\n", vx_nome, vy_nome))
   cat(sprintf("  H\u2080: %s e %s s\u00e3o independentes\n", vx_nome, vy_nome))
   cat(sprintf("  H\u2081: %s e %s n\u00e3o s\u00e3o independentes\n\n", vx_nome, vy_nome))
@@ -1113,7 +1167,7 @@ teste_qui_quadrado <- function(dados, var_x, var_y, confianca = 0.95, decimais =
     cat(sprintf("  N\u00e3o h\u00e1 associa\u00e7\u00e3o significativa entre %s e %s\n", vx_nome, vy_nome))
     cat(sprintf("  ao n\u00edvel de %.0f%% de signific\u00e2ncia.\n", alpha * 100))
   }
-  cat(strrep("\u2500", w_sep + 2), "\n\n", sep = "")
+  .print_rodape()
   invisible(res)
 }
 
@@ -1147,7 +1201,7 @@ teste_levene <- function(x, grupo, confianca = 0.95, decimais = 2) {
   p_ast     <- .th_asterisk(p_val)
   w_sep     <- 70
 
-  cat(sprintf("\n\u2500\u2500 TESTE DE LEVENE (HOMOGENEIDADE DE VARI\u00c2NCIAS) %s\n", strrep("\u2500", w_sep - 48)))
+  .print_titulo("TESTE DE LEVENE (HOMOGENEIDADE DE VARI\u00c2NCIAS) %s")
   cat(sprintf("  Vari\u00e1vel: %s   |   Grupos: %s\n\n", x_nome, grupo_nome))
   cat("  H\u2080: as vari\u00e2ncias s\u00e3o iguais entre os grupos\n")
   cat("  H\u2081: pelo menos uma vari\u00e2ncia difere\n\n")
@@ -1187,6 +1241,6 @@ teste_levene <- function(x, grupo, confianca = 0.95, decimais = 2) {
     cat("  As vari\u00e2ncias dos grupos s\u00e3o homog\u00eaneas.\n")
     cat("  O teste t de Student (variancia_igual = TRUE) pode ser utilizado.\n")
   }
-  cat(strrep("\u2500", w_sep + 2), "\n\n", sep = "")
+  .print_rodape()
   invisible(list(F = f_stat, p.value = p_val))
 }

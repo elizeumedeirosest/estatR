@@ -114,7 +114,7 @@
   n_tracos <- w_sep - nchar(tit_formatado)
   if (n_tracos < 0) n_tracos <- 0
   linha_completa <- paste0(tit_formatado, strrep("─", n_tracos))
-  cat(sprintf("\n\033[1m%s\033[0m\n\n", linha_completa))
+  cat(sprintf("\n\033[1;34m%s\033[0m\n\n", linha_completa))
 }
 
 #' @noRd
@@ -124,5 +124,5 @@
 
 #' @noRd
 .print_rodape <- function(w_sep = 78) {
-  cat(sprintf("\033[1m%s\033[0m\n\n", strrep("─", w_sep)))
+  cat(sprintf("\033[1;34m%s\033[0m\n\n", strrep("─", w_sep)))
 }
