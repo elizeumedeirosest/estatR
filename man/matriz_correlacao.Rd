@@ -2,21 +2,26 @@
 % Please edit documentation in R/correlacao.R
 \name{matriz_correlacao}
 \alias{matriz_correlacao}
-\title{Matriz de Correlação}
+\title{Matriz de Correlação (Correlograma)}
 \usage{
 matriz_correlacao(
   dados,
   variaveis = NULL,
-  metodo = c("pearson", "spearman", "kendall")
+  metodo = c("pearson", "spearman", "kendall"),
+  top = NULL
 )
 }
 \arguments{
 \item{dados}{Data frame (usa todas as variáveis numéricas automaticamente)}
 
-\item{variaveis}{Vetor opcional com nomes das variáveis. Se NULL, usa todas numéricas.}
+\item{variaveis}{Vetor opcional com nomes específicos de variáveis para incluir.}
 
 \item{metodo}{Método ("pearson", "spearman", "kendall")}
+
+\item{top}{Opcional. Se definido (ex: 5), exibe no gráfico apenas as variáveis envolvidas
+nos 'top' pares com maior correlação absoluta, ajudando a limpar gráficos muito grandes.}
 }
 \description{
 Plota o correlograma de todas as variáveis numéricas do data frame.
+Permite filtrar pelas variáveis mais correlacionadas para simplificar visualizações densas.
 }

@@ -2,27 +2,33 @@
 % Please edit documentation in R/correlacao.R
 \name{teste_correlacao}
 \alias{teste_correlacao}
-\title{Teste de Correlação (Bivariada)}
+\title{Teste de Correlação (Bivariada ou Multivariada)}
 \usage{
 teste_correlacao(
   dados,
-  var1,
-  var2,
+  var1 = NULL,
+  var2 = NULL,
   metodo = c("pearson", "spearman", "kendall"),
+  top = 10,
   grafico = TRUE
 )
 }
 \arguments{
 \item{dados}{Data frame}
 
-\item{var1}{Variável 1 (sem aspas)}
+\item{var1}{Variável 1 (opcional, sem aspas)}
 
-\item{var2}{Variável 2 (sem aspas)}
+\item{var2}{Variável 2 (opcional, sem aspas)}
 
 \item{metodo}{Método ("pearson", "spearman", "kendall")}
 
-\item{grafico}{Lógico. Se TRUE, exibe o gráfico de dispersão.}
+\item{top}{Quando \code{var1} e \code{var2} não são fornecidos, especifica o número de pares
+mais correlacionados a serem exibidos no console (padrão 10).}
+
+\item{grafico}{Lógico. Se TRUE e for um teste bivariado, exibe o gráfico de dispersão.}
 }
 \description{
-Realiza o teste de correlação entre duas variáveis contínuas.
+Realiza o teste de correlação. Se duas variáveis forem fornecidas, faz o teste
+detalhado entre elas. Se nenhuma variável for fornecida, calcula a correlação entre todas
+as variáveis numéricas do banco de dados e exibe os pares mais correlacionados.
 }
