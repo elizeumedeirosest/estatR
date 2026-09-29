@@ -115,7 +115,7 @@ ic_media <- function(x, confianca = 0.95, decimais = 3, grafico = TRUE) {
   cat("  \u25b6 INTERPRETA\u00c7\u00c3O\n")
   cat(sprintf("  Com %.0f%% de confian\u00e7a, estima-se que a verdadeira m\u00e9dia\n", confianca * 100))
   cat(sprintf("  populacional de '%s' est\u00e1 entre %s e %s.\n", var_nome, .ic_fmt(linf, decimais), .ic_fmt(lsup, decimais)))
-  cat(strrep("\u2500", w_sep), "\n\n")
+  .print_rodape()
   
   if (grafico) {
     tryCatch({
@@ -180,7 +180,7 @@ ic_proporcao <- function(x, n, confianca = 0.95, decimais = 3, grafico = TRUE) {
   cat("  \u25b6 INTERPRETA\u00c7\u00c3O\n")
   cat(sprintf("  Com %.0f%% de confian\u00e7a, estima-se que a verdadeira propor\u00e7\u00e3o\n", confianca * 100))
   cat(sprintf("  populacional est\u00e1 entre %s%% e %s%%.\n", .ic_fmt(linf*100, 1), .ic_fmt(lsup*100, 1)))
-  cat(strrep("\u2500", w_sep), "\n\n")
+  .print_rodape()
   
   if (grafico) {
     tryCatch({
@@ -256,7 +256,7 @@ ic_variancia <- function(x, confianca = 0.95, decimais = 3) {
   cat("  \u25b6 INTERPRETA\u00c7\u00c3O\n")
   cat(sprintf("  Com %.0f%% de confian\u00e7a, estima-se que a variabilidade da\n", confianca * 100))
   cat(sprintf("  popula\u00e7\u00e3o, medida pelo desvio padr\u00e3o, est\u00e1 entre %s e %s.\n", .ic_fmt(linf_dp, decimais), .ic_fmt(lsup_dp, decimais)))
-  cat(strrep("\u2500", w_sep), "\n\n")
+  .print_rodape()
   
   invisible(data.frame(variancia = v, desvio_padrao = dp, li_var = linf_v, ls_var = lsup_v, li_dp = linf_dp, ls_dp = lsup_dp))
 }
@@ -336,7 +336,7 @@ ic_diferenca_medias <- function(x, grupo, variancia_igual = FALSE, confianca = 0
     cat(sprintf("  Como o intervalo cont\u00e9m o zero, a diferen\u00e7a entre as m\u00e9dias\n"))
     cat(sprintf("  n\u00e3o \u00e9 estatisticamente significativa (ao n\u00edvel de %.0f%% de confian\u00e7a).\n", confianca*100))
   }
-  cat(strrep("\u2500", w_sep), "\n\n")
+  .print_rodape()
   
   if (grafico) {
     tryCatch({

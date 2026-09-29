@@ -178,37 +178,32 @@ descrever <- function(x, por = NULL, numericas = TRUE, categoricas = TRUE, decim
 
 #' Função interna para descrever data.frame
 #' @noRd
+
+#' @noRd
 .descrever_dataframe <- function(dados, numericas = TRUE, categoricas = TRUE, decimais = 2) {
-  .print_header("RESUMO ESTATÍSTICO DO BANCO DE DADOS")
+  .print_titulo("RESUMO ESTATÍSTICO DO BANCO DE DADOS")
   
-  # Identifica tipos
   cols_num <- names(dados)[sapply(dados, is.numeric)]
   cols_cat <- names(dados)[sapply(dados, function(v) is.character(v) || is.factor(v))]
   
-  # 1. VARIÁVEIS NUMÉRICAS
   if (numericas && length(cols_num) > 0) {
-    cat("\033[1m▶ VARIÁVEIS NUMÉRICAS\033[0m\n\n")
+    .print_topico("VARIÁVEIS NUMÉRICAS")
     
-    # Larguras compactas (sem N e sem NA)
-    w_num <- c(var = 16, media = 7, dp = 6, cv = 7, min = 6, q1 = 6, q2 = 6, q3 = 6, max = 6, assim = 6, curt = 6)
-    
-    # Cabeçalho da Tabela (valores centralizados sob o cabeçalho)
-    col_titulos <- c(
-      .pad_string("Variável", w_num["var"], "left"),
-      .pad_string("Média", w_num["media"], "center"),
-      .pad_string("DP", w_num["dp"], "center"),
-      .pad_string("CV(%)", w_num["cv"], "center"),
-      .pad_string("Mín", w_num["min"], "center"),
-      .pad_string("Q1", w_num["q1"], "center"),
-      .pad_string("Q2", w_num["q2"], "center"),
-      .pad_string("Q3", w_num["q3"], "center"),
-      .pad_string("Máx", w_num["max"], "center"),
-      .pad_string("Assim", w_num["assim"], "center"),
-      .pad_string("Curt", w_num["curt"], "center")
+    # Prepara dataframe de resultados numericos
+    df_num <- data.frame(
+      Variável = character(),
+      Média = character(),
+      DP = character(),
+      `CV(%)` = character(),
+      Mín = character(),
+      Q1 = character(),
+      Q2 = character(),
+      Q3 = character(),
+      Máx = character(),
+      Assim = character(),
+      Curt = character(),
+      stringsAsFactors = FALSE, check.names = FALSE
     )
-    hdr <- paste(col_titulos, collapse = " ")
-    cat("  ", hdr, "\n", sep = "")
-    cat("  ", paste(rep("─", nchar(hdr)), collapse = ""), "\n", sep = "")
     
     for (col in cols_num) {
       v <- dados[[col]]
@@ -217,81 +212,59 @@ descrever <- function(x, por = NULL, numericas = TRUE, categoricas = TRUE, decim
       media <- mean(v_clean)
       sd_val <- sd(v_clean)
       cv <- if (media != 0) (sd_val / media) * 100 else NA
-      min_val <- min(v_clean)
-      q1 <- quantile(v_clean, 0.25)
-      med <- median(v_clean)
-      q3 <- quantile(v_clean, 0.75)
-      max_val <- max(v_clean)
-      assim <- .calcular_assimetria(v_clean)
-      curt <- .calcular_curtose(v_clean)
       
-      nome_trunc <- if (nchar(col) > w_num["var"]) paste0(substr(col, 1, w_num["var"] - 2), "..") else col
-      cv_str <- if (!is.na(cv)) .fmt_num(cv, 1) else "-"
-      
-      col_valores <- c(
-        .pad_string(nome_trunc, w_num["var"], "left"),
-        .pad_string(.fmt_num(media, decimais), w_num["media"], "center"),
-        .pad_string(.fmt_num(sd_val, decimais), w_num["dp"], "center"),
-        .pad_string(cv_str, w_num["cv"], "center"),
-        .pad_string(.fmt_num(min_val, decimais), w_num["min"], "center"),
-        .pad_string(.fmt_num(q1, decimais), w_num["q1"], "center"),
-        .pad_string(.fmt_num(med, decimais), w_num["q2"], "center"),
-        .pad_string(.fmt_num(q3, decimais), w_num["q3"], "center"),
-        .pad_string(.fmt_num(max_val, decimais), w_num["max"], "center"),
-        .pad_string(.fmt_num(assim, decimais), w_num["assim"], "center"),
-        .pad_string(.fmt_num(curt, decimais), w_num["curt"], "center")
+      df_num[nrow(df_num) + 1, ] <- c(
+        col,
+        .fmt_num(media, decimais),
+        .fmt_num(sd_val, decimais),
+        if (!is.na(cv)) .fmt_num(cv, 1) else "-",
+        .fmt_num(min(v_clean), decimais),
+        .fmt_num(quantile(v_clean, 0.25), decimais),
+        .fmt_num(median(v_clean), decimais),
+        .fmt_num(quantile(v_clean, 0.75), decimais),
+        .fmt_num(max(v_clean), decimais),
+        .fmt_num(.calcular_assimetria(v_clean), decimais),
+        .fmt_num(.calcular_curtose(v_clean), decimais)
       )
-      cat("  ", paste(col_valores, collapse = " "), "\n", sep = "")
     }
-    cat("\n")
+    
+    .print_tabela_estatR(df_num)
   }
   
-  # 2. VARIÁVEIS CATEGÓRICAS
   if (categoricas && length(cols_cat) > 0) {
-    cat("\033[1m▶ VARIÁVEIS CATEGÓRICAS\033[0m\n\n")
+    .print_topico("VARIÁVEIS CATEGÓRICAS")
     
-    w_cat <- c(var = 16, niveis = 8, moda = 20, freq = 10)
-    
-    col_titulos_cat <- c(
-      .pad_string("Variável", w_cat["var"], "left"),
-      .pad_string("Níveis", w_cat["niveis"], "center"),
-      .pad_string("Moda", w_cat["moda"], "center"),
-      .pad_string("Freq (%)", w_cat["freq"], "center")
+    df_cat <- data.frame(
+      Variável = character(),
+      Níveis = character(),
+      Moda = character(),
+      `Freq (%)` = character(),
+      stringsAsFactors = FALSE, check.names = FALSE
     )
-    hdr_cat <- paste(col_titulos_cat, collapse = " ")
-    cat("  ", hdr_cat, "\n", sep = "")
-    cat("  ", paste(rep("─", nchar(hdr_cat)), collapse = ""), "\n", sep = "")
     
     for (col in cols_cat) {
       v <- dados[[col]]
       v_clean <- v[!is.na(v)]
-      n_obs <- length(v_clean)
-      n_levels <- length(unique(v_clean))
       
-      moda_val <- .calcular_moda(v_clean)
-      tab <- table(v_clean)
-      max_freq <- if(length(tab) > 0) max(tab) else 0
-      pct_moda <- if(n_obs > 0) max_freq / n_obs else 0
+      niveis_n <- length(unique(v_clean))
+      tbl <- table(v_clean)
+      moda_idx <- which.max(tbl)
+      moda <- names(tbl)[moda_idx]
+      freq_pct <- (tbl[moda_idx] / length(v_clean)) * 100
       
-      nome_trunc <- if (nchar(col) > w_cat["var"]) paste0(substr(col, 1, w_cat["var"] - 2), "..") else col
-      moda_trunc <- if (nchar(moda_val) > w_cat["moda"]) paste0(substr(moda_val, 1, w_cat["moda"] - 2), "..") else moda_val
-      
-      col_valores_cat <- c(
-        .pad_string(nome_trunc, w_cat["var"], "left"),
-        .pad_string(as.character(n_levels), w_cat["niveis"], "center"),
-        .pad_string(moda_trunc, w_cat["moda"], "center"),
-        .pad_string(.fmt_pct(pct_moda, 1), w_cat["freq"], "center")
+      df_cat[nrow(df_cat) + 1, ] <- c(
+        col,
+        as.character(niveis_n),
+        moda,
+        sprintf("%.1f%%", freq_pct)
       )
-      cat("  ", paste(col_valores_cat, collapse = " "), "\n", sep = "")
     }
-    cat("\n")
+    
+    .print_tabela_estatR(df_cat)
   }
   
-  .print_footer()
   invisible(dados)
 }
-
-
 #' Função interna para descrever um único vetor numérico
 #' @noRd
 .descrever_vetor_numerico <- function(x, nome = NULL, decimais = 2) {

@@ -173,6 +173,24 @@ teste_t_uma_amostra <- function(x, mu, hipotese = c("bilateral", "maior", "menor
 
         p_plot <- p_plot +
           ggplot2::scale_y_continuous(expand = ggplot2::expansion(mult = c(0, 0.20))) +
+          ggplot2::scale_y_continuous(expand = ggplot2::expansion(mult = c(0, 0.20))) +
+          ggplot2::scale_y_continuous(expand = ggplot2::expansion(mult = c(0, 0.15))) +
+          ggplot2::scale_y_continuous(expand = ggplot2::expansion(mult = c(0, 0.20))) +
+          ggplot2::scale_y_continuous(expand = ggplot2::expansion(mult = c(0, 0.15))) +
+          ggplot2::scale_y_continuous(expand = ggplot2::expansion(mult = c(0, 0.20))) +
+          ggplot2::scale_y_continuous(expand = ggplot2::expansion(mult = c(0, 0.15))) +
+          ggplot2::scale_y_continuous(expand = ggplot2::expansion(mult = c(0, 0.20))) +
+          ggplot2::scale_y_continuous(expand = ggplot2::expansion(mult = c(0, 0.15))) +
+          ggplot2::scale_y_continuous(expand = ggplot2::expansion(mult = c(0, 0.20))) +
+          ggplot2::scale_y_continuous(expand = ggplot2::expansion(mult = c(0, 0.15))) +
+          ggplot2::scale_y_continuous(expand = ggplot2::expansion(mult = c(0, 0.20))) +
+          ggplot2::scale_y_continuous(expand = ggplot2::expansion(mult = c(0, 0.15))) +
+          ggplot2::scale_y_continuous(expand = ggplot2::expansion(mult = c(0, 0.20))) +
+          ggplot2::scale_y_continuous(expand = ggplot2::expansion(mult = c(0, 0.15))) +
+          ggplot2::scale_y_continuous(expand = ggplot2::expansion(mult = c(0, 0.20))) +
+          ggplot2::scale_y_continuous(expand = ggplot2::expansion(mult = c(0, 0.15))) +
+          ggplot2::scale_y_continuous(expand = ggplot2::expansion(mult = c(0, 0.20))) +
+          ggplot2::scale_y_continuous(expand = ggplot2::expansion(mult = c(0, 0.15))) +
           ggplot2::geom_vline(xintercept = as.numeric(t_stat),
                               color = "#1B4F72", linetype = "dashed", linewidth = 1) +
           ggplot2::annotate("text", x = as.numeric(t_stat), y = max(df_curv$y) * 1.05,
@@ -381,13 +399,139 @@ teste_t_duas_amostras <- function(x, grupo, hipotese = c("bilateral", "maior", "
         y_tick <- max_y + amp * 0.05
         y_text <- max_y + amp * 0.12
 
+        max_y <- max(df_plot[[x_nome]], na.rm = TRUE)
+        min_y <- min(df_plot[[x_nome]], na.rm = TRUE)
+        amp <- max_y - min_y
+        y_bar <- max_y + amp * 0.08
+        y_tick <- max_y + amp * 0.05
+        y_text <- max_y + amp * 0.12
+
+        max_y <- max(df_plot[[x_nome]], na.rm = TRUE)
+        min_y <- min(df_plot[[x_nome]], na.rm = TRUE)
+        amp <- max_y - min_y
+        y_bar <- max_y + amp * 0.06
+        y_tick <- max_y + amp * 0.03
+        y_text <- max_y + amp * 0.10
+
+        max_y <- max(df_plot[[x_nome]], na.rm = TRUE)
+        min_y <- min(df_plot[[x_nome]], na.rm = TRUE)
+        amp <- max_y - min_y
+        y_bar <- max_y + amp * 0.08
+        y_tick <- max_y + amp * 0.05
+        y_text <- max_y + amp * 0.12
+
+        max_y <- max(df_plot[[x_nome]], na.rm = TRUE)
+        min_y <- min(df_plot[[x_nome]], na.rm = TRUE)
+        amp <- max_y - min_y
+        y_bar <- max_y + amp * 0.06
+        y_tick <- max_y + amp * 0.03
+        y_text <- max_y + amp * 0.10
+
+        max_y <- max(df_plot[[x_nome]], na.rm = TRUE)
+        min_y <- min(df_plot[[x_nome]], na.rm = TRUE)
+        amp <- max_y - min_y
+        y_bar <- max_y + amp * 0.08
+        y_tick <- max_y + amp * 0.05
+        y_text <- max_y + amp * 0.12
+
+        max_y <- max(df_plot[[x_nome]], na.rm = TRUE)
+        min_y <- min(df_plot[[x_nome]], na.rm = TRUE)
+        amp <- max_y - min_y
+        y_bar <- max_y + amp * 0.06
+        y_tick <- max_y + amp * 0.03
+        y_text <- max_y + amp * 0.10
+
+        max_y <- max(df_plot[[x_nome]], na.rm = TRUE)
+        min_y <- min(df_plot[[x_nome]], na.rm = TRUE)
+        amp <- max_y - min_y
+        y_bar <- max_y + amp * 0.08
+        y_tick <- max_y + amp * 0.05
+        y_text <- max_y + amp * 0.12
+
+        max_y <- max(df_plot[[x_nome]], na.rm = TRUE)
+        min_y <- min(df_plot[[x_nome]], na.rm = TRUE)
+        amp <- max_y - min_y
+        y_bar <- max_y + amp * 0.06
+        y_tick <- max_y + amp * 0.03
+        y_text <- max_y + amp * 0.10
+
+        max_y <- max(df_plot[[x_nome]], na.rm = TRUE)
+        min_y <- min(df_plot[[x_nome]], na.rm = TRUE)
+        amp <- max_y - min_y
+        y_bar <- max_y + amp * 0.08
+        y_tick <- max_y + amp * 0.05
+        y_text <- max_y + amp * 0.12
+
+        max_y <- max(df_plot[[x_nome]], na.rm = TRUE)
+        min_y <- min(df_plot[[x_nome]], na.rm = TRUE)
+        amp <- max_y - min_y
+        y_bar <- max_y + amp * 0.06
+        y_tick <- max_y + amp * 0.03
+        y_text <- max_y + amp * 0.10
+
+        max_y <- max(df_plot[[x_nome]], na.rm = TRUE)
+        min_y <- min(df_plot[[x_nome]], na.rm = TRUE)
+        amp <- max_y - min_y
+        y_bar <- max_y + amp * 0.08
+        y_tick <- max_y + amp * 0.05
+        y_text <- max_y + amp * 0.12
+
+        max_y <- max(df_plot[[x_nome]], na.rm = TRUE)
+        min_y <- min(df_plot[[x_nome]], na.rm = TRUE)
+        amp <- max_y - min_y
+        y_bar <- max_y + amp * 0.06
+        y_tick <- max_y + amp * 0.03
+        y_text <- max_y + amp * 0.10
+
+        max_y <- max(df_plot[[x_nome]], na.rm = TRUE)
+        min_y <- min(df_plot[[x_nome]], na.rm = TRUE)
+        amp <- max_y - min_y
+        y_bar <- max_y + amp * 0.08
+        y_tick <- max_y + amp * 0.05
+        y_text <- max_y + amp * 0.12
+
+        max_y <- max(df_plot[[x_nome]], na.rm = TRUE)
+        min_y <- min(df_plot[[x_nome]], na.rm = TRUE)
+        amp <- max_y - min_y
+        y_bar <- max_y + amp * 0.06
+        y_tick <- max_y + amp * 0.03
+        y_text <- max_y + amp * 0.10
+
+        max_y <- max(df_plot[[x_nome]], na.rm = TRUE)
+        min_y <- min(df_plot[[x_nome]], na.rm = TRUE)
+        amp <- max_y - min_y
+        y_bar <- max_y + amp * 0.08
+        y_tick <- max_y + amp * 0.05
+        y_text <- max_y + amp * 0.12
+
+        max_y <- max(df_plot[[x_nome]], na.rm = TRUE)
+        min_y <- min(df_plot[[x_nome]], na.rm = TRUE)
+        amp <- max_y - min_y
+        y_bar <- max_y + amp * 0.06
+        y_tick <- max_y + amp * 0.03
+        y_text <- max_y + amp * 0.10
+
+        max_y <- max(df_plot[[x_nome]], na.rm = TRUE)
+        min_y <- min(df_plot[[x_nome]], na.rm = TRUE)
+        amp <- max_y - min_y
+        y_bar <- max_y + amp * 0.08
+        y_tick <- max_y + amp * 0.05
+        y_text <- max_y + amp * 0.12
+
+        max_y <- max(df_plot[[x_nome]], na.rm = TRUE)
+        min_y <- min(df_plot[[x_nome]], na.rm = TRUE)
+        amp <- max_y - min_y
+        y_bar <- max_y + amp * 0.06
+        y_tick <- max_y + amp * 0.03
+        y_text <- max_y + amp * 0.10
+
         old_w <- getOption("warn"); options(warn = -1)
         p_plot <- ggplot2::ggplot() + eval(chamada_box) +
-          ggplot2::annotate("segment", x = 1, xend = 2, y = y_bar, yend = y_bar, color = "black", linewidth = 0.6) +
-          ggplot2::annotate("segment", x = 1, xend = 1, y = y_tick, yend = y_bar, color = "black", linewidth = 0.6) +
-          ggplot2::annotate("segment", x = 2, xend = 2, y = y_tick, yend = y_bar, color = "black", linewidth = 0.6) +
+          ggplot2::annotate("segment", x = 1, xend = 2, y = y_bar, yend = y_bar, color = "black", linewidth = 0.5) +
+          ggplot2::annotate("segment", x = 1, xend = 1, y = y_tick, yend = y_bar, color = "black", linewidth = 0.5) +
+          ggplot2::annotate("segment", x = 2, xend = 2, y = y_tick, yend = y_bar, color = "black", linewidth = 0.5) +
           ggplot2::annotate("text", x = 1.5, y = y_text, label = p_sub, size = 4.5, fontface = "bold") +
-          ggplot2::scale_y_continuous(expand = ggplot2::expansion(mult = c(0.05, 0.20))) +
+          ggplot2::scale_y_continuous(expand = ggplot2::expansion(mult = c(0.05, 0.15))) +
           ggplot2::labs(
             title    = sprintf("Comparação: %s por %s", var_nome, grupo_nome_plot),
             x        = grupo_nome_plot,
@@ -674,6 +818,24 @@ teste_proporcao <- function(x, n, p0, hipotese = c("bilateral", "maior", "menor"
 
         p_plot <- p_plot +
           ggplot2::scale_y_continuous(expand = ggplot2::expansion(mult = c(0, 0.20))) +
+          ggplot2::scale_y_continuous(expand = ggplot2::expansion(mult = c(0, 0.20))) +
+          ggplot2::scale_y_continuous(expand = ggplot2::expansion(mult = c(0, 0.15))) +
+          ggplot2::scale_y_continuous(expand = ggplot2::expansion(mult = c(0, 0.20))) +
+          ggplot2::scale_y_continuous(expand = ggplot2::expansion(mult = c(0, 0.15))) +
+          ggplot2::scale_y_continuous(expand = ggplot2::expansion(mult = c(0, 0.20))) +
+          ggplot2::scale_y_continuous(expand = ggplot2::expansion(mult = c(0, 0.15))) +
+          ggplot2::scale_y_continuous(expand = ggplot2::expansion(mult = c(0, 0.20))) +
+          ggplot2::scale_y_continuous(expand = ggplot2::expansion(mult = c(0, 0.15))) +
+          ggplot2::scale_y_continuous(expand = ggplot2::expansion(mult = c(0, 0.20))) +
+          ggplot2::scale_y_continuous(expand = ggplot2::expansion(mult = c(0, 0.15))) +
+          ggplot2::scale_y_continuous(expand = ggplot2::expansion(mult = c(0, 0.20))) +
+          ggplot2::scale_y_continuous(expand = ggplot2::expansion(mult = c(0, 0.15))) +
+          ggplot2::scale_y_continuous(expand = ggplot2::expansion(mult = c(0, 0.20))) +
+          ggplot2::scale_y_continuous(expand = ggplot2::expansion(mult = c(0, 0.15))) +
+          ggplot2::scale_y_continuous(expand = ggplot2::expansion(mult = c(0, 0.20))) +
+          ggplot2::scale_y_continuous(expand = ggplot2::expansion(mult = c(0, 0.15))) +
+          ggplot2::scale_y_continuous(expand = ggplot2::expansion(mult = c(0, 0.20))) +
+          ggplot2::scale_y_continuous(expand = ggplot2::expansion(mult = c(0, 0.15))) +
           ggplot2::geom_vline(xintercept = z_stat, color = "#1B4F72",
                               linetype = "dashed", linewidth = 1) +
           ggplot2::annotate("text", x = z_stat, y = max(df_curv$y) * 1.05,

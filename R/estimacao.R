@@ -144,7 +144,7 @@ estimar_verossimilhanca <- function(x, distribuicao = c("normal", "poisson", "ex
   cat(sprintf("  maximizando a fun\u00e7\u00e3o de verossimilhan\u00e7a com base nas\n"))
   cat(sprintf("  %d observa\u00e7\u00f5es fornecidas. Os valores apresentados s\u00e3o\n", n))
   cat(sprintf("  os que tornam os dados observados 'mais prov\u00e1veis' de ocorrer.\n"))
-  cat(strrep("\u2500", w_sep), "\n\n")
+  .print_rodape()
 
   # ── Gráfico: curva de log-verossimilhança ─────────────────────────────────────
   if (grafico && exists("meu_tema")) {
@@ -335,7 +335,7 @@ estimar_momentos <- function(x, distribuicao = c("normal", "poisson", "exponenci
   cat(sprintf("  Os par\u00e2metros foram obtidos igualando os momentos\n"))
   cat(sprintf("  amostrais (m\u00e9dia e vari\u00e2ncia) aos momentos te\u00f3ricos da\n"))
   cat(sprintf("  distribui\u00e7\u00e3o %s e resolvendo o sistema de equa\u00e7\u00f5es.\n", tools::toTitleCase(distribuicao)))
-  cat(strrep("\u2500", w_sep), "\n\n")
+  .print_rodape()
 
   # ── Gráfico: histograma + curva teórica ajustada ─────────────────────────────
   if (grafico && exists("meu_tema")) {

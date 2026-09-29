@@ -111,7 +111,7 @@ bootstrap <- function(x, estatistica = "media", repeticoes = 1000,
   cat(sprintf("  O vi\u00e9s Bootstrap \u00e9 %s (%s).\n\n", vies_txt, .sim_fmt(vies, 4)))
   cat(sprintf("  Com %.0f%% de confian\u00e7a, a verdadeira %s\n  est\u00e1 entre %s e %s.\n",
               confianca * 100, tolower(stat_nome), .sim_fmt(linf, 4), .sim_fmt(lsup, 4)))
-  cat(strrep("\u2500", w_sep), "\n\n")
+  .print_rodape()
 
   # Gráfico
   if (grafico && exists("meu_tema")) {
@@ -211,7 +211,7 @@ simular_tcl <- function(x, n_amostra = 30, repeticoes = 1000, semente = NULL) {
   } else {
     cat(sprintf("  [!] As m\u00e9dias ainda n\u00e3o s\u00e3o perfeitamente normais. Tente aumentar 'n_amostra'.\n\n"))
   }
-  cat(strrep("\u2500", w_sep), "\n\n")
+  .print_rodape()
 
   # Gráfico: painel 2 lados
   if (exists("meu_tema")) {
@@ -318,7 +318,7 @@ monte_carlo <- function(experimento, repeticoes = 10000, confianca = 0.95,
               .sim_fmt(p_hat * 100, 2), confianca * 100,
               .sim_fmt(linf * 100, 2), .sim_fmt(lsup * 100, 2)))
   cat(sprintf("  A margem de erro da estimativa \u00e9 de %s%%.\n", .sim_fmt(margem * 100, 3)))
-  cat(strrep("\u2500", w_sep), "\n\n")
+  .print_rodape()
 
   # Gráfico de convergência
   if (grafico && exists("meu_tema")) {

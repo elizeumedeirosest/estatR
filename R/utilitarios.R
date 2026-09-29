@@ -106,3 +106,23 @@
   if (s4 == 0) return(0)
   (m4 / s4) - 3 # Curtose excedente
 }
+
+# ── FORMATADORES VISUAIS PADRONIZADOS ────────────────────────────────────────
+#' @noRd
+.print_titulo <- function(titulo, w_sep = 78) {
+  tit_formatado <- paste0("── ", titulo, " ")
+  n_tracos <- w_sep - nchar(tit_formatado)
+  if (n_tracos < 0) n_tracos <- 0
+  linha_completa <- paste0(tit_formatado, strrep("─", n_tracos))
+  cat(sprintf("\n\033[1m%s\033[0m\n\n", linha_completa))
+}
+
+#' @noRd
+.print_topico <- function(texto) {
+  cat(sprintf("  \033[1m▶ %s\033[0m\n", texto))
+}
+
+#' @noRd
+.print_rodape <- function(w_sep = 78) {
+  cat(sprintf("\033[1m%s\033[0m\n\n", strrep("─", w_sep)))
+}

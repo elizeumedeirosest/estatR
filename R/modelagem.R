@@ -86,7 +86,7 @@ dividir_dados <- function(dados, proporcao = 0.8, estrato = NULL,
         .mod_pad("100,0%", wc["pct"], "center"), "\n", sep = "")
     cat(.mod_sep(nchar(hdr)), "\n")
     cat("  Nota: as linhas foram mantidas na ordem original (corte cronol\u00f3gico).\n")
-    cat(strrep("\u2500", w_sep), "\n\n")
+  .print_rodape()
 
     return(invisible(list(treino = treino, teste = teste)))
   }
@@ -156,7 +156,7 @@ dividir_dados <- function(dados, proporcao = 0.8, estrato = NULL,
         "\n", sep = "")
     cat(.mod_sep(nchar(hdr)), "\n")
     cat("  Nota: o sorteio foi realizado dentro de cada estrato.\n")
-    cat(strrep("\u2500", w_sep), "\n\n")
+  .print_rodape()
 
     return(invisible(list(treino = treino, teste = teste)))
   }
@@ -192,7 +192,7 @@ dividir_dados <- function(dados, proporcao = 0.8, estrato = NULL,
       .mod_pad("100,0%", wc["pct"], "center"), "\n", sep = "")
   cat(.mod_sep(nchar(hdr)), "\n")
   if (!is.null(semente)) cat(sprintf("  Semente utilizada: %s\n", semente))
-  cat(strrep("\u2500", w_sep), "\n\n")
+  .print_rodape()
 
   invisible(list(treino = treino, teste = teste))
 }

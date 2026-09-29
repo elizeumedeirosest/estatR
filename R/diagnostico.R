@@ -161,17 +161,16 @@ diagnostico <- function(dados) {
   n_linhas <- nrow(dados)
   n_cols   <- ncol(dados)
   
-  w_sep <- 78
-  cat(sprintf("\n\u2500\u2500 DIAGN\u00d3STICO DO BANCO DE DADOS %s\n\n", strrep("\u2500", w_sep - 35)))
+  .print_titulo("DIAGNÓSTICO DO BANCO DE DADOS")
   
-  cat(sprintf("  Total de observa\u00e7\u00f5es (linhas): %d\n", n_linhas))
-  cat(sprintf("  Total de vari\u00e1veis (colunas):  %d\n\n", n_cols))
+  cat(sprintf("  Total de observações (linhas): %d\n", n_linhas))
+  cat(sprintf("  Total de variáveis (colunas):  %d\n\n", n_cols))
   
   # Numéricas
   df_num <- .resumo_variaveis(dados, "numerica", completo = TRUE)
   if (!is.null(df_num)) {
     pct_num <- (nrow(df_num) / n_cols) * 100
-    cat(sprintf("  \u25b6 NUM\u00c9RICAS (%.1f%%)\n", pct_num))
+    .print_topico(sprintf("NUMÉRICAS (%.1f%%)", pct_num))
     .print_tabela_estatR(df_num)
   }
   
@@ -179,7 +178,7 @@ diagnostico <- function(dados) {
   df_cat <- .resumo_variaveis(dados, "categorica", completo = TRUE)
   if (!is.null(df_cat)) {
     pct_cat <- (nrow(df_cat) / n_cols) * 100
-    cat(sprintf("  \u25b6 CATEG\u00d3RICAS E FATORES (%.1f%%)\n", pct_cat))
+    .print_topico(sprintf("CATEGÓRICAS E FATORES (%.1f%%)", pct_cat))
     
     # Alinhamento especifico para a tabela categorica (Niveis alinhado a esquerda)
     align_cat <- rep("center", ncol(df_cat))
