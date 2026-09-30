@@ -137,8 +137,6 @@ gerar_amostra(n = 1000, distribuicao = "exponencial", taxa = 0.5)
 
 ---
 
----
-
 ### 📏 Intervalos de Confiança
 
 ```r
