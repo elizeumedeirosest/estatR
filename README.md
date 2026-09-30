@@ -26,11 +26,10 @@ devtools::install_github("elizeumedeirosest/estatR")
 
 ### 🔍 Diagnóstico de Dados
 
-Antes de qualquer análise, inspecione a estrutura e a saúde do seu banco de dados, incluindo a detecção automática de NAs ocultos (como `-99` ou textos vazios).
-
 ```r
-# Painel completo e mesclado (Estrutura + Valores Ausentes)
+# Painel completo (Estrutura dos dados + Valores Ausentes)
 diagnostico(mtcars)
+diagnostico(mtcars$mpg)
 
 # Funções fragmentadas (caso queira visualizar separadamente)
 estrutura(mtcars)
@@ -42,10 +41,6 @@ valores_ausentes(mtcars)
 ### 📊 Estatística Descritiva
 
 ```r
-# Visão geral (diagnóstico) de um banco ou variável (com NAs e tipos)
-diagnostico(mtcars)
-diagnostico(mtcars$mpg)
-
 # Estatísticas resumidas completas (Polimórfica)
 descrever(mtcars)                        # Resumo completo do banco
 descrever(mtcars$mpg)                    # Estatísticas da variável numérica
@@ -59,7 +54,7 @@ tabela_contingencia(mtcars, cyl, am, proporcao = "linha")
 # Medidas Específicas
 med_tend_central(mtcars$mpg)  # Média, Mediana, Moda
 med_dispersao(mtcars$mpg)     # Variância, DP, Erro Padrão, CV, Amplitude
-med_forma(mtcars$mpg)         # Assimetria e Curtose (com interpretação)
+med_forma(mtcars$mpg)         # Assimetria e Curtose
 
 # Separatrizes (Medidas de Posição)
 quartis(mtcars$mpg)
@@ -139,14 +134,6 @@ gerar_amostra(n = 500,  distribuicao = "binomial", ensaios = 10, prob = 0.5)
 gerar_amostra(n = 300,  distribuicao = "poisson",  lambda = 3)
 gerar_amostra(n = 1000, distribuicao = "exponencial", taxa = 0.5)
 ```
-
----
-
-## Roadmap
-
-- [ ] Módulo de Simulações (Bootstrap, Teorema do Limite Central)
-- [ ] Módulo de Testes de Hipótese (Teste-t, Qui-Quadrado, Wilcoxon)
-- [ ] Módulo de ANOVA e Delineamento Experimental (Tukey, Duncan)
 
 ---
 
