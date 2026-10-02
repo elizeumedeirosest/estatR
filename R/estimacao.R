@@ -124,7 +124,7 @@ estimar_verossimilhanca <- function(x, distribuicao = c("normal", "poisson", "ex
   }
 
   # ── Tabela de resultados ─────────────────────────────────────────────────────
-  cat("  \u25b6 PAR\u00c2METROS ESTIMADOS (EMV)\n")
+  .print_topico("PAR\u00c2METROS ESTIMADOS (EMV)")
   wc <- c(par = 28, val = 20)
   hdr <- paste0(.est_pad("Par\u00e2metro", wc["par"], "left"), .est_pad("Estimativa", wc["val"], "center"))
   cat(.est_sep(nchar(hdr)), "\n")
@@ -139,7 +139,7 @@ estimar_verossimilhanca <- function(x, distribuicao = c("normal", "poisson", "ex
   cat(.est_sep(nchar(hdr)), "\n")
   cat(sprintf("  Log-verossimilhan\u00e7a m\u00e1xima: %s\n\n", .est_fmt(ll_max, 3)))
 
-  cat("  \u25b6 INTERPRETA\u00c7\u00c3O\n")
+  .print_topico("INTERPRETA\u00c7\u00c3O")
   cat(sprintf("  Os par\u00e2metros da distribui\u00e7\u00e3o %s foram estimados\n", tools::toTitleCase(distribuicao)))
   cat(sprintf("  maximizando a fun\u00e7\u00e3o de verossimilhan\u00e7a com base nas\n"))
   cat(sprintf("  %d observa\u00e7\u00f5es fornecidas. Os valores apresentados s\u00e3o\n", n))
@@ -261,7 +261,7 @@ estimar_momentos <- function(x, distribuicao = c("normal", "poisson", "exponenci
               var_nome, n, tools::toTitleCase(distribuicao)))
 
   # ── Tabela de Momentos Amostrais ─────────────────────────────────────────────
-  cat("  \u25b6 MOMENTOS AMOSTRAIS UTILIZADOS\n")
+  .print_topico("MOMENTOS AMOSTRAIS UTILIZADOS")
   wc <- c(mom = 28, val = 20)
   hdr_m <- paste0(.est_pad("Momento", wc["mom"], "left"), .est_pad("Valor", wc["val"], "center"))
   cat(.est_sep(nchar(hdr_m)), "\n")
@@ -313,12 +313,12 @@ estimar_momentos <- function(x, distribuicao = c("normal", "poisson", "exponenci
   }
 
   # ── Fórmulas utilizadas ───────────────────────────────────────────────────────
-  cat("  \u25b6 EQUA\u00c7\u00f5ES DOS MOMENTOS\n")
+  .print_topico("EQUA\u00c7\u00f5ES DOS MOMENTOS")
   for (f in formula_txt) cat(sprintf("  %s\n", f))
   cat("\n")
 
   # ── Tabela de parâmetros estimados ────────────────────────────────────────────
-  cat("  \u25b6 PAR\u00c2METROS ESTIMADOS (Momentos)\n")
+  .print_topico("PAR\u00c2METROS ESTIMADOS (Momentos)")
   hdr_p <- paste0(.est_pad("Par\u00e2metro", wc["mom"], "left"), .est_pad("Estimativa", wc["val"], "center"))
   cat(.est_sep(nchar(hdr_p)), "\n")
   cat("  ", hdr_p, "\n", sep = "")
@@ -331,7 +331,7 @@ estimar_momentos <- function(x, distribuicao = c("normal", "poisson", "exponenci
   }
   cat(.est_sep(nchar(hdr_p)), "\n\n")
 
-  cat("  \u25b6 INTERPRETA\u00c7\u00c3O\n")
+  .print_topico("INTERPRETA\u00c7\u00c3O")
   cat(sprintf("  Os par\u00e2metros foram obtidos igualando os momentos\n"))
   cat(sprintf("  amostrais (m\u00e9dia e vari\u00e2ncia) aos momentos te\u00f3ricos da\n"))
   cat(sprintf("  distribui\u00e7\u00e3o %s e resolvendo o sistema de equa\u00e7\u00f5es.\n", tools::toTitleCase(distribuicao)))

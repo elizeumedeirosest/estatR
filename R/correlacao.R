@@ -51,7 +51,7 @@ teste_correlacao <- function(dados, var1, var2, metodo = c("pearson", "spearman"
   cat(sprintf("  Pares: %s vs %s\n", v1_str, v2_str))
   cat(sprintf("  M\u00e9todo: %s   |   N v\u00e1lido: %d\n\n", tools::toTitleCase(metodo), n))
   
-  cat("  \u25b6 RESULTADOS\n")
+  .print_topico("RESULTADOS")
   cat("  ", strrep("\u2500", 63), "\n", sep = "")
   
   if (metodo == "pearson") {
@@ -71,7 +71,7 @@ teste_correlacao <- function(dados, var1, var2, metodo = c("pearson", "spearman"
   if (p < 0.10) cat("  Signific\u00e2ncia: *** p < 0.01   ** p < 0.05   * p < 0.10\n")
   cat("\n")
   
-  cat("  \u25b6 INTERPRETA\u00c7\u00c3O\n")
+  .print_topico("INTERPRETA\u00c7\u00c3O")
   forca <- if (abs(r) < 0.3) "fraca" else if (abs(r) < 0.7) "moderada" else "forte"
   direcao <- if (r > 0) "positiva" else "negativa"
   

@@ -91,7 +91,7 @@ ic_media <- function(x, confianca = 0.95, decimais = 3, grafico = TRUE) {
   cat(sprintf("  Vari\u00e1vel: %s   |   N v\u00e1lido: %d   |   Confian\u00e7a: %.0f%%\n", var_nome, n, confianca * 100))
   cat("  Distribui\u00e7\u00e3o utilizada: t de Student (vari\u00e2ncia desconhecida)\n\n")
   
-  cat("  \u25b6 ESTIMATIVAS\n")
+  .print_topico("ESTIMATIVAS")
   wc <- c(ep=20, err=15, margem=16, gl=12)
   hdr <- paste0(.ic_pad("Estimativa Pontual", wc["ep"], "center"),
                 .ic_pad("Erro Padr\u00e3o", wc["err"], "center"),
@@ -107,12 +107,12 @@ ic_media <- function(x, confianca = 0.95, decimais = 3, grafico = TRUE) {
       .ic_pad(gl, wc["gl"], "center"), "\n", sep = "")
   cat(.ic_sep(nchar(hdr)), "\n\n")
   
-  cat(sprintf("  \u25b6 INTERVALO DE CONFIAN\u00c7A (%.0f%%)\n", confianca * 100))
+  .print_topico(sprintf("INTERVALO DE CONFIANÇA (%.0f%%)", confianca * 100))
   cat(.ic_sep(nchar(hdr)), "\n")
   cat(sprintf("  %s\n", .ic_pad(sprintf("[ %s  ;  %s ]", .ic_fmt(linf, decimais), .ic_fmt(lsup, decimais)), nchar(hdr), "center")))
   cat(.ic_sep(nchar(hdr)), "\n\n")
   
-  cat("  \u25b6 INTERPRETA\u00c7\u00c3O\n")
+  .print_topico("INTERPRETAÇÃO")
   cat(sprintf("  Com %.0f%% de confian\u00e7a, estima-se que a verdadeira m\u00e9dia\n", confianca * 100))
   cat(sprintf("  populacional de '%s' est\u00e1 entre %s e %s.\n", var_nome, .ic_fmt(linf, decimais), .ic_fmt(lsup, decimais)))
   .print_rodape()
@@ -155,7 +155,7 @@ ic_proporcao <- function(x, n, confianca = 0.95, decimais = 3, grafico = TRUE) {
   cat(sprintf("  Sucessos: %d   |   N total: %d   |   Confian\u00e7a: %.0f%%\n", x, n, confianca * 100))
   cat("  M\u00e9todo: Aproxima\u00e7\u00e3o Normal (Wald)\n\n")
   
-  cat("  \u25b6 ESTIMATIVAS\n")
+  .print_topico("ESTIMATIVAS")
   wc <- c(ep=22, err=15, margem=16, z=10)
   hdr <- paste0(.ic_pad("Propor\u00e7\u00e3o Amostral", wc["ep"], "center"),
                 .ic_pad("Erro Padr\u00e3o", wc["err"], "center"),
@@ -171,13 +171,13 @@ ic_proporcao <- function(x, n, confianca = 0.95, decimais = 3, grafico = TRUE) {
       .ic_pad(.ic_fmt(zc, 2), wc["z"], "center"), "\n", sep = "")
   cat(.ic_sep(nchar(hdr)), "\n\n")
   
-  cat(sprintf("  \u25b6 INTERVALO DE CONFIAN\u00c7A (%.0f%%)\n", confianca * 100))
+  .print_topico(sprintf("INTERVALO DE CONFIANÇA (%.0f%%)", confianca * 100))
   cat(.ic_sep(nchar(hdr)), "\n")
   str_ic <- sprintf("[ %s%%  ;  %s%% ]", .ic_fmt(linf*100, 1), .ic_fmt(lsup*100, 1))
   cat(sprintf("  %s\n", .ic_pad(str_ic, nchar(hdr), "center")))
   cat(.ic_sep(nchar(hdr)), "\n\n")
   
-  cat("  \u25b6 INTERPRETA\u00c7\u00c3O\n")
+  .print_topico("INTERPRETAÇÃO")
   cat(sprintf("  Com %.0f%% de confian\u00e7a, estima-se que a verdadeira propor\u00e7\u00e3o\n", confianca * 100))
   cat(sprintf("  populacional est\u00e1 entre %s%% e %s%%.\n", .ic_fmt(linf*100, 1), .ic_fmt(lsup*100, 1)))
   .print_rodape()
@@ -231,7 +231,7 @@ ic_variancia <- function(x, confianca = 0.95, decimais = 3) {
   cat(sprintf("  Vari\u00e1vel: %s   |   N v\u00e1lido: %d   |   Confian\u00e7a: %.0f%%\n", var_nome, n, confianca * 100))
   cat("  Distribui\u00e7\u00e3o utilizada: Qui-Quadrado (\u03c7\u00b2)\n\n")
   
-  cat("  \u25b6 ESTIMATIVAS PONTUAIS\n")
+  .print_topico("ESTIMATIVAS PONTUAIS")
   wc <- c(met=20, est=20)
   hdr <- paste0(.ic_pad("M\u00e9trica", wc["met"], "center"), .ic_pad("Valor", wc["est"], "center"))
   cat(.ic_sep(nchar(hdr)), "\n")
@@ -241,7 +241,7 @@ ic_variancia <- function(x, confianca = 0.95, decimais = 3) {
   cat("  ", .ic_pad("Desvio Padr\u00e3o", wc["met"], "center"), .ic_pad(.ic_fmt(dp, decimais), wc["est"], "center"), "\n", sep = "")
   cat(.ic_sep(nchar(hdr)), "\n\n")
   
-  cat(sprintf("  \u25b6 INTERVALOS DE CONFIAN\u00c7A (%.0f%%)\n", confianca * 100))
+  .print_topico(sprintf("INTERVALOS DE CONFIANÇA (%.0f%%)", confianca * 100))
   w_ic <- c(met=20, int=30)
   hdr_ic <- paste0(.ic_pad("Par\u00e2metro", w_ic["met"], "center"), .ic_pad("Intervalo [ LI ; LS ]", w_ic["int"], "center"))
   cat(.ic_sep(nchar(hdr_ic)), "\n")
@@ -253,7 +253,7 @@ ic_variancia <- function(x, confianca = 0.95, decimais = 3) {
       .ic_pad(sprintf("[ %s ; %s ]", .ic_fmt(linf_dp, decimais), .ic_fmt(lsup_dp, decimais)), w_ic["int"], "center"), "\n", sep = "")
   cat(.ic_sep(nchar(hdr_ic)), "\n\n")
   
-  cat("  \u25b6 INTERPRETA\u00c7\u00c3O\n")
+  .print_topico("INTERPRETAÇÃO")
   cat(sprintf("  Com %.0f%% de confian\u00e7a, estima-se que a variabilidade da\n", confianca * 100))
   cat(sprintf("  popula\u00e7\u00e3o, medida pelo desvio padr\u00e3o, est\u00e1 entre %s e %s.\n", .ic_fmt(linf_dp, decimais), .ic_fmt(lsup_dp, decimais)))
   .print_rodape()
@@ -308,7 +308,7 @@ ic_diferenca_medias <- function(x, grupo, variancia_igual = FALSE, confianca = 0
   cat(sprintf("  Vari\u00e1vel: %s   |   Grupos: %s vs %s\n", var_nome, niveis[1], niveis[2]))
   cat(sprintf("  M\u00e9todo: Teste t de %s\n\n", tipo_txt))
   
-  cat("  \u25b6 ESTIMATIVAS PONTUAIS\n")
+  .print_topico("ESTIMATIVAS PONTUAIS")
   wc <- c(grp=15, med=15)
   hdr_g <- paste0(.ic_pad("Grupo", wc["grp"], "center"), .ic_pad("M\u00e9dia", wc["med"], "center"))
   cat(.ic_sep(nchar(hdr_g)), "\n")
@@ -318,7 +318,7 @@ ic_diferenca_medias <- function(x, grupo, variancia_igual = FALSE, confianca = 0
   cat("  ", .ic_pad(niveis[2], wc["grp"], "center"), .ic_pad(.ic_fmt(media2, decimais), wc["med"], "center"), "\n", sep = "")
   cat(.ic_sep(nchar(hdr_g)), "\n\n")
   
-  cat(sprintf("  \u25b6 INTERVALO DE CONFIAN\u00c7A PARA A DIFEREN\u00c7A (%.0f%%)\n", confianca * 100))
+  .print_topico(sprintf("INTERVALO DE CONFIAN\u00c7A PARA A DIFEREN\u00c7A (%.0f%%)\n", confianca * 100))
   w_ic <- c(dif=18, int=30)
   hdr_ic <- paste0(.ic_pad("Diferen\u00e7a (\u0394)", w_ic["dif"], "center"), .ic_pad("Intervalo [ LI ; LS ]", w_ic["int"], "center"))
   cat(.ic_sep(nchar(hdr_ic)), "\n")
@@ -328,7 +328,7 @@ ic_diferenca_medias <- function(x, grupo, variancia_igual = FALSE, confianca = 0
       .ic_pad(sprintf("[ %s ; %s ]", .ic_fmt(linf, decimais), .ic_fmt(lsup, decimais)), w_ic["int"], "center"), "\n", sep = "")
   cat(.ic_sep(nchar(hdr_ic)), "\n\n")
   
-  cat("  \u25b6 INTERPRETA\u00c7\u00c3O\n")
+  .print_topico("INTERPRETAÇÃO")
   if (linf * lsup > 0) {
     cat(sprintf("  Como o intervalo n\u00e3o cont\u00e9m o zero, h\u00e1 diferen\u00e7a significativa\n"))
     cat(sprintf("  entre as m\u00e9dias dos grupos (ao n\u00edvel de %.0f%% de confian\u00e7a).\n", confianca*100))

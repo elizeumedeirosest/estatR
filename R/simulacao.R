@@ -85,7 +85,7 @@ bootstrap <- function(x, estatistica = "media", repeticoes = 1000,
   .print_titulo("BOOTSTRAP (%d REPETI\u00c7\u00f5ES) %s")
   cat(sprintf("  Vari\u00e1vel: %s   |   N: %d   |   Estat\u00edstica: %s\n\n", var_nome, n, stat_nome))
 
-  cat("  \u25b6 RESULTADOS\n")
+  .print_topico("RESULTADOS")
   wc <- c(met = 30, val = 20)
   hdr <- paste0(.sim_pad("M\u00e9trica", wc["met"], "left"), .sim_pad("Valor", wc["val"], "center"))
   cat(.sim_sep(nchar(hdr)), "\n")
@@ -97,13 +97,13 @@ bootstrap <- function(x, estatistica = "media", repeticoes = 1000,
   cat("  ", .sim_pad("Erro Padr\u00e3o Bootstrap", wc["met"], "left"), .sim_pad(.sim_fmt(ep_boot,      4), wc["val"], "center"), "\n", sep = "")
   cat(.sim_sep(nchar(hdr)), "\n\n")
 
-  cat(sprintf("  \u25b6 INTERVALO DE CONFIAN\u00c7A BOOTSTRAP (%.0f%% — Percentis)\n", confianca * 100))
+  .print_topico(sprintf("INTERVALO DE CONFIAN\u00c7A BOOTSTRAP (%.0f%% — Percentis)\n", confianca * 100))
   cat(.sim_sep(nchar(hdr)), "\n")
   ic_str <- sprintf("[ %s  ;  %s ]", .sim_fmt(linf, 4), .sim_fmt(lsup, 4))
   cat(sprintf("  %s\n", .sim_pad(ic_str, nchar(hdr), "center")))
   cat(.sim_sep(nchar(hdr)), "\n\n")
 
-  cat("  \u25b6 INTERPRETA\u00c7\u00c3O\n")
+  .print_topico("INTERPRETAÇÃO")
   cat(sprintf("  A partir de %d reamostras Bootstrap, o erro padr\u00e3o\n", repeticoes))
   cat(sprintf("  estimado da %s foi %s.\n\n", tolower(stat_nome), .sim_fmt(ep_boot, 4)))
   vies_txt <- if (abs(vies) < 0.001 * abs(est_original)) "praticamente nulo" else
@@ -190,7 +190,7 @@ simular_tcl <- function(x, n_amostra = 30, repeticoes = 1000, semente = NULL) {
   cat(sprintf("  Popula\u00e7\u00e3o: %s   |   N pop: %d   |   Repeti\u00e7\u00f5es: %d\n", var_nome, n, repeticoes))
   cat(sprintf("  Tamanho de cada amostra (n): %d\n\n", n_amostra))
 
-  cat("  \u25b6 COMPARA\u00c7\u00c3O: POPULA\u00c7\u00c3O vs DISTRIBUI\u00c7\u00c3O DAS M\u00c9DIAS\n")
+  .print_topico("COMPARAÇÃO: POPULAÇÃO vs DISTRIBUIÇÃO DAS MÉDIAS")
   wc <- c(met = 30, pop = 16, med = 16)
   hdr <- paste0(.sim_pad("M\u00e9trica",              wc["met"], "left"),
                 .sim_pad("Popula\u00e7\u00e3o",        wc["pop"], "center"),
@@ -203,7 +203,7 @@ simular_tcl <- function(x, n_amostra = 30, repeticoes = 1000, semente = NULL) {
   cat("  ", .sim_pad("EP Te\u00f3rico (\u03c3/\u221an)", wc["met"], "left"), .sim_pad("—",  wc["pop"], "center"), .sim_pad(.sim_fmt(ep_teo, 3), wc["med"], "center"), "\n", sep = "")
   cat(.sim_sep(nchar(hdr)), "\n\n")
 
-  cat("  \u25b6 NORMALIDADE DAS M\u00c9DIAS SIMULADAS (Shapiro-Wilk)\n")
+  .print_topico("NORMALIDADE DAS MÉDIAS SIMULADAS (Shapiro-Wilk)")
   formata_p <- function(p) if (p < 0.001) "< 0.001" else formatC(p, format="f", digits=3, decimal.mark=",")
   cat(sprintf("  W = %s   |   p = %s\n", .sim_fmt(st$statistic, 4), formata_p(st$p.value)))
   if (st$p.value >= 0.05) {
@@ -293,7 +293,7 @@ monte_carlo <- function(experimento, repeticoes = 10000, confianca = 0.95,
   .print_titulo("SIMULA\u00c7\u00c3O DE MONTE CARLO %s")
   cat(sprintf("  Repeti\u00e7\u00f5es: %d   |   Confian\u00e7a: %.0f%%\n\n", repeticoes, confianca * 100))
 
-  cat("  \u25b6 RESULTADOS\n")
+  .print_topico("RESULTADOS")
   wc <- c(met = 30, val = 20)
   hdr <- paste0(.sim_pad("M\u00e9trica", wc["met"], "left"), .sim_pad("Valor", wc["val"], "center"))
   cat(.sim_sep(nchar(hdr)), "\n")
@@ -306,13 +306,13 @@ monte_carlo <- function(experimento, repeticoes = 10000, confianca = 0.95,
   cat("  ", .sim_pad("Sucessos Observados", wc["met"], "left"), .sim_pad(sum(resultados),   wc["val"], "center"), "\n", sep = "")
   cat(.sim_sep(nchar(hdr)), "\n\n")
 
-  cat(sprintf("  \u25b6 INTERVALO DE CONFIAN\u00c7A (%.0f%% — Wald)\n", confianca * 100))
+  .print_topico(sprintf("INTERVALO DE CONFIANÇA (%.0f%% — Wald)", confianca * 100))
   cat(.sim_sep(nchar(hdr)), "\n")
   ic_str <- sprintf("[ %s%%  ;  %s%% ]", .sim_fmt(linf * 100, 2), .sim_fmt(lsup * 100, 2))
   cat(sprintf("  %s\n", .sim_pad(ic_str, nchar(hdr), "center")))
   cat(.sim_sep(nchar(hdr)), "\n\n")
 
-  cat("  \u25b6 INTERPRETA\u00c7\u00c3O\n")
+  .print_topico("INTERPRETAÇÃO")
   cat(sprintf("  Com base em %d simula\u00e7\u00f5es, a probabilidade estimada\n", repeticoes))
   cat(sprintf("  do evento \u00e9 de %s%% (IC %.0f%%: %s%% a %s%%).\n",
               .sim_fmt(p_hat * 100, 2), confianca * 100,

@@ -76,7 +76,7 @@ regressao_linear <- function(formula, dados, grafico = TRUE, ...) {
   cat(sprintf("  Observa\u00e7\u00f5es: %d\n\n", nrow(modelo$model)))
 
   # ── 6. ANOVA ──────────────────────────────────────────────────────────────
-  cat("  \u25b6 QUADRO ANOVA\n")
+  .print_topico("QUADRO ANOVA")
 
   tab_aov <- anova(modelo)
   idx_res <- which(rownames(tab_aov) == "Residuals")
@@ -142,7 +142,7 @@ regressao_linear <- function(formula, dados, grafico = TRUE, ...) {
   cat("  Signific\u00e2ncia: *** p < 0.01   ** p < 0.05   * p < 0.10\n\n")
 
   # ── 7. Coeficientes ───────────────────────────────────────────────────────
-  cat("  \u25b6 COEFICIENTES DO MODELO\n")
+  .print_topico("COEFICIENTES DO MODELO")
 
   rn <- rownames(coefs)
   rn[rn == "(Intercept)"] <- "(Intercepto)"
@@ -188,7 +188,7 @@ regressao_linear <- function(formula, dados, grafico = TRUE, ...) {
   cat("\n")
 
   # ── 8. Ajuste do modelo ───────────────────────────────────────────────────
-  cat("  \u25b6 AJUSTE DO MODELO\n")
+  .print_topico("AJUSTE DO MODELO")
 
   w_aj <- c(med = 22, val = 30)
   hdr_aj <- paste0(pad("Medidas de Ajuste", w_aj["med"], "left"),
@@ -216,7 +216,7 @@ regressao_linear <- function(formula, dados, grafico = TRUE, ...) {
   cat(sep_line(w_ajuste), "\n\n")
 
   # ── 9. Interpretação ──────────────────────────────────────────────────────
-  cat("  \u25b6 INTERPRETA\u00c7\u00c3O\n")
+  .print_topico("INTERPRETA\u00c7\u00c3O")
   cat(sprintf("  O modelo de regress\u00e3o linear foi ajustado para explicar %s a partir de %s.\n",
               y_name, paste(x_names, collapse = " e ")))
 

@@ -122,7 +122,7 @@ teste_t_uma_amostra <- function(x, mu, hipotese = c("bilateral", "maior", "menor
   cat("\n")
 
   # Interpretação
-  cat("  \u25b6 INTERPRETA\u00c7\u00c3O\n")
+  .print_topico("INTERPRETA\u00c7\u00c3O")
   if (p_val < (1 - confianca)) {
     cat(sprintf("  H\u00e1 evid\u00eancias suficientes para rejeitar H\u2080 (p %s %s).\n",
                 ifelse(p_val < 0.001, "<", "="), .th_fmt_p(p_val)))
@@ -173,6 +173,14 @@ teste_t_uma_amostra <- function(x, mu, hipotese = c("bilateral", "maior", "menor
 
         p_plot <- p_plot +
           ggplot2::scale_y_continuous(expand = ggplot2::expansion(mult = c(0, 0.20))) +
+          ggplot2::scale_y_continuous(expand = ggplot2::expansion(mult = c(0, 0.20))) +
+          ggplot2::scale_y_continuous(expand = ggplot2::expansion(mult = c(0, 0.15))) +
+          ggplot2::scale_y_continuous(expand = ggplot2::expansion(mult = c(0, 0.20))) +
+          ggplot2::scale_y_continuous(expand = ggplot2::expansion(mult = c(0, 0.15))) +
+          ggplot2::scale_y_continuous(expand = ggplot2::expansion(mult = c(0, 0.20))) +
+          ggplot2::scale_y_continuous(expand = ggplot2::expansion(mult = c(0, 0.15))) +
+          ggplot2::scale_y_continuous(expand = ggplot2::expansion(mult = c(0, 0.20))) +
+          ggplot2::scale_y_continuous(expand = ggplot2::expansion(mult = c(0, 0.15))) +
           ggplot2::scale_y_continuous(expand = ggplot2::expansion(mult = c(0, 0.20))) +
           ggplot2::scale_y_continuous(expand = ggplot2::expansion(mult = c(0, 0.15))) +
           ggplot2::scale_y_continuous(expand = ggplot2::expansion(mult = c(0, 0.20))) +
@@ -347,7 +355,7 @@ teste_t_duas_amostras <- function(x, grupo, hipotese = c("bilateral", "maior", "
 
   # ── Interpretação ──────────────────────────────────────────────────────────
   alpha <- 1 - confianca
-  cat("  \u25b6 INTERPRETA\u00c7\u00c3O\n")
+  .print_topico("INTERPRETA\u00c7\u00c3O")
   if (p_val < alpha) {
     cat(sprintf("  H\u00e1 evid\u00eancias suficientes para rejeitar H\u2080 (p %s %s).\n",
                 ifelse(p_val < 0.001, "<", "="), .th_fmt_p(p_val)))
@@ -404,6 +412,62 @@ teste_t_duas_amostras <- function(x, grupo, hipotese = c("bilateral", "maior", "
         y_bar <- max_y + amp * 0.08
         y_tick <- max_y + amp * 0.05
         y_text <- max_y + amp * 0.12
+
+        max_y <- max(df_plot[[x_nome]], na.rm = TRUE)
+        min_y <- min(df_plot[[x_nome]], na.rm = TRUE)
+        amp <- max_y - min_y
+        y_bar <- max_y + amp * 0.08
+        y_tick <- max_y + amp * 0.05
+        y_text <- max_y + amp * 0.12
+
+        max_y <- max(df_plot[[x_nome]], na.rm = TRUE)
+        min_y <- min(df_plot[[x_nome]], na.rm = TRUE)
+        amp <- max_y - min_y
+        y_bar <- max_y + amp * 0.06
+        y_tick <- max_y + amp * 0.03
+        y_text <- max_y + amp * 0.10
+
+        max_y <- max(df_plot[[x_nome]], na.rm = TRUE)
+        min_y <- min(df_plot[[x_nome]], na.rm = TRUE)
+        amp <- max_y - min_y
+        y_bar <- max_y + amp * 0.08
+        y_tick <- max_y + amp * 0.05
+        y_text <- max_y + amp * 0.12
+
+        max_y <- max(df_plot[[x_nome]], na.rm = TRUE)
+        min_y <- min(df_plot[[x_nome]], na.rm = TRUE)
+        amp <- max_y - min_y
+        y_bar <- max_y + amp * 0.06
+        y_tick <- max_y + amp * 0.03
+        y_text <- max_y + amp * 0.10
+
+        max_y <- max(df_plot[[x_nome]], na.rm = TRUE)
+        min_y <- min(df_plot[[x_nome]], na.rm = TRUE)
+        amp <- max_y - min_y
+        y_bar <- max_y + amp * 0.08
+        y_tick <- max_y + amp * 0.05
+        y_text <- max_y + amp * 0.12
+
+        max_y <- max(df_plot[[x_nome]], na.rm = TRUE)
+        min_y <- min(df_plot[[x_nome]], na.rm = TRUE)
+        amp <- max_y - min_y
+        y_bar <- max_y + amp * 0.06
+        y_tick <- max_y + amp * 0.03
+        y_text <- max_y + amp * 0.10
+
+        max_y <- max(df_plot[[x_nome]], na.rm = TRUE)
+        min_y <- min(df_plot[[x_nome]], na.rm = TRUE)
+        amp <- max_y - min_y
+        y_bar <- max_y + amp * 0.08
+        y_tick <- max_y + amp * 0.05
+        y_text <- max_y + amp * 0.12
+
+        max_y <- max(df_plot[[x_nome]], na.rm = TRUE)
+        min_y <- min(df_plot[[x_nome]], na.rm = TRUE)
+        amp <- max_y - min_y
+        y_bar <- max_y + amp * 0.06
+        y_tick <- max_y + amp * 0.03
+        y_text <- max_y + amp * 0.10
 
         max_y <- max(df_plot[[x_nome]], na.rm = TRUE)
         min_y <- min(df_plot[[x_nome]], na.rm = TRUE)
@@ -694,7 +758,7 @@ teste_t_pareado <- function(x, y, hipotese = c("bilateral", "maior", "menor"),
 
   # Interpretação
   alpha <- 1 - confianca
-  cat("  \u25b6 INTERPRETA\u00c7\u00c3O\n")
+  .print_topico("INTERPRETA\u00c7\u00c3O")
   if (p_val < alpha) {
     cat(sprintf("  H\u00e1 evid\u00eancias suficientes para rejeitar H\u2080 (p %s %s).\n",
                 ifelse(p_val < 0.001, "<", "="), .th_fmt_p(p_val)))
@@ -817,7 +881,7 @@ teste_proporcao <- function(x, n, p0, hipotese = c("bilateral", "maior", "menor"
 
   # Interpretação
   alpha <- 1 - confianca
-  cat("  \u25b6 INTERPRETA\u00c7\u00c3O\n")
+  .print_topico("INTERPRETA\u00c7\u00c3O")
   if (p_val < alpha) {
     cat(sprintf("  H\u00e1 evid\u00eancias suficientes para rejeitar H\u2080 (p %s %s).\n",
                 ifelse(p_val < 0.001, "<", "="), .th_fmt_p(p_val)))
@@ -866,6 +930,14 @@ teste_proporcao <- function(x, n, p0, hipotese = c("bilateral", "maior", "menor"
 
         p_plot <- p_plot +
           ggplot2::scale_y_continuous(expand = ggplot2::expansion(mult = c(0, 0.20))) +
+          ggplot2::scale_y_continuous(expand = ggplot2::expansion(mult = c(0, 0.20))) +
+          ggplot2::scale_y_continuous(expand = ggplot2::expansion(mult = c(0, 0.15))) +
+          ggplot2::scale_y_continuous(expand = ggplot2::expansion(mult = c(0, 0.20))) +
+          ggplot2::scale_y_continuous(expand = ggplot2::expansion(mult = c(0, 0.15))) +
+          ggplot2::scale_y_continuous(expand = ggplot2::expansion(mult = c(0, 0.20))) +
+          ggplot2::scale_y_continuous(expand = ggplot2::expansion(mult = c(0, 0.15))) +
+          ggplot2::scale_y_continuous(expand = ggplot2::expansion(mult = c(0, 0.20))) +
+          ggplot2::scale_y_continuous(expand = ggplot2::expansion(mult = c(0, 0.15))) +
           ggplot2::scale_y_continuous(expand = ggplot2::expansion(mult = c(0, 0.20))) +
           ggplot2::scale_y_continuous(expand = ggplot2::expansion(mult = c(0, 0.15))) +
           ggplot2::scale_y_continuous(expand = ggplot2::expansion(mult = c(0, 0.20))) +
@@ -980,7 +1052,7 @@ teste_wilcoxon <- function(x, y = NULL, mu = 0, hipotese = c("bilateral", "maior
   cat("\n")
 
   alpha <- 1 - confianca
-  cat("  \u25b6 INTERPRETA\u00c7\u00c3O\n")
+  .print_topico("INTERPRETA\u00c7\u00c3O")
   if (p_val < alpha) {
     cat(sprintf("  H\u00e1 evid\u00eancias suficientes para rejeitar H\u2080 (p %s %s).\n",
                 ifelse(p_val < 0.001, "<", "="), .th_fmt_p(p_val)))
@@ -1083,7 +1155,7 @@ teste_mann_whitney <- function(x, grupo, hipotese = c("bilateral", "maior", "men
   cat("\n")
 
   alpha <- 1 - confianca
-  cat("  \u25b6 INTERPRETA\u00c7\u00c3O\n")
+  .print_topico("INTERPRETA\u00c7\u00c3O")
   if (p_val < alpha) {
     cat(sprintf("  H\u00e1 evid\u00eancias suficientes para rejeitar H\u2080 (p %s %s).\n",
                 ifelse(p_val < 0.001, "<", "="), .th_fmt_p(p_val)))
@@ -1154,7 +1226,7 @@ teste_qui_quadrado <- function(dados, var_x, var_y, confianca = 0.95, decimais =
   cat("\n")
 
   alpha <- 1 - confianca
-  cat("  \u25b6 INTERPRETA\u00c7\u00c3O\n")
+  .print_topico("INTERPRETA\u00c7\u00c3O")
   if (p_val < alpha) {
     cat(sprintf("  H\u00e1 evid\u00eancias suficientes para rejeitar H\u2080 (p %s %s).\n",
                 ifelse(p_val < 0.001, "<", "="), .th_fmt_p(p_val)))
@@ -1229,7 +1301,7 @@ teste_levene <- function(x, grupo, confianca = 0.95, decimais = 2) {
   cat("\n")
 
   alpha <- 1 - confianca
-  cat("  \u25b6 INTERPRETA\u00c7\u00c3O\n")
+  .print_topico("INTERPRETA\u00c7\u00c3O")
   if (p_val < alpha) {
     cat(sprintf("  H\u00e1 evid\u00eancias para rejeitar H\u2080 (p %s %s).\n",
                 ifelse(p_val < 0.001, "<", "="), .th_fmt_p(p_val)))
