@@ -14,21 +14,21 @@ tema_estatR(
 )
 }
 \arguments{
-\item{fonte}{Nome da fonte do sistema (padr\u00e3o: "sans", carrega Arial/Helvetica nativamente).}
+\item{fonte}{Nome da fonte do sistema (padrão: "sans", carrega Arial/Helvetica nativamente).}
 
 \item{estilo}{1 (Classic limpo), 2 (Minimal com grades), 3 (Limpo absoluto).}
 
 \item{escala}{Escala de tamanho dos textos.}
 
-\item{inclinar}{Grau de inclina\u00e7\u00e3o dos r\u00f3tulos do eixo X (ex: 45). Se TRUE, assume 45.}
+\item{inclinar}{Grau de inclinação dos rótulos do eixo X (ex: 45). Se TRUE, assume 45.}
 
-\item{modo}{"light" (padr\u00e3o) ou "dark" (fundo escuro).}
+\item{modo}{"light" (padrão) ou "dark" (fundo escuro).}
 
-\item{grade}{Posi\u00e7\u00e3o da grade no estilo 2 ("auto", "x", "y", "dupla", "nenhuma").}
+\item{grade}{Posição da grade no estilo 2 ("auto", "x", "y", "dupla", "nenhuma").}
 }
 \value{
 Objeto de tema para adicionar ao ggplot.
 }
 \description{
-Aplica formata\u00e7\u00e3o limpa e profissional aos gr\u00e1ficos do ggplot2.
+Aplica formatação limpa e profissional aos gráficos do ggplot2.
 }

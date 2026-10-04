@@ -181,13 +181,13 @@ print.paleta_estatR_layer <- function(x, ...) {
 }
 
 #' @title Tema Padronizado do estatR
-#' @description Aplica formata\u00e7\u00e3o limpa e profissional aos gr\u00e1ficos do ggplot2.
-#' @param fonte Nome da fonte do sistema (padr\u00e3o: "sans", carrega Arial/Helvetica nativamente).
+#' @description Aplica formatação limpa e profissional aos gráficos do ggplot2.
+#' @param fonte Nome da fonte do sistema (padrão: "sans", carrega Arial/Helvetica nativamente).
 #' @param estilo 1 (Classic limpo), 2 (Minimal com grades), 3 (Limpo absoluto).
 #' @param escala Escala de tamanho dos textos.
-#' @param inclinar Grau de inclina\u00e7\u00e3o dos r\u00f3tulos do eixo X (ex: 45). Se TRUE, assume 45.
-#' @param modo "light" (padr\u00e3o) ou "dark" (fundo escuro).
-#' @param grade Posi\u00e7\u00e3o da grade no estilo 2 ("auto", "x", "y", "dupla", "nenhuma").
+#' @param inclinar Grau de inclinação dos rótulos do eixo X (ex: 45). Se TRUE, assume 45.
+#' @param modo "light" (padrão) ou "dark" (fundo escuro).
+#' @param grade Posição da grade no estilo 2 ("auto", "x", "y", "dupla", "nenhuma").
 #' @return Objeto de tema para adicionar ao ggplot.
 #' @export
 tema_estatR <- function(fonte = "sans", estilo = 1, escala = 1, inclinar = FALSE, modo = "light", grade = "auto") {
