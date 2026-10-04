@@ -258,6 +258,26 @@ O `estatR` oferece helpers para estilizar gráficos do `ggplot2` de forma rápid
 ```r
 library(ggplot2)
 
+
+### 📊 Gráficos Estatísticos Prontos
+
+O `estatR` também disponibiliza funções gráficas completas com sintaxe limpa (sem aspas):
+
+```r
+# Boxplot Básico
+grafico_boxplot(mtcars, cyl, mpg)
+
+# Boxplot Avançado (Agrupado, com dispersão e paleta inteligente)
+grafico_boxplot(mtcars, cyl, mpg, grupo = am, 
+                dispersao_pts = TRUE, paleta = "vibrant")
+
+# Destaque de categorias e ordenamento por mediana
+grafico_boxplot(mtcars, cyl, mpg, 
+                ordenar = TRUE, destaque = c("8"))
+```
+
+---
+
 # Visualizar todas as paletas disponíveis
 paleta_estatR()
 
