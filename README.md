@@ -71,12 +71,56 @@ outliers(mtcars$mpg)          # Limites, quantidade de outliers e lista (método
 ### 🎲 Amostragem
 
 ```r
-# Calcular tamanho de amostra
+# Calcular tamanho ótimo de amostra
 tamanho_amostra(populacao = 50000, erro = 0.03)
+tamanho_amostra(populacao = Inf, erro = 0.05, confianca = 0.99)
 
-# Amostragem estratificada (proporcional, uniforme ou ótima de Neyman)
+# Amostragem Aleatória Simples
+amostra_aleatoria(mtcars, n = 10)
+amostra_aleatoria(mtcars, proporcao = 0.3, semente = 42)
+
+# Amostragem Sistemática
+amostra_sistematica(mtcars, n = 10)
+amostra_sistematica(mtcars, salto = 3, semente = 1)
+
+# Amostragem Estratificada (proporcional, uniforme ou ótima de Neyman)
 amostra_estratificada(iris, estrato = Species, n = 30)
+amostra_estratificada(iris, estrato = Species, n = 30, alocacao = "uniforme")
 amostra_estratificada(iris, estrato = Species, n = 30, alocacao = "otima", variavel = Sepal.Length)
+
+# Amostragem por Conglomerados
+amostra_conglomerados(mtcars, conglomerado = cyl, n_conglomerados = 2)
+```
+
+---
+
+### 🔬 Testes de Hipótese
+
+```r
+# Teste T (uma amostra)
+teste_t_uma_amostra(mtcars$mpg, mu = 20)
+teste_t_uma_amostra(mtcars$mpg, mu = 20, hipotese = "maior")
+
+# Teste T (duas amostras independentes)
+teste_t_duas_amostras(mtcars$mpg, mtcars$am)
+teste_t_duas_amostras(mtcars$mpg, mtcars$am, hipotese = "maior")
+
+# Teste T Pareado
+teste_t_pareado(dados$antes, dados$depois)
+
+# Teste de Proporção
+teste_proporcao(x = 87, n = 300, p0 = 0.25)
+teste_proporcao(x = 87, n = 300, p0 = 0.25, hipotese = "maior")
+
+# Testes Não-Paramétricos
+teste_wilcoxon(mtcars$mpg, mu = 20)            # Wilcoxon (uma amostra)
+teste_mann_whitney(mtcars$mpg, mtcars$am)      # Mann-Whitney (duas amostras)
+
+# Teste Qui-Quadrado de Independência
+teste_qui_quadrado(mtcars, cyl, am)
+
+# Teste de Levene (homogeneidade de variâncias)
+teste_levene(mtcars$mpg, mtcars$am)
 ```
 
 ---
