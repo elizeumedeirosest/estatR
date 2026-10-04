@@ -251,6 +251,29 @@ dividir_dados(mtcars, proporcao = 0.8, estrato = cyl, semente = 42)
 dividir_dados(dados_serie, proporcao = 0.8, temporal = TRUE)
 ```
 
+### 🎨 Visualização e Gráficos
+
+O `estatR` oferece helpers para estilizar gráficos do `ggplot2` de forma rápida e limpa.
+
+```r
+library(ggplot2)
+
+# Visualizar todas as paletas disponíveis
+paleta_estatR()
+
+# Aplicar tema e paleta padronizados em um gráfico
+ggplot(iris, aes(x = Species, y = Sepal.Length, fill = Species)) +
+  geom_boxplot() +
+  tema_estatR(estilo = 2) +       # Tema minimalista com grade inteligente
+  paleta_estatR("academic")       # Aplica a paleta 'academic'
+
+# Outros ajustes do tema
+tema_estatR(modo = "dark")        # Tema escuro
+tema_estatR(inclinar = 45)        # Inclina os rótulos do eixo X
+```
+
+---
+
 ## Autor
 
 **Elizeu Medeiros**  
