@@ -614,3 +614,177 @@ analise_residual <- function(modelo, grafico = TRUE) {
 
   invisible(list(shapiro = st, bp = list(statistic = bp_stat, p.value = p_bp)))
 }
+
+# ─────────────────────────────────────────────────────────────────────────────
+#' @title Seleção Múltipla de Modelos (Best Subsets / Stepwise)
+#' @description Avalia múltiplas combinações de variáveis preditoras para encontrar
+#' os melhores modelos baseando-se em métricas de ajuste e parcimônia. Utiliza 
+#' algoritmo exaustivo para até 10 preditores e heurística inteligente para mais.
+#' @param formula Fórmula do modelo inicial (ex: y ~ .).
+#' @param dados Data frame contendo os dados.
+#' @param top Número máximo de modelos a serem exibidos no ranking (padrão: 5).
+#' @return Retorna invisivelmente um data frame com o ranking completo.
+#' @export
+selecao_modelos <- function(formula, dados, top = 5) {
+  if (!is.data.frame(dados)) stop("O argumento 'dados' deve ser um data frame.")
+  
+  # Preparação de variáveis
+  termos <- attr(terms(formula, data = dados), "term.labels")
+  y_name <- as.character(formula[[2]])
+  
+  if (!(y_name %in% names(dados))) stop("Variável resposta não encontrada nos dados.")
+  if (!is.numeric(dados[[y_name]])) stop("A variável resposta deve ser numérica.")
+  
+  # Limpeza de NAs (apenas colunas envolvidas) para garantir amostras idênticas
+  cols_req <- c(y_name, termos)
+  missing_cols <- setdiff(cols_req, names(dados))
+  if (length(missing_cols) > 0) {
+    stop("Variáveis preditoras não encontradas: ", paste(missing_cols, collapse = ", "))
+  }
+  
+  df_clean <- na.omit(dados[, cols_req, drop = FALSE])
+  n <- nrow(df_clean)
+  if (n < 5) stop("Poucas observações válidas após remover NAs (mínimo 5).")
+  
+  p_total <- length(termos)
+  if (p_total == 0) stop("O modelo deve ter pelo menos 1 variável preditora.")
+  
+  usou_heuristica <- FALSE
+  termos_originais <- termos
+  
+  # Algoritmo Inteligente (Heurística de Screening se p > 10)
+  if (p_total > 10) {
+    usou_heuristica <- TRUE
+    num_termos <- termos[sapply(df_clean[termos], is.numeric)]
+    y_num <- df_clean[[y_name]]
+    
+    cor_vals <- sapply(num_termos, function(x) {
+      abs(cor(y_num, df_clean[[x]], use = "complete.obs"))
+    })
+    
+    top_10_names <- names(sort(cor_vals, decreasing = TRUE))[1:min(10, length(cor_vals))]
+    cat_termos <- setdiff(termos, num_termos)
+    termos <- unique(c(top_10_names, cat_termos))
+    if (length(termos) > 10) termos <- termos[1:10]
+  }
+  
+  p_avaliar <- length(termos)
+  
+  # Gerador Exaustivo de Modelos
+  modelos_list <- list()
+  for (k in 1:p_avaliar) {
+    comb <- combn(termos, k, simplify = FALSE)
+    modelos_list <- c(modelos_list, comb)
+  }
+  
+  total_avaliados <- length(modelos_list)
+  
+  # Função interna de VIF
+  .calc_vif <- function(mod) {
+    if (length(coef(mod)) <= 2) return(1.0)
+    X <- model.matrix(mod)[, -1, drop = FALSE]
+    if (ncol(X) <= 1) return(1.0)
+    
+    vars <- apply(X, 2, var)
+    if (any(vars == 0)) return(Inf)
+    
+    vif_vals <- tryCatch({
+      diag(solve(cor(X)))
+    }, error = function(e) Inf)
+    return(max(vif_vals))
+  }
+  
+  # Pre-allocate
+  res_mod <- character(total_avaliados)
+  res_k <- integer(total_avaliados)
+  res_r2 <- numeric(total_avaliados)
+  res_r2adj <- numeric(total_avaliados)
+  res_aic <- numeric(total_avaliados)
+  res_aicc <- numeric(total_avaliados)
+  res_vif <- numeric(total_avaliados)
+  
+  for (i in seq_len(total_avaliados)) {
+    preds <- modelos_list[[i]]
+    f_mod <- as.formula(paste(y_name, "~", paste(preds, collapse = " + ")))
+    
+    mod <- tryCatch(lm(f_mod, data = df_clean), error = function(e) NULL)
+    if (is.null(mod)) next
+    
+    sm <- summary(mod)
+    aic_val <- AIC(mod)
+    
+    K_params <- length(coef(mod)) + 1
+    if (n - K_params - 1 > 0) {
+      aicc_val <- aic_val + (2 * K_params * (K_params + 1)) / (n - K_params - 1)
+    } else {
+      aicc_val <- Inf
+    }
+    
+    res_mod[i] <- paste(preds, collapse = " + ")
+    res_k[i] <- length(preds)
+    res_r2[i] <- if (is.null(sm$r.squared)) NA else sm$r.squared
+    res_r2adj[i] <- if (is.null(sm$adj.r.squared)) NA else sm$adj.r.squared
+    res_aic[i] <- aic_val
+    res_aicc[i] <- aicc_val
+    res_vif[i] <- .calc_vif(mod)
+  }
+  
+  # Montar dataframe de resultados
+  df_res <- data.frame(
+    Modelo = res_mod,
+    k = res_k,
+    R2 = res_r2,
+    R2_adj = res_r2adj,
+    AIC = res_aic,
+    AICc = res_aicc,
+    VIF_Max = res_vif,
+    stringsAsFactors = FALSE
+  )
+  
+  df_res <- df_res[!is.na(df_res$R2_adj), ]
+  df_res <- df_res[order(df_res$R2_adj, decreasing = TRUE), ]
+  
+  df_top <- df_res
+  if (nrow(df_top) > top) df_top <- df_top[1:top, ]
+  
+  # Formatando para exibição
+  df_fmt <- data.frame(
+    Ranking = paste0(1:nrow(df_top), "\u00BA"),
+    Modelo = df_top$Modelo,
+    k = as.character(df_top$k),
+    "R²" = sapply(df_top$R2, .fmt_pct, decimais = 1),
+    "R² Adj" = sapply(df_top$R2_adj, .fmt_pct, decimais = 1),
+    "AIC" = sapply(df_top$AIC, .fmt_num, decimais = 1),
+    "AICc" = sapply(df_top$AICc, .fmt_num, decimais = 1),
+    "VIF Máx" = sapply(df_top$VIF_Max, function(v) if(is.infinite(v) || is.na(v)) "-" else .fmt_num(v, decimais = 1)),
+    stringsAsFactors = FALSE, check.names = FALSE
+  )
+  
+  # Imprimir
+  .print_titulo("SELEÇÃO DE MODELOS DE REGRESSÃO")
+  
+  cat(sprintf("  Variável Resposta: %s\n", y_name))
+  if (usou_heuristica) {
+    cat(sprintf("  Preditores base:   %s\n", paste(termos_originais, collapse = ", ")))
+    cat(sprintf("  Método utilizado:  Heurístico (Screening TOP 10 -> %d modelos avaliados)\n", total_avaliados))
+  } else {
+    cat(sprintf("  Preditores base:   %s\n", paste(termos, collapse = ", ")))
+    cat(sprintf("  Método utilizado:  Exaustivo (%d modelos avaliados)\n", total_avaliados))
+  }
+  cat("\n")
+  
+  .print_topico(sprintf("TOP %d MODELOS (Ordenados por R² Ajustado)", nrow(df_fmt)))
+  
+  if (exists(".print_tabela_estatR", mode = "function")) {
+    .print_tabela_estatR(df_fmt, align = c("left", "left", "center", "center", "center", "center", "center", "center"))
+  } else {
+    print(df_fmt, row.names = FALSE)
+  }
+  
+  cat("  * k = Número de variáveis preditoras no modelo.\n")
+  cat("  * VIF Máx = Maior fator de inflação da variância no modelo (ideal < 5).\n\n")
+  
+  .print_rodape()
+  
+  invisible(df_res)
+}
