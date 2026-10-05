@@ -846,93 +846,154 @@ decis <- function(x, decimais = 2) {
 #' @return Retorna invisivelmente um data.frame com as colunas: variavel,
 #'   n_outliers, pct_outliers, valores_abaixo, valores_acima.
 #' @export
-outliers <- function(x, decimais = 2) {
+outliers <- function(x, fator_iqr = 1.5, decimais = 2) {
   var_expr <- deparse(substitute(x))
   var_nome <- sub(".*\\$", "", var_expr)
 
-  .outliers_vetor <- function(vec, nome) {
-    vec_c <- vec[!is.na(vec)]
-    n     <- length(vec)
-    q1    <- quantile(vec_c, 0.25)
-    q3    <- quantile(vec_c, 0.75)
-    iqr   <- q3 - q1
-    li    <- q1 - 1.5 * iqr
-    ls    <- q3 + 1.5 * iqr
-
+  # Calcula métricas de outliers para um vetor numérico
+  .calc_outliers <- function(vec, nome) {
+    vec_c  <- vec[!is.na(vec)]
+    n      <- length(vec_c)
+    if (n < 4) return(NULL)
+    q1     <- quantile(vec_c, 0.25)
+    q3     <- quantile(vec_c, 0.75)
+    iqr    <- q3 - q1
+    li     <- q1 - fator_iqr * iqr
+    ls     <- q3 + fator_iqr * iqr
     abaixo <- sort(vec_c[vec_c < li])
     acima  <- sort(vec_c[vec_c > ls])
     n_out  <- length(abaixo) + length(acima)
-    n_sem  <- n - n_out
-    pct_out <- n_out / n
-    pct_sem <- n_sem / n
+    if (n_out == 0) return(NULL)
+    list(nome = nome, n = n, li = li, ls = ls,
+         abaixo = abaixo, acima = acima, n_out = n_out,
+         pct_out = n_out / n)
+  }
 
-    tit <- sprintf("ANÁLISE DE OUTLIERS (%s)", nome)
-    .print_titulo(tit)
-    cat(sprintf("  Limite inferior (LI): %s  |  Limite superior (LS): %s\n\n",
-                .fmt_num(li, decimais), .fmt_num(ls, decimais)))
+  # Imprime a tabela resumo (uma linha por variável)
+  .print_resumo <- function(resultados, w_sep = 80) {
+    w_var <- max(nchar("Variável"), max(sapply(resultados, function(r) nchar(r$nome)))) + 2
+    w_n   <- 10; w_pct <- 13; w_li <- 22; w_ls <- 22
 
-    if (n_out == 0) {
-      cat("  Nenhum outlier detectado pelo método IQR.\n\n")
-    } else {
-      w  <- c(res = 24, n = 12, pct = 14)
-      hdr <- paste(
-        .pad_string("Resultado",   w["res"], "left"),
-        .pad_string("Contagem",    w["n"],   "center"),
-        .pad_string("Proporção",   w["pct"], "center")
+    hdr <- paste0(
+      "  ", .pad_string("Variável",    w_var, "left"),
+      .pad_string("Outliers",          w_n,   "center"),
+      .pad_string("Outliers (%)",      w_pct, "center"),
+      .pad_string("Abaixo do LI",      w_li,  "center"),
+      .pad_string("Acima do LS",       w_ls,  "center")
+    )
+    sep <- paste(rep("─", nchar(hdr) - 2), collapse = "")
+
+    cat("  ", sep, "\n", sep = "")
+    cat(hdr, "\n")
+    cat("  ", sep, "\n", sep = "")
+
+    for (r in resultados) {
+      cel_abaixo <- if (length(r$abaixo) > 0)
+        sprintf("%d  (LI: %s)", length(r$abaixo), .fmt_num(r$li, decimais))
+      else sprintf("—  (LI: %s)", .fmt_num(r$li, decimais))
+
+      cel_acima <- if (length(r$acima) > 0)
+        sprintf("%d  (LS: %s)", length(r$acima), .fmt_num(r$ls, decimais))
+      else sprintf("—  (LS: %s)", .fmt_num(r$ls, decimais))
+
+      linha <- paste0(
+        "  ", .pad_string(r$nome,                   w_var, "left"),
+        .pad_string(as.character(r$n_out),           w_n,   "center"),
+        .pad_string(.fmt_pct(r$pct_out, 1),          w_pct, "center"),
+        .pad_string(cel_abaixo,                      w_li,  "center"),
+        .pad_string(cel_acima,                       w_ls,  "center")
       )
-      sep <- paste(rep("─", nchar(hdr)), collapse = "")
-      cat("  ", hdr, "\n", sep = "")
-      cat("  ", sep, "\n", sep = "")
-      cat("  ", paste(.pad_string("Sem outliers",         w["res"], "left"),
-                      .pad_string(as.character(n_sem),    w["n"],   "center"),
-                      .pad_string(.fmt_pct(pct_sem, 1),   w["pct"], "center")), "\n", sep = "")
-      cat("  ", paste(.pad_string("Outliers detectados",  w["res"], "left"),
-                      .pad_string(as.character(n_out),    w["n"],   "center"),
-                      .pad_string(.fmt_pct(pct_out, 1),   w["pct"], "center")), "\n", sep = "")
-      cat("  ", sep, "\n", sep = "")
-      cat("  ", paste(.pad_string("Total",                w["res"], "left"),
-                      .pad_string(as.character(n),        w["n"],   "center"),
-                      .pad_string("100,0%",               w["pct"], "center")), "\n", sep = "")
+      cat(linha, "\n")
+    }
+    cat("  ", sep, "\n", sep = "")
+    fator_fmt <- .fmt_num(fator_iqr, 1)
+    cat(sprintf("  * LI = Q1 − %s × IQR   |   LS = Q3 + %s × IQR\n",
+                fator_fmt, fator_fmt))
+  }
 
-      cat("\n  Valores identificados como outliers:\n")
-      w_col <- 40
-      hdr_v <- paste(.pad_string("Abaixo do LI", w_col, "left"),
-                     .pad_string("Acima do LS",  w_col, "right"))
-      sep_v <- paste(rep("─", nchar(hdr_v)), collapse = "")
-      cat("  ", sep_v, "\n", sep = "")
-      cat("  ", hdr_v, "\n", sep = "")
-      cat("  ", sep_v, "\n", sep = "")
-      n_rows <- max(length(abaixo), length(acima))
-      for (i in seq_len(n_rows)) {
-        val_abaixo <- if (i <= length(abaixo)) .fmt_num(abaixo[i], decimais) else ""
-        val_acima  <- if (i <= length(acima))  .fmt_num(acima[i],  decimais) else ""
-        cat("  ", paste(.pad_string(val_abaixo, w_col, "left"),
-                        .pad_string(val_acima,  w_col, "right")), "\n", sep = "")
+  # Imprime tabela de valores identificados (somente para variável única)
+  .print_valores <- function(r) {
+    .print_topico("Valores Identificados")
+    w_col <- 38
+    hdr_v <- paste0("  ",
+      .pad_string("Abaixo do LI", w_col, "left"),
+      .pad_string("Acima do LS",  w_col, "right")
+    )
+    sep_v <- paste(rep("─", nchar(hdr_v) - 2), collapse = "")
+    cat("  ", sep_v, "\n", sep = "")
+    cat(hdr_v, "\n")
+    cat("  ", sep_v, "\n", sep = "")
+    n_rows <- max(length(r$abaixo), length(r$acima))
+    for (i in seq_len(n_rows)) {
+      val_ab <- if (i <= length(r$abaixo)) .fmt_num(r$abaixo[i], decimais) else ""
+      val_ac <- if (i <= length(r$acima))  .fmt_num(r$acima[i],  decimais) else ""
+      cat("  ", paste0(
+        .pad_string(val_ab, w_col, "left"),
+        .pad_string(val_ac, w_col, "right")
+      ), "\n", sep = "")
+    }
+    cat("  ", sep_v, "\n\n", sep = "")
+  }
+
+  # ---- DATA FRAME -----------------------------------------------------------
+  if (is.data.frame(x)) {
+    nums <- names(x)[sapply(x, is.numeric)]
+    if (length(nums) == 0) stop("Nenhuma variável numérica encontrada no data.frame.")
+
+    nome_df <- sub(".*\\$", "", deparse(substitute(x)))
+    .print_titulo(sprintf("OUTLIERS — %s", nome_df))
+
+    resultados <- Filter(Negate(is.null), lapply(nums, function(nm) .calc_outliers(x[[nm]], nm)))
+
+    if (length(resultados) == 0) {
+      cat("  Nenhum outlier detectado (método IQR, fator", fator_iqr, ").\n\n")
+    } else {
+      .print_topico("Resumo por Variável")
+      .print_resumo(resultados)
+      if (length(resultados) < length(nums)) {
+        omitidas <- length(nums) - length(resultados)
+        cat(sprintf("  * %d variável(is) sem outliers não exibida(s).\n", omitidas))
       }
       cat("\n")
     }
 
     .print_rodape()
-    invisible(data.frame(
-      variavel       = nome,
-      n_outliers     = n_out,
-      pct_outliers   = round(pct_out * 100, 1),
-      valores_abaixo = I(list(abaixo)),
-      valores_acima  = I(list(acima))
-    ))
-  }
+    invisible(do.call(rbind, lapply(resultados, function(r) {
+      data.frame(variavel = r$nome, n_outliers = r$n_out,
+                 pct_outliers = round(r$pct_out * 100, 1),
+                 li = r$li, ls = r$ls,
+                 valores_abaixo = I(list(r$abaixo)), valores_acima = I(list(r$acima)))
+    })))
 
-  if (is.data.frame(x)) {
-    nums <- names(x)[sapply(x, is.numeric)]
-    if (length(nums) == 0) stop("Nenhuma variável numérica encontrada no data.frame.")
-    resultado <- lapply(nums, function(nm) .outliers_vetor(x[[nm]], nm))
-    invisible(do.call(rbind, resultado))
+  # ---- VETOR ÚNICO ----------------------------------------------------------
   } else if (is.numeric(x)) {
-    .outliers_vetor(x, var_nome)
+    .print_titulo(sprintf("OUTLIERS — %s", var_nome))
+
+    r <- .calc_outliers(x, var_nome)
+    if (is.null(r)) {
+      cat("  Nenhum outlier detectado (método IQR, fator", fator_iqr, ").\n\n")
+    } else {
+      .print_topico("Resumo")
+      .print_resumo(list(r))
+      cat("\n")
+      .print_valores(r)
+    }
+
+    .print_rodape()
+    if (!is.null(r)) {
+      invisible(data.frame(variavel = r$nome, n_outliers = r$n_out,
+                           pct_outliers = round(r$pct_out * 100, 1),
+                           li = r$li, ls = r$ls,
+                           valores_abaixo = I(list(r$abaixo)), valores_acima = I(list(r$acima))))
+    } else {
+      invisible(NULL)
+    }
+
   } else {
     stop("O argumento 'x' deve ser um vetor numérico ou um data.frame.")
   }
 }
+
 
 
 #' Percentis da Distribuição
