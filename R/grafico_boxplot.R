@@ -103,15 +103,25 @@ grafico_boxplot <- function(
   
   # Definição das cores base manuais (se nao for paleta_estatR)
   cor_unica <- NULL
+  cor_outlier <- "#E31A1C" # Padrão vermelho vivo para outliers
+  
   if (!tem_grupo) {
     if (!is.null(cor)) {
       cor_unica <- cor
     } else if (is.character(paleta)) {
       cor_unica <- if (exists(".paletas_estatR")) .paletas_estatR[[paleta]][1] else "steelblue"
     } else {
-      paletas_mono <- list("1" = "#CCCCCC", "2" = "#D9E2EC", "3" = "#D6F0FF", "4" = "#E6ECF5", "5" = "#EAF3FB")
+      paletas_mono <- list(
+        "1" = list(fill = "#CCCCCC", out = "#D90429"),
+        "2" = list(fill = "#D9E2EC", out = "#D4A017"),
+        "3" = list(fill = "#D6F0FF", out = "#FF6B6B"),
+        "4" = list(fill = "#E6ECF5", out = "gold"),
+        "5" = list(fill = "#EAF3FB", out = "#E31A1C")
+      )
       idx <- as.character(paleta)
-      cor_unica <- if (idx %in% names(paletas_mono)) paletas_mono[[idx]] else paletas_mono[["1"]]
+      mono <- if (idx %in% names(paletas_mono)) paletas_mono[[idx]] else paletas_mono[["1"]]
+      cor_unica <- mono$fill
+      cor_outlier <- mono$out
     }
   } else if (tem_grupo && is.numeric(paleta)) {
     paleta <- "academic" # Grupos sempre default para academic se tentar numero basico
@@ -146,7 +156,8 @@ grafico_boxplot <- function(
   geom_bx_args <- list(
     width = if (violino) 0.3 else 0.6, 
     alpha = 1, # OBRIGATORIAMENTE 1 para a linha do bigode nao vazar
-    outlier.size = tam_dispersao_pts,
+    outlier.size = 2 * tam_dispersao_pts,
+    outlier.colour = cor_outlier,
     show.legend = !hide_leg
   )
   
@@ -174,7 +185,7 @@ grafico_boxplot <- function(
       if (!dispersao_pts) {
         p <- p + ggplot2::geom_point(
           data = dados_out, ggplot2::aes(x = !!q_x, y = !!q_y, group = !!fill_var),
-          position = pos_out, size = tam_dispersao_pts, color = "darkred", alpha = 0.9, show.legend = FALSE
+          position = pos_out, size = 2 * tam_dispersao_pts, color = cor_outlier, alpha = 0.9, show.legend = FALSE
         )
       }
       p <- p + ggrepel::geom_text_repel(
@@ -189,7 +200,7 @@ grafico_boxplot <- function(
   # Médias e Linhas
   pos_sum <- if (tem_grupo) ggplot2::position_dodge(0.75) else "identity"
   if (ponto_media) {
-    p <- p + ggplot2::stat_summary(fun = "mean", geom = "point", shape = 18, size = 3.5, color = "darkred", position = pos_sum, show.legend = FALSE)
+    p <- p + ggplot2::stat_summary(fun = "mean", geom = "point", shape = 18, size = 3.5, color = "black", position = pos_sum, show.legend = FALSE)
   }
   if (ligacao_media) {
     if (tem_grupo) {
