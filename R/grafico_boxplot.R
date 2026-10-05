@@ -46,6 +46,10 @@ grafico_boxplot <- function(
     ordem_eixo = NULL, nomes_eixo = NULL
 ) {
   
+  if (missing(bigode) && violino) {
+    bigode <- FALSE
+  }
+  
   if (!requireNamespace("ggplot2", quietly = TRUE)) stop("Pacote ggplot2 necess\u00e1rio.")
   
   q_x <- rlang::enquo(x)
@@ -119,7 +123,7 @@ grafico_boxplot <- function(
   p <- ggplot2::ggplot(dados, ggplot2::aes(x = !!q_x, y = !!q_y, fill = !!fill_var))
   
   if (violino) {
-    p <- p + ggplot2::geom_violin(alpha = 0.5, color = NA, trim = FALSE, show.legend = !hide_leg)
+    p <- p + ggplot2::geom_violin(alpha = 0.2, color = "black", linewidth = 0.4, trim = FALSE, show.legend = !hide_leg)
   }
   
   if (dispersao_pts) {
