@@ -69,9 +69,8 @@ regressao_linear <- function(formula, dados, grafico = TRUE, ...) {
   sep_line <- function(w) paste0("  ", strrep("\u2500", w))
 
   # ── 5. Cabeçalho ──────────────────────────────────────────────────────────
-  tipo_reg <- if (length(x_names) > 1) "M\u00daNTIPLA" else "SIMPLES"
-  cat(sprintf("\n\u2500\u2500 RESULTADOS DA REGRESS\u00c3O %s ", tipo_reg))
-  cat(strrep("\u2500", max(0, 55 - nchar(tipo_reg))), "\n", sep = "")
+  tipo_reg_txt <- if (length(x_names) > 1) "MÚLTIPLA" else "SIMPLES"
+  .print_titulo(paste("RESULTADOS DA REGRESSÃO", tipo_reg_txt))
   cat(sprintf("  Equa\u00e7\u00e3o do modelo: %s\n", deparse(formula)))
   cat(sprintf("  Observa\u00e7\u00f5es: %d\n\n", nrow(modelo$model)))
 
@@ -257,7 +256,7 @@ regressao_linear <- function(formula, dados, grafico = TRUE, ...) {
                 ceteris, nome_pred, verbo, abs(beta), y_name))
   }
 
-  cat("\n", strrep("\u2500", w_total + 2), "\n", sep = "")
+  .print_rodape()
 
   # ── 10. Gráfico (regressão simples) ───────────────────────────────────────
   if (grafico && length(x_names) == 1) {
@@ -482,18 +481,18 @@ metricas <- function(modelo, corte_prob = 0.5) {
   f3 <- function(x) formatC(x, format = "f", digits = 3, decimal.mark = ",")
   f2 <- function(x) formatC(x, format = "f", digits = 2, decimal.mark = ",")
 
-  cat("\nM\u00c9TRICAS E CRIT\u00c9RIOS DE SELE\u00c7\u00c3O\n\n")
-  cat(linha)
-  cat(sprintf("%-*s %*s\n", lw, "M\u00e9trica", vw, "Valor"))
-  cat(linha)
-  cat(sprintf("%-*s %*s\n", lw, "R\u00b2",           vw, f3(r2)))
-  cat(sprintf("%-*s %*s\n", lw, "R\u00b2 ajustado",  vw, f3(r2_adj)))
-  cat(sprintf("%-*s %*s\n", lw, "RMSE",          vw, f3(rmse)))
-  cat(sprintf("%-*s %*s\n", lw, "MAE",           vw, f3(mae)))
-  cat(sprintf("%-*s %*s\n", lw, "AIC",           vw, f2(aic_val)))
-  cat(sprintf("%-*s %*s\n", lw, "AICc",          vw, f2(aicc_val)))
-  cat(sprintf("%-*s %*s\n", lw, "BIC",           vw, f2(bic_val)))
-  cat(linha, "\n", sep = "")
+  .print_titulo("MÉTRICAS E CRITÉRIOS DE SELEÇÃO")
+
+  cat(sprintf("  %-*s %*s\n", lw, "M\u00e9trica", vw, "Valor"))
+  cat("  ", linha, sep = "")
+  cat(sprintf("  %-*s %*s\n", lw, "R\u00b2",           vw, f3(r2)))
+  cat(sprintf("  %-*s %*s\n", lw, "R\u00b2 ajustado",  vw, f3(r2_adj)))
+  cat(sprintf("  %-*s %*s\n", lw, "RMSE",           vw, f3(rmse)))
+  cat(sprintf("  %-*s %*s\n", lw, "MAE",            vw, f3(mae)))
+  cat(sprintf("  %-*s %*s\n", lw, "AIC",            vw, f2(aic_val)))
+  cat(sprintf("  %-*s %*s\n", lw, "AICc",           vw, f2(aicc_val)))
+  cat(sprintf("  %-*s %*s\n", lw, "BIC",            vw, f2(bic_val)))
+  .print_rodape()
 
   invisible(data.frame(
     Metrica = c("R2", "R2_ajustado", "RMSE", "MAE", "AIC", "AICc", "BIC"),

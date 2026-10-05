@@ -45,6 +45,12 @@
   sprintf("%.3f", p)
 }
 
+.fmt_or <- function(v) {
+  if (is.na(v) || is.infinite(v)) return("-")
+  if (abs(v) >= 1e4 || (abs(v) < 0.001 && v != 0)) return(formatC(v, format = "e", digits = 2))
+  sprintf("%.3f", v)
+}
+
 .asterisk_log <- function(p) {
   if (is.na(p)) return("")
   if (p < 0.01) return("***")
@@ -267,9 +273,9 @@ regressao_logistica <- function(formula, dados, corte_prob = 0.5, grafico = TRUE
         .pad_log(sprintf("%.4f", coefs[i, 2]),              w_c["ep"],     "center"),
         .pad_log(sprintf("%.2f",  coefs[i, 3]),             w_c["z"],      "center"),
         .pad_log(p_ast,                                     w_c["p"],      "center"),
-        .pad_log(sprintf("%.3f", or_val),                   w_c["or"],     "center"),
-        .pad_log(sprintf("%.3f", exp(ci[i, 1])),            w_c["ic_inf"], "center"),
-        .pad_log(sprintf("%.3f", exp(ci[i, 2])),            w_c["ic_sup"], "center"),
+        .pad_log(.fmt_or(or_val),                       w_c["or"],     "center"),
+        .pad_log(.fmt_or(exp(ci[i, 1])),                w_c["ic_inf"], "center"),
+        .pad_log(.fmt_or(exp(ci[i, 2])),                w_c["ic_sup"], "center"),
         "\n", sep = "")
   }
   cat(.sep_log(w_coef), "\n")
@@ -327,7 +333,6 @@ regressao_logistica <- function(formula, dados, corte_prob = 0.5, grafico = TRUE
   }
 
   cat("\n")
-  cat(.sep_log(w_coef), "\n\n")
 
   .print_rodape()
 
