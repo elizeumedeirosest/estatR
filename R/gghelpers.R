@@ -57,17 +57,24 @@ ggplot_add.paleta_estatR_layer <- function(object, plot, object_name) {
     plot <- plot + ggplot2::discrete_scale("colour", palette = palette_fn, labels = .formatar_label_paleta, guide = "none")
   }
   
-  # Recolore geometrias estáticas
+  # Recolore geometrias estáticas (não-mapeadas e não-protegidas)
   for (i in seq_along(plot$layers)) {
-    layer <- plot$layers[[i]]
+    layer      <- plot$layers[[i]]
     geom_class <- class(layer$geom)
+    stat_class <- class(layer$stat)
     
-    has_fill_mapping <- !is.null(plot$mapping$fill) || !is.null(layer$mapping$fill)
-    has_color_mapping <- !is.null(plot$mapping$color) || !is.null(plot$mapping$colour) || !is.null(layer$mapping$color) || !is.null(layer$mapping$colour)
+    # Proteção: não recolorir ponto de média (StatSummary) nem camadas com inherit.aes=FALSE
+    is_stat_summary <- "StatSummary" %in% stat_class
+    is_no_inherit   <- identical(layer$inherit.aes, FALSE)
+    if (is_stat_summary || is_no_inherit) next
+    
+    has_fill_mapping  <- !is.null(plot$mapping$fill)   || !is.null(layer$mapping$fill)
+    has_color_mapping <- !is.null(plot$mapping$color)  || !is.null(plot$mapping$colour) ||
+                         !is.null(layer$mapping$color) || !is.null(layer$mapping$colour)
     
     if ("GeomPoint" %in% geom_class) {
       if (!has_color_mapping && !is.null(layer$aes_params$colour)) layer$aes_params$colour <- pal[1]
-      if (!has_fill_mapping && !is.null(layer$aes_params$fill)) layer$aes_params$fill <- pal[1]
+      if (!has_fill_mapping  && !is.null(layer$aes_params$fill))   layer$aes_params$fill   <- pal[1]
     } else if ("GeomBar" %in% geom_class || "GeomCol" %in% geom_class || "GeomRect" %in% geom_class) {
       if (!has_fill_mapping && !is.null(layer$aes_params$fill)) layer$aes_params$fill <- pal[1]
     } else if ("GeomLine" %in% geom_class) {
