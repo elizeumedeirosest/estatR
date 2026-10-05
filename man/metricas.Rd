@@ -4,7 +4,7 @@
 \alias{metricas}
 \title{Métricas do Modelo}
 \usage{
-metricas(modelo)
+metricas(modelo, corte_prob = 0.5)
 }
 \arguments{
 \item{modelo}{Objeto do tipo lm}

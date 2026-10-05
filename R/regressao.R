@@ -457,7 +457,10 @@ predicao <- function(modelo, novos_dados,
 #' @description Exibe as principais métricas de avaliação e erro para um modelo de regressão.
 #' @param modelo Objeto do tipo lm
 #' @export
-metricas <- function(modelo) {
+metricas <- function(modelo, corte_prob = 0.5) {
+  if (inherits(modelo, "glm") && !is.null(modelo$family) && modelo$family$family == "binomial") {
+    return(metricas_logistica(modelo, corte_prob = corte_prob))
+  }
   resumo <- summary(modelo)
   r2     <- resumo$r.squared
   r2_adj <- resumo$adj.r.squared
@@ -505,6 +508,9 @@ metricas <- function(modelo) {
 #' @param grafico Lógico. Se TRUE, exibe o painel 2x2 de diagnóstico dos resíduos.
 #' @export
 analise_residual <- function(modelo, grafico = TRUE) {
+  if (inherits(modelo, "glm") && !is.null(modelo$family) && modelo$family$family == "binomial") {
+    return(analise_residual_logistica(modelo, grafico = grafico))
+  }
   res <- modelo$residuals
 
   # 1. Normalidade (Shapiro-Wilk)
@@ -633,6 +639,14 @@ selecao_modelos <- function(formula, dados, top = 5) {
   y_name <- as.character(formula[[2]])
   
   if (!(y_name %in% names(dados))) stop("Variável resposta não encontrada nos dados.")
+  # Polimorfismo: detecta variável resposta binária -> logística
+  Y_chk <- na.omit(dados[[y_name]])
+  n_niveis_chk <- length(unique(as.character(Y_chk)))
+  is_binario <- (n_niveis_chk == 2) && (is.factor(Y_chk) || is.character(Y_chk) ||
+                  (is.numeric(Y_chk) && all(Y_chk %in% c(0, 1))))
+  if (is_binario) {
+    return(selecao_modelos_logistica(formula, dados, top = top))
+  }
   if (!is.numeric(dados[[y_name]])) stop("A variável resposta deve ser numérica.")
   
   # Limpeza de NAs (apenas colunas envolvidas) para garantir amostras idênticas

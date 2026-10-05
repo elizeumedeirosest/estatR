@@ -11,15 +11,15 @@ regressao_logistica(formula, dados, corte_prob = 0.5, grafico = TRUE)
 
 \item{dados}{Data frame contendo os dados.}
 
-\item{corte_prob}{Ponto de corte (threshold) para classificação. Padrão 0.5.}
+\item{corte_prob}{Ponto de corte para classificação binária. Padrão 0.5.}
 
-\item{grafico}{Se TRUE, exibe a Curva ROC do modelo.}
+\item{grafico}{Se TRUE, exibe painel com Curva ROC e Gráfico de Calibração.}
 }
 \value{
 Retorna invisivelmente o modelo ajustado (objeto glm).
 }
 \description{
 Ajusta um modelo de regressão logística binomial, gerando um
-painel de diagnóstico completo com Deviance, Pseudo-R², AUC, Odds Ratio (OR),
-matriz de confusão e teste de Hosmer-Lemeshow.
+painel completo com Deviance, LRT, Pseudo-R², AUC, Odds Ratio (OR),
+matriz de confusão, teste de Hosmer-Lemeshow e interpretação automática.
 }
