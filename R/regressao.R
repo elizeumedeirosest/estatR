@@ -356,7 +356,7 @@ predicao <- function(modelo, novos_dados,
   fmt <- function(x) sprintf(paste0("%.", decimais, "f"), x)
 
   # ── Cabeçalho ─────────────────────────────────────────────────────────────
-  cat(sprintf("\n\u2500\u2500 PREVIS\u00d5ES DO MODELO (Vari\u00e1vel: %s) \u2500\u2500\n", y_name))
+  .print_titulo(sprintf("PREVIS\u00d5ES DO MODELO (Vari\u00e1vel: %s)", y_name))
 
   nome_int <- switch(intervalo,
     confianca = "Confian\u00e7a",
@@ -534,15 +534,15 @@ analise_residual <- function(modelo, grafico = TRUE) {
 
   linha <- paste0(strrep("\u2500", 54), "\n")
 
-  cat("\nDIAGN\u00d3STICO DOS RES\u00cdDUOS\n\n")
-  cat(linha)
+  .print_titulo("DIAGN\u00d3STICO DOS RES\u00cdDUOS")
+
   cat(sprintf("%-28s %-14s %s\n", "Teste", "Estat\u00edstica", "p-valor"))
   cat(linha)
   cat(sprintf("%-28s W = %-10.3f %s\n", "Normalidade (Shapiro-Wilk)", w_norm, formata_p(p_norm)))
   cat(sprintf("%-28s BP = %-9.3f %s\n", "Homocedasticidade (B-P)",   bp_stat, formata_p(p_bp)))
   cat(linha)
 
-  cat("\nINTERPRETAÇÃO DO DIAGNÓSTICO\n\n")
+  .print_topico("INTERPRETA\u00c7\u00c3O DO DIAGN\u00d3STICO")
 
   if (p_norm < 0.05) {
     cat(sprintf("[!] : O teste de normalidade rejeitou a hip\u00f3tese nula\n    (p = %s). Os res\u00edduos n\u00e3o seguem uma distribui\u00e7\u00e3o normal,\n    o que pode afetar a confiabilidade dos intervalos de confian\u00e7a.\n\n",
@@ -616,6 +616,8 @@ analise_residual <- function(modelo, grafico = TRUE) {
       message("[Aviso] N\u00e3o foi poss\u00edvel gerar o painel de res\u00edduos: ", e$message)
     })
   }
+
+  .print_rodape()
 
   invisible(list(shapiro = st, bp = list(statistic = bp_stat, p.value = p_bp)))
 }
