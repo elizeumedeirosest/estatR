@@ -255,17 +255,9 @@ monte_carlo(experimento = function() mean(rnorm(30)) > 0.3, repeticoes = 10000, 
 
 ### 🎨 Visualização e Gráficos
 
-O `estatR` oferece helpers para estilizar gráficos do `ggplot2` de forma rápida e limpa.
-
 ```r
-library(ggplot2)
+# Gráficos
 
-
-### 📊 Gráficos Estatísticos
-
-O `estatR` também disponibiliza funções gráficas completas com sintaxe limpa:
-
-```r
 # Boxplot Básico
 grafico_boxplot(mtcars, cyl, mpg) +
 tema_estatR(estilo = 2) 
@@ -283,18 +275,19 @@ grafico_boxplot(mtcars, cyl, mpg,
 
 ---
 
+```r
+# Visualização
+
+# Paletas de Cores
+
 # Visualizar todas as paletas disponíveis
 paleta_estatR()
 
-# Aplicar tema e paleta padronizados em um gráfico
-ggplot(iris, aes(x = Species, y = Sepal.Length, fill = Species)) +
-  geom_boxplot() +
-  tema_estatR(estilo = 2) +       # Tema minimalista com grade inteligente
-  paleta_estatR("academic")       # Aplica a paleta 'academic'
-
-# Outros ajustes do tema
-tema_estatR(modo = "dark")        # Tema escuro
-tema_estatR(inclinar = 45)        # Inclina os rótulos do eixo X
+# Tema
+tema_estatR(modo = "dark")        # opções de modo: dark e light
+tema_estatR(inclinar = 45)        # inclina os rótulos do eixo X
+tema_estatR(estilo = 1)           # opções de estilo: 1, 2 ou 3
+tema_estatR(escala = 2)           # aumenta o tamanho da fonte geral do gráfico
 ```
 
 ---
