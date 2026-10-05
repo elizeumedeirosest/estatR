@@ -136,13 +136,6 @@ grafico_boxplot <- function(
     p <- p + ggplot2::geom_violin(alpha = 0.2, color = "black", linewidth = 0.4, trim = FALSE, show.legend = !hide_leg)
   }
   
-  if (dispersao_pts) {
-    p <- p + ggplot2::geom_jitter(
-      ggplot2::aes(group = !!fill_var), 
-      color = "black", width = 0.15, size = tam_dispersao_pts, alpha = 0.25, show.legend = FALSE
-    )
-  }
-  
   if (bigode) {
     p <- p + ggplot2::stat_boxplot(
       geom = "errorbar", width = 0.2, color = "gray30",
@@ -150,7 +143,7 @@ grafico_boxplot <- function(
     )
   }
   
-  # Outliers: Desliga do geom_boxplot principal se for desenhar manual
+  # Outliers: Desliga do geom_boxplot principal se for desenhar manual ou se tiver jitter
   mostrar_outlier_padrao <- outlier && !is.character(nome_rotulo) && !dispersao_pts
   
   geom_bx_args <- list(
@@ -165,9 +158,19 @@ grafico_boxplot <- function(
   if (!mostrar_outlier_padrao) geom_bx_args$outlier.shape <- NA
   if (arredondar_borda_caixa) geom_bx_args$linejoin <- "round"
   
+  # 1. Desenha a Caixa
   p <- p + do.call(ggplot2::geom_boxplot, geom_bx_args)
   
-  # Outliers Customizados (com rótulos)
+  # 2. Desenha a Dispersão por cima da caixa
+  if (dispersao_pts) {
+    pos_jitter <- if (tem_grupo) ggplot2::position_jitterdodge(jitter.width = 0.2, dodge.width = 0.75) else ggplot2::position_jitter(width = 0.2)
+    p <- p + ggplot2::geom_point(
+      position = pos_jitter,
+      color = "black", size = tam_dispersao_pts, alpha = 0.4, show.legend = FALSE
+    )
+  }
+  
+  # 3. Outliers Customizados (com rótulos)
   if (outlier && is.character(nome_rotulo) && requireNamespace("ggrepel", quietly = TRUE)) {
     grupos_calc <- if (tem_grupo) c(nome_x, nome_grupo) else nome_x
     calc_out <- function(d) {
@@ -197,10 +200,13 @@ grafico_boxplot <- function(
     }
   }
   
-  # Médias e Linhas
+  # 4. Médias e Linhas por cima de tudo
   pos_sum <- if (tem_grupo) ggplot2::position_dodge(0.75) else "identity"
   if (ponto_media) {
-    p <- p + ggplot2::stat_summary(fun = "mean", geom = "point", shape = 18, size = 3.5, color = "black", position = pos_sum, show.legend = FALSE)
+    p <- p + ggplot2::stat_summary(
+      fun = "mean", geom = "point", shape = 18, size = 3.5, 
+      color = cor_outlier, position = pos_sum, show.legend = FALSE
+    )
   }
   if (ligacao_media) {
     if (tem_grupo) {
