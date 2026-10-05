@@ -48,7 +48,6 @@ grafico_boxplot <- function(
   
   if (!requireNamespace("ggplot2", quietly = TRUE)) stop("Pacote ggplot2 necess\u00e1rio.")
   
-  # Captura as variáveis sem aspas (NSE)
   q_x <- rlang::enquo(x)
   q_y <- rlang::enquo(y)
   q_grupo <- rlang::enquo(grupo)
@@ -76,10 +75,8 @@ grafico_boxplot <- function(
     nome_rotulo <- ".rotulo_outlier"
   }
   
-  # Filtra NAs
   dados <- dados[stats::complete.cases(dados[, colunas_uso, drop = FALSE]), ]
   
-  # Ordenação do Eixo X
   if (ordenar) {
     meds <- tapply(dados[[nome_y]], dados[[nome_x]], stats::median)
     ordem_eixo <- names(sort(meds, decreasing = TRUE))
@@ -91,7 +88,6 @@ grafico_boxplot <- function(
   }
   if (!is.null(nomes_eixo)) levels(dados[[nome_x]]) <- nomes_eixo
   
-  # Ordenação do Grupo
   if (tem_grupo) {
     if (!is.null(ordem_grupo)) dados[[nome_grupo]] <- factor(dados[[nome_grupo]], levels = ordem_grupo)
     else dados[[nome_grupo]] <- factor(dados[[nome_grupo]])
@@ -99,32 +95,22 @@ grafico_boxplot <- function(
   }
   
   fill_var <- if (tem_grupo) q_grupo else q_x
+  hide_leg <- !tem_grupo
   
-  # Cores Base
+  # Definição das cores base manuais (se nao for paleta_estatR)
   cor_unica <- NULL
-  cores_vetor <- NULL
-  
-  if (tem_grupo) {
-    if (is.character(paleta)) {
-      # Será resolvido pelo gghelpers
-    } else {
-      # Com grupo e paleta numerica: default é academic
-      paleta <- "academic"
-    }
-  } else {
+  if (!tem_grupo) {
     if (!is.null(cor)) {
       cor_unica <- cor
     } else if (is.character(paleta)) {
-      if (exists(".paletas_estatR")) cor_unica <- .paletas_estatR[[paleta]][1] else cor_unica <- "steelblue"
+      cor_unica <- if (exists(".paletas_estatR")) .paletas_estatR[[paleta]][1] else "steelblue"
     } else {
-      # Sem grupo, paleta numerica -> usa paleta monocromatica do metaR
-      paletas_mono <- list(
-        "1" = "#CCCCCC", "2" = "#D9E2EC", "3" = "#D6F0FF", 
-        "4" = "#E6ECF5", "5" = "#EAF3FB"
-      )
+      paletas_mono <- list("1" = "#CCCCCC", "2" = "#D9E2EC", "3" = "#D6F0FF", "4" = "#E6ECF5", "5" = "#EAF3FB")
       idx <- as.character(paleta)
       cor_unica <- if (idx %in% names(paletas_mono)) paletas_mono[[idx]] else paletas_mono[["1"]]
     }
+  } else if (tem_grupo && is.numeric(paleta)) {
+    paleta <- "academic" # Grupos sempre default para academic se tentar numero basico
   }
   
   # ---------------------------------------------------------
@@ -132,51 +118,41 @@ grafico_boxplot <- function(
   # ---------------------------------------------------------
   p <- ggplot2::ggplot(dados, ggplot2::aes(x = !!q_x, y = !!q_y, fill = !!fill_var))
   
-  # Ocultar legenda se nao tiver grupo
-  hide_leg <- !tem_grupo
-  
   if (violino) {
     p <- p + ggplot2::geom_violin(alpha = 0.5, color = NA, trim = FALSE, show.legend = !hide_leg)
   }
   
   if (dispersao_pts) {
     p <- p + ggplot2::geom_jitter(
-      ggplot2::aes(color = !!fill_var), 
-      width = 0.2, size = tam_dispersao_pts, alpha = 0.4, show.legend = FALSE
+      ggplot2::aes(group = !!fill_var), 
+      color = "black", width = 0.15, size = tam_dispersao_pts, alpha = 0.25, show.legend = FALSE
     )
   }
   
   if (bigode) {
     p <- p + ggplot2::stat_boxplot(
-      geom = "errorbar", width = 0.2, color = "gray20",
+      geom = "errorbar", width = 0.2, color = "gray30",
       position = if (tem_grupo) ggplot2::position_dodge(0.75) else "identity"
     )
   }
   
-  mostrar_outlier_padrao <- if (outlier && !is.character(nome_rotulo) && !dispersao_pts) TRUE else FALSE
+  # Outliers: Desliga do geom_boxplot principal se for desenhar manual
+  mostrar_outlier_padrao <- outlier && !is.character(nome_rotulo) && !dispersao_pts
   
   geom_bx_args <- list(
     width = if (violino) 0.3 else 0.6, 
-    alpha = 1,  # Alpha 1 para nao deixar o bigode vazar por tras da caixa
+    alpha = 1, # OBRIGATORIAMENTE 1 para a linha do bigode nao vazar
     outlier.size = tam_dispersao_pts,
     show.legend = !hide_leg
   )
   
   if (tem_grupo) geom_bx_args$position <- ggplot2::position_dodge(0.75)
   if (!mostrar_outlier_padrao) geom_bx_args$outlier.shape <- NA
-  if (!is.null(cor_unica)) {
-    geom_bx_args$fill <- cor_unica
-    geom_bx_args$color <- "black"
-  }
-  if (arredondar_borda_caixa) {
-    geom_bx_args$linejoin <- "round"
-  }
+  if (arredondar_borda_caixa) geom_bx_args$linejoin <- "round"
   
   p <- p + do.call(ggplot2::geom_boxplot, geom_bx_args)
   
-  # ---------------------------------------------------------
   # Outliers Customizados (com rótulos)
-  # ---------------------------------------------------------
   if (outlier && is.character(nome_rotulo) && requireNamespace("ggrepel", quietly = TRUE)) {
     grupos_calc <- if (tem_grupo) c(nome_x, nome_grupo) else nome_x
     calc_out <- function(d) {
@@ -194,8 +170,7 @@ grafico_boxplot <- function(
       if (!dispersao_pts) {
         p <- p + ggplot2::geom_point(
           data = dados_out, ggplot2::aes(x = !!q_x, y = !!q_y, group = !!fill_var),
-          position = pos_out, size = tam_dispersao_pts, color = "black", alpha = 0.8,
-          show.legend = FALSE
+          position = pos_out, size = tam_dispersao_pts, color = "darkred", alpha = 0.9, show.legend = FALSE
         )
       }
       p <- p + ggrepel::geom_text_repel(
@@ -207,9 +182,7 @@ grafico_boxplot <- function(
     }
   }
   
-  # ---------------------------------------------------------
   # Médias e Linhas
-  # ---------------------------------------------------------
   pos_sum <- if (tem_grupo) ggplot2::position_dodge(0.75) else "identity"
   if (ponto_media) {
     p <- p + ggplot2::stat_summary(fun = "mean", geom = "point", shape = 18, size = 3.5, color = "darkred", position = pos_sum, show.legend = FALSE)
@@ -229,24 +202,21 @@ grafico_boxplot <- function(
     }
   }
   
-  # ---------------------------------------------------------
-  # Cores e Paleta Final
-  # ---------------------------------------------------------
+  # Aplicação da Escala de Cor
   if (!is.null(destaque)) {
     nivs <- levels(dados[[rlang::as_name(fill_var)]])
     cores_destaque <- rep("gray85", length(nivs))
-    cor_dest <- if (is.character(paleta)) {
-      if (exists(".paletas_estatR")) .paletas_estatR[[paleta]][1] else "#E31A1C"
-    } else { "#E31A1C" }
-    
+    cor_dest <- if (is.character(paleta) && exists(".paletas_estatR")) .paletas_estatR[[paleta]][1] else "#E31A1C"
     cores_destaque[nivs %in% destaque] <- cor_dest
     p <- p + ggplot2::scale_fill_manual(values = cores_destaque) + ggplot2::scale_color_manual(values = cores_destaque)
-    
-  } else if (tem_grupo) {
-    # Com grupo -> aplica paleta_estatR() (academic se não especificada)
-    if (exists("paleta_estatR", mode = "function")) {
-       p <- p + paleta_estatR(paleta)
-    }
+  } else if (!tem_grupo) {
+    # Sem grupo: aplica a cor base única para preencher tudo e oculta a legenda forçadamente
+    cores_mono <- rep(cor_unica, length(levels(dados[[nome_x]])))
+    p <- p + ggplot2::scale_fill_manual(values = cores_mono, guide = "none") + 
+             ggplot2::scale_color_manual(values = cores_mono, guide = "none")
+  } else {
+    # Com grupo: usa a função de paleta avançada
+    if (exists("paleta_estatR", mode = "function")) p <- p + paleta_estatR(paleta)
   }
   
   p
