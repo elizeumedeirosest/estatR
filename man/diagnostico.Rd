@@ -7,13 +7,12 @@
 diagnostico(dados)
 }
 \arguments{
-\item{dados}{Data frame para análise.}
+\item{dados}{Data frame ou vetor para análise.}
 }
 \value{
-Retorna o data frame invisivelmente.
+Retorna o objeto original invisivelmente.
 }
 \description{
-Gera um painel completo mesclando informações de estrutura e
-valores ausentes por tipo de variável, incluindo detecção automática de
-NAs ocultos (como -99 ou vazio).
+Gera um painel completo mesclando informações de estrutura,
+valores ausentes, outliers e valores únicos, alertando para duplicatas.
 }

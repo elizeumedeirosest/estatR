@@ -4,7 +4,7 @@
 \alias{outliers}
 \title{Análise de Outliers pelo Método IQR}
 \usage{
-outliers(x, decimais = 2)
+outliers(x, fator_iqr = 1.5, decimais = 2)
 }
 \arguments{
 \item{x}{Um vetor numérico ou data.frame.}

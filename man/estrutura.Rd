@@ -7,10 +7,10 @@
 estrutura(dados)
 }
 \arguments{
-\item{dados}{Data frame para análise.}
+\item{dados}{Data frame ou vetor para análise.}
 }
 \value{
-Retorna o data frame invisivelmente.
+Retorna o objeto original invisivelmente.
 }
 \description{
 Retorna apenas os tipos de dados de cada variável.

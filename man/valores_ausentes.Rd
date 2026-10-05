@@ -7,12 +7,12 @@
 valores_ausentes(dados)
 }
 \arguments{
-\item{dados}{Data frame para análise.}
+\item{dados}{Data frame ou vetor para análise.}
 }
 \value{
-Retorna o data frame invisivelmente.
+Retorna o objeto original invisivelmente.
 }
 \description{
-Inspeciona o banco procurando por NAs oficiais e valores
+Inspeciona procurando por NAs oficiais e valores
 que indicam respostas vazias ou erros ocultos (como -99 ou textos vazios).
 }

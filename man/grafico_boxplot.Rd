@@ -34,51 +34,59 @@ grafico_boxplot(
 \arguments{
 \item{dados}{Data frame.}
 
-\item{x}{Variável categórica (eixo X). (Passe sem aspas)}
+\item{x}{Variável categórica (eixo X). Passe sem aspas.}
 
-\item{y}{Variável contínua/numérica (eixo Y). (Passe sem aspas)}
+\item{y}{Variável contínua/numérica (eixo Y). Passe sem aspas.}
 
-\item{grupo}{Variável opcional para agrupamento lado a lado. (Passe sem aspas)}
+\item{grupo}{Variável opcional para agrupamento lado a lado. Passe sem aspas.}
 
-\item{bigode}{Lógico. Desenha barras horizontais nas pontas dos bigodes.}
+\item{bigode}{Lógico. Desenha barras horizontais nas pontas dos bigodes.
+Quando \code{violino = TRUE} e este parâmetro não for informado, o padrão
+muda automaticamente para \code{FALSE}.}
 
-\item{ponto_media}{Lógico. Desenha um diamante na média.}
+\item{ponto_media}{Lógico. Desenha um diamante preto na média de cada caixa.}
 
-\item{violino}{Lógico. Plota um gráfico de violino ao fundo.}
+\item{violino}{Lógico. Plota um violino ao fundo das caixas.}
 
-\item{dispersao_pts}{Lógico. Plota os pontos reais (jitter) ao fundo.}
+\item{dispersao_pts}{Lógico. Plota os pontos reais (jitter) por cima da caixa,
+excluindo outliers.}
 
-\item{arredondar_borda_caixa}{Lógico. Suaviza as bordas do boxplot (disponível visualmente via tema).}
+\item{arredondar_borda_caixa}{Lógico. Ativa arredondamento suave dos cantos da caixa.}
 
-\item{ligacao_media}{Lógico. Conecta as médias com linha tracejada.}
+\item{ligacao_media}{Lógico. Conecta as médias dos grupos com linha tracejada.}
 
-\item{ligacao_mediana}{Lógico. Conecta as medianas com linha tracejada.}
+\item{ligacao_mediana}{Lógico. Conecta as medianas dos grupos com linha pontilhada.}
 
-\item{outlier}{Lógico. Exibe os outliers. Se FALSE, oculta.}
+\item{outlier}{Lógico. Exibe outliers. Se \code{FALSE}, oculta completamente.}
 
-\item{nomes_outliers}{Lógico ou string. Se TRUE usa rownames. Se string, usa o nome da coluna para rotular outliers.}
+\item{nomes_outliers}{Lógico ou string. Se \code{TRUE} usa rownames. Se string,
+usa o nome de uma coluna do data frame para rotular os outliers.}
 
-\item{fator_iqr}{Numérico. Multiplicador do IQR para limite de outliers (padrão 1.5).}
+\item{fator_iqr}{Numérico. Multiplicador do IQR para detectar outliers (padrão 1.5).}
 
-\item{tam_dispersao_pts}{Numérico. Tamanho dos pontos (outliers e dispersão).}
+\item{tam_dispersao_pts}{Numérico. Multiplicador do tamanho dos pontos.}
 
-\item{tam_texto_outliers}{Numérico. Tamanho da fonte dos rótulos dos outliers.}
+\item{tam_texto_outliers}{Numérico. Multiplicador do tamanho dos rótulos dos outliers.}
 
-\item{paleta}{Numérico (1, 2, 3...) para paletas básicas, ou String ("academic", "vibrant") para paleta_estatR.}
+\item{paleta}{Numérico (1–5) para paletas internas do boxplot, ou string
+(\code{"academic"}, \code{"vibrant"}, etc.) para usar \code{paleta_estatR()}.}
 
-\item{cor}{Cor fixa para pintar todos os boxplots ignorando a paleta.}
+\item{cor}{Cor fixa (hex ou nome R) para todos os boxplots, ignora a paleta.}
 
-\item{destaque}{Vetor com categorias a serem destacadas (o resto fica em cinza).}
+\item{destaque}{Vetor de nomes de categorias a destacar (as demais ficam em cinza).}
 
-\item{ordenar}{Lógico. Ordena o eixo X pelas medianas (decrescente).}
+\item{ordenar}{Lógico. Se \code{TRUE}, ordena o eixo X pelas medianas (decrescente).}
 
-\item{ordem_grupo}{Vetor manual definindo a ordem dos grupos.}
+\item{ordem_grupo}{Vetor manual com a ordem dos níveis do grupo.}
 
-\item{nomes_grupo}{Vetor manual para renomear os grupos.}
+\item{nomes_grupo}{Vetor manual para renomear os níveis do grupo.}
 
-\item{ordem_eixo}{Vetor manual definindo a ordem do eixo X.}
+\item{ordem_eixo}{Vetor manual com a ordem dos níveis do eixo X.}
 
 \item{nomes_eixo}{Vetor manual para renomear as categorias do eixo X.}
+}
+\value{
+Um objeto \code{ggplot}.
 }
 \description{
 Cria um boxplot completo com opções de violino, dispersão,
