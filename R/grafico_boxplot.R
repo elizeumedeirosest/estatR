@@ -127,6 +127,18 @@ grafico_boxplot <- function(
     paleta <- "academic" # Grupos sempre default para academic se tentar numero basico
   }
   
+  # Calcula outliers globalmente
+  grupos_calc <- if (tem_grupo) c(nome_x, nome_grupo) else nome_x
+  calc_out <- function(d) {
+    if (nrow(d) == 0) return(d)
+    q1 <- stats::quantile(d[[nome_y]], 0.25, na.rm = TRUE)
+    q3 <- stats::quantile(d[[nome_y]], 0.75, na.rm = TRUE)
+    iqr <- q3 - q1
+    d$.is_outlier <- d[[nome_y]] < (q1 - fator_iqr * iqr) | d[[nome_y]] > (q3 + fator_iqr * iqr)
+    d
+  }
+  dados <- do.call(rbind, lapply(split(dados, dados[, grupos_calc, drop=FALSE]), calc_out))
+  
   # ---------------------------------------------------------
   # CONSTRUÇÃO DO PLOT
   # ---------------------------------------------------------
@@ -143,8 +155,8 @@ grafico_boxplot <- function(
     )
   }
   
-  # Outliers: Desliga do geom_boxplot principal se for desenhar manual ou se tiver jitter
-  mostrar_outlier_padrao <- outlier && !is.character(nome_rotulo) && !dispersao_pts
+  # Outliers: Desliga do geom_boxplot principal APENAS se for desenhar manual com rótulos
+  mostrar_outlier_padrao <- outlier && !is.character(nome_rotulo)
   
   geom_bx_args <- list(
     width = if (violino) 0.3 else 0.6, 
@@ -158,13 +170,14 @@ grafico_boxplot <- function(
   if (!mostrar_outlier_padrao) geom_bx_args$outlier.shape <- NA
   if (arredondar_borda_caixa) geom_bx_args$linejoin <- "round"
   
-  # 1. Desenha a Caixa
+  # 1. Desenha a Caixa (ela já desenha os outliers padrão se solicitado)
   p <- p + do.call(ggplot2::geom_boxplot, geom_bx_args)
   
-  # 2. Desenha a Dispersão por cima da caixa
+  # 2. Desenha a Dispersão por cima da caixa (EXCLUINDO OUTLIERS)
   if (dispersao_pts) {
     pos_jitter <- if (tem_grupo) ggplot2::position_jitterdodge(jitter.width = 0.2, dodge.width = 0.75) else ggplot2::position_jitter(width = 0.2)
     p <- p + ggplot2::geom_point(
+      data = dados[!dados$.is_outlier, ],
       position = pos_jitter,
       color = "black", size = tam_dispersao_pts, alpha = 0.4, show.legend = FALSE
     )
@@ -172,25 +185,16 @@ grafico_boxplot <- function(
   
   # 3. Outliers Customizados (com rótulos)
   if (outlier && is.character(nome_rotulo) && requireNamespace("ggrepel", quietly = TRUE)) {
-    grupos_calc <- if (tem_grupo) c(nome_x, nome_grupo) else nome_x
-    calc_out <- function(d) {
-      q1 <- stats::quantile(d[[nome_y]], 0.25, na.rm = TRUE)
-      q3 <- stats::quantile(d[[nome_y]], 0.75, na.rm = TRUE)
-      iqr <- q3 - q1
-      d$is_outlier <- d[[nome_y]] < (q1 - fator_iqr * iqr) | d[[nome_y]] > (q3 + fator_iqr * iqr)
-      d
-    }
-    dados_out <- do.call(rbind, lapply(split(dados, dados[, grupos_calc, drop=FALSE]), calc_out))
-    dados_out <- dados_out[dados_out$is_outlier, ]
+    dados_out <- dados[dados$.is_outlier, ]
     
     if (nrow(dados_out) > 0) {
       pos_out <- if (tem_grupo) ggplot2::position_dodge(0.75) else "identity"
-      if (!dispersao_pts) {
-        p <- p + ggplot2::geom_point(
-          data = dados_out, ggplot2::aes(x = !!q_x, y = !!q_y, group = !!fill_var),
-          position = pos_out, size = 2 * tam_dispersao_pts, color = cor_outlier, alpha = 0.9, show.legend = FALSE
-        )
-      }
+      # Desenha o ponto vermelho customizado
+      p <- p + ggplot2::geom_point(
+        data = dados_out, ggplot2::aes(x = !!q_x, y = !!q_y, group = !!fill_var),
+        position = pos_out, size = 2 * tam_dispersao_pts, color = cor_outlier, alpha = 0.9, show.legend = FALSE
+      )
+      
       p <- p + ggrepel::geom_text_repel(
         data = dados_out,
         ggplot2::aes(x = !!q_x, y = !!q_y, label = !!rlang::sym(nome_rotulo), group = !!fill_var),
@@ -205,7 +209,7 @@ grafico_boxplot <- function(
   if (ponto_media) {
     p <- p + ggplot2::stat_summary(
       fun = "mean", geom = "point", shape = 18, size = 3.5, 
-      color = cor_outlier, position = pos_sum, show.legend = FALSE
+      color = "black", position = pos_sum, show.legend = FALSE
     )
   }
   if (ligacao_media) {
