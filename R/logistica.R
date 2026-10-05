@@ -162,36 +162,74 @@ regressao_logistica <- function(formula, dados, corte_prob = 0.5, grafico = TRUE
   )
   rownames(df_coef) <- NULL
   
+  # AICc
+  K_params <- length(coef(mod)) + 1
+  n_obs <- length(Y_num)
+  aicc_val <- if (n_obs - K_params - 1 > 0) aic_val + (2 * K_params * (K_params + 1)) / (n_obs - K_params - 1) else Inf
+  
+  df_resumo <- data.frame(
+    "Métrica" = c("Deviance Nula", "Deviance Residual", "Teste LRT (\u03c7\u00b2)", "AIC", "AICc", "BIC"),
+    "Valor" = c(sprintf("%.2f (df = %d)", dev_nula, df_nula),
+                sprintf("%.2f (df = %d)", dev_res, df_res),
+                sprintf("%.2f (p = %s)", lrt_chi, .formata_p_local(lrt_p)),
+                sprintf("%.2f", aic_val),
+                sprintf("%.2f", aicc_val),
+                sprintf("%.2f", bic_val)),
+    stringsAsFactors = FALSE, check.names = FALSE
+  )
+  
+  df_perf <- data.frame(
+    "Métrica" = c("Pseudo-R\u00b2 (McFadden)", "Acurácia Global", "AUC (Curva ROC)"),
+    "Valor" = c(.fmt_pct(pseudo_r2, 1),
+                sprintf("%s (Corte: %.2f)", .fmt_pct(acc, 1), corte_prob),
+                sprintf("%.3f", auc_val)),
+    stringsAsFactors = FALSE, check.names = FALSE
+  )
+  
+  if (!is.na(hl$statistic)) {
+    df_hl <- data.frame(
+      "Teste" = "Hosmer-Lemeshow (g=10)",
+      "Estatística (\u03c7\u00b2)" = sprintf("%.2f", hl$statistic),
+      "p-valor" = .formata_p_local(hl$p.value),
+      stringsAsFactors = FALSE, check.names = FALSE
+    )
+  }
+  
   # ── IMPRESSÃO DO PAINEL ────────────────────────────────────────────────────
   .print_titulo("REGRESSÃO LOGÍSTICA BINOMIAL")
   
   cat(sprintf("  Variável Resposta:   %s (Sucesso = '%s')\n", y_name, sucesso_label))
   cat(sprintf("  Observações Válidas: %d\n\n", length(Y_num)))
   
-  .print_topico("RESUMO GLOBAL (AJUSTE)")
-  cat(sprintf("  Deviance Nula:     %.2f (df = %d)\n", dev_nula, df_nula))
-  cat(sprintf("  Deviance Residual: %.2f (df = %d)\n", dev_res, df_res))
-  cat(sprintf("  Teste LRT (Chi²):  %.2f (p = %s) -> %s\n", lrt_chi, .formata_p_local(lrt_p), lrt_sig))
-  cat(sprintf("  AIC:               %.2f\n", aic_val))
-  cat(sprintf("  BIC:               %.2f\n\n", bic_val))
+  .print_topico("RESUMO GERAL (AJUSTE)")
+  if (exists(".print_tabela_estatR", mode = "function")) {
+    .print_tabela_estatR(df_resumo, align = c("left", "right"))
+  } else {
+    print(df_resumo, row.names = FALSE)
+  }
   
   .print_topico("MÉTRICAS DE PERFORMANCE")
-  cat(sprintf("  Pseudo-R² (McFadden): %s\n", .fmt_pct(pseudo_r2, 1)))
-  cat(sprintf("  Acurácia Global:      %s (Corte em %.2f)\n", .fmt_pct(acc, 1), corte_prob))
-  cat(sprintf("  AUC (Área Sob a ROC): %.3f\n\n", auc_val))
+  if (exists(".print_tabela_estatR", mode = "function")) {
+    .print_tabela_estatR(df_perf, align = c("left", "right"))
+  } else {
+    print(df_perf, row.names = FALSE)
+  }
+  
+  .print_topico("TESTE DE ADEQUAÇÃO (Pressuposto)")
+  if (!is.na(hl$statistic)) {
+    if (exists(".print_tabela_estatR", mode = "function")) {
+      .print_tabela_estatR(df_hl, align = c("left", "center", "center"))
+    } else {
+      print(df_hl, row.names = FALSE)
+    }
+  } else {
+    cat(sprintf("  Hosmer-Lemeshow: %s\n\n", hl_msg))
+  }
   
   .print_topico("MATRIZ DE CONFUSÃO")
   cat(sprintf("                Predito Não (0)   Predito Sim (1)\n"))
   cat(sprintf("  Real Não (0)  %15d   %15d\n", vn, fp))
   cat(sprintf("  Real Sim (1)  %15d   %15d\n\n", fn, vp))
-  
-  .print_topico("TESTE DE ADEQUAÇÃO (Pressuposto)")
-  if (!is.na(hl$statistic)) {
-    cat(sprintf("  Hosmer-Lemeshow (g=10): Chi² = %.2f (p = %s) -> %s\n\n", 
-                hl$statistic, .formata_p_local(hl$p.value), hl_msg))
-  } else {
-    cat(sprintf("  Hosmer-Lemeshow: %s\n\n", hl_msg))
-  }
   
   .print_topico("COEFICIENTES E ODDS RATIO (OR)")
   if (exists(".print_tabela_estatR", mode = "function")) {
@@ -200,6 +238,21 @@ regressao_logistica <- function(formula, dados, corte_prob = 0.5, grafico = TRUE
     print(df_coef, row.names = FALSE)
   }
   
+  .print_topico("INTERPRETAÇÕES E AVISOS")
+  if (lrt_p < 0.05) {
+    cat("  \u2022 Ajuste Global: O modelo é estatisticamente significante (LRT p < 0.05).\n")
+  } else {
+    cat("  \u2022 Ajuste Global: O modelo NÃO é estatisticamente significante (LRT p >= 0.05).\n")
+  }
+  if (!is.na(hl$p.value)) {
+    if (hl$p.value > 0.05) {
+      cat("  \u2022 Hosmer-Lemeshow: Bom ajuste. As probabilidades preditas calibram bem com a realidade.\n")
+    } else {
+      cat("  \u2022 Hosmer-Lemeshow: Ajuste pobre. As previsões desviam significativamente do real.\n")
+    }
+  }
+  cat("\n")
+  
   .print_rodape()
   
   # ── GRÁFICO ROC ────────────────────────────────────────────────────────────
@@ -207,15 +260,15 @@ regressao_logistica <- function(formula, dados, corte_prob = 0.5, grafico = TRUE
     df_roc <- .calc_roc_df(probs, Y_num)
     
     p_plot <- ggplot2::ggplot(df_roc, ggplot2::aes(x = FPR, y = TPR)) +
-      ggplot2::geom_line(color = "#0072B2", size = 1.2) +
+      ggplot2::geom_line(color = "#0072B2", linewidth = 1.2) +
       ggplot2::geom_abline(intercept = 0, slope = 1, linetype = "dashed", color = "gray50") +
       ggplot2::scale_x_continuous(labels = scales::percent, limits = c(0, 1)) +
       ggplot2::scale_y_continuous(labels = scales::percent, limits = c(0, 1)) +
       ggplot2::labs(
         title = "Curva ROC (Receiver Operating Characteristic)",
         subtitle = sprintf("Área Sob a Curva (AUC): %.3f", auc_val),
-        x = "Taxa de Falsos Positivos (1 - Especificidade)",
-        y = "Taxa de Verdadeiros Positivos (Sensibilidade)"
+        x = "Taxa de Falsos Positivos",
+        y = "Taxa de Verdadeiros Positivos"
       )
     
     if (exists("tema_estatR", mode = "function")) {
@@ -224,7 +277,7 @@ regressao_logistica <- function(formula, dados, corte_prob = 0.5, grafico = TRUE
       p_plot <- p_plot + ggplot2::theme_minimal()
     }
     
-    print(p_plot)
+    suppressWarnings(print(p_plot))
   }
   
   invisible(mod)

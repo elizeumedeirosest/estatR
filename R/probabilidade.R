@@ -84,7 +84,7 @@ prob_normal <- function(media = 0, dp = 1, q1 = NULL, q2 = NULL, tipo = c("menor
       ggplot2::geom_polygon(data = df_poly, ggplot2::aes(x = x, y = y), fill = "dodgerblue1", alpha = 0.6) +
       ggplot2::labs(title = titulo, 
                     subtitle = sprintf("Probabilidade: %.2f%%", prob * 100),
-                    x = "Valor (X)", y = "Densidade",
+                    x = "x", y = "Densidade",
                     caption = "estatR")
     
     if (exists("meu_tema")) {
