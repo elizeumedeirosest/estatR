@@ -94,6 +94,79 @@ amostra_conglomerados(mtcars, conglomerado = cyl, n_conglomerados = 2)
 
 ---
 
+### 🧪 Modelagem
+
+```r
+# Divisao treino/teste — modo aleatorio (padrao)
+partes <- dividir_dados(mtcars, proporcao = 0.8, semente = 42)
+modelo <- regressao_linear(mpg ~ wt + hp, dados = partes$treino)
+predicao(modelo, partes$teste)
+
+# Divisao estratificada (mantem proporcoes dos grupos)
+dividir_dados(mtcars, proporcao = 0.8, estrato = cyl, semente = 42)
+
+# Divisao temporal (corte cronologico sem embaralhamento — series temporais)
+dividir_dados(dados_serie, proporcao = 0.8, temporal = TRUE)
+```
+
+
+### 🔗 Correlação
+
+```r
+# Teste de correlação bivariada (Pearson, Spearman ou Kendall)
+teste_correlacao(mtcars, wt, mpg)
+teste_correlacao(mtcars, wt, mpg, metodo = "spearman")
+
+# Correlograma completo do banco de dados
+matriz_correlacao(mtcars)
+matriz_correlacao(mtcars, c("mpg", "wt", "hp", "disp"), metodo = "kendall")
+```
+
+---
+
+
+### 📈 Regressão Linear
+
+```r
+# Regressão simples
+modelo <- regressao_linear(mpg ~ wt, dados = mtcars)
+predicao(modelo, data.frame(wt = c(2.5, 3.0)))
+
+# Regressão múltipla
+modelo2 <- regressao_linear(mpg ~ wt + hp, dados = mtcars)
+predicao(modelo2, data.frame(wt = 2.5, hp = 110), intervalo = "predicao")
+
+# Métricas de ajuste
+metricas(modelo)
+
+# Diagnóstico de resíduos (tabela + painel 4 gráficos)
+analise_residual(modelo)
+```
+
+---
+
+### 🎰 Probabilidade
+
+```r
+# Probabilidade da distribuição Normal (com gráfico de área sombreada)
+prob_normal(media = 100, dp = 15, q1 = 120, tipo = "maior")
+prob_normal(media = 100, dp = 15, q1 = 85, q2 = 115, tipo = "entre")
+
+# Probabilidade da distribuição Binomial
+prob_binomial(ensaios = 10, prob = 0.5, q = 5, tipo = "exato")
+
+# Probabilidade da distribuição Poisson
+prob_poisson(lambda = 2, q = 2, tipo = "menor")
+
+# Gerar amostras aleatórias com comparação teórica
+gerar_amostra(n = 1000, distribuicao = "normal", media = 50, dp = 5)
+gerar_amostra(n = 500,  distribuicao = "binomial", ensaios = 10, prob = 0.5)
+gerar_amostra(n = 300,  distribuicao = "poisson",  lambda = 3)
+gerar_amostra(n = 1000, distribuicao = "exponencial", taxa = 0.5)
+```
+
+---
+
 ### 🔬 Testes de Hipótese
 
 ```r
@@ -121,62 +194,6 @@ teste_qui_quadrado(mtcars, cyl, am)
 
 # Teste de Levene (homogeneidade de variâncias)
 teste_levene(mtcars$mpg, mtcars$am)
-```
-
----
-
-### 📈 Regressão Linear
-
-```r
-# Regressão simples
-modelo <- regressao_linear(mpg ~ wt, dados = mtcars)
-predicao(modelo, data.frame(wt = c(2.5, 3.0)))
-
-# Regressão múltipla
-modelo2 <- regressao_linear(mpg ~ wt + hp, dados = mtcars)
-predicao(modelo2, data.frame(wt = 2.5, hp = 110), intervalo = "predicao")
-
-# Métricas de ajuste
-metricas(modelo)
-
-# Diagnóstico de resíduos (tabela + painel 4 gráficos)
-analise_residual(modelo)
-```
-
----
-
-### 🔗 Correlação
-
-```r
-# Teste de correlação bivariada (Pearson, Spearman ou Kendall)
-teste_correlacao(mtcars, wt, mpg)
-teste_correlacao(mtcars, wt, mpg, metodo = "spearman")
-
-# Correlograma completo do banco de dados
-matriz_correlacao(mtcars)
-matriz_correlacao(mtcars, c("mpg", "wt", "hp", "disp"), metodo = "kendall")
-```
-
----
-
-### 🎰 Probabilidade
-
-```r
-# Probabilidade da distribuição Normal (com gráfico de área sombreada)
-prob_normal(media = 100, dp = 15, q1 = 120, tipo = "maior")
-prob_normal(media = 100, dp = 15, q1 = 85, q2 = 115, tipo = "entre")
-
-# Probabilidade da distribuição Binomial
-prob_binomial(ensaios = 10, prob = 0.5, q = 5, tipo = "exato")
-
-# Probabilidade da distribuição Poisson
-prob_poisson(lambda = 2, q = 2, tipo = "menor")
-
-# Gerar amostras aleatórias com comparação teórica
-gerar_amostra(n = 1000, distribuicao = "normal", media = 50, dp = 5)
-gerar_amostra(n = 500,  distribuicao = "binomial", ensaios = 10, prob = 0.5)
-gerar_amostra(n = 300,  distribuicao = "poisson",  lambda = 3)
-gerar_amostra(n = 1000, distribuicao = "exponencial", taxa = 0.5)
 ```
 
 ---
@@ -218,7 +235,7 @@ estimar_momentos(mtcars$wt,  distribuicao = "gamma")
 
 ---
 
-### 🎲 Simulação Estatística
+### 🎲 Simulação
 
 ```r
 # Bootstrap: IC e variabilidade de qualquer estatística por reamostragem
@@ -236,21 +253,6 @@ monte_carlo(experimento = function() mean(rnorm(30)) > 0.3, repeticoes = 10000, 
 
 ---
 
-### 🧪 Modelagem
-
-```r
-# Divisao treino/teste — modo aleatorio (padrao)
-partes <- dividir_dados(mtcars, proporcao = 0.8, semente = 42)
-modelo <- regressao_linear(mpg ~ wt + hp, dados = partes$treino)
-predicao(modelo, partes$teste)
-
-# Divisao estratificada (mantem proporcoes dos grupos)
-dividir_dados(mtcars, proporcao = 0.8, estrato = cyl, semente = 42)
-
-# Divisao temporal (corte cronologico sem embaralhamento — series temporais)
-dividir_dados(dados_serie, proporcao = 0.8, temporal = TRUE)
-```
-
 ### 🎨 Visualização e Gráficos
 
 O `estatR` oferece helpers para estilizar gráficos do `ggplot2` de forma rápida e limpa.
@@ -259,17 +261,20 @@ O `estatR` oferece helpers para estilizar gráficos do `ggplot2` de forma rápid
 library(ggplot2)
 
 
-### 📊 Gráficos Estatísticos Prontos
+### 📊 Gráficos Estatísticos
 
-O `estatR` também disponibiliza funções gráficas completas com sintaxe limpa (sem aspas):
+O `estatR` também disponibiliza funções gráficas completas com sintaxe limpa:
 
 ```r
 # Boxplot Básico
-grafico_boxplot(mtcars, cyl, mpg)
+grafico_boxplot(mtcars, cyl, mpg) +
+tema_estatR(estilo = 2) 
 
-# Boxplot Avançado (Agrupado, com dispersão e paleta inteligente)
+# Boxplot Avançado
 grafico_boxplot(mtcars, cyl, mpg, grupo = am, 
-                dispersao_pts = TRUE, paleta = "vibrant")
+                dispersao_pts = TRUE) +
+paleta("nature") +
+tema_estatR(estilo = 2) 
 
 # Destaque de categorias e ordenamento por mediana
 grafico_boxplot(mtcars, cyl, mpg, 
