@@ -147,13 +147,25 @@ grafico_boxplot <- function(
   idx_pal            <- as.character(if (usa_paleta_box_num) paleta else 1)
   pal_box            <- if (idx_pal %in% names(.paletas_box)) .paletas_box[[idx_pal]] else .paletas_box[["1"]]
 
-  # cor do outlier: igual para qualquer modo (num ou estatR)
-  cor_outlier <- pal_box$out   # padrão da paleta numérica
+  # cor do outlier: base da paleta numérica
+  cor_outlier <- pal_box$out
   if (is.character(paleta) && !is.null(.paletas_estatR[[paleta]])) {
-    # para paleta estatR usamos vermelho clássico como outlier
     cor_outlier <- "#D90429"
   }
-  if (!is.null(cor)) cor_outlier <- "#D90429"   # cor fixa -> outlier vermelho padrão
+  
+  # Mapa de cores por nível do eixo X (para vetor de cores em `cor`)
+  # Quando cor é vetor, cada caixa e seu respectivo outlier ganham a mesma cor.
+  cores_por_nivel <- NULL  # named: nivel_x -> cor_hex
+  if (!is.null(cor)) {
+    nivs_x <- levels(dados[[nome_x]])
+    n_x    <- length(nivs_x)
+    cores_expandidas <- if (length(cor) == 1) rep(cor, n_x) else {
+      if (length(cor) < n_x) rep(cor, length.out = n_x) else cor[seq_len(n_x)]
+    }
+    cores_por_nivel <- stats::setNames(cores_expandidas, nivs_x)
+    # Outlier e ponto da média herdam a cor da própria caixa
+    cor_outlier <- NULL  # será atribuído por ponto
+  }
 
   # ---- flag de visibilidade da legenda ------------------------------------
   hide_leg <- !tem_grupo
@@ -176,6 +188,11 @@ grafico_boxplot <- function(
     dados[[grupos_iqr]]
   }
   dados <- do.call(rbind, lapply(split(dados, split_key), .marca_outliers))
+
+  # Adiciona coluna .cor_out para cor dinâmica do outlier por nível
+  if (!is.null(cores_por_nivel)) {
+    dados$.cor_out <- cores_por_nivel[as.character(dados[[nome_x]])]
+  }
 
   # ---- fill_var (o que mapeia cor das caixas) ------------------------------
   fill_var <- if (tem_grupo) q_grupo else q_x
@@ -208,34 +225,47 @@ grafico_boxplot <- function(
   }
 
   # 2. Caixa principal
-  #    outlier.shape = NA -> suprime outliers do ggplot (desenhamos manualmente depois)
   geom_bx_args <- list(
     width         = if (isTRUE(violino)) 0.28 else 0.60,
-    alpha         = 1,            # opacidade 1: impede bigode de vazar atrás da caixa
-    outlier.shape = NA,           # sempre suprime; desenhamos manual abaixo
+    alpha         = 1,
+    outlier.shape = NA,
     show.legend   = !hide_leg
   )
-  if (tem_grupo)               geom_bx_args$position       <- ggplot2::position_dodge(0.75)
-  if (isTRUE(arredondar_borda_caixa)) geom_bx_args$linejoin <- "round"
+  if (tem_grupo)                      geom_bx_args$position  <- ggplot2::position_dodge(0.75)
+  if (isTRUE(arredondar_borda_caixa)) geom_bx_args$linejoin  <- "round"
 
   p <- p + do.call(ggplot2::geom_boxplot, geom_bx_args)
 
-  # 3. Outliers (sempre desenhados manualmente para ter cor e tamanho certos)
+  # 3. Outliers — cor dinâmica (por nível quando cor é vetor)
   if (isTRUE(outlier)) {
     dados_out <- dados[dados$.is_out, ]
     if (nrow(dados_out) > 0) {
       pos_out <- if (tem_grupo) ggplot2::position_dodge(0.75) else "identity"
 
-      p <- p + ggplot2::geom_point(
-        data    = dados_out,
-        mapping = ggplot2::aes(x = !!q_x, y = !!q_y, group = !!fill_var),
-        position  = pos_out,
-        color     = cor_outlier,
-        size      = 2.2 * tam_dispersao_pts,
-        alpha     = 0.9,
-        inherit.aes = FALSE,
-        show.legend = FALSE
-      )
+      if (!is.null(cores_por_nivel)) {
+        # Outlier herda a cor da sua caixa via I() — bypassa qualquer scale_colour_*
+        p <- p + ggplot2::geom_point(
+          data        = dados_out,
+          mapping     = ggplot2::aes(x = !!q_x, y = !!q_y, group = !!fill_var,
+                                     colour = I(.cor_out)),
+          position    = pos_out,
+          size        = 2.2 * tam_dispersao_pts,
+          alpha       = 0.9,
+          inherit.aes = FALSE,
+          show.legend = FALSE
+        )
+      } else {
+        p <- p + ggplot2::geom_point(
+          data        = dados_out,
+          mapping     = ggplot2::aes(x = !!q_x, y = !!q_y, group = !!fill_var),
+          position    = pos_out,
+          color       = cor_outlier,
+          size        = 2.2 * tam_dispersao_pts,
+          alpha       = 0.9,
+          inherit.aes = FALSE,
+          show.legend = FALSE
+        )
+      }
 
       # Rótulos de outliers (ggrepel)
       if (!is.null(nome_rotulo) && requireNamespace("ggrepel", quietly = TRUE)) {
@@ -247,13 +277,13 @@ grafico_boxplot <- function(
             label = !!rlang::sym(nome_rotulo),
             group = !!fill_var
           ),
-          position        = pos_out,
-          size            = 3.5 * tam_texto_outliers,
-          color           = "black",
-          box.padding     = 0.5,
-          point.padding   = 0.2,
+          position           = pos_out,
+          size               = 3.5 * tam_texto_outliers,
+          color              = "black",
+          box.padding        = 0.5,
+          point.padding      = 0.2,
           min.segment.length = 0,
-          show.legend     = FALSE
+          show.legend        = FALSE
         )
       }
     }
@@ -280,20 +310,20 @@ grafico_boxplot <- function(
     )
   }
 
-  # 5. Ponto da média — PRETO, imune à paleta via after_scale(I())
+  # 5. Ponto da média — sempre PRETO
+  # Usar colour/fill como params fixos (fora do aes) para ser imune à paleta.
+  # group = !!fill_var no mapping garante o position_dodge correto por grupo.
   pos_sum <- if (tem_grupo) ggplot2::position_dodge(0.75) else "identity"
 
   if (isTRUE(ponto_media)) {
     p <- p + ggplot2::stat_summary(
-      mapping = ggplot2::aes(
-        group  = !!fill_var,
-        colour = ggplot2::after_scale(I("black")),
-        fill   = ggplot2::after_scale(I("black"))
-      ),
+      mapping      = ggplot2::aes(group = !!fill_var),
       fun          = mean,
       geom         = "point",
       shape        = 18,
       size         = 3.8,
+      colour       = "black",   # param fixo: imune a scale_colour_* e ggplot_add
+      fill         = "black",   # param fixo: imune a scale_fill_*
       position     = pos_sum,
       show.legend  = FALSE
     )
