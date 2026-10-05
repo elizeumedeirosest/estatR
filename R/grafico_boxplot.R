@@ -169,10 +169,13 @@ grafico_boxplot <- function(
     d$.is_out <- yv < (q1 - fator_iqr * iq) | yv > (q3 + fator_iqr * iq)
     d
   }
-  dados <- do.call(rbind, lapply(
-    split(dados, dados[, grupos_iqr, drop = FALSE]),
-    .marca_outliers
-  ))
+  # Usa interaction() quando há múltiplas colunas de agrupamento (evita erro de xtfrm em data.frame)
+  split_key <- if (length(grupos_iqr) > 1) {
+    interaction(dados[, grupos_iqr], drop = TRUE)
+  } else {
+    dados[[grupos_iqr]]
+  }
+  dados <- do.call(rbind, lapply(split(dados, split_key), .marca_outliers))
 
   # ---- fill_var (o que mapeia cor das caixas) ------------------------------
   fill_var <- if (tem_grupo) q_grupo else q_x
@@ -283,6 +286,7 @@ grafico_boxplot <- function(
   if (isTRUE(ponto_media)) {
     p <- p + ggplot2::stat_summary(
       mapping = ggplot2::aes(
+        group  = !!fill_var,
         colour = ggplot2::after_scale(I("black")),
         fill   = ggplot2::after_scale(I("black"))
       ),
