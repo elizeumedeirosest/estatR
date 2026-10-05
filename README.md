@@ -17,7 +17,7 @@ devtools::install_github("elizeumedeirosest/estatR")
 ## Módulos Disponíveis
 
 <details>
-<summary><strong>► Análise Descritiva e Exploratória de Dados</strong></summary>
+<summary><strong> Análise Descritiva e Exploratória de Dados</strong></summary>
 <br>
 
 **Diagnóstico de Dados**
@@ -61,7 +61,7 @@ outliers(mtcars$mpg)          # Limites, quantidade e lista (método IQR)
 ---
 
 <details>
-<summary><strong>► Inferência Estatística</strong></summary>
+<summary><strong> Inferência Estatística</strong></summary>
 <br>
 
 **Testes de Hipótese**
@@ -125,7 +125,7 @@ monte_carlo(experimento = function() mean(rnorm(30)) > 0.3, repeticoes = 10000)
 ---
 
 <details>
-<summary><strong>► Probabilidade e Distribuições</strong></summary>
+<summary><strong> Probabilidade e Distribuições</strong></summary>
 <br>
 
 ```r
@@ -151,7 +151,7 @@ gerar_amostra(n = 1000, distribuicao = "exponencial", taxa = 0.5)
 ---
 
 <details>
-<summary><strong>► Modelagem e Regressão</strong></summary>
+<summary><strong> Modelagem e Regressão</strong></summary>
 <br>
 
 **Regressão Linear**
@@ -202,7 +202,7 @@ dividir_dados(dados_serie, proporcao = 0.8, temporal = TRUE)
 ---
 
 <details>
-<summary><strong>► Amostragem</strong></summary>
+<summary><strong> Amostragem</strong></summary>
 <br>
 
 ```r
@@ -231,7 +231,7 @@ amostra_conglomerados(mtcars, conglomerado = cyl, n_conglomerados = 2)
 ---
 
 <details>
-<summary><strong>► Visualização e Gráficos</strong></summary>
+<summary><strong> Visualização e Gráficos</strong></summary>
 <br>
 
 **Gráficos Estatísticos Prontos**
