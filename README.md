@@ -1,294 +1,275 @@
 # estatR <img src="man/figures/logo.png" align="right" height="120" alt="" />
 
 > **Uma camada estatística intuitiva e didática para o R.**  
-> Saídas em português, formatação limpa e gráficos automáticos integrados com o pacote [`metaR`](https://github.com/elizeumedeirosest/metaR).
-
----
-
-## Visão Geral
-
-O `estatR` é um pacote R que oferece uma interface amigável e didática sobre as principais funções estatísticas do R base. Pensado para **ensino e análise de dados**, ele produz saídas no console com formatação profissional em português e gráficos automáticos com um tema visual consistente.
+> Saídas em português, formatação limpa e gráficos prontos para uso.
 
 ---
 
 ## Instalação
 
 ```r
-# Instale o devtools se ainda não tiver
 install.packages("devtools")
-
-# Instale o estatR diretamente do GitHub
 devtools::install_github("elizeumedeirosest/estatR")
 ```
+
 ---
 
 ## Módulos Disponíveis
 
-### 🔍 Diagnóstico de Dados
+<details>
+<summary><strong>► Análise Descritiva e Exploratória de Dados</strong></summary>
+<br>
+
+**Diagnóstico de Dados**
 
 ```r
-# Painel completo (Estrutura dos dados + Valores Ausentes)
-diagnostico(mtcars)
-diagnostico(mtcars$mpg)
+diagnostico(mtcars)          # Painel completo: estrutura + valores ausentes
+diagnostico(mtcars$mpg)      # Diagnóstico de uma variável
 
-# Funções fragmentadas (caso queira visualizar separadamente)
-estrutura(mtcars)
-valores_ausentes(mtcars)
+estrutura(mtcars)            # Estrutura do banco de dados
+valores_ausentes(mtcars)     # Mapa de valores ausentes
 ```
 
----
-
-### 📊 Estatística Descritiva
+**Estatística Descritiva**
 
 ```r
-# Estatísticas resumidas completas (Polimórfica)
+# Resumo polimórfico
 descrever(mtcars)                        # Resumo completo do banco
-descrever(mtcars$mpg)                    # Estatísticas da variável numérica
-descrever(mtcars$cyl)                    # Tabela de frequência da variável categórica
-descrever(mtcars$mpg, por = mtcars$cyl)  # Numérica agrupada
+descrever(mtcars$mpg)                    # Estatísticas de variável numérica
+descrever(mtcars$cyl)                    # Tabela de frequência de variável categórica
+descrever(mtcars$mpg, por = mtcars$cyl)  # Numérica agrupada por categoria
 
-# Tabela de contingência (Cruzamento de duas variáveis)
+# Tabela de contingência (cruzamento de duas variáveis)
 tabela_contingencia(mtcars, cyl, am)
 tabela_contingencia(mtcars, cyl, am, proporcao = "linha")
 
-# Medidas Específicas
-med_tend_central(mtcars$mpg)  # Média, Mediana, Moda
-med_dispersao(mtcars$mpg)     # Variância, DP, Erro Padrão, CV, Amplitude
-med_forma(mtcars$mpg)         # Assimetria e Curtose
+# Medidas específicas
+med_tend_central(mtcars$mpg)  # Média, mediana, moda
+med_dispersao(mtcars$mpg)     # Variância, DP, erro padrão, CV, amplitude
+med_forma(mtcars$mpg)         # Assimetria e curtose
 
-# Separatrizes (Medidas de Posição)
+# Separatrizes
 quartis(mtcars$mpg)
-quintis(mtcars$mpg)
-decis(mtcars$mpg)
-percentis(mtcars$mpg, p = c(5, 10, 50, 90, 95))
+percentis(mtcars$mpg, p = c(5, 25, 50, 75, 95))
 
-# Detecção de Anomalias
-outliers(mtcars$mpg)          # Limites, quantidade de outliers e lista (método IQR)
+# Detecção de anomalias
+outliers(mtcars$mpg)          # Limites, quantidade e lista (método IQR)
 ```
+
+</details>
 
 ---
 
-### 🎲 Amostragem
+<details>
+<summary><strong>► Inferência Estatística</strong></summary>
+<br>
+
+**Testes de Hipótese**
 
 ```r
-# Calcular tamanho ótimo de amostra
-tamanho_amostra(populacao = 50000, erro = 0.03)
-tamanho_amostra(populacao = Inf, erro = 0.05, confianca = 0.99)
-
-# Amostragem Aleatória Simples
-amostra_aleatoria(mtcars, n = 10)
-amostra_aleatoria(mtcars, proporcao = 0.3, semente = 42)
-
-# Amostragem Sistemática
-amostra_sistematica(mtcars, n = 10)
-amostra_sistematica(mtcars, salto = 3, semente = 1)
-
-# Amostragem Estratificada (proporcional, uniforme ou ótima de Neyman)
-amostra_estratificada(iris, estrato = Species, n = 30)
-amostra_estratificada(iris, estrato = Species, n = 30, alocacao = "uniforme")
-amostra_estratificada(iris, estrato = Species, n = 30, alocacao = "otima", variavel = Sepal.Length)
-
-# Amostragem por Conglomerados
-amostra_conglomerados(mtcars, conglomerado = cyl, n_conglomerados = 2)
-```
-
----
-
-### 🧪 Modelagem
-
-```r
-# Divisao treino/teste — modo aleatorio (padrao)
-partes <- dividir_dados(mtcars, proporcao = 0.8, semente = 42)
-modelo <- regressao_linear(mpg ~ wt + hp, dados = partes$treino)
-predicao(modelo, partes$teste)
-
-# Divisao estratificada (mantem proporcoes dos grupos)
-dividir_dados(mtcars, proporcao = 0.8, estrato = cyl, semente = 42)
-
-# Divisao temporal (corte cronologico sem embaralhamento — series temporais)
-dividir_dados(dados_serie, proporcao = 0.8, temporal = TRUE)
-```
-
-
-### 🔗 Correlação
-
-```r
-# Teste de correlação bivariada (Pearson, Spearman ou Kendall)
-teste_correlacao(mtcars, wt, mpg)
-teste_correlacao(mtcars, wt, mpg, metodo = "spearman")
-
-# Correlograma completo do banco de dados
-matriz_correlacao(mtcars)
-matriz_correlacao(mtcars, c("mpg", "wt", "hp", "disp"), metodo = "kendall")
-```
-
----
-
-
-### 📈 Regressão Linear
-
-```r
-# Regressão simples
-modelo <- regressao_linear(mpg ~ wt, dados = mtcars)
-predicao(modelo, data.frame(wt = c(2.5, 3.0)))
-
-# Regressão múltipla
-modelo2 <- regressao_linear(mpg ~ wt + hp, dados = mtcars)
-predicao(modelo2, data.frame(wt = 2.5, hp = 110), intervalo = "predicao")
-
-# Métricas de ajuste
-metricas(modelo)
-
-# Diagnóstico de resíduos (tabela + painel 4 gráficos)
-analise_residual(modelo)
-```
-
----
-
-### 🎰 Probabilidade
-
-```r
-# Probabilidade da distribuição Normal (com gráfico de área sombreada)
-prob_normal(media = 100, dp = 15, q1 = 120, tipo = "maior")
-prob_normal(media = 100, dp = 15, q1 = 85, q2 = 115, tipo = "entre")
-
-# Probabilidade da distribuição Binomial
-prob_binomial(ensaios = 10, prob = 0.5, q = 5, tipo = "exato")
-
-# Probabilidade da distribuição Poisson
-prob_poisson(lambda = 2, q = 2, tipo = "menor")
-
-# Gerar amostras aleatórias com comparação teórica
-gerar_amostra(n = 1000, distribuicao = "normal", media = 50, dp = 5)
-gerar_amostra(n = 500,  distribuicao = "binomial", ensaios = 10, prob = 0.5)
-gerar_amostra(n = 300,  distribuicao = "poisson",  lambda = 3)
-gerar_amostra(n = 1000, distribuicao = "exponencial", taxa = 0.5)
-```
-
----
-
-### 🔬 Testes de Hipótese
-
-```r
-# Teste T (uma amostra)
+# Teste t
 teste_t_uma_amostra(mtcars$mpg, mu = 20)
-teste_t_uma_amostra(mtcars$mpg, mu = 20, hipotese = "maior")
-
-# Teste T (duas amostras independentes)
 teste_t_duas_amostras(mtcars$mpg, mtcars$am)
-teste_t_duas_amostras(mtcars$mpg, mtcars$am, hipotese = "maior")
-
-# Teste T Pareado
 teste_t_pareado(dados$antes, dados$depois)
 
-# Teste de Proporção
+# Teste de proporção
 teste_proporcao(x = 87, n = 300, p0 = 0.25)
-teste_proporcao(x = 87, n = 300, p0 = 0.25, hipotese = "maior")
 
-# Testes Não-Paramétricos
-teste_wilcoxon(mtcars$mpg, mu = 20)            # Wilcoxon (uma amostra)
-teste_mann_whitney(mtcars$mpg, mtcars$am)      # Mann-Whitney (duas amostras)
+# Testes não-paramétricos
+teste_wilcoxon(mtcars$mpg, mu = 20)
+teste_mann_whitney(mtcars$mpg, mtcars$am)
 
-# Teste Qui-Quadrado de Independência
+# Qui-quadrado e homogeneidade de variâncias
 teste_qui_quadrado(mtcars, cyl, am)
-
-# Teste de Levene (homogeneidade de variâncias)
 teste_levene(mtcars$mpg, mtcars$am)
 ```
 
----
-
-### 📏 Intervalos de Confiança
+**Intervalos de Confiança**
 
 ```r
-# IC para a média de uma amostra (distribuição t)
 ic_media(mtcars$mpg)
 ic_media(mtcars$mpg, confianca = 0.99)
-
-# IC para uma proporção (aproximação Normal / Wald)
 ic_proporcao(x = 87, n = 300)
-ic_proporcao(x = 87, n = 300, confianca = 0.99)
-
-# IC para a variância e desvio padrão (distribuição Qui-Quadrado)
 ic_variancia(mtcars$mpg)
-
-# IC para a diferença de médias entre dois grupos
 ic_diferenca_medias(mtcars$mpg, mtcars$am)
 ```
 
----
-
-### 🎯 Estimação de Parâmetros
+**Estimação de Parâmetros**
 
 ```r
-# Estimador de Máxima Verossimilhança (EMV)
-# Plota a curva de log-verossimilhança com o EMV destacado
-estimar_verossimilhanca(mtcars$mpg,  distribuicao = "normal")
-estimar_verossimilhanca(mtcars$carb, distribuicao = "poisson")
-estimar_verossimilhanca(mtcars$wt,   distribuicao = "gamma")
+# Máxima verossimilhança (plota curva de log-verossimilhança)
+estimar_verossimilhanca(mtcars$mpg, distribuicao = "normal")
+estimar_verossimilhanca(mtcars$wt,  distribuicao = "gamma")
 
-# Método dos Momentos
-# Plota histograma com a curva teórica ajustada
+# Método dos momentos (plota histograma com curva teórica)
 estimar_momentos(mtcars$mpg, distribuicao = "normal")
 estimar_momentos(mtcars$wt,  distribuicao = "gamma")
 ```
 
----
-
-### 🎲 Simulação
+**Simulação Estatística**
 
 ```r
-# Bootstrap: IC e variabilidade de qualquer estatística por reamostragem
-bootstrap(mtcars$mpg, estatistica = "media",  repeticoes = 2000, semente = 42)
-bootstrap(mtcars$mpg, estatistica = "mediana", repeticoes = 2000, semente = 42)
-bootstrap(mtcars$mpg, estatistica = function(x) quantile(x, 0.9), semente = 42)
+# Bootstrap
+bootstrap(mtcars$mpg, estatistica = "media",  repeticoes = 2000)
+bootstrap(mtcars$mpg, estatistica = "mediana", repeticoes = 2000)
 
-# Teorema Central do Limite: painel visual distribuicao original vs. medias
-simular_tcl(mtcars$mpg, n_amostra = 5,  repeticoes = 1000)
+# Teorema Central do Limite
 simular_tcl(mtcars$mpg, n_amostra = 30, repeticoes = 1000)
 
-# Monte Carlo: estimar probabilidade de qualquer evento por simulacao
-monte_carlo(experimento = function() mean(rnorm(30)) > 0.3, repeticoes = 10000, semente = 42)
+# Monte Carlo
+monte_carlo(experimento = function() mean(rnorm(30)) > 0.3, repeticoes = 10000)
 ```
+
+</details>
 
 ---
 
-### 🎨 Visualização e Gráficos
+<details>
+<summary><strong>► Probabilidade e Distribuições</strong></summary>
+<br>
 
 ```r
-# Gráficos
+# Distribuição Normal (com gráfico de área sombreada)
+prob_normal(media = 100, dp = 15, q1 = 120, tipo = "maior")
+prob_normal(media = 100, dp = 15, q1 = 85, q2 = 115, tipo = "entre")
 
-# Boxplot Básico
-grafico_boxplot(mtcars, cyl, mpg) +
-tema_estatR(estilo = 2) 
+# Distribuição Binomial
+prob_binomial(ensaios = 10, prob = 0.5, q = 5, tipo = "exato")
 
-# Boxplot Avançado
-grafico_boxplot(mtcars, cyl, mpg, grupo = am, 
-                dispersao_pts = TRUE) +
-paleta("nature") +
-tema_estatR(estilo = 2) 
+# Distribuição Poisson
+prob_poisson(lambda = 2, q = 2, tipo = "menor")
+
+# Gerar amostras aleatórias com comparação teórica
+gerar_amostra(n = 1000, distribuicao = "normal",      media = 50, dp = 5)
+gerar_amostra(n = 500,  distribuicao = "binomial",    ensaios = 10, prob = 0.5)
+gerar_amostra(n = 300,  distribuicao = "poisson",     lambda = 3)
+gerar_amostra(n = 1000, distribuicao = "exponencial", taxa = 0.5)
+```
+
+</details>
+
+---
+
+<details>
+<summary><strong>► Modelagem e Regressão</strong></summary>
+<br>
+
+**Regressão Linear**
+
+```r
+# Regressão simples e múltipla
+modelo  <- regressao_linear(mpg ~ wt, dados = mtcars)
+modelo2 <- regressao_linear(mpg ~ wt + hp, dados = mtcars)
+
+# Predição
+predicao(modelo,  data.frame(wt = c(2.5, 3.0)))
+predicao(modelo2, data.frame(wt = 2.5, hp = 110), intervalo = "predicao")
+
+# Métricas e diagnóstico de resíduos
+metricas(modelo)
+analise_residual(modelo)
+```
+
+**Correlação**
+
+```r
+# Teste de correlação bivariada
+teste_correlacao(mtcars, wt, mpg)
+teste_correlacao(mtcars, wt, mpg, metodo = "spearman")
+
+# Correlograma completo
+matriz_correlacao(mtcars)
+matriz_correlacao(mtcars, c("mpg", "wt", "hp", "disp"), metodo = "kendall")
+```
+
+**Divisão de Dados**
+
+```r
+# Divisão aleatória treino/teste
+partes <- dividir_dados(mtcars, proporcao = 0.8, semente = 42)
+modelo <- regressao_linear(mpg ~ wt + hp, dados = partes$treino)
+predicao(modelo, partes$teste)
+
+# Divisão estratificada
+dividir_dados(mtcars, proporcao = 0.8, estrato = cyl, semente = 42)
+
+# Divisão temporal (para séries temporais)
+dividir_dados(dados_serie, proporcao = 0.8, temporal = TRUE)
+```
+
+</details>
+
+---
+
+<details>
+<summary><strong>► Amostragem</strong></summary>
+<br>
+
+```r
+# Tamanho de amostra
+tamanho_amostra(populacao = 50000, erro = 0.03)
+tamanho_amostra(populacao = Inf, erro = 0.05, confianca = 0.99)
+
+# Amostragem aleatória simples
+amostra_aleatoria(mtcars, n = 10)
+amostra_aleatoria(mtcars, proporcao = 0.3, semente = 42)
+
+# Amostragem sistemática
+amostra_sistematica(mtcars, n = 10)
+
+# Amostragem estratificada
+amostra_estratificada(iris, estrato = Species, n = 30)
+amostra_estratificada(iris, estrato = Species, n = 30, alocacao = "uniforme")
+amostra_estratificada(iris, estrato = Species, n = 30, alocacao = "otima", variavel = Sepal.Length)
+
+# Amostragem por conglomerados
+amostra_conglomerados(mtcars, conglomerado = cyl, n_conglomerados = 2)
+```
+
+</details>
+
+---
+
+<details>
+<summary><strong>► Visualização e Gráficos</strong></summary>
+<br>
+
+**Gráficos Estatísticos Prontos**
+
+```r
+# Boxplot básico
+grafico_boxplot(mtcars, cyl, mpg)
+grafico_boxplot(mtcars, cyl, mpg, violino = TRUE)
+
+# Boxplot agrupado com dispersão e paleta estatR
+grafico_boxplot(mtcars, cyl, mpg, grupo = am,
+                dispersao_pts = TRUE, paleta = "vibrant")
 
 # Destaque de categorias e ordenamento por mediana
-grafico_boxplot(mtcars, cyl, mpg, 
-                ordenar = TRUE, destaque = c("8"))
+grafico_boxplot(mtcars, cyl, mpg, ordenar = TRUE, destaque = "8")
 ```
 
----
+**Tema e Paletas para ggplot2**
 
 ```r
-# Visualização
+library(ggplot2)
 
-# Paletas de Cores
+# Aplicar tema padronizado
+ggplot(iris, aes(x = Species, y = Sepal.Length, fill = Species)) +
+  geom_boxplot() +
+  tema_estatR(estilo = 2) +     # 1 = classic, 2 = minimal com grade, 3 = limpo
+  paleta_estatR("academic")     # Paleta de cores padronizada
 
-# Visualizar todas as paletas disponíveis
-paleta_estatR()
+# Outros ajustes de tema
+tema_estatR(modo = "dark")      # Tema escuro
+tema_estatR(inclinar = 45)      # Inclina rótulos do eixo X
 
-# Tema
-tema_estatR(modo = "dark")        # opções de modo: dark e light
-tema_estatR(inclinar = 45)        # inclina os rótulos do eixo X
-tema_estatR(estilo = 1)           # opções de estilo: 1, 2 ou 3
-tema_estatR(escala = 2)           # aumenta o tamanho da fonte geral do gráfico
+# Visualizar paletas disponíveis
+paleta_estatR()                 # Painel com todas as paletas
+paleta_estatR("vibrant")        # Ver uma paleta específica
 ```
+
+</details>
 
 ---
 
