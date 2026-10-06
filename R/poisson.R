@@ -375,8 +375,8 @@ analise_residual_poisson <- function(modelo, grafico = TRUE) {
         ggplot2::labs(title = "Escala-Localização", x = "Preditor Linear", y = "|Resíduo Pearson|")
         
       if (exists("tema_estatR", mode = "function")) {
-        p1 <- p1 + tema_estatR(); p2 <- p2 + tema_estatR()
-        p3 <- p3 + tema_estatR(); p4 <- p4 + tema_estatR()
+        p1 <- p1 + tema_estatR(estilo = 2); p2 <- p2 + tema_estatR(estilo = 2)
+        p3 <- p3 + tema_estatR(estilo = 2); p4 <- p4 + tema_estatR(estilo = 2)
       } else {
         p1 <- p1 + ggplot2::theme_minimal(); p2 <- p2 + ggplot2::theme_minimal()
         p3 <- p3 + ggplot2::theme_minimal(); p4 <- p4 + ggplot2::theme_minimal()
