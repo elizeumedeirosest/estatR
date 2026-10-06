@@ -191,7 +191,7 @@ regressao_poisson <- function(formula, dados, grafico = TRUE) {
   }
   
   # 5. Grafico: Observado vs Predito
-  if (grafico && exists("ggplot2", mode = "environment") && requireNamespace("ggplot2", quietly = TRUE)) {
+  if (grafico) {
     tryCatch({
       df_plot <- data.frame(
         Observado = dados[[y_name]],
@@ -295,7 +295,7 @@ metricas_poisson <- function(modelo) {
   cat("  ", .pad("AIC", w_m["met"], "left"), .pad(sprintf("%.2f", aic_val), w_m["val"], "center"), "\n", sep = "")
   cat("  ", .pad("AICc", w_m["met"], "left"), .pad(sprintf("%.2f", aicc_val), w_m["val"], "center"), "\n", sep = "")
   cat("  ", .pad("BIC", w_m["met"], "left"), .pad(sprintf("%.2f", bic_val), w_m["val"], "center"), "\n", sep = "")
-  cat(linha, "\n\n")
+  if (exists(".print_rodape", mode = "function")) .print_rodape() else cat(linha, "\n")
   
   invisible(list(deviance = dev_res, pseudo_r2 = pseudo_r2, disp = dispersion_ratio, aic = aic_val))
 }
@@ -342,7 +342,7 @@ analise_residual_poisson <- function(modelo, grafico = TRUE) {
   
   if (exists(".print_rodape", mode = "function")) .print_rodape()
   
-  if (grafico && exists("ggplot2", mode = "environment") && requireNamespace("ggplot2", quietly = TRUE) && requireNamespace("patchwork", quietly = TRUE)) {
+  if (grafico) {
     tryCatch({
       df_plot <- data.frame(
         Ajustados = modelo$fitted.values,
@@ -455,9 +455,10 @@ selecao_modelos_poisson <- function(formula, dados, top = 5) {
   df_top <- df_top[, c("Ranking", "Modelo", "k", "AIC", "AICc", "Pseudo_R2")]
   
   df_fmt <- df_top
+  names(df_fmt)[names(df_fmt) == "Pseudo_R2"] <- "Pseudo-R²"
   df_fmt$AIC <- sprintf("%.1f", df_top$AIC)
   df_fmt$AICc <- sprintf("%.1f", df_top$AICc)
-  df_fmt$Pseudo_R2 <- sprintf("%.1f%%", df_top$Pseudo_R2 * 100)
+  df_fmt[["Pseudo-R²"]] <- sprintf("%.1f%%", df_top$Pseudo_R2 * 100)
   
   if (exists(".print_topico", mode = "function")) .print_topico(sprintf("TOP %d MODELOS (Ordenados por AIC)", nrow(df_fmt)))
   
