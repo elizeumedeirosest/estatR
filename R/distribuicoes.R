@@ -128,7 +128,7 @@ distribuicao <- function(tipo = c("normal", "binomial", "poisson", "exponencial"
     cat(sprintf("  \u03bc \u00b1 3\u03c3  \u2192  [%s ; %s]  \u2192  99,73%% dos dados\n\n", .f2(regra997[1]), .f2(regra997[2])))
   }
 
-  if (exists(".print_topico", mode = "function")) .print_topico("QUANTIS-CHAVE")
+  if (exists(".print_topico", mode = "function")) .print_topico("QUANTIS")
   pcts <- c("P01","P05","P10","P25","P50","P75","P90","P95","P99")
   wq <- 8
   cat("  ", paste(.pad(pcts, wq, "center"), collapse = ""), "\n", sep = "")
@@ -177,9 +177,16 @@ distribuicao <- function(tipo = c("normal", "binomial", "poisson", "exponencial"
       }
     )
   }
+  
   .tema <- function(gg) {
-    if (exists("tema_estatR", mode = "function")) gg + tema_estatR(estilo = 2)
-    else gg + ggplot2::theme_minimal()
+    if (exists("tema_estatR", mode = "function")) {
+      gg + tema_estatR(estilo = 2)
+    } else if (requireNamespace("estatR", quietly = TRUE)) {
+      fn <- get("tema_estatR", envir = asNamespace("estatR"))
+      gg + fn(estilo = 2)
+    } else {
+      gg + ggplot2::theme_minimal()
+    }
   }
 
   # ── Modo Simulacao: painel 2x3 ────────────────────────────────────────────
@@ -259,25 +266,19 @@ distribuicao <- function(tipo = c("normal", "binomial", "poisson", "exponencial"
       )
 
       p <- ggplot2::ggplot(df_c, ggplot2::aes(x = x, y = y)) +
-        ggplot2::geom_polygon(data = df_3s, ggplot2::aes(x = x, y = y),
-                              fill = "#F5DEB3", alpha = 1) +
-        ggplot2::geom_polygon(data = df_2s, ggplot2::aes(x = x, y = y),
-                              fill = "#D4A843", alpha = 1) +
-        ggplot2::geom_polygon(data = df_1s, ggplot2::aes(x = x, y = y),
-                              fill = "#B8860B", alpha = 1) +
+        ggplot2::geom_polygon(data = df_3s, ggplot2::aes(x = x, y = y), fill = "#F5DEB3", alpha = 1) +
+        ggplot2::geom_polygon(data = df_2s, ggplot2::aes(x = x, y = y), fill = "#D4A843", alpha = 1) +
+        ggplot2::geom_polygon(data = df_1s, ggplot2::aes(x = x, y = y), fill = "#B8860B", alpha = 1) +
         ggplot2::geom_line(color = "#8B6914", linewidth = 1.4) +
         ggplot2::scale_x_continuous(breaks = breaks_x, labels = labs_x) +
-        ggplot2::annotate("text", x = media, y = max(df_c$y) * 0.15,
-                          label = "68,27%", size = 3.5, color = "white", fontface = "bold") +
-        ggplot2::annotate("text", x = media + 1.6*dp, y = max(df_c$y) * 0.06,
-                          label = "95,45%", size = 3.2, color = "#4A3000") +
-        ggplot2::annotate("text", x = media + 2.6*dp, y = max(df_c$y) * 0.015,
-                          label = "99,73%", size = 3, color = "#4A3000") +
-        ggplot2::labs(
-          title    = sprintf("Distribuição Normal  \u2014  \u03bc = %g, \u03c3 = %g", media, dp),
-          subtitle = "Regra Empírica: 68% — 95% — 99,7%",
-          x = "x", y = "f(x)"
-        )
+        ggplot2::annotate("text", x = media - 0.5*dp, y = max(df_c$y) * 0.35, label = "34,13%", size = 5.5, color = "white", fontface = "bold") +
+        ggplot2::annotate("text", x = media + 0.5*dp, y = max(df_c$y) * 0.35, label = "34,13%", size = 5.5, color = "white", fontface = "bold") +
+        ggplot2::annotate("text", x = media - 1.5*dp, y = max(df_c$y) * 0.12, label = "13,59%", size = 4.5, color = "#4A3000", fontface = "bold") +
+        ggplot2::annotate("text", x = media + 1.5*dp, y = max(df_c$y) * 0.12, label = "13,59%", size = 4.5, color = "#4A3000", fontface = "bold") +
+        ggplot2::annotate("text", x = media - 2.5*dp, y = max(df_c$y) * 0.03, label = "2,14%", size = 4, color = "#4A3000") +
+        ggplot2::annotate("text", x = media + 2.5*dp, y = max(df_c$y) * 0.03, label = "2,14%", size = 4, color = "#4A3000") +
+        ggplot2::labs(title = sprintf("Distribuição Normal  \u2014  \u03bc = %g, \u03c3 = %g", media, dp),
+                      subtitle = "Regra Empírica: 68% \u2014 95% \u2014 99,7%", x = "x", y = "f(x)")
       p <- .tema(p)
 
     } else if (tipo == "exponencial") {
@@ -294,7 +295,7 @@ distribuicao <- function(tipo = c("normal", "binomial", "poisson", "exponencial"
         ggplot2::annotate("text", x = med_x + x_max * 0.03,
                           y = dexp(0, taxa) * 0.7,
                           label = sprintf("\u03bc = %g", med_x),
-                          color = "#D90429", size = 3.5, hjust = 0) +
+                          color = "#D90429", size = 6, hjust = 0, fontface = "bold") +
         ggplot2::labs(
           title    = sprintf("Distribuição Exponencial  \u2014  \u03bb = %g", taxa),
           subtitle = sprintf("Média (1/\u03bb) = %g", med_x),
