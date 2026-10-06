@@ -176,6 +176,38 @@ metricas(modelo)
 analise_residual(modelo)
 ```
 
+**Regressão Logística (Binomial, Multinomial e Ordinal)**
+
+```r
+# Logística Binária (automático para resposta com 2 níveis)
+mod_bin <- regressao_logistica(am ~ mpg + hp, dados = mtcars)
+
+# Logística Multinomial (3+ níveis não ordenados)
+mod_multi <- regressao_logistica(Species ~ Sepal.Length + Petal.Length, 
+                                 dados = iris, tipo = "nominal")
+
+# Logística Ordinal (3+ níveis ordenados, Odds Proporcionais)
+# (Requer que a variável resposta seja factor ordenado - ordered)
+mod_ord <- regressao_logistica(nota ~ horas + esforco, 
+                               dados = dados_alunos, tipo = "ordinal")
+
+# Métricas, diagnóstico de resíduos e Best Subsets
+metricas_logistica(mod_bin)
+analise_residual_logistica(mod_bin)
+selecao_modelos_logistica(am ~ mpg + hp + wt + qsec, dados = mtcars)
+```
+
+**Regressão de Poisson (Dados de Contagem)**
+
+```r
+mod_pois <- regressao_poisson(breaks ~ wool + tension, dados = warpbreaks)
+
+# Funções polimórficas (adaptam-se automaticamente ao modelo de Poisson)
+metricas(mod_pois)
+analise_residual(mod_pois)
+selecao_modelos(breaks ~ wool + tension, dados = warpbreaks)
+```
+
 **Correlação**
 
 ```r
