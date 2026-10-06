@@ -9,13 +9,12 @@ analise_residual_logistica(modelo, grafico = TRUE)
 \arguments{
 \item{modelo}{Objeto \code{glm} retornado por \code{regressao_logistica()}.}
 
-\item{grafico}{Se TRUE, exibe o painel 2x2 de diagnóstico. Padrão TRUE.}
+\item{grafico}{Se TRUE, exibe o painel de diagnóstico. Padrão TRUE.}
 }
 \value{
 Retorna invisivelmente uma lista com os diagnósticos.
 }
 \description{
-Realiza diagnóstico dos resíduos de um modelo logístico:
-testa a qualidade do ajuste por Hosmer-Lemeshow, calcula resíduos de Pearson
-e de desvio, identifica pontos influentes e plota um painel gráfico de diagnóstico.
+Diagnóstico de resíduos de um modelo logístico binomial
+(Hosmer-Lemeshow, dispersão, influência, painel 2x2).
 }

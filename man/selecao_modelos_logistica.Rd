@@ -4,19 +4,26 @@
 \alias{selecao_modelos_logistica}
 \title{Seleção de Modelos Logísticos (Best Subsets)}
 \usage{
-selecao_modelos_logistica(formula, dados, top = 5)
+selecao_modelos_logistica(
+  formula,
+  dados,
+  tipo = c("nominal", "ordinal"),
+  top = 5
+)
 }
 \arguments{
 \item{formula}{Fórmula com todos os candidatos (ex: y ~ x1 + x2 + x3).}
 
 \item{dados}{Data frame contendo os dados.}
 
-\item{top}{Número de modelos a exibir no ranking. Padrão 5.}
+\item{tipo}{Tipo para Y policotômico: \code{"nominal"} (padrão) ou \code{"ordinal"}.}
+
+\item{top}{Número de modelos a exibir. Padrão 5.}
 }
 \value{
-Retorna invisivelmente um data frame com o ranking completo.
+Retorna invisivelmente um data frame com o ranking.
 }
 \description{
-Avalia múltiplas combinações de variáveis preditoras para
-regressão logística binomial, ordenando pelo AIC (critério padrão para GLMs).
+Avalia múltiplas combinações de variáveis para regressão logística,
+ordenando pelo AIC. Suporta modelos binomiais, multinomiais e ordinais.
 }

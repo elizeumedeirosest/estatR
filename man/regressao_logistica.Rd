@@ -2,24 +2,34 @@
 % Please edit documentation in R/logistica.R
 \name{regressao_logistica}
 \alias{regressao_logistica}
-\title{Regressão Logística Binomial}
+\title{Regressão Logística (Binomial · Multinomial · Ordinal)}
 \usage{
-regressao_logistica(formula, dados, corte_prob = 0.5, grafico = TRUE)
+regressao_logistica(
+  formula,
+  dados,
+  tipo = c("nominal", "ordinal"),
+  corte_prob = 0.5,
+  grafico = TRUE
+)
 }
 \arguments{
 \item{formula}{Fórmula do modelo (ex: y ~ x1 + x2).}
 
 \item{dados}{Data frame contendo os dados.}
 
+\item{tipo}{Tipo para Y policotômico: \code{"nominal"} (padrão) ou \code{"ordinal"}.
+Ignorado quando Y é binário.}
+
 \item{corte_prob}{Ponto de corte para classificação binária. Padrão 0.5.}
 
-\item{grafico}{Se TRUE, exibe painel com Curva ROC e Gráfico de Calibração.}
+\item{grafico}{Se TRUE, exibe painel gráfico diagnóstico. Padrão TRUE.}
 }
 \value{
-Retorna invisivelmente o modelo ajustado (objeto glm).
+Retorna invisivelmente o modelo ajustado.
 }
 \description{
-Ajusta um modelo de regressão logística binomial, gerando um
-painel completo com Deviance, LRT, Pseudo-R², AUC, Odds Ratio (OR),
-matriz de confusão, teste de Hosmer-Lemeshow e interpretação automática.
+Ajusta um modelo de regressão logística, detectando automaticamente
+se a variável resposta é binária (2 categorias) ou policotômica (3+ categorias).
+Para Y policotômico, use \code{tipo = "nominal"} (multinomial via \code{nnet::multinom})
+ou \code{tipo = "ordinal"} (logística proporcional via \code{MASS::polr}).
 }
