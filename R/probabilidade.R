@@ -47,11 +47,11 @@ prob_normal <- function(media = 0, dp = 1, q1 = NULL, q2 = NULL, tipo = c("menor
   linha <- paste0("\n", strrep("\u2500", 54), "\n\n")
   
   # Saída Console
-  cat("\nCÁLCULO DE PROBABILIDADE (Distribuição Normal)\n\n")
+  if (exists(".print_titulo")) .print_titulo("CÁLCULO DE PROBABILIDADE — DISTRIBUIÇÃO NORMAL") else cat("\nCÁLCULO DE PROBABILIDADE (Distribuição Normal)\n\n")
   cat(sprintf("Média (\u03bc):          %g\n", media))
   cat(sprintf("Desvio Padrão (\u03c3):  %g\n", dp))
-  cat(linha)
-  cat("RESULTADO\n\n")
+#   cat(linha)
+  if (exists(".print_topico")) .print_topico("RESULTADO") else cat("RESULTADO\n\n")
   
   if (tipo == "entre") {
     cat(sprintf("Quantis (X):       %g e %g\n", q1, q2))
@@ -62,9 +62,10 @@ prob_normal <- function(media = 0, dp = 1, q1 = NULL, q2 = NULL, tipo = c("menor
   }
   
   cat(sprintf("Probabilidade:     %.2f%%\n", prob * 100))
-  cat(linha)
+#   cat(linha)
   
   # Gráfico
+  if (exists(".print_rodape", mode = "function")) .print_rodape() else cat("\n")
   if (grafico) {
     df_curve <- data.frame(x = seq(media - 4*dp, media + 4*dp, length.out = 500))
     df_curve$y <- dnorm(df_curve$x, mean = media, sd = dp)
@@ -168,15 +169,16 @@ gerar_amostra <- function(n, distribuicao = c("normal", "binomial", "poisson", "
   emp_dp <- sd(amostra)
   linha <- paste0("\n", strrep("\u2500", 54), "\n\n")
   
-  cat(sprintf("\nGERAÇÃO DE DADOS ALEATÓRIOS (%s)\n\n", tools::toTitleCase(gsub("_", "-", distribuicao))))
+  if (exists(".print_titulo")) .print_titulo(sprintf("GERAÇÃO DE DADOS — AMOSTRA %s", toupper(gsub("_", " ", distribuicao)))) else cat(sprintf("\nGERAÇÃO DE DADOS ALEATÓRIOS (%s)\n\n", tools::toTitleCase(gsub("_", "-", distribuicao))))
   cat(sprintf("Tamanho da amostra (n): %d\n", n))
-  cat(linha)
+#   cat(linha)
   cat(sprintf("%-20s %15s %15s\n", "Estatística", "Amostra Gerada", "Valor Teórico"))
   cat(paste(rep("-", 54), collapse = ""), "\n")
   cat(sprintf("%-20s %15.2f %15.2f\n", "Média", emp_media, teo_media))
   cat(sprintf("%-20s %15.2f %15.2f\n", "Desvio Padrão", emp_dp, teo_dp))
-  cat(linha)
+#   cat(linha)
   
+  if (exists(".print_rodape", mode = "function")) .print_rodape() else cat("\n")
   if (grafico) {
     df <- data.frame(X = amostra)
     p <- ggplot2::ggplot(df, ggplot2::aes(x = X))
@@ -235,14 +237,15 @@ prob_binomial <- function(ensaios, prob, q, tipo = c("exato", "menor", "maior"),
   }
   
   linha <- paste0("\n", strrep("\u2500", 54), "\n\n")
-  cat("\nCÁLCULO DE PROBABILIDADE (Distribuição Binomial)\n\n")
+  if (exists(".print_titulo")) .print_titulo("CÁLCULO DE PROBABILIDADE — DISTRIBUIÇÃO BINOMIAL") else cat("\nCÁLCULO DE PROBABILIDADE (Distribuição Binomial)\n\n")
   cat(sprintf("Ensaios (n):           %d\n", ensaios))
   cat(sprintf("Probabilidade (p):     %g\n", prob))
-  cat(linha)
+#   cat(linha)
   cat(sprintf("%-22s %d\n", ifelse(tipo=="exato", "Valor (X = x):", ifelse(tipo=="menor", "Valores (X \u2264 x):", "Valores (X \u2265 x):")), q))
   cat(sprintf("%-22s %.2f%%\n", "Probabilidade:", res * 100))
-  cat(linha)
+#   cat(linha)
   
+  if (exists(".print_rodape", mode = "function")) .print_rodape() else cat("\n")
   if (grafico) {
     df <- data.frame(x = 0:ensaios)
     df$y <- dbinom(df$x, ensaios, prob)
@@ -286,13 +289,14 @@ prob_poisson <- function(lambda, q, tipo = c("exato", "menor", "maior"), grafico
   }
   
   linha <- paste0("\n", strrep("\u2500", 54), "\n\n")
-  cat("\nCÁLCULO DE PROBABILIDADE (Distribuição Poisson)\n\n")
+  if (exists(".print_titulo")) .print_titulo("CÁLCULO DE PROBABILIDADE — DISTRIBUIÇÃO POISSON") else cat("\nCÁLCULO DE PROBABILIDADE (Distribuição Poisson)\n\n")
   cat(sprintf("Taxa (\u03bb):               %g\n", lambda))
-  cat(linha)
+#   cat(linha)
   cat(sprintf("%-22s %d\n", ifelse(tipo=="exato", "Valor (X = x):", ifelse(tipo=="menor", "Valores (X \u2264 x):", "Valores (X \u2265 x):")), q))
   cat(sprintf("%-22s %.2f%%\n", "Probabilidade:", res * 100))
-  cat(linha)
+#   cat(linha)
   
+  if (exists(".print_rodape", mode = "function")) .print_rodape() else cat("\n")
   if (grafico) {
     xmax <- max(q + 5, ceiling(lambda + 4*sqrt(lambda)))
     df <- data.frame(x = 0:xmax)
@@ -379,6 +383,7 @@ prob_exponencial <- function(taxa = 1, q1 = NULL, q2 = NULL,
 
   if (exists(".print_rodape", mode = "function")) .print_rodape()
 
+  if (exists(".print_rodape", mode = "function")) .print_rodape() else cat("\n")
   if (grafico) {
     df_curve <- data.frame(x = seq(0, x_max * 1.05, length.out = 500))
     df_curve$y <- dexp(df_curve$x, rate = taxa)
