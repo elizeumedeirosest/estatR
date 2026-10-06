@@ -111,47 +111,64 @@ prob_normal <- function(media = 0, dp = 1, q1 = NULL, q2 = NULL, tipo = c("menor
 #' @param lambda Parâmetro da Poisson (taxa média de ocorrência).
 #' @param taxa Parâmetro da Exponencial (taxa lambda).
 #' @param grafico Lógico. Se TRUE, exibe histograma dos dados gerados sobreposto com a curva teórica.
-#' @param semente Semente opcional para reprodutibilidade (set.seed).
+#' @title Gerador de Amostras de Distribuições
+#' @description Gera um conjunto de dados aleatórios baseado em distribuições teóricas e plota o histograma.
+#' @param n Tamanho da amostra.
+#' @param distribuicao Tipo da distribuição: "normal", "binomial", "poisson", "exponencial", "uniforme", "t", "qui_quadrado", "f", "gama".
+#' @param media,dp Parâmetros da Normal.
+#' @param ensaios,prob Parâmetros da Binomial.
+#' @param lambda Parâmetro da Poisson.
+#' @param taxa Parâmetro da Exponencial.
+#' @param min,max Parâmetros da Uniforme.
+#' @param gl Graus de liberdade (t e Qui-Quadrado).
+#' @param gl1,gl2 Graus de liberdade num/den (F).
+#' @param forma,escala Parâmetros da Gama.
+#' @param grafico Lógico. Se TRUE, exibe histograma.
+#' @param semente Semente opcional para reprodutibilidade.
 #' @export
-gerar_amostra <- function(n, distribuicao = c("normal", "binomial", "poisson", "exponencial"),
+gerar_amostra <- function(n, distribuicao = c("normal", "binomial", "poisson", "exponencial", "uniforme", "t", "qui_quadrado", "f", "gama"),
                           media = 0, dp = 1, ensaios = 10, prob = 0.5, lambda = 1, taxa = 1,
+                          min = 0, max = 1, gl = 10, gl1 = 5, gl2 = 10, forma = 2, escala = 1,
                           grafico = TRUE, semente = NULL) {
-  
   distribuicao <- match.arg(distribuicao)
   if (!is.null(semente)) set.seed(semente)
-  
   if (n <= 0) stop("O tamanho da amostra (n) deve ser positivo.")
   
-  # Geração e cálculos teóricos
   if (distribuicao == "normal") {
-    amostra <- rnorm(n, mean = media, sd = dp)
-    teo_media <- media
-    teo_dp <- dp
+    amostra <- rnorm(n, mean = media, sd = dp); teo_media <- media; teo_dp <- dp
     tit_graf <- sprintf("Amostra Normal (\u03bc=%g, \u03c3=%g)", media, dp)
   } else if (distribuicao == "binomial") {
-    amostra <- rbinom(n, size = ensaios, prob = prob)
-    teo_media <- ensaios * prob
-    teo_dp <- sqrt(ensaios * prob * (1 - prob))
+    amostra <- rbinom(n, size = ensaios, prob = prob); teo_media <- ensaios * prob; teo_dp <- sqrt(ensaios * prob * (1 - prob))
     tit_graf <- sprintf("Amostra Binomial (ensaios=%d, p=%g)", ensaios, prob)
   } else if (distribuicao == "poisson") {
-    amostra <- rpois(n, lambda = lambda)
-    teo_media <- lambda
-    teo_dp <- sqrt(lambda)
+    amostra <- rpois(n, lambda = lambda); teo_media <- lambda; teo_dp <- sqrt(lambda)
     tit_graf <- sprintf("Amostra Poisson (\u03bb=%g)", lambda)
   } else if (distribuicao == "exponencial") {
-    amostra <- rexp(n, rate = taxa)
-    teo_media <- 1 / taxa
-    teo_dp <- 1 / taxa
+    amostra <- rexp(n, rate = taxa); teo_media <- 1 / taxa; teo_dp <- 1 / taxa
     tit_graf <- sprintf("Amostra Exponencial (\u03bb=%g)", taxa)
+  } else if (distribuicao == "uniforme") {
+    amostra <- runif(n, min = min, max = max); teo_media <- (min + max)/2; teo_dp <- sqrt((max - min)^2 / 12)
+    tit_graf <- sprintf("Amostra Uniforme (a=%g, b=%g)", min, max)
+  } else if (distribuicao == "t") {
+    amostra <- rt(n, df = gl); teo_media <- if(gl>1) 0 else NaN; teo_dp <- if(gl>2) sqrt(gl/(gl-2)) else NaN
+    tit_graf <- sprintf("Amostra t de Student (gl=%g)", gl)
+  } else if (distribuicao == "qui_quadrado") {
+    amostra <- rchisq(n, df = gl); teo_media <- gl; teo_dp <- sqrt(2*gl)
+    tit_graf <- sprintf("Amostra Qui-Quadrado (gl=%g)", gl)
+  } else if (distribuicao == "f") {
+    amostra <- rf(n, df1 = gl1, df2 = gl2); teo_media <- if(gl2>2) gl2/(gl2-2) else NaN
+    teo_dp <- if(gl2>4) sqrt(2*gl2^2*(gl1+gl2-2)/(gl1*(gl2-2)^2*(gl2-4))) else NaN
+    tit_graf <- sprintf("Amostra F (gl1=%g, gl2=%g)", gl1, gl2)
+  } else if (distribuicao == "gama") {
+    amostra <- rgamma(n, shape = forma, scale = escala); teo_media <- forma*escala; teo_dp <- sqrt(forma*escala^2)
+    tit_graf <- sprintf("Amostra Gama (forma=%g, escala=%g)", forma, escala)
   }
   
   emp_media <- mean(amostra)
   emp_dp <- sd(amostra)
-  
   linha <- paste0("\n", strrep("\u2500", 54), "\n\n")
   
-  # Saída Console
-  cat(sprintf("\nGERAÇÃO DE DADOS ALEATÓRIOS (%s)\n\n", tools::toTitleCase(distribuicao)))
+  cat(sprintf("\nGERAÇÃO DE DADOS ALEATÓRIOS (%s)\n\n", tools::toTitleCase(gsub("_", "-", distribuicao))))
   cat(sprintf("Tamanho da amostra (n): %d\n", n))
   cat(linha)
   cat(sprintf("%-20s %15s %15s\n", "Estatística", "Amostra Gerada", "Valor Teórico"))
@@ -163,60 +180,31 @@ gerar_amostra <- function(n, distribuicao = c("normal", "binomial", "poisson", "
   if (grafico) {
     df <- data.frame(X = amostra)
     p <- ggplot2::ggplot(df, ggplot2::aes(x = X))
-    
-    # Diferencia gráficos de distribuições contínuas e discretas
-    if (distribuicao %in% c("normal", "exponencial")) {
-      p <- p + 
-        ggplot2::geom_histogram(ggplot2::aes(y = ggplot2::after_stat(density)), 
-                                bins = max(10, min(30, round(n/10))),
-                                fill = "#DDDDDD", color = "black", alpha = 0.7)
-      
-      if (distribuicao == "normal") {
-        p <- p + ggplot2::stat_function(fun = dnorm, args = list(mean = media, sd = dp), color = "#1F77B4", linewidth = 1.2)
-      } else {
-        p <- p + ggplot2::stat_function(fun = dexp, args = list(rate = taxa), color = "#1F77B4", linewidth = 1.2)
-      }
-    } else {
-      # Binomial e Poisson (Discretas)
-      p <- p + 
-        ggplot2::geom_bar(ggplot2::aes(y = ggplot2::after_stat(prop)), 
-                          fill = "#DDDDDD", color = "black", alpha = 0.7)
-      
-      # Cálculo manual das proporções teóricas para plotar pontos/linhas teóricas
+    if (distribuicao %in% c("binomial", "poisson")) {
+      p <- p + ggplot2::geom_bar(ggplot2::aes(y = ggplot2::after_stat(prop)), fill = "#DDDDDD", color = "black", alpha = 0.7)
       x_vals <- min(amostra):max(amostra)
-      if (distribuicao == "binomial") {
-        y_teo <- dbinom(x_vals, size = ensaios, prob = prob)
-      } else {
-        y_teo <- dpois(x_vals, lambda = lambda)
-      }
+      y_teo <- if(distribuicao == "binomial") dbinom(x_vals, ensaios, prob) else dpois(x_vals, lambda)
       df_teo <- data.frame(x = x_vals, y = y_teo)
-      
-      p <- p + 
-        ggplot2::geom_point(data = df_teo, ggplot2::aes(x = x, y = y), color = "#1F77B4", size = 3) +
-        ggplot2::geom_segment(data = df_teo, ggplot2::aes(x = x, xend = x, y = 0, yend = y), color = "#1F77B4", linewidth = 1)
-    }
-    
-    # Define o subtítulo com base no tipo de distribuição
-    if (distribuicao %in% c("normal", "exponencial")) {
-      texto_sub <- "Barras (Amostra Gerada) vs Curva (Distribuição Teórica)"
+      p <- p + ggplot2::geom_point(data = df_teo, ggplot2::aes(x = x, y = y), color = "#1F77B4", size = 3) +
+               ggplot2::geom_segment(data = df_teo, ggplot2::aes(x = x, xend = x, y = 0, yend = y), color = "#1F77B4", linewidth = 1)
+      texto_sub <- "Barras (Amostra) vs Pontos (Teórica)"
     } else {
-      texto_sub <- "Barras (Amostra Gerada) vs Pontos (Distribuição Teórica)"
+      p <- p + ggplot2::geom_histogram(ggplot2::aes(y = ggplot2::after_stat(density)), bins = max(10, min(30, round(n/10))), fill = "#DDDDDD", color = "black", alpha = 0.7)
+      if (distribuicao == "normal") p <- p + ggplot2::stat_function(fun = dnorm, args = list(mean=media, sd=dp), color="#1F77B4", linewidth=1.2)
+      if (distribuicao == "exponencial") p <- p + ggplot2::stat_function(fun = dexp, args = list(rate=taxa), color="#1F77B4", linewidth=1.2)
+      if (distribuicao == "uniforme") p <- p + ggplot2::stat_function(fun = dunif, args = list(min=min, max=max), color="#1F77B4", linewidth=1.2)
+      if (distribuicao == "t") p <- p + ggplot2::stat_function(fun = dt, args = list(df=gl), color="#1F77B4", linewidth=1.2)
+      if (distribuicao == "qui_quadrado") p <- p + ggplot2::stat_function(fun = dchisq, args = list(df=gl), color="#1F77B4", linewidth=1.2)
+      if (distribuicao == "f") p <- p + ggplot2::stat_function(fun = df, args = list(df1=gl1, df2=gl2), color="#1F77B4", linewidth=1.2)
+      if (distribuicao == "gama") p <- p + ggplot2::stat_function(fun = dgamma, args = list(shape=forma, scale=escala), color="#1F77B4", linewidth=1.2)
+      texto_sub <- "Barras (Amostra) vs Curva (Teórica)"
     }
-    
-    p <- p + ggplot2::labs(title = tit_graf,
-                           subtitle = texto_sub,
-                           y = ifelse(distribuicao %in% c("normal", "exponencial"), "Densidade", "Proporção"),
-                           caption = "estatR")
-                           
-    if (exists("meu_tema")) {
-      p <- p + meu_tema(estilo = 1)
-    } else {
-      p <- p + ggplot2::theme_minimal()
-    }
-    
+    p <- p + ggplot2::labs(title = tit_graf, subtitle = texto_sub, y = if(distribuicao %in% c("binomial", "poisson")) "Proporção" else "Densidade", caption = "estatR")
+    if (exists("tema_estatR", mode = "function")) { p <- p + tema_estatR(estilo = 2) }
+    else if (requireNamespace("estatR", quietly = TRUE)) { fn <- get("tema_estatR", envir = asNamespace("estatR")); p <- p + fn(estilo = 2) }
+    else { p <- p + ggplot2::theme_minimal() }
     suppressMessages(print(p))
   }
-  
   invisible(amostra)
 }
 

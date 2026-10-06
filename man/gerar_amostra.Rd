@@ -6,21 +6,29 @@
 \usage{
 gerar_amostra(
   n,
-  distribuicao = c("normal", "binomial", "poisson", "exponencial"),
+  distribuicao = c("normal", "binomial", "poisson", "exponencial", "uniforme", "t",
+    "qui_quadrado", "f", "gama"),
   media = 0,
   dp = 1,
   ensaios = 10,
   prob = 0.5,
   lambda = 1,
   taxa = 1,
+  min = 0,
+  max = 1,
+  gl = 10,
+  gl1 = 5,
+  gl2 = 10,
+  forma = 2,
+  escala = 1,
   grafico = TRUE,
   semente = NULL
 )
 }
 \arguments{
-\item{n}{Tamanho da amostra (quantidade de observações geradas).}
+\item{n}{Tamanho da amostra.}
 
-\item{distribuicao}{Tipo da distribuição ("normal", "binomial", "poisson", "exponencial").}
+\item{distribuicao}{Tipo da distribuição: "normal", "binomial", "poisson", "exponencial", "uniforme", "t", "qui_quadrado", "f", "gama".}
 
 \item{media}{Parâmetro da Normal (média).}
 
@@ -30,14 +38,28 @@ gerar_amostra(
 
 \item{prob}{Parâmetro da Binomial (probabilidade de sucesso).}
 
-\item{lambda}{Parâmetro da Poisson (taxa média de ocorrência).}
+\item{lambda}{Parâmetro da Poisson.}
 
-\item{taxa}{Parâmetro da Exponencial (taxa lambda).}
+\item{taxa}{Parâmetro da Exponencial.}
 
-\item{grafico}{Lógico. Se TRUE, exibe histograma dos dados gerados sobreposto com a curva teórica.}
+\item{min, max}{Parâmetros da Uniforme.}
 
-\item{semente}{Semente opcional para reprodutibilidade (set.seed).}
+\item{gl}{Graus de liberdade (t e Qui-Quadrado).}
+
+\item{gl1, gl2}{Graus de liberdade num/den (F).}
+
+\item{forma, escala}{Parâmetros da Gama.}
+
+\item{grafico}{Lógico. Se TRUE, exibe histograma.}
+
+\item{semente}{Semente opcional para reprodutibilidade.}
+
+\item{media, dp}{Parâmetros da Normal.}
+
+\item{ensaios, prob}{Parâmetros da Binomial.}
 }
 \description{
+Gera um conjunto de dados aleatórios baseado em distribuições teóricas e plota o histograma.
+
 Gera um conjunto de dados aleatórios baseado em distribuições teóricas e plota o histograma.
 }
