@@ -322,3 +322,105 @@ prob_poisson <- function(lambda, q, tipo = c("exato", "menor", "maior"), grafico
   }
   invisible(res)
 }
+
+# ── prob_exponencial ──────────────────────────────────────────────────────────
+#' @title Probabilidade da Distribuição Exponencial
+#' @description Calcula a probabilidade para uma distribuição Exponencial e plota a curva com área sombreada.
+#' @param taxa Taxa de ocorrência (lambda). Deve ser positiva.
+#' @param q1 Quantil de referência.
+#' @param q2 Segundo quantil (apenas para tipo = "entre").
+#' @param tipo Tipo: "menor" P(X < q1), "maior" P(X > q1), "entre" P(q1 < X < q2).
+#' @param grafico Lógico. Se TRUE, plota a curva com área sombreada.
+#' @export
+prob_exponencial <- function(taxa = 1, q1 = NULL, q2 = NULL,
+                             tipo = c("menor", "maior", "entre"),
+                             grafico = TRUE) {
+  tipo <- match.arg(tipo)
+
+  if (is.null(q1)) stop("Informe o valor 'q1'.")
+  if (taxa <= 0)   stop("A taxa (lambda) deve ser maior que zero.")
+  if (q1 < 0)      stop("'q1' deve ser >= 0 para a distribuição Exponencial.")
+
+  if (tipo == "entre") {
+    if (is.null(q2)) stop("Para tipo = 'entre', informe 'q2'.")
+    if (q1 > q2)   { tmp <- q1; q1 <- q2; q2 <- tmp }
+    if (q2 < 0)    stop("'q2' deve ser >= 0.")
+  }
+
+  media  <- 1 / taxa
+  dp     <- 1 / taxa
+  x_max  <- qexp(0.999, rate = taxa)
+
+  if (tipo == "menor") {
+    prob    <- pexp(q1, rate = taxa)
+    inf_lim <- 0
+    sup_lim <- q1
+    titulo  <- sprintf("P(X \u2264 %g)", q1)
+  } else if (tipo == "maior") {
+    prob    <- 1 - pexp(q1, rate = taxa)
+    inf_lim <- q1
+    sup_lim <- x_max
+    titulo  <- sprintf("P(X > %g)", q1)
+  } else {
+    prob    <- pexp(q2, rate = taxa) - pexp(q1, rate = taxa)
+    inf_lim <- q1
+    sup_lim <- q2
+    titulo  <- sprintf("P(%g < X < %g)", q1, q2)
+  }
+
+  .fp <- function(x) formatC(x, format = "f", digits = 3, decimal.mark = ",")
+
+  if (exists(".print_titulo", mode = "function")) {
+    .print_titulo("C\u00c1LCULO DE PROBABILIDADE \u2014 DISTRIBUI\u00c7\u00c3O EXPONENCIAL")
+  } else {
+    cat("\n\u2500\u2500 PROBABILIDADE \u2014 EXPONENCIAL \u2500\u2500\n")
+  }
+
+  cat(sprintf("  Taxa (\u03bb):            %g\n", taxa))
+  cat(sprintf("  M\u00e9dia (1/\u03bb):        %g\n", media))
+  cat(sprintf("  Desvio Padr\u00e3o:      %g\n\n", dp))
+
+  if (exists(".print_topico", mode = "function")) .print_topico("RESULTADO")
+
+  if (tipo == "entre") {
+    cat(sprintf("  Quantis (X):       %g  e  %g\n", q1, q2))
+  } else {
+    cat(sprintf("  Quantil (X):       %g\n", q1))
+  }
+  cat(sprintf("  Probabilidade:     %.2f%%\n\n", prob * 100))
+
+  if (exists(".print_rodape", mode = "function")) .print_rodape()
+
+  if (grafico) {
+    df_curve <- data.frame(x = seq(0, x_max * 1.05, length.out = 500))
+    df_curve$y <- dexp(df_curve$x, rate = taxa)
+    df_poly <- df_curve[df_curve$x >= inf_lim & df_curve$x <= sup_lim, ]
+    if (nrow(df_poly) > 0) {
+      df_poly <- rbind(
+        data.frame(x = df_poly$x[1], y = 0),
+        df_poly,
+        data.frame(x = df_poly$x[nrow(df_poly)], y = 0)
+      )
+    }
+
+    p <- ggplot2::ggplot(df_curve, ggplot2::aes(x = x, y = y)) +
+      ggplot2::geom_line(color = "#333333", linewidth = 1) +
+      ggplot2::geom_polygon(data = df_poly, ggplot2::aes(x = x, y = y),
+                            fill = "dodgerblue1", alpha = 0.6) +
+      ggplot2::labs(
+        title    = titulo,
+        subtitle = sprintf("Probabilidade: %.2f%%", prob * 100),
+        x = "x", y = "Densidade", caption = "estatR"
+      )
+
+    if (exists("tema_estatR", mode = "function")) {
+      p <- p + tema_estatR(estilo = 2)
+    } else {
+      p <- p + ggplot2::theme_minimal()
+    }
+
+    suppressMessages(print(p))
+  }
+
+  invisible(prob)
+}
