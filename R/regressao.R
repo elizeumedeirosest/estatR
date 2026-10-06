@@ -457,8 +457,9 @@ predicao <- function(modelo, novos_dados,
 #' @param modelo Objeto do tipo lm
 #' @export
 metricas <- function(modelo, corte_prob = 0.5) {
-  if (inherits(modelo, "glm") && !is.null(modelo$family) && modelo$family$family == "binomial") {
-    return(metricas_logistica(modelo, corte_prob = corte_prob))
+  if (inherits(modelo, "glm") && !is.null(modelo$family)) {
+    if (modelo$family$family == "binomial") return(metricas_logistica(modelo, corte_prob = corte_prob))
+    if (modelo$family$family == "poisson") return(metricas_poisson(modelo))
   }
   resumo <- summary(modelo)
   r2     <- resumo$r.squared
@@ -507,8 +508,9 @@ metricas <- function(modelo, corte_prob = 0.5) {
 #' @param grafico Lógico. Se TRUE, exibe o painel 2x2 de diagnóstico dos resíduos.
 #' @export
 analise_residual <- function(modelo, grafico = TRUE) {
-  if (inherits(modelo, "glm") && !is.null(modelo$family) && modelo$family$family == "binomial") {
-    return(analise_residual_logistica(modelo, grafico = grafico))
+  if (inherits(modelo, "glm") && !is.null(modelo$family)) {
+    if (modelo$family$family == "binomial") return(analise_residual_logistica(modelo, grafico = grafico))
+    if (modelo$family$family == "poisson") return(analise_residual_poisson(modelo, grafico = grafico))
   }
   res <- modelo$residuals
 
@@ -647,6 +649,13 @@ selecao_modelos <- function(formula, dados, top = 5) {
                   (is.numeric(Y_chk) && all(Y_chk %in% c(0, 1))))
   if (is_binario) {
     return(selecao_modelos_logistica(formula, dados, top = top))
+  }
+  
+  # Polimorfismo: detecta contagem (Regressao Poisson)
+  # Variavel resposta precisa ser numerica, inteira, nao negativa e com mais de 2 niveis
+  is_count <- is.numeric(Y_chk) && all(Y_chk >= 0) && all(Y_chk == floor(Y_chk)) && n_niveis_chk > 2
+  if (is_count) {
+    return(selecao_modelos_poisson(formula, dados, top = top))
   }
   if (!is.numeric(dados[[y_name]])) stop("A variável resposta deve ser numérica.")
   

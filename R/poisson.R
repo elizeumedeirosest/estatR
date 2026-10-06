@@ -222,3 +222,254 @@ regressao_poisson <- function(formula, dados, grafico = TRUE) {
   
   invisible(modelo)
 }
+
+#' @title Metricas do Modelo Poisson
+#' @description Calcula e exibe as principais metricas para um modelo glm Poisson.
+#' @param modelo Objeto glm Poisson
+#' @export
+metricas_poisson <- function(modelo) {
+  if (!inherits(modelo, "glm") || modelo$family$family != "poisson") {
+    stop("O modelo fornecido nao e um modelo de Poisson valido.")
+  }
+  
+  # Deviance e df
+  dev_nula <- modelo$null.deviance
+  df_nula  <- modelo$df.null
+  dev_res  <- modelo$deviance
+  df_res   <- modelo$df.residual
+  
+  # LRT
+  lrt_stat <- dev_nula - dev_res
+  lrt_df   <- df_nula - df_res
+  p_lrt    <- pchisq(lrt_stat, lrt_df, lower.tail = FALSE)
+  
+  # Pseudo-R2
+  loglik_mod  <- as.numeric(logLik(modelo))
+  mod_nulo    <- glm(reformulate("1", as.character(formula(modelo)[[2]])), 
+                     data = modelo$model, family = poisson(link = "log"))
+  loglik_nulo <- as.numeric(logLik(mod_nulo))
+  pseudo_r2   <- 1 - (loglik_mod / loglik_nulo)
+  
+  # Sobredispersao
+  pearson_res <- residuals(modelo, type = "pearson")
+  dispersion_ratio <- sum(pearson_res^2) / df_res
+  
+  # Info Criterions
+  aic_val <- AIC(modelo)
+  bic_val <- BIC(modelo)
+  k <- length(coef(modelo))
+  n <- nobs(modelo)
+  aicc_val <- aic_val + (2 * k * (k + 1)) / (n - k - 1)
+  
+  .fmt_p <- function(p) {
+    if (is.na(p)) return("-")
+    if (p < 0.001) return("< 0,001")
+    formatC(p, format = "f", digits = 3, decimal.mark = ",")
+  }
+  .pad <- function(s, w, align = "center") {
+    s <- trimws(as.character(s))
+    pad <- w - nchar(s)
+    if (pad <= 0) return(s)
+    if (align == "left") return(paste0(s, strrep(" ", pad)))
+    if (align == "right") return(paste0(strrep(" ", pad), s))
+    paste0(strrep(" ", floor(pad/2)), s, strrep(" ", ceiling(pad/2)))
+  }
+  
+  if (exists(".print_titulo", mode = "function")) {
+    .print_titulo("MÉTRICAS DO MODELO DE POISSON")
+  } else {
+    cat("\n── MÉTRICAS DO MODELO DE POISSON ──\n")
+  }
+  
+  w_m <- c(met=38, val=15)
+  linha <- paste0("  ", strrep("─", sum(w_m) + 1))
+  
+  cat(linha, "\n")
+  cat("  ", .pad("Métrica", w_m["met"], "left"), .pad("Valor", w_m["val"], "center"), "\n", sep = "")
+  cat(linha, "\n")
+  cat("  ", .pad("Deviance Nula", w_m["met"], "left"), .pad(sprintf("%.2f (df=%d)", dev_nula, df_nula), w_m["val"], "center"), "\n", sep = "")
+  cat("  ", .pad("Deviance Residual", w_m["met"], "left"), .pad(sprintf("%.2f (df=%d)", dev_res, df_res), w_m["val"], "center"), "\n", sep = "")
+  cat("  ", .pad("Teste LRT (χ²)", w_m["met"], "left"), .pad(sprintf("%.2f (p %s)", lrt_stat, ifelse(p_lrt < 0.001, "<0,001", paste0("=", .fmt_p(p_lrt)))), w_m["val"], "center"), "\n", sep = "")
+  cat("  ", .pad("Sobredispersão (χ²/df)", w_m["met"], "left"), .pad(sprintf("%.3f", dispersion_ratio), w_m["val"], "center"), "\n", sep = "")
+  cat("  ", .pad("Pseudo-R² (McFadden)", w_m["met"], "left"), .pad(sprintf("%.1f%%", pseudo_r2 * 100), w_m["val"], "center"), "\n", sep = "")
+  cat("  ", .pad("AIC", w_m["met"], "left"), .pad(sprintf("%.2f", aic_val), w_m["val"], "center"), "\n", sep = "")
+  cat("  ", .pad("AICc", w_m["met"], "left"), .pad(sprintf("%.2f", aicc_val), w_m["val"], "center"), "\n", sep = "")
+  cat("  ", .pad("BIC", w_m["met"], "left"), .pad(sprintf("%.2f", bic_val), w_m["val"], "center"), "\n", sep = "")
+  cat(linha, "\n\n")
+  
+  invisible(list(deviance = dev_res, pseudo_r2 = pseudo_r2, disp = dispersion_ratio, aic = aic_val))
+}
+
+#' @title Analise Residual para Modelo de Poisson
+#' @description Realiza o diagnostico de residuos para modelos de Poisson.
+#' @param modelo Objeto glm Poisson
+#' @param grafico Logico. Plota o painel se TRUE.
+#' @export
+analise_residual_poisson <- function(modelo, grafico = TRUE) {
+  if (exists(".print_titulo", mode = "function")) .print_titulo("ANÁLISE DE RESÍDUOS — REGRESSÃO DE POISSON")
+  
+  df_res <- modelo$df.residual
+  pearson_res <- residuals(modelo, type = "pearson")
+  dispersion_ratio <- sum(pearson_res^2) / df_res
+  
+  if (exists(".print_topico", mode = "function")) .print_topico("DIAGNÓSTICO DA DISPERSÃO")
+  if (dispersion_ratio > 1.2) {
+    cat(sprintf("  [!] Sobredispersão detectada (χ²/df = %.2f).
+  A variância é maior que a média. O modelo de Poisson pode ser inadequado.
+  Sugestão: Regressão Binomial Negativa ou Quase-Poisson.\n\n", dispersion_ratio))
+  } else if (dispersion_ratio < 0.8) {
+    cat(sprintf("  [!] Subdispersão detectada (χ²/df = %.2f).
+  A variância é menor que a média. Sugestão: Regressão Quase-Poisson.\n\n", dispersion_ratio))
+  } else {
+    cat(sprintf("  [✓] Dispersão adequada (χ²/df = %.2f). A premissa média = variância é plausível.\n\n", dispersion_ratio))
+  }
+  
+  cooks_d <- cooks.distance(modelo)
+  n <- nobs(modelo)
+  corte_cook <- 4 / n
+  infl_pts <- which(cooks_d > corte_cook)
+  
+  if (exists(".print_topico", mode = "function")) .print_topico("PONTOS INFLUENTES (Distância de Cook)")
+  if (length(infl_pts) > 0) {
+    cat(sprintf("  Observações com distância > %.4f (4/n):\n", corte_cook))
+    for (i in infl_pts) {
+      cat(sprintf("  Obs. %s: Cook = %.4f | Res. Pearson = %.3f\n", names(cooks_d)[i], cooks_d[i], pearson_res[i]))
+    }
+    cat("  [!] Avalie remover essas observações ou investigar outliers.\n\n")
+  } else {
+    cat("  [✓] Nenhuma observação excessivamente influente detectada.\n\n")
+  }
+  
+  if (exists(".print_rodape", mode = "function")) .print_rodape()
+  
+  if (grafico && exists("ggplot2", mode = "environment") && requireNamespace("ggplot2", quietly = TRUE) && requireNamespace("patchwork", quietly = TRUE)) {
+    tryCatch({
+      df_plot <- data.frame(
+        Ajustados = modelo$fitted.values,
+        Residuos  = pearson_res,
+        CooksD    = cooks_d,
+        PredLin   = modelo$linear.predictors,
+        Index     = seq_len(n)
+      )
+      
+      p1 <- ggplot2::ggplot(df_plot, ggplot2::aes(x = Ajustados, y = Residuos)) +
+        ggplot2::geom_point(color = "#555555", alpha = 0.6) +
+        ggplot2::geom_hline(yintercept = 0, linetype = "dashed", color = "#D90429") +
+        ggplot2::geom_smooth(method = "loess", se = FALSE, color = "#D90429", linewidth = 1) +
+        ggplot2::labs(title = "Resíduos vs Ajustados", x = "Valores Ajustados", y = "Resíduos Pearson")
+        
+      p2 <- ggplot2::ggplot(df_plot, ggplot2::aes(sample = Residuos)) +
+        ggplot2::stat_qq(color = "#555555", alpha = 0.6) +
+        ggplot2::stat_qq_line(color = "#D90429", linewidth = 1) +
+        ggplot2::labs(title = "QQ-Plot (Resíduos)", x = "Quantis Teóricos", y = "Quantis Amostrais")
+        
+      p3 <- ggplot2::ggplot(df_plot, ggplot2::aes(x = Index, y = CooksD)) +
+        ggplot2::geom_segment(ggplot2::aes(xend = Index, yend = 0), color = "#555555") +
+        ggplot2::geom_point(color = "#555555") +
+        ggplot2::geom_hline(yintercept = corte_cook, linetype = "dashed", color = "#D90429") +
+        ggplot2::labs(title = "Distância de Cook", x = "Índice da Observação", y = "Distância")
+        
+      p4 <- ggplot2::ggplot(df_plot, ggplot2::aes(x = PredLin, y = abs(Residuos))) +
+        ggplot2::geom_point(color = "#555555", alpha = 0.6) +
+        ggplot2::geom_smooth(method = "loess", se = FALSE, color = "#D90429", linewidth = 1) +
+        ggplot2::labs(title = "Escala-Localização", x = "Preditor Linear", y = "|Resíduo Pearson|")
+        
+      if (exists("tema_estatR", mode = "function")) {
+        p1 <- p1 + tema_estatR(); p2 <- p2 + tema_estatR()
+        p3 <- p3 + tema_estatR(); p4 <- p4 + tema_estatR()
+      } else {
+        p1 <- p1 + ggplot2::theme_minimal(); p2 <- p2 + ggplot2::theme_minimal()
+        p3 <- p3 + ggplot2::theme_minimal(); p4 <- p4 + ggplot2::theme_minimal()
+      }
+      
+      print((p1 | p2) / (p3 | p4))
+    }, error = function(e) {
+      message("[Aviso] Erro ao gerar painel de resíduos: ", e$message)
+    })
+  }
+  invisible(list(dispersion = dispersion_ratio, cook = cooks_d))
+}
+
+#' @title Selecao de Modelos - Poisson
+#' @description Realiza Best Subsets para regressao de Poisson.
+#' @param formula Formula do modelo
+#' @param dados Data frame
+#' @param top Numero de top modelos a retornar
+#' @export
+selecao_modelos_poisson <- function(formula, dados, top = 5) {
+  if (exists(".print_titulo", mode = "function")) .print_titulo("SELEÇÃO DE MODELOS — REGRESSÃO DE POISSON")
+  
+  y_name <- as.character(formula[[2]])
+  preditores <- attr(terms(formula, data = dados), "term.labels")
+  
+  if (length(preditores) > 10) {
+    cat(sprintf("  Muitos preditores (%d). Usando seleção heurística...\n\n", length(preditores)))
+    p_vals <- sapply(preditores, function(p) {
+       f <- as.formula(paste(y_name, "~", p))
+       mod <- glm(f, data = dados, family = poisson)
+       coef(summary(mod))[2, 4]
+    })
+    preditores <- names(sort(p_vals)[1:10])
+  }
+  
+  cat(sprintf("  Variável Resposta: %s\n", y_name))
+  cat(sprintf("  Preditores base:   %s\n", paste(preditores, collapse = ", ")))
+  
+  combinacoes <- list()
+  for (i in 1:length(preditores)) {
+    combinacoes <- c(combinacoes, combn(preditores, i, simplify = FALSE))
+  }
+  
+  cat(sprintf("  Método utilizado:  Exaustivo (%d modelos avaliados)\n\n", length(combinacoes)))
+  
+  resultados <- data.frame(Modelo = character(), k = integer(), AIC = numeric(), AICc = numeric(), Pseudo_R2 = numeric(), stringsAsFactors = FALSE)
+  
+  mod_nulo <- glm(reformulate("1", y_name), data = dados, family = poisson)
+  loglik_nulo <- as.numeric(logLik(mod_nulo))
+  n_obs <- nrow(dados)
+  
+  for (vars in combinacoes) {
+    f_str <- paste(y_name, "~", paste(vars, collapse = " + "))
+    mod <- tryCatch(glm(as.formula(f_str), data = dados, family = poisson), error=function(e) NULL)
+    
+    if (!is.null(mod)) {
+      k <- length(vars)
+      aic_val <- AIC(mod)
+      aicc_val <- aic_val + (2 * (k + 1) * (k + 2)) / (n_obs - (k + 1) - 1)
+      pseudo <- 1 - (as.numeric(logLik(mod)) / loglik_nulo)
+      
+      resultados <- rbind(resultados, data.frame(
+        Modelo = paste(vars, collapse = " + "),
+        k = k,
+        AIC = aic_val,
+        AICc = aicc_val,
+        Pseudo_R2 = pseudo,
+        stringsAsFactors = FALSE
+      ))
+    }
+  }
+  
+  resultados <- resultados[order(resultados$AIC), ]
+  df_top <- head(resultados, top)
+  df_top$Ranking <- paste0(1:nrow(df_top), "º")
+  df_top <- df_top[, c("Ranking", "Modelo", "k", "AIC", "AICc", "Pseudo_R2")]
+  
+  df_fmt <- df_top
+  df_fmt$AIC <- sprintf("%.1f", df_top$AIC)
+  df_fmt$AICc <- sprintf("%.1f", df_top$AICc)
+  df_fmt$Pseudo_R2 <- sprintf("%.1f%%", df_top$Pseudo_R2 * 100)
+  
+  if (exists(".print_topico", mode = "function")) .print_topico(sprintf("TOP %d MODELOS (Ordenados por AIC)", nrow(df_fmt)))
+  
+  if (exists(".print_tabela_estatR", mode = "function")) {
+    .print_tabela_estatR(df_fmt, align = c("left", "left", "center", "center", "center", "center"))
+  } else {
+    print(df_fmt, row.names = FALSE)
+  }
+  
+  cat("  * k = Número de variáveis preditoras.\n")
+  cat("  * AIC menor = modelo mais parcimonioso.\n\n")
+  if (exists(".print_rodape", mode = "function")) .print_rodape()
+  
+  invisible(df_top)
+}
