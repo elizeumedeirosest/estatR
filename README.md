@@ -128,8 +128,10 @@ monte_carlo(experimento = function() mean(rnorm(30)) > 0.3, repeticoes = 10000)
 <summary><strong> Probabilidade e Distribuições</strong></summary>
 <br>
 
+**Distribuições (Parâmetros, Momentos Teóricos e Quantis)**
+
 ```r
-# Visão Geral Didática de Distribuições (Parâmetros, Momentos Teóricos e Quantis)
+# Visão Geral Didática de Distribuições
 distribuicao("normal", media = 100, dp = 15)
 distribuicao("poisson", lambda = 3)
 distribuicao("t", gl = 5)
@@ -140,13 +142,20 @@ distribuicao("gama", forma = 2, escala = 2)
 
 # Painel Visual de Simulação (Lei dos Grandes Números / Convergência)
 distribuicao("exponencial", taxa = 0.5, simulacao = TRUE)
+```
 
-# Cálculo de Probabilidade Específica
+**Cálculo de Probabilidade Específica**
+
+```r
+# Cálculo 
 prob_normal(media = 100, dp = 15, q1 = 85, q2 = 115, tipo = "entre")
 prob_binomial(ensaios = 10, prob = 0.5, q = 5, tipo = "exato")
 prob_poisson(lambda = 2, q = 2, tipo = "menor")
 prob_exponencial(taxa = 0.5, q1 = 2, tipo = "maior")
+```
 
+**Amostras Aleatórias de Distribuiçoes Específicas**
+```r
 # Gerar amostras aleatórias com comparação teórica
 gerar_amostra(n = 1000, distribuicao = "normal", media = 50, dp = 5)
 gerar_amostra(n = 500,  distribuicao = "binomial", ensaios = 10, prob = 0.5)
@@ -197,7 +206,7 @@ analise_residual_logistica(mod_bin)
 selecao_modelos_logistica(am ~ mpg + hp + wt + qsec, dados = mtcars)
 ```
 
-**Regressão de Poisson (Dados de Contagem)**
+**Regressão de Poisson**
 
 ```r
 mod_pois <- regressao_poisson(breaks ~ wool + tension, dados = warpbreaks)
@@ -243,24 +252,41 @@ dividir_dados(dados_serie, proporcao = 0.8, temporal = TRUE)
 <summary><strong> Amostragem</strong></summary>
 <br>
 
+**Tamanho ideal da amostra**
+
 ```r
 # Tamanho de amostra
 tamanho_amostra(populacao = 50000, erro = 0.03)
 tamanho_amostra(populacao = Inf, erro = 0.05, confianca = 0.99)
+```
+**Amostragem Aleatória Simples**
 
-# Amostragem aleatória simples
+```r
+# AAS
 amostra_aleatoria(mtcars, n = 10)
 amostra_aleatoria(mtcars, proporcao = 0.3, semente = 42)
+```
 
-# Amostragem sistemática
+**Amostragem Sistemática**
+
+```r
+# AS
 amostra_sistematica(mtcars, n = 10)
+```
 
-# Amostragem estratificada
+**Amostragem Estratificada**
+
+```r
+# AE
 amostra_estratificada(iris, estrato = Species, n = 30)
 amostra_estratificada(iris, estrato = Species, n = 30, alocacao = "uniforme")
 amostra_estratificada(iris, estrato = Species, n = 30, alocacao = "otima", variavel = Sepal.Length)
+```
 
-# Amostragem por conglomerados
+**Amostragem por Conglomerados**
+
+```r
+# AC
 amostra_conglomerados(mtcars, conglomerado = cyl, n_conglomerados = 2)
 ```
 
@@ -272,7 +298,7 @@ amostra_conglomerados(mtcars, conglomerado = cyl, n_conglomerados = 2)
 <summary><strong> Visualização e Gráficos</strong></summary>
 <br>
 
-**Gráficos Estatísticos Prontos**
+**Gráficos**
 
 ```r
 # Boxplot básico
@@ -290,8 +316,6 @@ grafico_boxplot(mtcars, cyl, mpg, ordenar = TRUE, destaque = "8")
 **Tema e Paletas para ggplot2**
 
 ```r
-library(ggplot2)
-
 # Aplicar tema padronizado
 ggplot(iris, aes(x = Species, y = Sepal.Length, fill = Species)) +
   geom_boxplot() +
