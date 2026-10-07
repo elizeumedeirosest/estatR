@@ -228,6 +228,19 @@ analise_residual_binomial_negativa(mod_nb)
 selecao_modelos_binomial_negativa(breaks ~ wool + tension, dados = warpbreaks)
 ```
 
+**Regressão Beta (Proporções e Taxas)**
+
+```r
+# A variável resposta deve estar no intervalo (0, 1) excluso.
+# Se tiver zeros ou uns, use a transformação de Smithson & Verkuilen.
+mod_beta <- regressao_beta(taxa_sucesso ~ metodo + experiencia, dados = dados_taxas)
+
+# Métricas, diagnóstico de resíduos e Best Subsets
+metricas_beta(mod_beta)
+analise_residual_beta(mod_beta)
+selecao_modelos_beta(taxa_sucesso ~ metodo + experiencia + idade, dados = dados_taxas)
+```
+
 **Correlação**
 
 ```r
