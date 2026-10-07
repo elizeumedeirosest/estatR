@@ -217,6 +217,17 @@ analise_residual(mod_pois)
 selecao_modelos(breaks ~ wool + tension, dados = warpbreaks)
 ```
 
+**Regressão Binomial Negativa (Contagens com Sobredispersão)**
+
+```r
+mod_nb <- regressao_binomial_negativa(breaks ~ wool + tension, dados = warpbreaks)
+
+# Métricas globais, análise de resíduos e seleção
+metricas_binomial_negativa(mod_nb)
+analise_residual_binomial_negativa(mod_nb)
+selecao_modelos_binomial_negativa(breaks ~ wool + tension, dados = warpbreaks)
+```
+
 **Correlação**
 
 ```r
