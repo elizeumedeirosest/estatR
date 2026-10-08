@@ -127,9 +127,14 @@ prob_normal <- function(media = 0, dp = 1, q1 = NULL, q2 = NULL, tipo = c("menor
 #' @param grafico Lógico. Se TRUE, exibe histograma.
 #' @param semente Semente opcional para reprodutibilidade.
 #' @export
-gerar_amostra <- function(n, distribuicao = c("normal", "binomial", "poisson", "exponencial", "uniforme", "t", "qui_quadrado", "f", "gama"),
+gerar_amostra <- function(n, distribuicao = c("normal", "binomial", "poisson", "exponencial",
+                                              "uniforme", "t", "qui_quadrado", "f", "gama",
+                                              "lognormal", "beta", "weibull",
+                                              "geometrica", "hipergeometrica", "binomial_negativa"),
                           media = 0, dp = 1, ensaios = 10, prob = 0.5, lambda = 1, taxa = 1,
                           min = 0, max = 1, gl = 10, gl1 = 5, gl2 = 10, forma = 2, escala = 1,
+                          media_log = 0, dp_log = 1, forma1 = 2, forma2 = 2, forma_weibull = 1.5, escala_weibull = 1,
+                          prob_geo = 0.5, m = 10, n_urn = 10, k = 5, size_nb = 5, prob_nb = 0.5,
                           grafico = TRUE, semente = NULL) {
   distribuicao <- match.arg(distribuicao)
   if (!is.null(semente)) set.seed(semente)
@@ -163,6 +168,31 @@ gerar_amostra <- function(n, distribuicao = c("normal", "binomial", "poisson", "
   } else if (distribuicao == "gama") {
     amostra <- rgamma(n, shape = forma, scale = escala); teo_media <- forma*escala; teo_dp <- sqrt(forma*escala^2)
     tit_graf <- sprintf("Amostra Gama (forma=%g, escala=%g)", forma, escala)
+  } else if (distribuicao == "lognormal") {
+    amostra <- rlnorm(n, meanlog = media_log, sdlog = dp_log); teo_media <- exp(media_log + dp_log^2/2)
+    teo_dp <- sqrt((exp(dp_log^2) - 1) * exp(2*media_log + dp_log^2))
+    tit_graf <- sprintf("Amostra Lognormal (μ_log=%g, σ_log=%g)", media_log, dp_log)
+  } else if (distribuicao == "beta") {
+    amostra <- rbeta(n, shape1 = forma1, shape2 = forma2); teo_media <- forma1 / (forma1 + forma2)
+    teo_dp <- sqrt((forma1 * forma2) / ((forma1 + forma2)^2 * (forma1 + forma2 + 1)))
+    tit_graf <- sprintf("Amostra Beta (α=%g, β=%g)", forma1, forma2)
+  } else if (distribuicao == "weibull") {
+    amostra <- rweibull(n, shape = forma_weibull, scale = escala_weibull)
+    teo_media <- escala_weibull * gamma(1 + 1/forma_weibull)
+    teo_dp <- sqrt(escala_weibull^2 * (gamma(1 + 2/forma_weibull) - (gamma(1 + 1/forma_weibull))^2))
+    tit_graf <- sprintf("Amostra Weibull (k=%g, λ=%g)", forma_weibull, escala_weibull)
+  } else if (distribuicao == "geometrica") {
+    amostra <- rgeom(n, prob = prob_geo); teo_media <- (1 - prob_geo) / prob_geo
+    teo_dp <- sqrt((1 - prob_geo) / (prob_geo^2))
+    tit_graf <- sprintf("Amostra Geométrica (p=%g)", prob_geo)
+  } else if (distribuicao == "hipergeometrica") {
+    amostra <- rhyper(n, m = m, n = n_urn, k = k); teo_media <- k * m / (m + n_urn)
+    teo_dp <- sqrt(k * (m / (m + n_urn)) * (1 - m / (m + n_urn)) * ((m + n_urn - k) / (m + n_urn - 1)))
+    tit_graf <- sprintf("Amostra Hipergeométrica (Sucessos=%d, Falhas=%d, Amostra=%d)", m, n_urn, k)
+  } else if (distribuicao == "binomial_negativa") {
+    amostra <- rnbinom(n, size = size_nb, prob = prob_nb); teo_media <- size_nb * (1 - prob_nb) / prob_nb
+    teo_dp <- sqrt(size_nb * (1 - prob_nb) / (prob_nb^2))
+    tit_graf <- sprintf("Amostra Binomial Negativa (r=%d, p=%g)", size_nb, prob_nb)
   }
   
   emp_media <- mean(amostra)
@@ -182,10 +212,10 @@ gerar_amostra <- function(n, distribuicao = c("normal", "binomial", "poisson", "
   if (grafico) {
     df <- data.frame(X = amostra)
     p <- ggplot2::ggplot(df, ggplot2::aes(x = X))
-    if (distribuicao %in% c("binomial", "poisson")) {
+    if (distribuicao %in% c("binomial", "poisson", "geometrica", "hipergeometrica", "binomial_negativa")) {
       p <- p + ggplot2::geom_bar(ggplot2::aes(y = ggplot2::after_stat(prop)), fill = "#DDDDDD", color = "black", alpha = 0.7)
       x_vals <- min(amostra):max(amostra)
-      y_teo <- if(distribuicao == "binomial") dbinom(x_vals, ensaios, prob) else dpois(x_vals, lambda)
+      y_teo <- if(distribuicao == "binomial") dbinom(x_vals, ensaios, prob) else if(distribuicao == "poisson") dpois(x_vals, lambda) else if(distribuicao == "geometrica") dgeom(x_vals, prob_geo) else if(distribuicao == "hipergeometrica") dhyper(x_vals, m, n_urn, k) else dnbinom(x_vals, size_nb, prob_nb)
       df_teo <- data.frame(x = x_vals, y = y_teo)
       p <- p + ggplot2::geom_point(data = df_teo, ggplot2::aes(x = x, y = y), color = "#1F77B4", size = 3) +
                ggplot2::geom_segment(data = df_teo, ggplot2::aes(x = x, xend = x, y = 0, yend = y), color = "#1F77B4", linewidth = 1)
@@ -199,6 +229,9 @@ gerar_amostra <- function(n, distribuicao = c("normal", "binomial", "poisson", "
       if (distribuicao == "qui_quadrado") p <- p + ggplot2::stat_function(fun = dchisq, args = list(df=gl), color="#1F77B4", linewidth=1.2)
       if (distribuicao == "f") p <- p + ggplot2::stat_function(fun = df, args = list(df1=gl1, df2=gl2), color="#1F77B4", linewidth=1.2)
       if (distribuicao == "gama") p <- p + ggplot2::stat_function(fun = dgamma, args = list(shape=forma, scale=escala), color="#1F77B4", linewidth=1.2)
+      if (distribuicao == "lognormal") p <- p + ggplot2::stat_function(fun = dlnorm, args = list(meanlog=media_log, sdlog=dp_log), color="#1F77B4", linewidth=1.2)
+      if (distribuicao == "beta") p <- p + ggplot2::stat_function(fun = dbeta, args = list(shape1=forma1, shape2=forma2), color="#1F77B4", linewidth=1.2)
+      if (distribuicao == "weibull") p <- p + ggplot2::stat_function(fun = dweibull, args = list(shape=forma_weibull, scale=escala_weibull), color="#1F77B4", linewidth=1.2)
       texto_sub <- "Barras (Amostra) vs Curva (Teórica)"
     }
     p <- p + ggplot2::labs(title = tit_graf, subtitle = texto_sub, y = if(distribuicao %in% c("binomial", "poisson")) "Proporção" else "Densidade", caption = "estatR")

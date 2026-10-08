@@ -241,6 +241,18 @@ analise_residual_beta(mod_beta)
 selecao_modelos_beta(taxa_sucesso ~ metodo + experiencia + idade, dados = dados_taxas)
 ```
 
+**Regressão Gama**
+
+```r
+# A variável resposta deve ser estritamente positiva (> 0). Ideal para custos e tempos.
+mod_gama <- regressao_gama(custos ~ tratamento + idade, dados = dados_saude)
+
+# Métricas, resíduos e seleção
+metricas_gama(mod_gama)
+analise_residual_gama(mod_gama)
+selecao_modelos_gama(custos ~ tratamento + idade + bmi, dados = dados_saude)
+```
+
 **Correlação**
 
 ```r

@@ -7,7 +7,8 @@
 gerar_amostra(
   n,
   distribuicao = c("normal", "binomial", "poisson", "exponencial", "uniforme", "t",
-    "qui_quadrado", "f", "gama"),
+    "qui_quadrado", "f", "gama", "lognormal", "beta", "weibull", "geometrica",
+    "hipergeometrica", "binomial_negativa"),
   media = 0,
   dp = 1,
   ensaios = 10,
@@ -21,6 +22,18 @@ gerar_amostra(
   gl2 = 10,
   forma = 2,
   escala = 1,
+  media_log = 0,
+  dp_log = 1,
+  forma1 = 2,
+  forma2 = 2,
+  forma_weibull = 1.5,
+  escala_weibull = 1,
+  prob_geo = 0.5,
+  m = 10,
+  n_urn = 10,
+  k = 5,
+  size_nb = 5,
+  prob_nb = 0.5,
   grafico = TRUE,
   semente = NULL
 )
