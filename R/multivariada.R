@@ -607,3 +607,750 @@ screeplot_acp <- function(modelo, analise_paralela = TRUE) {
 
   p
 }
+
+
+# ==============================================================================
+# ANÁLISE FATORIAL EXPLORATÓRIA (AFE)
+# ==============================================================================
+
+#' @title Análise Fatorial Exploratória (AFE)
+#' @description Realiza Análise Fatorial Exploratória (AFE) completa com diagnóstico
+#' de adequação amostral (KMO global e individual, Teste de Bartlett), critérios de retenção
+#' de fatores (Kaiser e Análise Paralela de Horn), cargas fatoriais rotacionadas,
+#' comunalidades (h²), unicidades (u²), escores fatoriais e interpretação automatizada.
+#' @param dados Data frame ou matriz contendo variáveis numéricas.
+#' @param n_fatores Inteiro opcional. Número de fatores a reter. Se NULL (padrão),
+#'   determina automaticamente pelo Critério de Kaiser (autovalor > 1).
+#' @param rotacao Caractere indicando o método de rotação: \code{"varimax"} (padrão),
+#'   \code{"oblimin"}, \code{"promax"} ou \code{"none"}.
+#' @param metodo Caractere indicando o método de extração fatorial: \code{"pa"} (Eixos Principais - padrão),
+#'   \code{"minres"} (Mínimos Resíduos) ou \code{"ml"} (Máxima Verossimilhança).
+#' @param analise_paralela Lógico. Se TRUE (padrão), calcula a Análise Paralela de Horn.
+#' @param n_sim Inteiro. Número de simulações para a Análise Paralela (padrão: 100).
+#' @param corte_carga Numérico. Valor de corte para considerar a carga fatorial saliente na interpretação (padrão: 0.30).
+#' @param grafico Lógico. Se TRUE, exibe automaticamente o gráfico de cargas fatoriais.
+#' @return Objeto da classe \code{afe_estatR} contendo:
+#'   \item{cargas}{Data frame com variáveis, cargas fatoriais por fator, comunalidades (h²) e unicidades (u²)}
+#'   \item{comunalidades}{Vetor com as comunalidades h² de cada variável}
+#'   \item{unicidades}{Vetor com as unicidades u² de cada variável}
+#'   \item{variancia}{Data frame com autovalores fatoriais, variância explicada e acumulada}
+#'   \item{escores}{Data frame com os escores fatoriais das observações}
+#'   \item{kmo}{Lista com KMO global, nível e data frame individual por variável}
+#'   \item{bartlett}{Lista com estatística qui-quadrado, graus de liberdade e p-valor}
+#'   \item{criterios}{Lista com resumo dos critérios e autovalores simulados de Horn}
+#'   \item{rotacao}{Método de rotação utilizado}
+#'   \item{metodo}{Método de extração utilizado}
+#'   \item{fa}{Objeto retornado pela função psych::fa}
+#' @export
+analise_fatorial <- function(dados,
+                             n_fatores        = NULL,
+                             rotacao          = "varimax",
+                             metodo           = "pa",
+                             analise_paralela = TRUE,
+                             n_sim            = 100,
+                             corte_carga      = 0.30,
+                             grafico          = FALSE) {
+
+  if (!requireNamespace("psych", quietly = TRUE)) {
+    stop("O pacote 'psych' e necessario para a Analise Fatorial Exploratoria. Instale com install.packages('psych').")
+  }
+
+  # 1. Validação de dados
+  if (!is.data.frame(dados) && !is.matrix(dados)) {
+    stop("O argumento 'dados' deve ser um data frame ou matriz.")
+  }
+
+  dados_df <- as.data.frame(dados)
+  cols_num <- vapply(dados_df, is.numeric, logical(1))
+  if (sum(cols_num) < 2) {
+    stop("São necessárias pelo menos 2 variáveis numéricas para a Análise Fatorial.")
+  }
+
+  df_num <- dados_df[, cols_num, drop = FALSE]
+  casos_completos <- stats::complete.cases(df_num)
+  if (sum(casos_completos) < nrow(df_num)) {
+    df_num <- df_num[casos_completos, , drop = FALSE]
+    dados_df <- dados_df[casos_completos, , drop = FALSE]
+  }
+
+  n <- nrow(df_num)
+  p <- ncol(df_num)
+  var_nomes <- colnames(df_num)
+
+  # 2. Diagnóstico de Adequação: KMO e Teste de Bartlett
+  mat_cor <- stats::cor(df_num)
+
+  # Bartlett
+  det_r <- det(mat_cor)
+  if (is.na(det_r) || det_r <= 0) {
+    bart_chi2 <- NA; bart_df <- p * (p - 1) / 2; bart_p <- NA
+  } else {
+    bart_df   <- p * (p - 1) / 2
+    bart_chi2 <- -( (n - 1) - (2 * p + 5) / 6 ) * log(det_r)
+    bart_p    <- stats::pchisq(bart_chi2, df = bart_df, lower.tail = FALSE)
+  }
+
+  # KMO
+  inv_r <- tryCatch(solve(mat_cor), error = function(e) NULL)
+  if (is.null(inv_r)) {
+    kmo_global <- NA
+    kmo_ind <- rep(NA, p)
+  } else {
+    anti_img <- -inv_r / sqrt(outer(diag(inv_r), diag(inv_r)))
+    diag(anti_img) <- 1
+
+    r2 <- mat_cor^2
+    a2 <- anti_img^2
+    diag(r2) <- 0
+    diag(a2) <- 0
+
+    kmo_global <- sum(r2) / (sum(r2) + sum(a2))
+    kmo_ind <- rowSums(r2) / (rowSums(r2) + rowSums(a2))
+  }
+
+  .classifica_kmo <- function(val) {
+    if (is.na(val)) return("Indeterminado")
+    if (val >= 0.90) return("Excelente")
+    if (val >= 0.80) return("Meritório")
+    if (val >= 0.70) return("Médio")
+    if (val >= 0.60) return("Medíocre")
+    if (val >= 0.50) return("Fraco")
+    return("Inadmissível")
+  }
+
+  kmo_global_nivel <- .classifica_kmo(kmo_global)
+  kmo_ind_nivel    <- vapply(kmo_ind, .classifica_kmo, character(1))
+
+  # 3. Autovalores da matriz de correlação e Critérios de Retenção
+  ev_cor <- eigen(mat_cor, only.values = TRUE)$values
+  var_expl_pca <- (ev_cor / sum(ev_cor)) * 100
+  var_acum_pca <- cumsum(var_expl_pca)
+
+  kaiser_sugerido <- max(1, sum(ev_cor > 1.0))
+
+  # Análise Paralela de Horn
+  ap_p95 <- rep(NA, p)
+  ap_sugerido <- NA
+  if (analise_paralela) {
+    sim_ev <- matrix(0, nrow = n_sim, ncol = p)
+    for (s in seq_len(n_sim)) {
+      mat_sim <- matrix(stats::rnorm(n * p), nrow = n, ncol = p)
+      cor_sim <- stats::cor(mat_sim)
+      ev_sim  <- eigen(cor_sim, only.values = TRUE)$values
+      sim_ev[s, ] <- ev_sim
+    }
+    ap_p95 <- apply(sim_ev, 2, stats::quantile, probs = 0.95)
+    ap_sugerido <- max(1, sum(ev_cor > ap_p95))
+  }
+
+  # Variância acumulada >= 70%
+  n_70 <- which(var_acum_pca >= 70)
+  n_70_sugerido <- if (length(n_70) > 0) n_70[1] else p
+
+  # Número final de fatores
+  n_retidos <- if (!is.null(n_fatores)) {
+    min(max(1, as.integer(n_fatores)), p)
+  } else {
+    kaiser_sugerido
+  }
+
+  # 4. Ajuste da Análise Fatorial via psych::fa
+  rot_ajuste <- if (n_retidos == 1) "none" else rotacao
+  fa_mod <- suppressWarnings(tryCatch(
+    psych::fa(df_num, nfactors = n_retidos, rotate = rot_ajuste, fm = metodo),
+    error = function(e) stop("Erro ao ajustar o modelo de Análise Fatorial: ", e$message)
+  ))
+
+  # Extrair Cargas, Comunalidades e Unicidades
+  mat_cargas_raw <- unclass(fa_mod$loadings)
+  comunalidades  <- fa_mod$communality
+  unicidades     <- fa_mod$uniquenesses
+
+  fatores_nomes <- paste("Fator", seq_len(n_retidos))
+  colnames(mat_cargas_raw) <- fatores_nomes
+
+  df_cargas <- data.frame(
+    Variavel = var_nomes,
+    round(mat_cargas_raw, 4),
+    Comunalidade_h2 = round(comunalidades, 4),
+    Unicidade_u2    = round(unicidades, 4),
+    row.names = NULL,
+    stringsAsFactors = FALSE
+  )
+  colnames(df_cargas) <- c("Variavel", fatores_nomes, "Comunalidade (h²)", "Unicidade (u²)")
+
+  # Variância explicada pelos fatores rotacionados
+  # fa_mod$Vaccounted tem SS loadings, Proportion Var, Cumulative Var
+  vacct <- fa_mod$Vaccounted
+  if (!is.null(vacct) && is.matrix(vacct) && nrow(vacct) >= 3) {
+    ss_loadings  <- vacct[1, seq_len(n_retidos)]
+    prop_var_pct <- vacct[2, seq_len(n_retidos)] * 100
+    cum_var_pct  <- vacct[3, seq_len(n_retidos)] * 100
+  } else {
+    # Fallback se Vaccounted não estiver no formato esperado
+    ss_loadings  <- colSums(mat_cargas_raw^2)
+    prop_var_pct <- (ss_loadings / p) * 100
+    cum_var_pct  <- cumsum(prop_var_pct)
+  }
+
+  df_variancia <- data.frame(
+    Fator               = fatores_nomes,
+    Autovalor_Fatorial  = ss_loadings,
+    Var_Expl_Pct        = prop_var_pct,
+    Var_Acum_Pct        = cum_var_pct,
+    row.names = NULL,
+    stringsAsFactors = FALSE
+  )
+
+  # Escores fatoriais
+  df_escores <- as.data.frame(fa_mod$scores)
+  if (ncol(df_escores) == n_retidos) {
+    colnames(df_escores) <- fatores_nomes
+  }
+  rownames(df_escores) <- rownames(df_num)
+
+  # Helpers de formatação
+  .pad <- function(s, w, align = "center") {
+    s <- trimws(as.character(s))
+    pad <- w - nchar(s)
+    if (pad <= 0) return(s)
+    if (align == "left") return(paste0(s, strrep(" ", pad)))
+    if (align == "right") return(paste0(strrep(" ", pad), s))
+    paste0(strrep(" ", floor(pad/2)), s, strrep(" ", ceiling(pad/2)))
+  }
+  .fmt_f <- function(x, d = 2) formatC(x, format = "f", digits = d, decimal.mark = ",")
+  .fmt_p <- function(x) {
+    if (is.na(x)) return("-")
+    if (x < 0.001) return("< 0,001")
+    formatC(x, format = "f", digits = 3, decimal.mark = ",")
+  }
+  .ast <- function(p) {
+    if (is.na(p) || p >= 0.10) return("")
+    if (p < 0.01) return("***")
+    if (p < 0.05) return("**")
+    return("*")
+  }
+
+  # ==========================================================================
+  # IMPRESSÃO NO CONSOLE
+  # ==========================================================================
+  if (exists(".print_titulo", mode = "function")) {
+    .print_titulo("ANÁLISE FATORIAL EXPLORATÓRIA (AFE)")
+  } else {
+    cat("\n── ANÁLISE FATORIAL EXPLORATÓRIA (AFE) ──\n")
+  }
+
+  # SEÇÃO: ADEQUAÇÃO DA AMOSTRA (PRESSUPOSTOS)
+  if (exists(".print_topico", mode = "function")) {
+    .print_topico("ADEQUAÇÃO DA AMOSTRA (PRESSUPOSTOS)")
+  } else {
+    cat("\n▶ ADEQUAÇÃO DA AMOSTRA (PRESSUPOSTOS)\n")
+  }
+
+  w_crit <- c(crit = 42, val = 26)
+  sep_crit <- paste0("  ", strrep("─", sum(w_crit) + 3))
+  cat(sep_crit, "\n")
+  cat("  ", .pad("Critério", w_crit["crit"], "left"), .pad("Valor", w_crit["val"], "center"), "\n", sep = "")
+  cat(sep_crit, "\n")
+
+  kmo_glob_txt <- if (!is.na(kmo_global)) sprintf("%s (%s)", .fmt_f(kmo_global, 3), kmo_global_nivel) else "Não aplicável"
+  bart_txt <- if (!is.na(bart_chi2)) sprintf("%s (df = %d, p %s)%s", .fmt_f(bart_chi2, 2), bart_df, .fmt_p(bart_p), .ast(bart_p)) else "Não aplicável"
+
+  cat("  ", .pad("KMO Global (Kaiser-Meyer-Olkin)", w_crit["crit"], "left"), .pad(kmo_glob_txt, w_crit["val"], "center"), "\n", sep = "")
+  cat("  ", .pad("Teste de Esfericidade de Bartlett (χ²)", w_crit["crit"], "left"), .pad(bart_txt, w_crit["val"], "center"), "\n", sep = "")
+  cat(sep_crit, "\n")
+  cat("  * Bartlett significativo (p < 0,05) indica correlações suficientes para fatoração.\n")
+  cat("  * KMO Global: >= 0,90 Excelente | 0,80-0,89 Meritório | 0,70-0,79 Médio | 0,60-0,69 Medíocre | < 0,50 Inadmissível\n\n")
+
+  # Tabela KMO Individual por Variável
+  cat("  KMO Individual por Variável:\n")
+  w_kmo <- c(var = 28, kmo = 12, niv = 18)
+  sep_kmo <- paste0("  ", strrep("─", sum(w_kmo) + 3))
+  cat(sep_kmo, "\n")
+  cat("  ", .pad("Variável", w_kmo["var"], "left"), .pad("KMO", w_kmo["kmo"], "center"), .pad("Nível do KMO", w_kmo["niv"], "center"), "\n", sep = "")
+  cat(sep_kmo, "\n")
+  for (i in seq_along(var_nomes)) {
+    cat("  ",
+        .pad(var_nomes[i], w_kmo["var"], "left"),
+        .pad(.fmt_f(kmo_ind[i], 3), w_kmo["kmo"], "center"),
+        .pad(kmo_ind_nivel[i], w_kmo["niv"], "center"),
+        "\n", sep = "")
+  }
+  cat(sep_kmo, "\n")
+  cat("  Nota: >= 0,90 Excelente | 0,80 - 0,89 Meritório | 0,70 - 0,79 Médio\n")
+  cat("        0,60 - 0,69 Medíocre  | 0,50 - 0,59 Fraco     | < 0,50 Inadmissível\n\n")
+
+  # SEÇÃO: CRITÉRIOS DE RETENÇÃO DE FATORES
+  if (exists(".print_topico", mode = "function")) {
+    .print_topico("CRITÉRIOS DE RETENÇÃO DE FATORES")
+  } else {
+    cat("\n▶ CRITÉRIOS DE RETENÇÃO DE FATORES\n")
+  }
+
+  w_ret <- c(crit = 22, sug = 16, just = 38)
+  sep_ret <- paste0("  ", strrep("─", sum(w_ret) + 3))
+  cat(sep_ret, "\n")
+  cat("  ", .pad("Critério", w_ret["crit"], "left"), .pad("Sugerido", w_ret["sug"], "center"), .pad("Justificativa", w_ret["just"], "left"), "\n", sep = "")
+  cat(sep_ret, "\n")
+
+  txt_kaiser_just <- sprintf("Autovalores maiores que 1,0 (%s)",
+                             paste0("F", seq_len(kaiser_sugerido), collapse = " e "))
+  cat("  ", .pad("Critério de Kaiser", w_ret["crit"], "left"),
+      .pad(sprintf("%d fator(es)", kaiser_sugerido), w_ret["sug"], "center"),
+      .pad(txt_kaiser_just, w_ret["just"], "left"), "\n", sep = "")
+
+  if (analise_paralela) {
+    cat("  ", .pad("Análise Paralela", w_ret["crit"], "left"),
+        .pad(sprintf("%d fator(es)", ap_sugerido), w_ret["sug"], "center"),
+        .pad("Autovalor empírico > P95 da simulação", w_ret["just"], "left"), "\n", sep = "")
+  }
+
+  txt_70_just <- sprintf("Acumulam %s%% da variância", .fmt_f(var_acum_pca[n_70_sugerido], 2))
+  cat("  ", .pad("Variância >= 70%", w_ret["crit"], "left"),
+      .pad(sprintf("%d fator(es)", n_70_sugerido), w_ret["sug"], "center"),
+      .pad(txt_70_just, w_ret["just"], "left"), "\n", sep = "")
+  cat(sep_ret, "\n\n")
+
+  # Tabela 2: Comparação Autovalores Obs vs Análise Paralela (Horn)
+  if (analise_paralela) {
+    cat("  Comparação: Autovalores Observados vs Análise Paralela (Horn):\n")
+    w_ap <- c(comp = 14, obs = 18, sim = 22, acum = 20)
+    sep_ap <- paste0("  ", strrep("─", sum(w_ap) + 3))
+    cat(sep_ap, "\n")
+    cat("  ",
+        .pad("Fator", w_ap["comp"], "left"),
+        .pad("Autovalor Obs.", w_ap["obs"], "center"),
+        .pad("Autovalor Sim. (AP)", w_ap["sim"], "center"),
+        .pad("Var. Acumulada (%)", w_ap["acum"], "center"),
+        "\n", sep = "")
+    cat(sep_ap, "\n")
+    n_mostrar_ap <- min(p, max(kaiser_sugerido + 2, 5))
+    for (i in seq_len(n_mostrar_ap)) {
+      cat("  ",
+          .pad(paste("Fator", i), w_ap["comp"], "left"),
+          .pad(.fmt_f(ev_cor[i], 2), w_ap["obs"], "center"),
+          .pad(.fmt_f(ap_p95[i], 2), w_ap["sim"], "center"),
+          .pad(paste0(.fmt_f(var_acum_pca[i], 2), "%"), w_ap["acum"], "center"),
+          "\n", sep = "")
+    }
+    cat(sep_ap, "\n")
+    cat("  * Reter fatores onde Autovalor Obs. > Autovalor Simulado (P95).\n\n")
+  }
+
+  # SEÇÃO: VARIÂNCIA EXPLICADA PELOS FATORES ROTACIONADOS
+  tit_rot <- if (rot_ajuste == "none") "SEM ROTAÇÃO" else toupper(rot_ajuste)
+  if (exists(".print_topico", mode = "function")) {
+    .print_topico(sprintf("VARIÂNCIA EXPLICADA PELOS FATORES ROTACIONADOS (%s)", tit_rot))
+  } else {
+    cat(sprintf("\n▶ VARIÂNCIA EXPLICADA PELOS FATORES ROTACIONADOS (%s)\n", tit_rot))
+  }
+
+  w_vfat <- c(fat = 14, auto = 22, expl = 22, acum = 22)
+  sep_vfat <- paste0("  ", strrep("─", sum(w_vfat) + 3))
+  cat(sep_vfat, "\n")
+  cat("  ",
+      .pad("Fator", w_vfat["fat"], "left"),
+      .pad("Autovalor Fatorial", w_vfat["auto"], "center"),
+      .pad("Var. Explicada (%)", w_vfat["expl"], "center"),
+      .pad("Var. Acumulada (%)", w_vfat["acum"], "center"),
+      "\n", sep = "")
+  cat(sep_vfat, "\n")
+  for (i in seq_len(n_retidos)) {
+    cat("  ",
+        .pad(fatores_nomes[i], w_vfat["fat"], "left"),
+        .pad(.fmt_f(ss_loadings[i], 2), w_vfat["auto"], "center"),
+        .pad(paste0(.fmt_f(prop_var_pct[i], 2), "%"), w_vfat["expl"], "center"),
+        .pad(paste0(.fmt_f(cum_var_pct[i], 2), "%"), w_vfat["acum"], "center"),
+        "\n", sep = "")
+  }
+  cat(sep_vfat, "\n\n")
+
+  # SEÇÃO: CARGAS FATORIAIS E COMUNALIDADES
+  if (exists(".print_topico", mode = "function")) {
+    .print_topico("CARGAS FATORIAIS E COMUNALIDADES (LOADINGS)")
+  } else {
+    cat("\n▶ CARGAS FATORIAIS E COMUNALIDADES (LOADINGS)\n")
+  }
+
+  w_var_col <- 20
+  w_fat_col <- max(10, min(13, floor((46 - w_var_col) / n_retidos)))
+  w_com_col <- 18
+  w_uni_col <- 16
+
+  largura_total <- w_var_col + n_retidos * (w_fat_col + 1) + w_com_col + w_uni_col + 3
+  sep_cargas <- paste0("  ", strrep("─", largura_total))
+
+  cat(sep_cargas, "\n")
+  cat("  ", .pad("Variável", w_var_col, "left"))
+  for (j in seq_len(n_retidos)) {
+    cat(.pad(fatores_nomes[j], w_fat_col, "center"))
+  }
+  cat(.pad("Comunalidade (h²)", w_com_col, "center"))
+  cat(.pad("Unicidade (u²)", w_uni_col, "center"))
+  cat("\n")
+  cat(sep_cargas, "\n")
+
+  for (i in seq_along(var_nomes)) {
+    cat("  ", .pad(var_nomes[i], w_var_col, "left"))
+    for (j in seq_len(n_retidos)) {
+      val <- mat_cargas_raw[i, j]
+      sinal_txt <- if (val >= 0) sprintf("+%s", .fmt_f(val, 3)) else sprintf("-%s", .fmt_f(abs(val), 3))
+      cat(.pad(sinal_txt, w_fat_col, "center"))
+    }
+    cat(.pad(.fmt_f(comunalidades[i], 3), w_com_col, "center"))
+    cat(.pad(.fmt_f(unicidades[i], 3), w_uni_col, "center"))
+    cat("\n")
+  }
+  cat(sep_cargas, "\n")
+  cat(sprintf("  * Cargas rotacionadas pelo método %s (cargas absolutas > %s consideradas salientes).\n",
+              tools::toTitleCase(rot_ajuste), .fmt_f(corte_carga, 2)))
+  cat("  * Comunalidade (h²): proporção da variância da variável explicada pelos fatores comuns.\n")
+  cat("  * Unicidade (u²): proporção da variância não explicada e erro de medida (1 - h²).\n\n")
+
+  # SEÇÃO: INTERPRETAÇÃO
+  if (exists(".print_topico", mode = "function")) {
+    .print_topico("INTERPRETAÇÃO")
+  } else {
+    cat("\n▶ INTERPRETAÇÃO\n")
+  }
+
+  metodo_txt <- switch(metodo,
+    pa     = "Eixos Principais (Principal Axis Factoring)",
+    minres = "Mínimos Resíduos (Minimum Residual)",
+    ml     = "Máxima Verossimilhança (Maximum Likelihood)",
+    metodo
+  )
+
+  bart_interp <- if (!is.na(bart_p) && bart_p < 0.05) {
+    sprintf("O teste de esfericidade de Bartlett foi estatisticamente significativo (p %s),\n  rejeitando a hipótese de que a matriz de correlação é uma identidade.", .fmt_p(bart_p))
+  } else {
+    "O teste de esfericidade de Bartlett não foi significativo, indicando baixas correlações entre as variáveis."
+  }
+  kmo_interp <- if (!is.na(kmo_global)) {
+    sprintf("O KMO global de %s (%s) indicou adequação satisfatória da amostra para fatoração.",
+            .fmt_f(kmo_global, 3), kmo_global_nivel)
+  } else ""
+
+  cat(sprintf("  A Análise Fatorial Exploratória foi ajustada pelo método dos %s,\n  utilizando rotação %s.\n  %s\n  %s\n\n",
+              metodo_txt, tools::toTitleCase(rot_ajuste), bart_interp, kmo_interp))
+
+  cat(sprintf("  Pelo Critério de Kaiser (autovalor > 1,0), foram retidos %d fator(es),\n  que juntos respondem por %s%% da variabilidade comum entre as %d variáveis analisadas.\n\n",
+              n_retidos, .fmt_f(cum_var_pct[n_retidos], 2), p))
+
+  # Detalhes Fator 1
+  cargas_f1 <- mat_cargas_raw[, 1]
+  vars_pos1 <- names(sort(cargas_f1[cargas_f1 >= corte_carga], decreasing = TRUE))
+  vars_neg1 <- names(sort(cargas_f1[cargas_f1 <= -corte_carga]))
+
+  f1_txt <- sprintf("  O Fator 1 é responsável por %s%% da variância explicada.", .fmt_f(prop_var_pct[1], 2))
+  if (length(vars_pos1) > 0 || length(vars_neg1) > 0) {
+    detalhes1 <- c()
+    if (length(vars_pos1) > 0) detalhes1 <- c(detalhes1, sprintf("cargas positivas expressivas em %s", paste(vars_pos1, collapse = ", ")))
+    if (length(vars_neg1) > 0) detalhes1 <- c(detalhes1, sprintf("cargas negativas em %s", paste(vars_neg1, collapse = ", ")))
+    f1_txt <- paste0(f1_txt, sprintf("\n  Ele é caracterizado principalmente por %s.", paste(detalhes1, collapse = " em contraposição a ")))
+  }
+  cat(f1_txt, "\n\n")
+
+  # Detalhes Fator 2
+  if (n_retidos >= 2) {
+    cargas_f2 <- mat_cargas_raw[, 2]
+    vars_pos2 <- names(sort(cargas_f2[cargas_f2 >= corte_carga], decreasing = TRUE))
+    vars_neg2 <- names(sort(cargas_f2[cargas_f2 <= -corte_carga]))
+
+    f2_txt <- sprintf("  O Fator 2 responde por %s%% da variância explicada.", .fmt_f(prop_var_pct[2], 2))
+    if (length(vars_pos2) > 0 || length(vars_neg2) > 0) {
+      detalhes2 <- c()
+      if (length(vars_pos2) > 0) detalhes2 <- c(detalhes2, sprintf("cargas positivas em %s", paste(vars_pos2, collapse = ", ")))
+      if (length(vars_neg2) > 0) detalhes2 <- c(detalhes2, sprintf("cargas negativas em %s", paste(vars_neg2, collapse = ", ")))
+      f2_txt <- paste0(f2_txt, sprintf("\n  Destacam-se %s.", paste(detalhes2, collapse = " em oposição a ")))
+    }
+    cat(f2_txt, "\n\n")
+  }
+
+  # Avaliação das Comunalidades
+  media_h2 <- mean(comunalidades, na.rm = TRUE)
+  baixas_h2 <- names(comunalidades[comunalidades < 0.50])
+  if (media_h2 >= 0.60) {
+    cat(sprintf("  As comunalidades foram elevadas em geral (média de %s),\n  sinalizando que a estrutura fatorial retida explica satisfatoriamente a maioria dos itens.",
+                .fmt_f(media_h2, 2)))
+  } else {
+    cat(sprintf("  A comunalidade média foi de %s.", .fmt_f(media_h2, 2)))
+  }
+  if (length(baixas_h2) > 0) {
+    cat(sprintf("\n  Atenção para variáveis com comunalidade inferior a 0,50: %s (apresentam alta unicidade residual).",
+                paste(baixas_h2, collapse = ", ")))
+  }
+  cat("\n\n")
+
+  if (exists(".print_rodape", mode = "function")) {
+    .print_rodape()
+  } else {
+    cat(strrep("─", sum(w_crit) + 3), "\n\n")
+  }
+
+  # Objeto de retorno
+  res <- list(
+    cargas        = df_cargas,
+    comunalidades = comunalidades,
+    unicidades    = unicidades,
+    variancia     = df_variancia,
+    escores       = df_escores,
+    kmo           = list(
+      global = kmo_global,
+      classificacao_global = kmo_global_nivel,
+      por_variavel = data.frame(
+        Variavel = var_nomes,
+        KMO      = kmo_ind,
+        Nivel    = kmo_ind_nivel,
+        row.names = NULL,
+        stringsAsFactors = FALSE
+      )
+    ),
+    bartlett      = list(
+      qui_quadrado  = bart_chi2,
+      gl            = bart_df,
+      p_valor       = bart_p,
+      significativo = (!is.na(bart_p) && bart_p < 0.05)
+    ),
+    criterios     = list(
+      kaiser_sugerido  = kaiser_sugerido,
+      ap_sugerido      = ap_sugerido,
+      n_70_sugerido    = n_70_sugerido,
+      n_retidos        = n_retidos,
+      autovalores_simulados_p95 = ap_p95
+    ),
+    rotacao       = rot_ajuste,
+    metodo        = metodo,
+    fa            = fa_mod,
+    dados_originais = df_num
+  )
+  class(res) <- c("afe_estatR", "list")
+
+  if (grafico) {
+    tryCatch({
+      p_g <- cargasplot_fatorial(res, corte = corte_carga)
+      print(p_g)
+    }, error = function(e) {
+      message("[Aviso] Não foi possível gerar o gráfico de cargas: ", e$message)
+    })
+  }
+
+  invisible(res)
+}
+
+#' @rdname analise_fatorial
+#' @export
+afe <- analise_fatorial
+
+#' @title Gráfico de Cargas Fatoriais (Loadings Plot)
+#' @description Gera gráfico de barras das cargas fatoriais para cada fator retido.
+#' @param modelo Objeto retornado pela função \code{analise_fatorial()} ou \code{afe()}.
+#' @param corte Numérico. Linha de referência tracejada para cargas salientes (padrão: 0.30).
+#' @export
+cargasplot_fatorial <- function(modelo, corte = 0.30) {
+  if (!inherits(modelo, "afe_estatR")) {
+    stop("O argumento 'modelo' deve ser um objeto gerado pela função analise_fatorial() ou afe().")
+  }
+
+  n_fat <- length(modelo$variancia$Fator)
+  cargas_cols <- paste("Fator", seq_len(n_fat))
+
+  df_long <- stats::reshape(
+    modelo$cargas[, c("Variavel", cargas_cols)],
+    direction = "long",
+    varying   = cargas_cols,
+    v.names   = "Carga",
+    timevar   = "Fator",
+    times     = cargas_cols,
+    idvar     = "Variavel"
+  )
+
+  df_long$Sinal <- ifelse(df_long$Carga >= 0, "Positiva", "Negativa")
+
+  p <- ggplot2::ggplot(df_long, ggplot2::aes(x = Carga, y = reorder(Variavel, abs(Carga)), fill = Sinal)) +
+    ggplot2::geom_col(width = 0.65, alpha = 0.85) +
+    ggplot2::geom_vline(xintercept = 0, color = "black", linewidth = 0.5) +
+    ggplot2::geom_vline(xintercept = c(-corte, corte), linetype = "dashed", color = "#D90429", linewidth = 0.6) +
+    ggplot2::facet_wrap(~ Fator, scales = "free_x") +
+    ggplot2::scale_fill_manual(values = c("Positiva" = "#1D3557", "Negativa" = "#E63946")) +
+    ggplot2::labs(
+      title    = "Cargas Fatoriais (Loadings Plot)",
+      subtitle = sprintf("Rotação: %s | Linhas tracejadas no corte de ±%s", tools::toTitleCase(modelo$rotacao), formatC(corte, format = "f", digits = 2, decimal.mark = ",")),
+      x = "Carga Fatorial",
+      y = "Variável",
+      fill = "Direção"
+    )
+
+  if (exists("tema_estatR", mode = "function")) {
+    p <- p + tema_estatR(estilo = 2)
+  } else {
+    p <- p + ggplot2::theme_minimal()
+  }
+
+  p
+}
+
+#' @title Scree Plot da Análise Fatorial
+#' @description Gera gráfico Scree Plot com autovalores da matriz de correlação e Análise Paralela de Horn.
+#' @param modelo Objeto retornado pela função \code{analise_fatorial()} ou \code{afe()}.
+#' @param analise_paralela Lógico. Se TRUE, exibe a linha dos autovalores simulados (P95).
+#' @export
+screeplot_fatorial <- function(modelo, analise_paralela = TRUE) {
+  if (!inherits(modelo, "afe_estatR")) {
+    stop("O argumento 'modelo' deve ser um objeto gerado pela função analise_fatorial() ou afe().")
+  }
+
+  ev <- eigen(stats::cor(modelo$dados_originais), only.values = TRUE)$values
+  p_tot <- length(ev)
+
+  df_scree <- data.frame(
+    Fator_num = seq_len(p_tot),
+    Fator     = paste("F", seq_len(p_tot)),
+    Autovalor = ev
+  )
+
+  p <- ggplot2::ggplot(df_scree, ggplot2::aes(x = Fator_num, y = Autovalor)) +
+    ggplot2::geom_line(color = "#1D3557", linewidth = 1) +
+    ggplot2::geom_point(color = "#1D3557", size = 3) +
+    ggplot2::geom_hline(yintercept = 1.0, linetype = "dashed", color = "#D90429", linewidth = 0.8) +
+    ggplot2::scale_x_continuous(breaks = df_scree$Fator_num, labels = df_scree$Fator) +
+    ggplot2::labs(
+      title    = "Scree Plot — Análise Fatorial Exploratória",
+      subtitle = "Autovalores Observados vs Critério de Kaiser (linha vermelha: autovalor = 1)",
+      x = "Fator",
+      y = "Autovalor"
+    )
+
+  if (analise_paralela && !is.null(modelo$criterios$autovalores_simulados_p95) &&
+      !any(is.na(modelo$criterios$autovalores_simulados_p95))) {
+    df_ap <- data.frame(
+      Fator_num    = seq_along(modelo$criterios$autovalores_simulados_p95),
+      Autovalor_AP = modelo$criterios$autovalores_simulados_p95
+    )
+    p <- p +
+      ggplot2::geom_line(data = df_ap, ggplot2::aes(x = Fator_num, y = Autovalor_AP),
+                         color = "#457B9D", linetype = "dotted", linewidth = 1) +
+      ggplot2::geom_point(data = df_ap, ggplot2::aes(x = Fator_num, y = Autovalor_AP),
+                          color = "#457B9D", size = 2.5, shape = 17) +
+      ggplot2::labs(subtitle = "Linha azul contínua: Observado | Linha vermelha: Kaiser (1,0) | Linha pontilhada: Horn (P95 Simulado)")
+  }
+
+  if (exists("tema_estatR", mode = "function")) {
+    p <- p + tema_estatR(estilo = 2)
+  } else {
+    p <- p + ggplot2::theme_minimal()
+  }
+
+  p
+}
+
+#' @title Biplot da Análise Fatorial
+#' @description Gera gráfico Biplot 2D com escores das observações e vetores de cargas fatoriais.
+#' @param modelo Objeto retornado pela função \code{analise_fatorial()} ou \code{afe()}.
+#' @param grupo Vetor ou fator com grupos das observações (opcional).
+#' @param elipses Lógico. Se TRUE e 'grupo' informado, traça elipses de confiança 95%.
+#' @param escala Numérico. Fator de escala das setas das variáveis em relação aos escores.
+#' @param rotulos Lógico. Se TRUE, exibe os nomes das variáveis nas setas.
+#' @param f_x Inteiro. Fator do eixo X (padrão: 1).
+#' @param f_y Inteiro. Fator do eixo Y (padrão: 2).
+#' @export
+biplot_fatorial <- function(modelo,
+                            grupo   = NULL,
+                            elipses = TRUE,
+                            escala  = 0.7,
+                            rotulos = TRUE,
+                            f_x     = 1,
+                            f_y     = 2) {
+
+  if (!inherits(modelo, "afe_estatR")) {
+    stop("O argumento 'modelo' deve ser um objeto gerado pela função analise_fatorial() ou afe().")
+  }
+
+  n_fat <- length(modelo$variancia$Fator)
+  if (n_fat < 2) {
+    stop("O modelo deve ter pelo menos 2 fatores para gerar o Biplot 2D.")
+  }
+
+  if (f_x > n_fat || f_y > n_fat) {
+    stop("Os fatores selecionados excedem o número de fatores retidos no modelo.")
+  }
+
+  var_expl <- modelo$variancia$Var_Expl_Pct
+  nome_x <- paste("Fator", f_x)
+  nome_y <- paste("Fator", f_y)
+
+  scores_df <- as.data.frame(modelo$escores[, c(f_x, f_y), drop = FALSE])
+  colnames(scores_df) <- c("EixoX", "EixoY")
+
+  cargas_raw <- unclass(modelo$fa$loadings)[, c(f_x, f_y), drop = FALSE]
+  cargas_df  <- as.data.frame(cargas_raw)
+  colnames(cargas_df) <- c("EixoX", "EixoY")
+  cargas_df$Variavel  <- rownames(cargas_df)
+
+  max_scores <- max(abs(scores_df$EixoX), abs(scores_df$EixoY), na.rm = TRUE)
+  max_cargas <- max(abs(cargas_df$EixoX), abs(cargas_df$EixoY), na.rm = TRUE)
+  mult_escala <- (max_scores / max_cargas) * escala
+
+  cargas_df$X_fim <- cargas_df$EixoX * mult_escala
+  cargas_df$Y_fim <- cargas_df$EixoY * mult_escala
+
+  lab_x <- sprintf("Fator %d (%s%%)", f_x, formatC(var_expl[f_x], format = "f", digits = 1, decimal.mark = ","))
+  lab_y <- sprintf("Fator %d (%s%%)", f_y, formatC(var_expl[f_y], format = "f", digits = 1, decimal.mark = ","))
+
+  p <- ggplot2::ggplot()
+
+  if (!is.null(grupo)) {
+    scores_df$Grupo <- as.factor(grupo)
+    if (elipses && nlevels(scores_df$Grupo) > 1) {
+      p <- p + ggplot2::stat_ellipse(
+        data = scores_df,
+        ggplot2::aes(x = EixoX, y = EixoY, color = Grupo, fill = Grupo),
+        geom = "polygon", alpha = 0.1, linewidth = 0.5, level = 0.95
+      )
+    }
+    p <- p + ggplot2::geom_point(data = scores_df, ggplot2::aes(x = EixoX, y = EixoY, color = Grupo), size = 2.2, alpha = 0.75)
+  } else {
+    p <- p + ggplot2::geom_point(data = scores_df, ggplot2::aes(x = EixoX, y = EixoY), color = "#555555", size = 2, alpha = 0.65)
+  }
+
+  p <- p +
+    ggplot2::geom_vline(xintercept = 0, linetype = "dashed", color = "gray60", linewidth = 0.4) +
+    ggplot2::geom_hline(yintercept = 0, linetype = "dashed", color = "gray60", linewidth = 0.4)
+
+  p <- p + ggplot2::geom_segment(
+    data = cargas_df,
+    ggplot2::aes(x = 0, y = 0, xend = X_fim, yend = Y_fim),
+    color = "#D90429", linewidth = 0.8,
+    arrow = ggplot2::arrow(length = ggplot2::unit(0.25, "cm"), type = "closed")
+  )
+
+  if (rotulos) {
+    if (requireNamespace("ggrepel", quietly = TRUE)) {
+      p <- p + ggrepel::geom_text_repel(
+        data = cargas_df,
+        ggplot2::aes(x = X_fim, y = Y_fim, label = Variavel),
+        color = "#1D3557", size = 4, fontface = "bold", box.padding = 0.3
+      )
+    } else {
+      p <- p + ggplot2::geom_text(
+        data = cargas_df,
+        ggplot2::aes(x = X_fim * 1.08, y = Y_fim * 1.08, label = Variavel),
+        color = "#1D3557", size = 4, fontface = "bold"
+      )
+    }
+  }
+
+  p <- p + ggplot2::labs(
+    title    = "Biplot — Análise Fatorial Exploratória",
+    subtitle = paste0(lab_x, " vs ", lab_y, " (Rotação: ", tools::toTitleCase(modelo$rotacao), ")"),
+    x = lab_x, y = lab_y
+  )
+
+  if (exists("tema_estatR", mode = "function")) {
+    p <- p + tema_estatR(estilo = 2)
+  } else {
+    p <- p + ggplot2::theme_minimal()
+  }
+
+  p
+}

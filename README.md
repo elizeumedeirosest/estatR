@@ -310,6 +310,28 @@ screeplot_acp(modelo_acp)
 biplot_acp(modelo_acp, grupo = mtcars$cyl, elipses = TRUE)
 ```
 
+**Análise Fatorial Exploratória (AFE)**
+
+```r
+# Ajuste fatorial com rotação Varimax e método dos Eixos Principais
+modelo_afe <- analise_fatorial(mtcars, rotacao = "varimax", metodo = "pa")
+# ou abreviado: afe(mtcars)
+
+# Acesso direto aos elementos do modelo
+modelo_afe$cargas          # Cargas fatoriais, Comunalidades (h²) e Unicidades (u²)
+modelo_afe$comunalidades   # Vetor de comunalidades por variável
+modelo_afe$unicidades      # Vetor de unicidades por variável
+modelo_afe$variancia       # Variância explicada por fator rotacionado
+modelo_afe$escores         # Escores fatoriais individuais
+modelo_afe$kmo             # KMO global e individual por variável
+modelo_afe$bartlett        # Teste de Esfericidade de Bartlett
+
+# Gráficos dedicados
+cargasplot_fatorial(modelo_afe, corte = 0.30)   # Gráfico de barras das cargas
+screeplot_fatorial(modelo_afe)                 # Scree plot com Horn
+biplot_fatorial(modelo_afe, grupo = mtcars$cyl) # Biplot 2D com escores e cargas
+```
+
 </details>
 
 ---
