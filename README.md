@@ -285,6 +285,36 @@ dividir_dados(dados_serie, proporcao = 0.8, temporal = TRUE)
 ---
 
 <details>
+<summary><strong> Estatística Multivariada</strong></summary>
+<br>
+
+**Análise de Componentes Principais (ACP / PCA)**
+
+```r
+# Ajuste com diagnóstico completo (KMO, Bartlett, Kaiser, Horn)
+modelo_acp <- acp(mtcars)
+
+# Acesso direto aos elementos do modelo
+modelo_acp$autovalores     # Variância explicada e acumulada por componente
+modelo_acp$cargas          # Cargas dos componentes retidos (loadings)
+modelo_acp$escores         # Coordenadas/escores das observações
+modelo_acp$kmo             # KMO global e individual por variável
+modelo_acp$bartlett        # Teste de Esfericidade de Bartlett
+modelo_acp$criterios       # Comparação de retenção (Kaiser vs Análise Paralela)
+
+# Visualizações gráficas dedicadas
+biplot_acp(modelo_acp)
+screeplot_acp(modelo_acp)
+
+# Biplot com grupos e elipses de confiança
+biplot_acp(modelo_acp, grupo = mtcars$cyl, elipses = TRUE)
+```
+
+</details>
+
+---
+
+<details>
 <summary><strong> Amostragem</strong></summary>
 <br>
 
