@@ -332,6 +332,29 @@ screeplot_fatorial(modelo_afe)                 # Scree plot com Horn
 biplot_fatorial(modelo_afe, grupo = mtcars$cyl) # Biplot 2D com escores e cargas
 ```
 
+**Análise de Agrupamentos (Clustering: K-Means e Hierárquico)**
+
+```r
+# K-Means com otimização automática de nstart e busca de k ideal
+modelo_km <- cluster_kmeans(mtcars, k = 3)
+
+# Acesso aos elementos do modelo K-Means
+modelo_km$clusters          # Atribuição de cada observação ao cluster
+modelo_km$dados_cluster     # Dados originais com a coluna $Cluster anexada
+modelo_km$centroides        # Médias das variáveis por cluster (escala original)
+modelo_km$resumo            # Tamanho (n), proporção (%) e silhueta de cada grupo
+modelo_km$criterios_k       # WSS, Silhueta e Calinski-Harabasz de k = 2 a k_max
+modelo_km$diagnostico_nstart# Teste de estabilização de variância do nstart
+
+# Gráficos do K-Means
+plot_clusters(modelo_km, elipses = TRUE) # Projeção 2D com centroidas
+cotovelo_plot(modelo_km)                 # Método do Cotovelo e Silhueta por k
+
+# Cluster Hierárquico com corte em k e Dendrograma
+modelo_hc <- cluster_hierarquico(mtcars, k = 3, metodo_ligacao = "ward.D2")
+dendrograma(modelo_hc)                   # Dendrograma colorido
+```
+
 </details>
 
 ---

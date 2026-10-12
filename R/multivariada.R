@@ -1354,3 +1354,747 @@ biplot_fatorial <- function(modelo,
 
   p
 }
+
+
+# ==============================================================================
+# ANÁLISE DE AGRUPAMENTOS (CLUSTERING)
+# ==============================================================================
+
+#' @title Análise de Agrupamentos K-Means
+#' @description Realiza Análise de Agrupamentos pelo método K-Means com padronização,
+#' otimização automática de inicializações (nstart) por estabilização da inércia (WSS),
+#' avaliação de k por Silhueta Média e Calinski-Harabasz, tabela de centróides na escala original
+#' e interpretação automatizada.
+#' @param dados Data frame ou matriz com variáveis numéricas.
+#' @param k Inteiro opcional. Número de clusters. Se NULL (padrão), testa automaticamente
+#'   valores de 2 até \code{k_max} e seleciona o melhor k pela maior Silhueta Média.
+#' @param k_max Inteiro. Valor máximo de k avaliado na busca automática (padrão: 10).
+#' @param padronizar Lógico. Se TRUE (padrão), padroniza as variáveis por z-score (média 0, dp 1).
+#' @param nstart Inteiro opcional. Número de reinicializações aleatórias. Se NULL (padrão),
+#'   testa candidatos (5 a 100) e seleciona o menor nstart onde a variação relativa do WSS cai abaixo de 0,1%.
+#' @param grafico Lógico. Se TRUE, exibe automaticamente a projeção bidimensional dos clusters.
+#' @return Objeto da classe \code{kmeans_estatR} contendo:
+#'   \item{clusters}{Vetor de fatores com a atribuição de cada observação a um cluster}
+#'   \item{dados_cluster}{Data frame original com a coluna \code{Cluster} anexada}
+#'   \item{centroides}{Data frame com as médias das variáveis em cada cluster (escala original)}
+#'   \item{resumo}{Data frame com n, proporção (%) e silhueta média de cada cluster}
+#'   \item{criterios_k}{Data frame com k, WSS, Silhueta Média e Calinski-Harabasz para cada k avaliado}
+#'   \item{nstart_utilizado}{Valor de nstart utilizado no ajuste final}
+#'   \item{diagnostico_nstart}{Data frame com a variação do WSS entre os candidatos de nstart}
+#'   \item{silhueta_global}{Coeficiente médio de silhueta da partição final}
+#'   \item{qualidade}{Proporção da variância explicada entre clusters (BSS / TSS em %)}
+#'   \item{kmeans}{Objeto nativo retornado por stats::kmeans}
+#' @export
+cluster_kmeans <- function(dados,
+                           k          = NULL,
+                           k_max      = 10,
+                           padronizar = TRUE,
+                           nstart     = NULL,
+                           grafico    = FALSE) {
+
+  if (!requireNamespace("cluster", quietly = TRUE)) {
+    stop("O pacote 'cluster' e necessario. Instale com install.packages('cluster').")
+  }
+
+  # 1. Validação dos dados
+  if (!is.data.frame(dados) && !is.matrix(dados)) {
+    stop("O argumento 'dados' deve ser um data frame ou matriz.")
+  }
+
+  dados_df <- as.data.frame(dados)
+  cols_num <- vapply(dados_df, is.numeric, logical(1))
+  if (sum(cols_num) < 2) {
+    stop("São necessárias pelo menos 2 variáveis numéricas para a clusterização.")
+  }
+
+  df_num <- dados_df[, cols_num, drop = FALSE]
+  casos_completos <- stats::complete.cases(df_num)
+  if (sum(casos_completos) < nrow(df_num)) {
+    df_num   <- df_num[casos_completos, , drop = FALSE]
+    dados_df <- dados_df[casos_completos, , drop = FALSE]
+  }
+
+  n <- nrow(df_num)
+  p <- ncol(df_num)
+  var_nomes <- colnames(df_num)
+
+  # Dados padronizados (ou escala original)
+  df_sc <- if (padronizar) scale(df_num) else as.matrix(df_num)
+
+  # 2. Otimização ou definição do nstart
+  nstart_candidatos <- c(5, 10, 15, 20, 25, 50, 75, 100)
+  k_ref <- if (!is.null(k)) as.integer(k) else min(3, n - 1)
+
+  if (is.null(nstart)) {
+    wss_cands <- vapply(nstart_candidatos, function(ns) {
+      km_tmp <- suppressWarnings(stats::kmeans(df_sc, centers = k_ref, nstart = ns, iter.max = 300))
+      km_tmp$tot.withinss
+    }, numeric(1))
+
+    wss_norm <- wss_cands / max(wss_cands)
+    var_rel  <- c(Inf, abs(diff(wss_norm)) / (abs(wss_norm[-length(wss_norm)]) + 1e-10))
+    idx_est  <- which(var_rel < 0.001) # < 0.1% de variação relativa
+    nstart_final <- if (length(idx_est) > 0) nstart_candidatos[min(idx_est)] else 25
+
+    diag_nstart <- data.frame(
+      nstart  = nstart_candidatos,
+      WSS     = round(wss_cands, 4),
+      Var_Rel = round(var_rel * 100, 3)
+    )
+  } else {
+    nstart_final <- as.integer(nstart)
+    diag_nstart  <- data.frame(nstart = nstart_final, WSS = NA, Var_Rel = NA)
+  }
+
+  # 3. Avaliação de k (se k for NULL)
+  k_max_eval <- min(as.integer(k_max), n - 1)
+  k_seq <- 2:k_max_eval
+
+  dist_mat <- stats::dist(df_sc)
+
+  eval_wss <- numeric(length(k_seq))
+  eval_sil <- numeric(length(k_seq))
+  eval_ch  <- numeric(length(k_seq))
+
+  for (i in seq_along(k_seq)) {
+    ki <- k_seq[i]
+    km_i <- suppressWarnings(stats::kmeans(df_sc, centers = ki, nstart = nstart_final, iter.max = 300))
+    eval_wss[i] <- km_i$tot.withinss
+
+    sil_i <- cluster::silhouette(km_i$cluster, dist_mat)
+    eval_sil[i] <- mean(sil_i[, "sil_width"])
+
+    # Calinski-Harabasz: (BSS / (k - 1)) / (WSS / (n - k))
+    bss_i <- km_i$betweenss
+    wss_i <- km_i$tot.withinss
+    eval_ch[i] <- if (wss_i > 0) (bss_i / (ki - 1)) / (wss_i / (n - ki)) else NA
+  }
+
+  df_crit_k <- data.frame(
+    k                  = k_seq,
+    WSS                = eval_wss,
+    Silhueta_Media     = eval_sil,
+    Calinski_Harabasz  = eval_ch
+  )
+
+  k_sug_sil <- k_seq[which.max(eval_sil)]
+  k_sug_ch  <- k_seq[which.max(eval_ch)]
+
+  k_final <- if (!is.null(k)) {
+    min(max(2, as.integer(k)), n - 1)
+  } else {
+    k_sug_sil
+  }
+
+  # 4. Ajuste Final com k_final
+  set.seed(42)
+  km_final <- suppressWarnings(stats::kmeans(df_sc, centers = k_final, nstart = nstart_final, iter.max = 300))
+  clusters_vec <- km_final$cluster
+  clusters_fac <- factor(paste("Cluster", clusters_vec), levels = paste("Cluster", seq_len(k_final)))
+
+  # Silhueta de cada observação e por cluster
+  sil_obj <- cluster::silhouette(clusters_vec, dist_mat)
+  sil_global <- mean(sil_obj[, "sil_width"])
+  sil_por_cluster <- vapply(seq_len(k_final), function(ci) {
+    sub_sil <- sil_obj[clusters_vec == ci, "sil_width"]
+    if (length(sub_sil) > 0) mean(sub_sil) else 0
+  }, numeric(1))
+
+  # Tabela resumo de tamanho e silhueta
+  n_por_cluster   <- as.numeric(table(clusters_fac))
+  prop_por_cluster <- (n_por_cluster / n) * 100
+
+  df_resumo_clusters <- data.frame(
+    Cluster        = paste("Cluster", seq_len(k_final)),
+    N_Obs          = n_por_cluster,
+    Proporcao_Pct  = prop_por_cluster,
+    Silhueta_Media = sil_por_cluster,
+    stringsAsFactors = FALSE
+  )
+
+  # Centróides na escala original (médias)
+  centroides_orig <- as.data.frame(
+    stats::aggregate(df_num, by = list(Cluster = clusters_fac), FUN = mean)[, -1, drop = FALSE]
+  )
+  rownames(centroides_orig) <- paste("Cluster", seq_len(k_final))
+  df_centroides_t <- as.data.frame(t(centroides_orig))
+  df_centroides_t <- data.frame(
+    Variavel = rownames(df_centroides_t),
+    round(df_centroides_t, 2),
+    row.names = NULL,
+    stringsAsFactors = FALSE
+  )
+  colnames(df_centroides_t) <- c("Variavel", paste("Cluster", seq_len(k_final)))
+
+  # Qualidade da partição (BSS / TSS)
+  qualidade_pct <- (km_final$betweenss / km_final$totss) * 100
+
+  # Anexar Cluster aos dados
+  dados_com_cluster <- dados_df
+  dados_com_cluster$Cluster <- clusters_fac
+
+  # Helpers de formatação
+  .pad <- function(s, w, align = "center") {
+    s <- trimws(as.character(s))
+    pad <- w - nchar(s)
+    if (pad <= 0) return(s)
+    if (align == "left") return(paste0(s, strrep(" ", pad)))
+    if (align == "right") return(paste0(strrep(" ", pad), s))
+    paste0(strrep(" ", floor(pad/2)), s, strrep(" ", ceiling(pad/2)))
+  }
+  .fmt_f <- function(x, d = 2) formatC(x, format = "f", digits = d, decimal.mark = ",")
+
+  # ==========================================================================
+  # IMPRESSÃO NO CONSOLE
+  # ==========================================================================
+  if (exists(".print_titulo", mode = "function")) {
+    .print_titulo("ANÁLISE DE AGRUPAMENTOS (K-MEANS CLUSTERING)")
+  } else {
+    cat("\n── ANÁLISE DE AGRUPAMENTOS (K-MEANS CLUSTERING) ──\n")
+  }
+
+  # SEÇÃO: CRITÉRIOS DE ESCOLHA DO NÚMERO DE CLUSTERS (k)
+  if (exists(".print_topico", mode = "function")) {
+    .print_topico("CRITÉRIOS DE ESCOLHA DO NÚMERO DE CLUSTERS (k)")
+  } else {
+    cat("\n▶ CRITÉRIOS DE ESCOLHA DO NÚMERO DE CLUSTERS (k)\n")
+  }
+
+  w_crit <- c(k = 8, wss = 26, sil = 20, ch = 24)
+  sep_crit <- paste0("  ", strrep("─", sum(w_crit) + 3))
+  cat(sep_crit, "\n")
+  cat("  ",
+      .pad("k", w_crit["k"], "left"),
+      .pad("WSS (Inércia Interna)", w_crit["wss"], "center"),
+      .pad("Silhueta Média", w_crit["sil"], "center"),
+      .pad("Calinski-Harabasz (CH)", w_crit["ch"], "center"),
+      "\n", sep = "")
+  cat(sep_crit, "\n")
+
+  n_show_crit <- min(nrow(df_crit_k), 6)
+  for (i in seq_len(n_show_crit)) {
+    cat("  ",
+        .pad(as.character(df_crit_k$k[i]), w_crit["k"], "left"),
+        .pad(.fmt_f(df_crit_k$WSS[i], 2), w_crit["wss"], "center"),
+        .pad(.fmt_f(df_crit_k$Silhueta_Media[i], 3), w_crit["sil"], "center"),
+        .pad(.fmt_f(df_crit_k$Calinski_Harabasz[i], 2), w_crit["ch"], "center"),
+        "\n", sep = "")
+  }
+  if (nrow(df_crit_k) > n_show_crit) {
+    cat("  ", .pad("...", w_crit["k"], "left"), .pad("...", w_crit["wss"], "center"),
+        .pad("...", w_crit["sil"], "center"), .pad("...", w_crit["ch"], "center"), "\n", sep = "")
+  }
+  cat(sep_crit, "\n")
+  if (is.null(nstart)) {
+    cat(sprintf("  * nstart utilizado: %d (estabilização automática com variação relativa < 0,1%%).\n", nstart_final))
+  } else {
+    cat(sprintf("  * nstart utilizado: %d (definido manualmente).\n", nstart_final))
+  }
+  cat(sprintf("  * Sugestão por Silhueta Média: k = %d | Sugestão por Calinski-Harabasz: k = %d.\n\n", k_sug_sil, k_sug_ch))
+
+  # SEÇÃO: RESUMO DOS CLUSTERS FORMADOS
+  if (exists(".print_topico", mode = "function")) {
+    .print_topico(sprintf("RESUMO DOS CLUSTERS FORMADOS (k = %d)", k_final))
+  } else {
+    cat(sprintf("\n▶ RESUMO DOS CLUSTERS FORMADOS (k = %d)\n", k_final))
+  }
+
+  w_res <- c(cl = 16, n = 24, prop = 18, sil = 18)
+  sep_res <- paste0("  ", strrep("─", sum(w_res) + 3))
+  cat(sep_res, "\n")
+  cat("  ",
+      .pad("Cluster", w_res["cl"], "left"),
+      .pad("Nº Observações (n)", w_res["n"], "center"),
+      .pad("Proporção (%)", w_res["prop"], "center"),
+      .pad("Silhueta Média", w_res["sil"], "center"),
+      "\n", sep = "")
+  cat(sep_res, "\n")
+  for (i in seq_len(k_final)) {
+    cat("  ",
+        .pad(df_resumo_clusters$Cluster[i], w_res["cl"], "left"),
+        .pad(as.character(df_resumo_clusters$N_Obs[i]), w_res["n"], "center"),
+        .pad(paste0(.fmt_f(df_resumo_clusters$Proporcao_Pct[i], 2), "%"), w_res["prop"], "center"),
+        .pad(.fmt_f(df_resumo_clusters$Silhueta_Media[i], 3), w_res["sil"], "center"),
+        "\n", sep = "")
+  }
+  cat(sep_res, "\n")
+  cat(sprintf("  Qualidade do Ajuste (BSS / TSS): %s%%\n", .fmt_f(qualidade_pct, 2)))
+  cat(sprintf("  Silhueta Média Global: %s\n", .fmt_f(sil_global, 3)))
+  cat("  Nota da Silhueta: > 0,70 Forte | 0,51 - 0,70 Razoável | 0,26 - 0,50 Fraca | <= 0,25 Sem estrutura\n\n")
+
+  # SEÇÃO: PERFIL DOS CENTRÓIDES
+  if (exists(".print_topico", mode = "function")) {
+    .print_topico("PERFIL DOS CENTRÓIDES (MÉDIAS NA ESCALA ORIGINAL)")
+  } else {
+    cat("\n▶ PERFIL DOS CENTRÓIDES (MÉDIAS NA ESCALA ORIGINAL)\n")
+  }
+
+  w_var_cl <- 22
+  w_col_cl <- max(12, min(16, floor((54 - w_var_cl) / k_final)))
+  largura_cent <- w_var_cl + k_final * (w_col_cl + 1)
+  sep_cent <- paste0("  ", strrep("─", largura_cent))
+
+  cat(sep_cent, "\n")
+  cat("  ", .pad("Variável", w_var_cl, "left"))
+  for (ci in seq_len(k_final)) {
+    cat(.pad(paste("Cluster", ci), w_col_cl, "center"))
+  }
+  cat("\n")
+  cat(sep_cent, "\n")
+
+  for (i in seq_along(var_nomes)) {
+    cat("  ", .pad(var_nomes[i], w_var_cl, "left"))
+    for (ci in seq_len(k_final)) {
+      val <- centroides_orig[ci, var_nomes[i]]
+      cat(.pad(.fmt_f(val, 2), w_col_cl, "center"))
+    }
+    cat("\n")
+  }
+  cat(sep_cent, "\n")
+  cat("  * Médias calculadas nos dados originais para interpretação prática.\n\n")
+
+  # SEÇÃO: INTERPRETAÇÃO
+  if (exists(".print_topico", mode = "function")) {
+    .print_topico("INTERPRETAÇÃO")
+  } else {
+    cat("\n▶ INTERPRETAÇÃO\n")
+  }
+
+  padrao_txt <- if (padronizar) {
+    "Os dados foram padronizados por z-score para garantir pesos equivalentes entre variáveis com diferentes escalas."
+  } else {
+    "Os dados foram utilizados em sua escala original (não padronizados)."
+  }
+
+  nstart_txt <- if (is.null(nstart)) {
+    sprintf("A busca automática de estabilização da inércia interna convergiu para nstart = %d.", nstart_final)
+  } else {
+    sprintf("O modelo utilizou nstart = %d definido pelo usuário.", nstart_final)
+  }
+
+  cat(sprintf("  %s\n  %s\n\n", padrao_txt, nstart_txt))
+
+  cat(sprintf("  A avaliação dos critérios estatísticos convergiu para uma partição com k = %d clusters,\n  que é responsável por explicar %s%% da variância total da amostra entre os grupos.\n\n",
+              k_final, .fmt_f(qualidade_pct, 2)))
+
+  # Descrição dos perfis de cada cluster
+  for (ci in seq_len(k_final)) {
+    cl_n <- df_resumo_clusters$N_Obs[ci]
+    cl_pct <- df_resumo_clusters$Proporcao_Pct[ci]
+
+    # Encontrar variáveis de destaque comparando média do cluster com média global
+    diff_rel <- (as.numeric(centroides_orig[ci, ]) - colMeans(df_num)) / apply(df_num, 2, stats::sd)
+    names(diff_rel) <- var_nomes
+
+    vars_altas  <- names(sort(diff_rel[diff_rel > 0.4], decreasing = TRUE))
+    vars_baixas <- names(sort(diff_rel[diff_rel < -0.4]))
+
+    txt_cl <- sprintf("  O Cluster %d (%s%% da base, n = %d)", ci, .fmt_f(cl_pct, 2), cl_n)
+    detalhes <- c()
+    if (length(vars_altas) > 0) detalhes <- c(detalhes, sprintf("médias acima do padrão global em %s", paste(vars_altas, collapse = ", ")))
+    if (length(vars_baixas) > 0) detalhes <- c(detalhes, sprintf("médias reduzidas em %s", paste(vars_baixas, collapse = ", ")))
+
+    if (length(detalhes) > 0) {
+      txt_cl <- paste0(txt_cl, sprintf(" caracteriza-se por %s.", paste(detalhes, collapse = " contrapostas a ")))
+    } else {
+      txt_cl <- paste0(txt_cl, " reflete observações com características próximas da média geral da amostra.")
+    }
+    cat(txt_cl, "\n\n")
+  }
+
+  classif_sil <- if (sil_global > 0.70) "forte separação e estrutura coesa dos grupos"
+                 else if (sil_global > 0.50) "boa separação entre os grupos e razoável coesão interna"
+                 else if (sil_global > 0.25) "separação moderada entre os centróides, com alguma sobreposição nas bordas"
+                 else "estrutura fraca ou artificial de agrupamento"
+
+  cat(sprintf("  A silhueta média global de %s reflete %s.", .fmt_f(sil_global, 3), classif_sil))
+  cat("\n\n")
+
+  if (exists(".print_rodape", mode = "function")) {
+    .print_rodape()
+  } else {
+    cat(strrep("─", sum(w_crit) + 3), "\n\n")
+  }
+
+  res <- list(
+    clusters           = clusters_fac,
+    dados_cluster      = dados_com_cluster,
+    centroides         = df_centroides_t,
+    resumo             = df_resumo_clusters,
+    criterios_k        = df_crit_k,
+    nstart_utilizado   = nstart_final,
+    diagnostico_nstart = diag_nstart,
+    silhueta_global    = sil_global,
+    qualidade          = qualidade_pct,
+    kmeans             = km_final,
+    dados_originais    = df_num
+  )
+  class(res) <- c("kmeans_estatR", "list")
+
+  if (grafico) {
+    tryCatch({
+      p_g <- plot_clusters(res)
+      print(p_g)
+    }, error = function(e) {
+      message("[Aviso] Não foi possível gerar o gráfico de clusters: ", e$message)
+    })
+  }
+
+  invisible(res)
+}
+
+#' @title Análise de Agrupamentos Hierárquica
+#' @description Realiza Análise de Agrupamentos Hierárquica aglomerativa com matriz de distâncias,
+#' método de ligação selecionável, cálculo de silhueta e corte de árvore.
+#' @param dados Data frame ou matriz contendo variáveis numéricas.
+#' @param k Inteiro opcional. Número de clusters para corte da árvore. Se NULL (padrão),
+#'   sugere k = 3 como corte inicial.
+#' @param metodo_dist Caractere com método de distância: \code{"euclidean"} (padrão),
+#'   \code{"manhattan"}, \code{"maximum"}, \code{"canberra"}.
+#' @param metodo_ligacao Caractere com método de ligação: \code{"ward.D2"} (padrão),
+#'   \code{"complete"}, \code{"average"}, \code{"single"}.
+#' @param padronizar Lógico. Se TRUE (padrão), padroniza as variáveis por z-score.
+#' @param grafico Lógico. Se TRUE, gera o dendrograma colorido.
+#' @return Objeto da classe \code{hclust_estatR} contendo:
+#'   \item{clusters}{Vetor de fatores com a atribuição de cluster de cada observação}
+#'   \item{dados_cluster}{Data frame original com a coluna \code{Cluster} anexada}
+#'   \item{centroides}{Data frame com as médias das variáveis em cada cluster (escala original)}
+#'   \item{resumo}{Data frame com tamanho e proporção de cada cluster}
+#'   \item{silhueta_global}{Coeficiente médio de silhueta para o corte em k}
+#'   \item{hclust}{Objeto nativo stats::hclust}
+#'   \item{dist}{Matriz de distâncias stats::dist}
+#' @export
+cluster_hierarquico <- function(dados,
+                                k              = NULL,
+                                metodo_dist    = "euclidean",
+                                metodo_ligacao = "ward.D2",
+                                padronizar     = TRUE,
+                                grafico        = FALSE) {
+
+  if (!requireNamespace("cluster", quietly = TRUE)) {
+    stop("O pacote 'cluster' e necessario. Instale com install.packages('cluster').")
+  }
+
+  if (!is.data.frame(dados) && !is.matrix(dados)) {
+    stop("O argumento 'dados' deve ser um data frame ou matriz.")
+  }
+
+  dados_df <- as.data.frame(dados)
+  cols_num <- vapply(dados_df, is.numeric, logical(1))
+  if (sum(cols_num) < 2) {
+    stop("São necessárias pelo menos 2 variáveis numéricas para a clusterização.")
+  }
+
+  df_num <- dados_df[, cols_num, drop = FALSE]
+  casos_completos <- stats::complete.cases(df_num)
+  if (sum(casos_completos) < nrow(df_num)) {
+    df_num   <- df_num[casos_completos, , drop = FALSE]
+    dados_df <- dados_df[casos_completos, , drop = FALSE]
+  }
+
+  n <- nrow(df_num)
+  p <- ncol(df_num)
+  var_nomes <- colnames(df_num)
+
+  df_sc <- if (padronizar) scale(df_num) else as.matrix(df_num)
+  dist_obj <- stats::dist(df_sc, method = metodo_dist)
+
+  hc_mod <- stats::hclust(dist_obj, method = metodo_ligacao)
+
+  k_final <- if (!is.null(k)) min(max(2, as.integer(k)), n - 1) else 3
+  clusters_vec <- stats::cutree(hc_mod, k = k_final)
+  clusters_fac <- factor(paste("Cluster", clusters_vec), levels = paste("Cluster", seq_len(k_final)))
+
+  sil_obj <- cluster::silhouette(clusters_vec, dist_obj)
+  sil_global <- mean(sil_obj[, "sil_width"])
+
+  # Tabela resumo
+  n_cl <- as.numeric(table(clusters_fac))
+  prop_cl <- (n_cl / n) * 100
+
+  df_resumo <- data.frame(
+    Cluster       = paste("Cluster", seq_len(k_final)),
+    N_Obs         = n_cl,
+    Proporcao_Pct = prop_cl,
+    stringsAsFactors = FALSE
+  )
+
+  # Centróides na escala original
+  centroides_orig <- as.data.frame(
+    stats::aggregate(df_num, by = list(Cluster = clusters_fac), FUN = mean)[, -1, drop = FALSE]
+  )
+  rownames(centroides_orig) <- paste("Cluster", seq_len(k_final))
+  df_centroides_t <- as.data.frame(t(centroides_orig))
+  df_centroides_t <- data.frame(
+    Variavel = rownames(df_centroides_t),
+    round(df_centroides_t, 2),
+    row.names = NULL,
+    stringsAsFactors = FALSE
+  )
+  colnames(df_centroides_t) <- c("Variavel", paste("Cluster", seq_len(k_final)))
+
+  dados_com_cluster <- dados_df
+  dados_com_cluster$Cluster <- clusters_fac
+
+  .pad <- function(s, w, align = "center") {
+    s <- trimws(as.character(s))
+    pad <- w - nchar(s)
+    if (pad <= 0) return(s)
+    if (align == "left") return(paste0(s, strrep(" ", pad)))
+    if (align == "right") return(paste0(strrep(" ", pad), s))
+    paste0(strrep(" ", floor(pad/2)), s, strrep(" ", ceiling(pad/2)))
+  }
+  .fmt_f <- function(x, d = 2) formatC(x, format = "f", digits = d, decimal.mark = ",")
+
+  # Console output
+  if (exists(".print_titulo", mode = "function")) {
+    .print_titulo("ANÁLISE DE AGRUPAMENTOS HIERÁRQUICA")
+  } else {
+    cat("\n── ANÁLISE DE AGRUPAMENTOS HIERÁRQUICA ──\n")
+  }
+
+  if (exists(".print_topico", mode = "function")) {
+    .print_topico("PARÂMETROS DO AGRUPAMENTO")
+  } else {
+    cat("\n▶ PARÂMETROS DO AGRUPAMENTO\n")
+  }
+
+  cat(sprintf("  Método de Distância: %s\n", tools::toTitleCase(metodo_dist)))
+  cat(sprintf("  Método de Ligação:   %s\n", metodo_ligacao))
+  cat(sprintf("  Número de Clusters:  %d (corte na árvore)\n", k_final))
+  cat(sprintf("  Silhueta Global:     %s\n\n", .fmt_f(sil_global, 3)))
+
+  if (exists(".print_topico", mode = "function")) {
+    .print_topico(sprintf("RESUMO DOS CLUSTERS (k = %d)", k_final))
+  } else {
+    cat(sprintf("\n▶ RESUMO DOS CLUSTERS (k = %d)\n", k_final))
+  }
+
+  w_res <- c(cl = 16, n = 24, prop = 18)
+  sep_res <- paste0("  ", strrep("─", sum(w_res) + 3))
+  cat(sep_res, "\n")
+  cat("  ", .pad("Cluster", w_res["cl"], "left"), .pad("Nº Observações (n)", w_res["n"], "center"), .pad("Proporção (%)", w_res["prop"], "center"), "\n", sep = "")
+  cat(sep_res, "\n")
+  for (i in seq_len(k_final)) {
+    cat("  ",
+        .pad(df_resumo$Cluster[i], w_res["cl"], "left"),
+        .pad(as.character(df_resumo$N_Obs[i]), w_res["n"], "center"),
+        .pad(paste0(.fmt_f(df_resumo$Proporcao_Pct[i], 2), "%"), w_res["prop"], "center"),
+        "\n", sep = "")
+  }
+  cat(sep_res, "\n\n")
+
+  if (exists(".print_topico", mode = "function")) {
+    .print_topico("PERFIL DOS CENTRÓIDES (MÉDIAS NA ESCALA ORIGINAL)")
+  } else {
+    cat("\n▶ PERFIL DOS CENTRÓIDES (MÉDIAS NA ESCALA ORIGINAL)\n")
+  }
+
+  w_var_cl <- 22
+  w_col_cl <- max(12, min(16, floor((54 - w_var_cl) / k_final)))
+  largura_cent <- w_var_cl + k_final * (w_col_cl + 1)
+  sep_cent <- paste0("  ", strrep("─", largura_cent))
+
+  cat(sep_cent, "\n")
+  cat("  ", .pad("Variável", w_var_cl, "left"))
+  for (ci in seq_len(k_final)) {
+    cat(.pad(paste("Cluster", ci), w_col_cl, "center"))
+  }
+  cat("\n")
+  cat(sep_cent, "\n")
+
+  for (i in seq_along(var_nomes)) {
+    cat("  ", .pad(var_nomes[i], w_var_cl, "left"))
+    for (ci in seq_len(k_final)) {
+      val <- centroides_orig[ci, var_nomes[i]]
+      cat(.pad(.fmt_f(val, 2), w_col_cl, "center"))
+    }
+    cat("\n")
+  }
+  cat(sep_cent, "\n")
+  cat("  * Médias calculadas nos dados originais para interpretação prática.\n\n")
+
+  if (exists(".print_topico", mode = "function")) {
+    .print_topico("INTERPRETAÇÃO")
+  } else {
+    cat("\n▶ INTERPRETAÇÃO\n")
+  }
+
+  cat(sprintf("  O agrupamento hierárquico aglomerativo foi construído utilizando distância %s\n  e método de ligação %s sobre dados %s.\n\n",
+              tools::toTitleCase(metodo_dist), metodo_ligacao,
+              if (padronizar) "padronizados (z-score)" else "originais"))
+
+  cat(sprintf("  O corte da árvore gerou %d clusters com silhueta média de %s.\n", k_final, .fmt_f(sil_global, 3)))
+  cat(sprintf("  A maior partição é o %s (%s%% das observações), e o menor é o %s (%s%%).\n\n",
+              df_resumo$Cluster[which.max(df_resumo$N_Obs)], .fmt_f(max(df_resumo$Proporcao_Pct), 1),
+              df_resumo$Cluster[which.min(df_resumo$N_Obs)], .fmt_f(min(df_resumo$Proporcao_Pct), 1)))
+
+  if (exists(".print_rodape", mode = "function")) {
+    .print_rodape()
+  } else {
+    cat(strrep("─", sum(w_res) + 3), "\n\n")
+  }
+
+  res <- list(
+    clusters        = clusters_fac,
+    dados_cluster   = dados_com_cluster,
+    centroides      = df_centroides_t,
+    resumo          = df_resumo,
+    silhueta_global = sil_global,
+    hclust          = hc_mod,
+    dist            = dist_obj,
+    dados_originais = df_num
+  )
+  class(res) <- c("hclust_estatR", "list")
+
+  if (grafico) {
+    tryCatch({
+      p_g <- dendrograma(res)
+      print(p_g)
+    }, error = function(e) {
+      message("[Aviso] Não foi possível gerar o dendrograma: ", e$message)
+    })
+  }
+
+  invisible(res)
+}
+
+#' @title Projeção 2D dos Clusters (K-Means)
+#' @description Gera gráfico de dispersão 2D dos clusters projetados nas duas primeiras Componentes Principais (PC1 x PC2),
+#' com elipses de 95% e os centróides em destaque.
+#' @param modelo Objeto retornado pela função \code{cluster_kmeans()}.
+#' @param elipses Lógico. Se TRUE (padrão), exibe elipses de confiança 95% para cada cluster.
+#' @export
+plot_clusters <- function(modelo, elipses = TRUE) {
+  if (!inherits(modelo, "kmeans_estatR")) {
+    stop("O argumento 'modelo' deve ser um objeto gerado pela função cluster_kmeans().")
+  }
+
+  pca_proj <- stats::prcomp(modelo$dados_originais, center = TRUE, scale. = TRUE)
+  scores_df <- as.data.frame(pca_proj$x[, 1:2, drop = FALSE])
+  colnames(scores_df) <- c("PC1", "PC2")
+  scores_df$Cluster <- modelo$clusters
+
+  # Calcular centróides na projeção PCA
+  cent_pca <- stats::aggregate(scores_df[, c("PC1", "PC2")], by = list(Cluster = scores_df$Cluster), FUN = mean)
+
+  var_pca <- round((pca_proj$sdev^2 / sum(pca_proj$sdev^2)) * 100, 1)
+
+  p <- ggplot2::ggplot(scores_df, ggplot2::aes(x = PC1, y = PC2, color = Cluster, fill = Cluster))
+
+  if (elipses && nlevels(scores_df$Cluster) > 1) {
+    p <- p + ggplot2::stat_ellipse(geom = "polygon", alpha = 0.12, linewidth = 0.5, level = 0.95)
+  }
+
+  p <- p +
+    ggplot2::geom_point(size = 2.4, alpha = 0.75) +
+    ggplot2::geom_point(data = cent_pca, ggplot2::aes(x = PC1, y = PC2),
+                        color = "black", shape = 3, size = 5, stroke = 2, inherit.aes = FALSE) +
+    ggplot2::geom_vline(xintercept = 0, linetype = "dashed", color = "gray60", linewidth = 0.4) +
+    ggplot2::geom_hline(yintercept = 0, linetype = "dashed", color = "gray60", linewidth = 0.4) +
+    ggplot2::labs(
+      title    = "Projeção 2D dos Clusters (K-Means)",
+      subtitle = sprintf("Projeção em PC1 (%s%%) e PC2 (%s%%) | Símbolo '+': Centróides", var_pca[1], var_pca[2]),
+      x = sprintf("PC1 (%s%%)", var_pca[1]),
+      y = sprintf("PC2 (%s%%)", var_pca[2])
+    )
+
+  if (exists("tema_estatR", mode = "function")) {
+    p <- p + tema_estatR(estilo = 2)
+  } else {
+    p <- p + ggplot2::theme_minimal()
+  }
+
+  p
+}
+
+#' @title Gráfico do Cotovelo e Silhueta (K-Means)
+#' @description Gera gráfico de linha comparativo do método do Cotovelo (WSS) e Silhueta Média por k.
+#' @param modelo Objeto retornado pela função \code{cluster_kmeans()}.
+#' @export
+cotovelo_plot <- function(modelo) {
+  if (!inherits(modelo, "kmeans_estatR")) {
+    stop("O argumento 'modelo' deve ser um objeto gerado pela função cluster_kmeans().")
+  }
+
+  df_k <- modelo$criterios_k
+  k_sel <- length(levels(modelo$clusters))
+
+  p1 <- ggplot2::ggplot(df_k, ggplot2::aes(x = k, y = WSS)) +
+    ggplot2::geom_line(color = "#1D3557", linewidth = 1) +
+    ggplot2::geom_point(color = "#1D3557", size = 2.8) +
+    ggplot2::geom_vline(xintercept = k_sel, linetype = "dashed", color = "#D90429", linewidth = 0.7) +
+    ggplot2::scale_x_continuous(breaks = df_k$k) +
+    ggplot2::labs(
+      title = "Método do Cotovelo (Inércia WSS)",
+      x = "Número de Clusters (k)", y = "WSS"
+    )
+
+  p2 <- ggplot2::ggplot(df_k, ggplot2::aes(x = k, y = Silhueta_Media)) +
+    ggplot2::geom_line(color = "#457B9D", linewidth = 1) +
+    ggplot2::geom_point(color = "#457B9D", size = 2.8) +
+    ggplot2::geom_vline(xintercept = k_sel, linetype = "dashed", color = "#D90429", linewidth = 0.7) +
+    ggplot2::scale_x_continuous(breaks = df_k$k) +
+    ggplot2::labs(
+      title = "Silhueta Média por k",
+      x = "Número de Clusters (k)", y = "Silhueta Média"
+    )
+
+  if (exists("tema_estatR", mode = "function")) {
+    p1 <- p1 + tema_estatR(estilo = 2)
+    p2 <- p2 + tema_estatR(estilo = 2)
+  } else {
+    p1 <- p1 + ggplot2::theme_minimal()
+    p2 <- p2 + ggplot2::theme_minimal()
+  }
+
+  if (requireNamespace("patchwork", quietly = TRUE)) {
+    patchwork::wrap_plots(p1, p2, ncol = 2)
+  } else {
+    p1
+  }
+}
+
+#' @title Dendrograma do Cluster Hierárquico
+#' @description Plota dendrograma formatado do agrupamento hierárquico com ramos coloridos por cluster.
+#' @param modelo Objeto retornado pela função \code{cluster_hierarquico()}.
+#' @param k Inteiro opcional. Número de clusters para corte e coloração.
+#' @export
+dendrograma <- function(modelo, k = NULL) {
+  if (!inherits(modelo, "hclust_estatR")) {
+    stop("O argumento 'modelo' deve ser um objeto gerado pela função cluster_hierarquico().")
+  }
+
+  k_val <- if (!is.null(k)) as.integer(k) else length(levels(modelo$clusters))
+
+  # Usar ggdendro se disponível ou stats::plot
+  if (requireNamespace("ggdendro", quietly = TRUE)) {
+    dend_data <- ggdendro::dendro_data(modelo$hclust, type = "rectangle")
+    
+    p <- ggplot2::ggplot() +
+      ggplot2::geom_segment(data = ggdendro::segment(dend_data),
+                            ggplot2::aes(x = x, y = y, xend = xend, yend = yend),
+                            color = "#1D3557", linewidth = 0.7) +
+      ggplot2::geom_text(data = ggdendro::label(dend_data),
+                         ggplot2::aes(x = x, y = y, label = label),
+                         hjust = 1, angle = 90, size = 3.2, vjust = 0.5) +
+      ggplot2::labs(
+        title    = "Dendrograma de Agrupamento Hierárquico",
+        subtitle = sprintf("Método de Ligação: %s | Corte em k = %d grupos", modelo$hclust$method, k_val),
+        x = "Observações", y = "Distância / Altura"
+      )
+
+    if (exists("tema_estatR", mode = "function")) {
+      p <- p + tema_estatR(estilo = 2) +
+        ggplot2::theme(axis.text.x = ggplot2::element_blank(), axis.ticks.x = ggplot2::element_blank())
+    } else {
+      p <- p + ggplot2::theme_minimal() +
+        ggplot2::theme(axis.text.x = ggplot2::element_blank(), axis.ticks.x = ggplot2::element_blank())
+    }
+    return(p)
+  } else {
+    graphics::plot(modelo$hclust, hang = -1, main = "Dendrograma — Agrupamento Hierárquico",
+                   xlab = "Observações", ylab = "Distância / Altura", sub = "")
+    graphics::rect.hclust(modelo$hclust, k = k_val, border = "#D90429")
+  }
+}
