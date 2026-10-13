@@ -373,6 +373,33 @@ modelo_manova$modelo_manova       # Objeto nativo manova do R
 plot_manova(modelo_manova)
 ```
 
+**Análise Discriminante Linear (LDA)**
+
+```r
+# Sintaxe 1 (sem aspas):
+modelo_lda <- analise_discriminante(c(Sepal.Length, Sepal.Width, Petal.Length, Petal.Width), grupo = Species, dados = iris)
+
+# Sintaxe 2 (com aspas):
+modelo_lda <- analise_discriminante(variaveis = c("Sepal.Length", "Sepal.Width"), grupo = "Species", dados = iris)
+
+# Sintaxe 3 (omitindo variaveis — seleciona todas as preditoras numéricas):
+modelo_lda <- analise_discriminante(dados = iris, grupo = Species)
+# ou pelo alias: discriminante(...)
+
+# Acesso direto aos elementos do modelo
+modelo_lda$funcoes_autovalores   # Autovalores, variância explicada (%) e correlação canônica
+modelo_lda$scaling               # Coeficientes das funções discriminantes lineares
+modelo_lda$matriz_confusao       # Matriz de confusão (resubstituição)
+modelo_lda$metricas              # Acurácia, Erro, Kappa, Sensibilidade, Precisão e F1-Score (Treino vs CV)
+modelo_lda$box_m                 # Teste M de Box (Homogeneidade de Covariâncias)
+modelo_lda$escores               # Coordenadas/escores individuais projetados nas funções discriminantes
+modelo_lda$modelo_lda            # Objeto nativo MASS::lda
+
+# Biplot Discriminante com elipses e vetores direcionais (tema 2 com grade dupla)
+plot_discriminante(modelo_lda)
+# ou pelo alias: biplot_lda(modelo_lda, elipses = TRUE, vetores = TRUE)
+```
+
 </details>
 
 ---

@@ -2588,10 +2588,649 @@ plot_manova <- function(modelo) {
     )
 
   if (exists("tema_estatR", mode = "function")) {
-    p <- p + tema_estatR(estilo = 2)
+    p <- p + tema_estatR(estilo = 2, grade = "dupla")
   } else {
     p <- p + ggplot2::theme_minimal()
   }
 
   p
 }
+
+# ==============================================================================
+# MÓDULO 5: ANÁLISE DISCRIMINANTE (LDA / QDA)
+# ==============================================================================
+
+# Helper interno: cálculo de métricas de classificação
+.calc_metricas_classif <- function(tab) {
+  N   <- sum(tab)
+  acc <- sum(diag(tab)) / N
+  err <- 1 - acc
+  
+  # Kappa de Cohen
+  p_o   <- acc
+  p_e   <- sum(rowSums(tab) * colSums(tab)) / (N^2)
+  kappa <- if (p_e < 1) (p_o - p_e) / (1 - p_e) else 1
+  
+  # Macro Sensibilidade, Precisão e F1
+  k        <- nrow(tab)
+  sens_vec <- numeric(k)
+  prec_vec <- numeric(k)
+  f1_vec   <- numeric(k)
+  
+  for (i in seq_len(k)) {
+    tp <- tab[i, i]
+    fn <- sum(tab[i, -i])
+    fp <- sum(tab[-i, i])
+    
+    sens_vec[i] <- if (tp + fn > 0) tp / (tp + fn) else NA
+    prec_vec[i] <- if (tp + fp > 0) tp / (tp + fp) else NA
+    
+    if (!is.na(sens_vec[i]) && !is.na(prec_vec[i]) && (sens_vec[i] + prec_vec[i] > 0)) {
+      f1_vec[i] <- 2 * (sens_vec[i] * prec_vec[i]) / (sens_vec[i] + prec_vec[i])
+    } else {
+      f1_vec[i] <- 0
+    }
+  }
+  
+  list(
+    acuracia      = acc,
+    taxa_erro     = err,
+    kappa         = kappa,
+    sensibilidade = mean(sens_vec, na.rm = TRUE),
+    precisao      = mean(prec_vec, na.rm = TRUE),
+    f1_score      = mean(f1_vec, na.rm = TRUE)
+  )
+}
+
+#' @title Análise Discriminante (LDA / QDA)
+#' @description Realiza a Análise Discriminante Linear de Fisher (LDA) ou Quadrática (QDA),
+#' avaliando a capacidade de preditores numéricos contínuos em separar e classificar categorias.
+#' Apresenta probabilidades a priori, autovalores e correlações canônicas, coeficientes das
+#' funções discriminantes, matriz de confusão, métricas completas de classificação
+#' (Acurácia, Taxa de Erro, Kappa, Macro Sensibilidade, Precisão, F1-Score com validação cruzada LOO),
+#' teste de homogeneidade de covariâncias (M de Box) e interpretação automatizada.
+#'
+#' @param dados Data frame contendo os dados.
+#' @param variaveis Vetor de variáveis preditoras contínuas (com ou sem aspas, ex: \code{c(x1, x2)} ou \code{c("x1", "x2")}).
+#'   Se omitido, seleciona todas as variáveis numéricas do data frame (exceto a variável de grupo).
+#' @param grupo Variável categórica de agrupamento/resposta (com ou sem aspas, ex: \code{classe} ou \code{"classe"}).
+#' @param metodo Método discriminante: \code{"lda"} (padrão, Linear de Fisher) ou \code{"qda"} (Quadrática).
+#' @param validacao_cruzada Lógico. Se TRUE, realiza validação cruzada leave-one-out (LOO). Padrão TRUE.
+#' @param grafico Lógico. Se TRUE, plota o gráfico discriminante (biplot 2D ou histograma). Padrão FALSE.
+#'
+#' @return Retorna um objeto de classe \code{"estatR_lda"} contendo:
+#' \itemize{
+#'   \item \code{modelo_mass}: Objeto ajustado da função \code{MASS::lda} ou \code{MASS::qda}
+#'   \item \code{metodo}: Método utilizado ("lda" ou "qda")
+#'   \item \code{autovalores}: Tabela de autovalores, variância explicada e correlação canônica
+#'   \item \code{coeficientes}: Coeficientes lineares das funções discriminantes (scaling)
+#'   \item \code{escores}: Escores discriminantes projetados para cada observação
+#'   \item \code{confusao_resub}: Matriz de confusão por resubstituição
+#'   \item \code{confusao_cv}: Matriz de confusão por validação cruzada LOO
+#'   \item \code{metricas}: Tabela comparativa de métricas de classificação
+#'   \item \code{box_m}: Resultados do teste M de Box
+#'   \item \code{medias_grupo}: Médias das variáveis preditoras por grupo
+#'   \item \code{priori}: Probabilidades a priori dos grupos
+#'   \item \code{variaveis}: Nomes das variáveis preditoras
+#'   \item \code{grupo}: Nome da variável de agrupamento
+#'   \item \code{dados}: Data frame limpo utilizado
+#' }
+#' @export
+analise_discriminante <- function(dados = NULL, variaveis = NULL, grupo = NULL,
+                                  metodo = c("lda", "qda"),
+                                  validacao_cruzada = TRUE,
+                                  grafico = FALSE) {
+  metodo <- match.arg(metodo)
+
+  # 1. Tratamento flexível de argumentos posicionais e não avaliados
+  sub_dados <- substitute(dados)
+  sub_vars  <- substitute(variaveis)
+  sub_grupo <- substitute(grupo)
+
+  # Se o usuário passou: analise_discriminante(variaveis = ..., grupo = ..., dados = ...)
+  # ou analise_discriminante(dados, variaveis, grupo)
+  if (is.null(dados) && !is.null(sub_vars)) {
+    val_vars <- tryCatch(variaveis, error = function(e) NULL)
+    if (is.data.frame(val_vars)) {
+      dados     <- val_vars
+      variaveis <- NULL
+      sub_vars  <- NULL
+    }
+  }
+
+  if (is.null(dados) || !is.data.frame(dados)) {
+    stop("O argumento 'dados' deve ser fornecido como um data frame.")
+  }
+
+  # Extração de 'grupo' (com ou sem aspas)
+  nome_grupo <- NULL
+  val_grupo  <- tryCatch(grupo, error = function(e) NULL)
+  if (is.character(val_grupo) && length(val_grupo) == 1) {
+    nome_grupo <- val_grupo
+  } else if (!is.null(sub_grupo) && is.symbol(sub_grupo)) {
+    nome_grupo <- as.character(sub_grupo)
+  }
+
+  if (is.null(nome_grupo) || !(nome_grupo %in% names(dados))) {
+    stop("O argumento 'grupo' deve ser uma variável categórica existente no data frame.")
+  }
+
+  # Extração de 'variaveis' (com ou sem aspas)
+  nomes_vars <- NULL
+  val_vars   <- tryCatch(variaveis, error = function(e) NULL)
+  if (is.character(val_vars)) {
+    nomes_vars <- val_vars
+  } else if (!is.null(sub_vars)) {
+    if (is.symbol(sub_vars)) {
+      nomes_vars <- as.character(sub_vars)
+    } else if (is.call(sub_vars)) {
+      elementos  <- as.list(sub_vars)[-1]
+      nomes_vars <- sapply(elementos, as.character)
+    }
+  }
+
+  # Se omitido, seleciona todas as numéricas (exceto o grupo)
+  if (is.null(nomes_vars) || length(nomes_vars) == 0) {
+    todas_num  <- names(dados)[sapply(dados, is.numeric)]
+    nomes_vars <- setdiff(todas_num, nome_grupo)
+  }
+
+  # Validação de variáveis preditoras
+  if (length(nomes_vars) < 2) {
+    stop("A Análise Discriminante requer pelo menos 2 variáveis preditoras numéricas contínuas.")
+  }
+  nao_encontradas <- setdiff(nomes_vars, names(dados))
+  if (length(nao_encontradas) > 0) {
+    stop(sprintf("As seguintes variáveis não foram encontradas no data frame: %s",
+                 paste(nao_encontradas, collapse = ", ")))
+  }
+
+  nao_num <- nomes_vars[!sapply(dados[nomes_vars], is.numeric)]
+  if (length(nao_num) > 0) {
+    stop(sprintf("Todas as variáveis preditoras devem ser numéricas. Variáveis não numéricas: %s",
+                 paste(nao_num, collapse = ", ")))
+  }
+
+  # 2. Preparação dos Dados
+  df_analise <- stats::na.omit(dados[, c(nomes_vars, nome_grupo), drop = FALSE])
+  n_total    <- nrow(df_analise)
+  fator      <- as.factor(df_analise[[nome_grupo]])
+  niveis_grp <- levels(fator)
+  k_grupos   <- length(niveis_grp)
+
+  if (k_grupos < 2) {
+    stop("A variável de grupo deve possuir pelo menos 2 categorias distintas.")
+  }
+
+  X_mat <- as.matrix(df_analise[, nomes_vars, drop = FALSE])
+
+  # 3. Teste M de Box
+  res_box <- .box_m_test(X_mat, fator)
+
+  # 4. Ajuste do Modelo Discriminante (MASS)
+  if (metodo == "lda") {
+    mod_mass <- MASS::lda(X_mat, fator)
+    pred_res <- stats::predict(mod_mass, X_mat)
+    cls_res  <- pred_res$class
+    escores  <- as.data.frame(pred_res$x)
+  } else {
+    mod_mass <- MASS::qda(X_mat, fator)
+    pred_res <- stats::predict(mod_mass, X_mat)
+    cls_res  <- pred_res$class
+    escores  <- NULL
+  }
+
+  if (isTRUE(validacao_cruzada)) {
+    mod_cv <- if (metodo == "lda") MASS::lda(X_mat, fator, CV = TRUE) else MASS::qda(X_mat, fator, CV = TRUE)
+    cls_cv <- mod_cv$class
+  } else {
+    cls_cv <- NULL
+  }
+
+  # 5. Autovalores, Variância Explicada e Correlação Canônica (específico do LDA)
+  tab_autoval <- NULL
+  if (metodo == "lda") {
+    n_funcs <- min(ncol(X_mat), k_grupos - 1)
+    
+    # Extração de autovalores via decomposição MANOVA E^-1 H
+    fit_manova <- stats::manova(X_mat ~ fator)
+    E_mat      <- stats::summary.manova(fit_manova)$SS$Residuals
+    H_mat      <- stats::summary.manova(fit_manova)$SS$fator
+    eig_raw    <- Re(eigen(solve(E_mat) %*% H_mat)$values)[seq_len(n_funcs)]
+    
+    # Previne valores negativos/espúrios numéricos
+    eig_raw  <- pmax(eig_raw, 0)
+    var_exp  <- (eig_raw / sum(eig_raw)) * 100
+    var_acum <- cumsum(var_exp)
+    r_canon  <- sqrt(eig_raw / (1 + eig_raw))
+    
+    tab_autoval <- data.frame(
+      Funcao        = paste0("LD", seq_len(n_funcs)),
+      Autovalor     = eig_raw,
+      Var_Expl_Pct  = var_exp,
+      Var_Acum_Pct  = var_acum,
+      Corr_Canonica = r_canon,
+      stringsAsFactors = FALSE
+    )
+  }
+
+  # 6. Matrizes de Confusão e Métricas
+  conf_resub <- table(Observado = fator, Previsto = cls_res)
+  met_resub  <- .calc_metricas_classif(conf_resub)
+
+  if (isTRUE(validacao_cruzada)) {
+    conf_cv <- table(Observado = fator, Previsto = cls_cv)
+    met_cv  <- .calc_metricas_classif(conf_cv)
+  } else {
+    conf_cv <- NULL
+    met_cv  <- NULL
+  }
+
+  # Tabela comparativa de métricas
+  df_metricas <- data.frame(
+    Metrica = c("Acurácia Global", "Taxa de Erro", "Kappa de Cohen",
+                "Sensibilidade Média (Recall)", "Precisão Média", "F1-Score Médio"),
+    Resubstituicao = c(met_resub$acuracia, met_resub$taxa_erro, met_resub$kappa,
+                       met_resub$sensibilidade, met_resub$precisao, met_resub$f1_score),
+    Validacao_Cruzada = if (!is.null(met_cv)) c(met_cv$acuracia, met_cv$taxa_erro, met_cv$kappa,
+                                                met_cv$sensibilidade, met_cv$precisao, met_cv$f1_score) else rep(NA_real_, 6),
+    stringsAsFactors = FALSE
+  )
+
+  # 7. Tabela de Probabilidades a Priori
+  df_priori <- data.frame(
+    Grupo    = names(mod_mass$prior),
+    N        = as.numeric(table(fator)),
+    A_Priori = as.numeric(mod_mass$prior),
+    stringsAsFactors = FALSE
+  )
+
+  # Helpers de formatação
+  .pad <- function(s, w, align = "center") {
+    s <- trimws(as.character(s))
+    pad <- w - nchar(s)
+    if (pad <= 0) return(s)
+    if (align == "left") return(paste0(s, strrep(" ", pad)))
+    if (align == "right") return(paste0(strrep(" ", pad), s))
+    paste0(strrep(" ", floor(pad/2)), s, strrep(" ", ceiling(pad/2)))
+  }
+  .fmt_f <- function(x, d = 2) {
+    if (is.na(x)) return("-")
+    formatC(x, format = "f", digits = d, decimal.mark = ",")
+  }
+  .fmt_p <- function(x) {
+    if (is.na(x)) return("-")
+    if (x < 0.001) return("< 0,001")
+    formatC(x, format = "f", digits = 3, decimal.mark = ",")
+  }
+  .fmt_pct <- function(x, d = 1) {
+    if (is.na(x)) return("-")
+    paste0(formatC(x * 100, format = "f", digits = d, decimal.mark = ","), "%")
+  }
+  .ast <- function(p) {
+    if (is.na(p) || p >= 0.10) return("")
+    if (p < 0.01) return("***")
+    if (p < 0.05) return("**")
+    return("*")
+  }
+
+  # ==========================================================================
+  # IMPRESSÃO NO CONSOLE
+  # ==========================================================================
+  titulo_met <- if (metodo == "lda") "ANÁLISE DISCRIMINANTE LINEAR (LDA)" else "ANÁLISE DISCRIMINANTE QUADRÁTICA (QDA)"
+  if (exists(".print_titulo", mode = "function")) {
+    .print_titulo(titulo_met)
+  } else {
+    cat(sprintf("\n── %s ──\n", titulo_met))
+  }
+
+  cat(sprintf("  Fator / Grupo:        %s (%d grupos: %s)\n", nome_grupo, k_grupos, paste(niveis_grp, collapse = ", ")))
+  cat(sprintf("  Variáveis Preditoras: %s (%d variáveis)\n", paste(nomes_vars, collapse = ", "), length(nomes_vars)))
+  cat(sprintf("  Observações Válidas:  %d\n", n_total))
+  cat(sprintf("  Método:               %s\n\n", if (metodo == "lda") "LDA (Linear de Fisher)" else "QDA (Quadrática)"))
+
+  # SEÇÃO: PROBABILIDADES A PRIORI E GRUPOS
+  if (exists(".print_topico", mode = "function")) {
+    .print_topico("PROBABILIDADES A PRIORI E GRUPOS")
+  } else {
+    cat("  ▶ PROBABILIDADES A PRIORI E GRUPOS\n")
+  }
+
+  w_priori <- c(grp = max(18, max(nchar(niveis_grp)) + 2), n = 12, pr = 18)
+  sep_priori <- paste0("  ", strrep("─", sum(w_priori)))
+  cat(sep_priori, "\n")
+  cat("  ", .pad("Grupo", w_priori["grp"], "left"),
+             .pad("N", w_priori["n"], "center"),
+             .pad("Prob. a Priori", w_priori["pr"], "center"), "\n", sep = "")
+  cat(sep_priori, "\n")
+  for (r in seq_len(nrow(df_priori))) {
+    cat("  ", .pad(df_priori$Grupo[r], w_priori["grp"], "left"),
+               .pad(as.character(df_priori$N[r]), w_priori["n"], "center"),
+               .pad(.fmt_f(df_priori$A_Priori[r], 4), w_priori["pr"], "center"), "\n", sep = "")
+  }
+  cat(sep_priori, "\n\n")
+
+  # SEÇÃO: FUNÇÕES DISCRIMINANTES E AUTOVALORES (somente LDA)
+  if (metodo == "lda" && !is.null(tab_autoval)) {
+    if (exists(".print_topico", mode = "function")) {
+      .print_topico("FUNÇÕES DISCRIMINANTES E AUTOVALORES")
+    } else {
+      cat("  ▶ FUNÇÕES DISCRIMINANTES E AUTOVALORES\n")
+    }
+
+    w_eig <- c(fn = 12, eig = 14, ve = 16, va = 16, rc = 16)
+    sep_eig <- paste0("  ", strrep("─", sum(w_eig)))
+    cat(sep_eig, "\n")
+    cat("  ", .pad("Função", w_eig["fn"], "left"),
+               .pad("Autovalor", w_eig["eig"], "center"),
+               .pad("Var. Expl. (%)", w_eig["ve"], "center"),
+               .pad("Var. Acum. (%)", w_eig["va"], "center"),
+               .pad("Corr. Canônica", w_eig["rc"], "center"), "\n", sep = "")
+    cat(sep_eig, "\n")
+    for (r in seq_len(nrow(tab_autoval))) {
+      cat("  ", .pad(tab_autoval$Funcao[r], w_eig["fn"], "left"),
+                 .pad(.fmt_f(tab_autoval$Autovalor[r], 3), w_eig["eig"], "center"),
+                 .pad(paste0(.fmt_f(tab_autoval$Var_Expl_Pct[r], 1), "%"), w_eig["ve"], "center"),
+                 .pad(paste0(.fmt_f(tab_autoval$Var_Acum_Pct[r], 1), "%"), w_eig["va"], "center"),
+                 .pad(.fmt_f(tab_autoval$Corr_Canonica[r], 3), w_eig["rc"], "center"), "\n", sep = "")
+    }
+    cat(sep_eig, "\n\n")
+
+    # SEÇÃO: COEFICIENTES DAS FUNÇÕES DISCRIMINANTES (SCALING)
+    if (exists(".print_topico", mode = "function")) {
+      .print_topico("COEFICIENTES DAS FUNÇÕES DISCRIMINANTES (SCALING)")
+    } else {
+      cat("  ▶ COEFICIENTES DAS FUNÇÕES DISCRIMINANTES (SCALING)\n")
+    }
+
+    coefs_lda <- as.data.frame(mod_mass$scaling)
+    w_var_coef <- max(20, max(nchar(nomes_vars)) + 2)
+    w_ld_col   <- 14
+    total_coef_w <- w_var_coef + w_ld_col * ncol(coefs_lda)
+    sep_coef <- paste0("  ", strrep("─", total_coef_w))
+    cat(sep_coef, "\n")
+    cat("  ", .pad("Variável Preditora", w_var_coef, "left"))
+    for (nm_ld in colnames(coefs_lda)) {
+      cat(.pad(nm_ld, w_ld_col, "center"))
+    }
+    cat("\n")
+    cat(sep_coef, "\n")
+    for (r in seq_len(nrow(coefs_lda))) {
+      cat("  ", .pad(rownames(coefs_lda)[r], w_var_coef, "left"))
+      for (c_idx in seq_len(ncol(coefs_lda))) {
+        cat(.pad(.fmt_f(coefs_lda[r, c_idx], 3), w_ld_col, "center"))
+      }
+      cat("\n")
+    }
+    cat(sep_coef, "\n\n")
+  }
+
+  # SEÇÃO: MATRIZ DE CONFUSÃO (RESUBSTITUIÇÃO)
+  if (exists(".print_topico", mode = "function")) {
+    .print_topico("MATRIZ DE CONFUSÃO (RESUBSTITUIÇÃO)")
+  } else {
+    cat("  ▶ MATRIZ DE CONFUSÃO (RESUBSTITUIÇÃO)\n")
+  }
+
+  w_rot_conf <- max(22, max(nchar(niveis_grp)) + 2)
+  w_col_conf <- max(12, max(nchar(niveis_grp)) + 2)
+  total_conf_w <- w_rot_conf + w_col_conf * k_grupos
+  sep_conf <- paste0("  ", strrep("─", total_conf_w))
+  cat(sep_conf, "\n")
+  cat("  ", .pad("Observado \\ Previsto", w_rot_conf, "left"))
+  for (g in niveis_grp) {
+    cat(.pad(g, w_col_conf, "center"))
+  }
+  cat("\n")
+  cat(sep_conf, "\n")
+  for (r in seq_len(nrow(conf_resub))) {
+    cat("  ", .pad(rownames(conf_resub)[r], w_rot_conf, "left"))
+    for (c_idx in seq_len(ncol(conf_resub))) {
+      cat(.pad(as.character(conf_resub[r, c_idx]), w_col_conf, "center"))
+    }
+    cat("\n")
+  }
+  cat(sep_conf, "\n\n")
+
+  # SEÇÃO: MÉTRICAS DE CLASSIFICAÇÃO E DESEMPENHO
+  if (exists(".print_topico", mode = "function")) {
+    .print_topico("MÉTRICAS DE CLASSIFICAÇÃO E DESEMPENHO")
+  } else {
+    cat("  ▶ MÉTRICAS DE CLASSIFICAÇÃO E DESEMPENHO\n")
+  }
+
+  w_met <- c(m = 32, resub = 18, cv = 24)
+  sep_met <- paste0("  ", strrep("─", sum(w_met)))
+  cat(sep_met, "\n")
+  cat("  ", .pad("Métrica", w_met["m"], "left"),
+             .pad("Resubstituição", w_met["resub"], "center"),
+             .pad("Validação Cruzada (CV)", w_met["cv"], "center"), "\n", sep = "")
+  cat(sep_met, "\n")
+  for (r in seq_len(nrow(df_metricas))) {
+    v_resub <- if (r %in% c(1, 2)) .fmt_pct(df_metricas$Resubstituicao[r], 1) else .fmt_f(df_metricas$Resubstituicao[r], 3)
+    v_cv    <- if (is.na(df_metricas$Validacao_Cruzada[r])) "-" else if (r %in% c(1, 2)) .fmt_pct(df_metricas$Validacao_Cruzada[r], 1) else .fmt_f(df_metricas$Validacao_Cruzada[r], 3)
+    cat("  ", .pad(df_metricas$Metrica[r], w_met["m"], "left"),
+               .pad(v_resub, w_met["resub"], "center"),
+               .pad(v_cv, w_met["cv"], "center"), "\n", sep = "")
+  }
+  cat(sep_met, "\n\n")
+
+  # SEÇÃO: TESTE DE HOMOGENEIDADE DAS COVARIÂNCIAS (PRESSUPOSTO)
+  if (exists(".print_topico", mode = "function")) {
+    .print_topico("TESTE DE HOMOGENEIDADE DAS COVARIÂNCIAS (PRESSUPOSTO)")
+  } else {
+    cat("  ▶ TESTE DE HOMOGENEIDADE DAS COVARIÂNCIAS (PRESSUPOSTO)\n")
+  }
+
+  w_box <- c(tst = 22, m = 18, f = 14, p = 14)
+  sep_box <- paste0("  ", strrep("─", sum(w_box)))
+  cat(sep_box, "\n")
+  cat("  ", .pad("Teste", w_box["tst"], "left"),
+             .pad("Estatística (M)", w_box["m"], "center"),
+             .pad("F aprox.", w_box["f"], "center"),
+             .pad("p-valor", w_box["p"], "center"), "\n", sep = "")
+  cat(sep_box, "\n")
+  box_p_ast <- paste0(.fmt_p(res_box$p.value), " ", .ast(res_box$p.value))
+  cat("  ", .pad("M de Box", w_box["tst"], "left"),
+             .pad(.fmt_f(res_box$M, 2), w_box["m"], "center"),
+             .pad(.fmt_f(res_box$F, 2), w_box["f"], "center"),
+             .pad(box_p_ast, w_box["p"], "center"), "\n", sep = "")
+  cat(sep_box, "\n")
+  cat("  * H0: As matrizes de covariância são homogêneas (pressuposto do LDA).\n")
+  cat("  * Nota: Se M de Box for significativo, QDA pode ser uma alternativa recomendada.\n\n")
+
+  # SEÇÃO: INTERPRETAÇÃO
+  if (exists(".print_topico", mode = "function")) {
+    .print_topico("INTERPRETAÇÃO")
+  } else {
+    cat("  ▶ INTERPRETAÇÃO\n")
+  }
+
+  # 1º Parágrafo: Acurácia e desempenho
+  cv_txt <- if (!is.null(met_cv)) sprintf(" e %s sob validação cruzada leave-one-out", .fmt_pct(met_cv$acuracia, 1)) else ""
+  overfit_txt <- if (!is.null(met_cv) && (met_resub$acuracia - met_cv$acuracia > 0.05)) {
+    "A queda de desempenho observada na validação cruzada sugere atenção para um possível sobreajuste (overfitting)."
+  } else {
+    "indicando excelente capacidade preditiva e consistência na generalização do modelo."
+  }
+  cat(sprintf("  A Análise Discriminante (%s) obteve uma Acurácia Global de %s por resubstituição%s,\n  com coeficiente Kappa de %s, %s\n\n",
+              toupper(metodo), .fmt_pct(met_resub$acuracia, 1), cv_txt, .fmt_f(met_resub$kappa, 3), overfit_txt))
+
+  # 2º Parágrafo: Funções discriminantes (se LDA)
+  if (metodo == "lda" && !is.null(tab_autoval)) {
+    ld1_pct <- tab_autoval$Var_Expl_Pct[1]
+    ld1_rc  <- tab_autoval$Corr_Canonica[1]
+    cat(sprintf("  A primeira função discriminante (LD1) concentrou %s da variabilidade entre os grupos com correlação\n  canônica de %s, sendo a dimensão predominante para discriminar as categorias de '%s'.\n\n",
+                paste0(.fmt_f(ld1_pct, 1), "%"), .fmt_f(ld1_rc, 3), nome_grupo))
+
+    # Variável de maior peso em LD1
+    coefs_ld1 <- mod_mass$scaling[, 1]
+    var_maior <- names(which.max(abs(coefs_ld1)))
+    peso_maior <- coefs_ld1[var_maior]
+    cat(sprintf("  Dentre os preditores analisados, a variável '%s' apresentou o maior peso absoluto na primeira função\n  discriminante (coeficiente = %s), evidenciando-se como o indicador mais determinante na separação dos grupos.\n\n",
+                var_maior, .fmt_f(peso_maior, 3)))
+  }
+
+  # 3º Parágrafo: Pressuposto do M de Box
+  if (!is.na(res_box$p.value)) {
+    if (res_box$p.value < 0.05) {
+      cat(sprintf("  O teste M de Box indicou rejeição da homogeneidade das matrizes de covariância (M = %s, p %s).\n  Embora o LDA seja razoavelmente robusto com grupos balanceados, a Análise Discriminante Quadrática (QDA)\n  ou procedimentos de regularização devem ser considerados caso haja interesse em fronteiras não-lineares.\n",
+                  .fmt_f(res_box$M, 2), .fmt_p(res_box$p.value)))
+    } else {
+      cat(sprintf("  O teste M de Box indicou homogeneidade das matrizes de covariância entre os grupos (M = %s, p = %s),\n  atendendo com sucesso ao pressuposto fundamental da Análise Discriminante Linear.\n",
+                  .fmt_f(res_box$M, 2), .fmt_p(res_box$p.value)))
+    }
+  }
+
+  if (exists(".print_rodape", mode = "function")) {
+    .print_rodape()
+  } else {
+    cat(paste0(strrep("─", 78), "\n\n"))
+  }
+
+  # Montagem do objeto de retorno
+  if (metodo == "lda") {
+    escores$Grupo <- fator
+  }
+
+  resultado <- list(
+    modelo_mass    = mod_mass,
+    metodo         = metodo,
+    autovalores    = tab_autoval,
+    coeficientes   = if (metodo == "lda") mod_mass$scaling else NULL,
+    escores        = escores,
+    confusao_resub = conf_resub,
+    confusao_cv    = conf_cv,
+    metricas       = df_metricas,
+    box_m          = res_box,
+    medias_grupo   = mod_mass$means,
+    priori         = mod_mass$prior,
+    variaveis      = nomes_vars,
+    grupo          = nome_grupo,
+    dados          = df_analise
+  )
+  class(resultado) <- c("estatR_lda", "list")
+
+  if (isTRUE(grafico)) {
+    print(biplot_lda(resultado))
+  }
+
+  invisible(resultado)
+}
+
+#' @rdname analise_discriminante
+#' @export
+discriminante <- analise_discriminante
+
+#' @title Gráfico da Análise Discriminante (Biplot / Dispersão)
+#' @description Plota a projeção das observações no espaço discriminante.
+#' Para 3 ou mais grupos (2+ funções discriminantes), gera um Biplot 2D (LD1 x LD2) com elipses
+#' de confiança de 95% e setas das variáveis originais. Para 2 grupos (1 função),
+#' plota a distribuição/histograma dos escores de LD1 separados por cor.
+#' @param modelo Objeto retornado pela função \code{analise_discriminante}.
+#' @param elipses Lógico. Se TRUE, exibe elipses de confiança de 95% para cada grupo. Padrão TRUE.
+#' @return Objeto ggplot2.
+#' @export
+biplot_lda <- function(modelo, elipses = TRUE) {
+  if (!inherits(modelo, "estatR_lda")) {
+    stop("O objeto fornecido deve ser retornado pela função 'analise_discriminante'.")
+  }
+
+  if (modelo$metodo != "lda") {
+    stop("O biplot discriminante está disponível apenas para modelos lineares (metodo = 'lda').")
+  }
+
+  escores    <- modelo$escores
+  nome_grupo <- modelo$grupo
+  n_funcs    <- if (!is.null(modelo$autovalores)) nrow(modelo$autovalores) else (ncol(escores) - 1)
+
+  # Caso 1: 2 ou mais funções discriminantes -> Biplot 2D (LD1 x LD2)
+  if (n_funcs >= 2) {
+    loads_mat <- modelo$coeficientes[, 1:2, drop = FALSE]
+    loads_df  <- as.data.frame(loads_mat)
+    names(loads_df) <- c("LD1", "LD2")
+    loads_df$Variavel <- rownames(loads_df)
+
+    # Escala para projetar setas esteticamente com os pontos
+    escala_setas <- (max(abs(escores[, c("LD1", "LD2")])) /
+                     max(abs(loads_df[, c("LD1", "LD2")]))) * 0.70
+
+    pct_ld1 <- modelo$autovalores$Var_Expl_Pct[1]
+    pct_ld2 <- modelo$autovalores$Var_Expl_Pct[2]
+    rot_x   <- sprintf("LD1 (%.1f%%)", pct_ld1)
+    rot_y   <- sprintf("LD2 (%.1f%%)", pct_ld2)
+
+    p <- ggplot2::ggplot()
+
+    if (isTRUE(elipses)) {
+      p <- p + ggplot2::stat_ellipse(
+        data = escores,
+        ggplot2::aes(x = LD1, y = LD2, color = Grupo, fill = Grupo),
+        geom = "polygon", alpha = 0.08, linewidth = 0.6, level = 0.95
+      )
+    }
+
+    p <- p +
+      ggplot2::geom_point(
+        data = escores,
+        ggplot2::aes(x = LD1, y = LD2, color = Grupo),
+        size = 2.5, alpha = 0.80
+      ) +
+      ggplot2::geom_vline(xintercept = 0, linetype = "dashed", color = "gray60", linewidth = 0.4) +
+      ggplot2::geom_hline(yintercept = 0, linetype = "dashed", color = "gray60", linewidth = 0.4) +
+      ggplot2::geom_segment(
+        data = loads_df,
+        ggplot2::aes(x = 0, y = 0, xend = LD1 * escala_setas, yend = LD2 * escala_setas),
+        color = "gray20", linewidth = 0.8,
+        arrow = ggplot2::arrow(length = ggplot2::unit(0.22, "cm"), type = "closed")
+      )
+
+    if (requireNamespace("ggrepel", quietly = TRUE)) {
+      p <- p + ggrepel::geom_text_repel(
+        data = loads_df,
+        ggplot2::aes(x = LD1 * escala_setas * 1.1, y = LD2 * escala_setas * 1.1, label = Variavel),
+        color = "gray10", size = 3.5, fontface = "bold", box.padding = 0.35
+      )
+    } else {
+      p <- p + ggplot2::geom_text(
+        data = loads_df,
+        ggplot2::aes(x = LD1 * escala_setas * 1.15, y = LD2 * escala_setas * 1.15, label = Variavel),
+        color = "gray10", size = 3.5, fontface = "bold"
+      )
+    }
+
+    p <- p + ggplot2::labs(
+      title    = "Biplot — Análise Discriminante Linear (LDA)",
+      subtitle = sprintf("%s vs %s | Elipses de confiança 95%% por grupo", rot_x, rot_y),
+      x        = rot_x,
+      y        = rot_y,
+      color    = nome_grupo,
+      fill     = nome_grupo
+    )
+
+  } else {
+    # Caso 2: Apenas 1 função discriminante (2 grupos) -> Histograma de distribuição de LD1
+    p <- ggplot2::ggplot(escores, ggplot2::aes(x = LD1, fill = Grupo, color = Grupo)) +
+      ggplot2::geom_histogram(alpha = 0.5, position = "identity", bins = 20) +
+      ggplot2::labs(
+        title    = "Distribuição do Escore Discriminante (LD1)",
+        subtitle = sprintf("Separação entre os grupos do fator: %s", nome_grupo),
+        x        = "Escore Discriminante (LD1)",
+        y        = "Frequência",
+        fill     = nome_grupo,
+        color    = nome_grupo
+      )
+  }
+
+  if (exists("tema_estatR", mode = "function")) {
+    p <- p + tema_estatR(estilo = 2, grade = "dupla")
+  } else {
+    p <- p + ggplot2::theme_minimal()
+  }
+
+  p
+}
+
+#' @rdname biplot_lda
+#' @export
+plot_discriminante <- biplot_lda
