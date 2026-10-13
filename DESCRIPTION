@@ -17,4 +17,13 @@ Imports:
     stats,
     graphics,
     grDevices,
-    utils
+    utils,
+    psych,
+    cluster,
+    ggrepel,
+    ggdendro,
+    patchwork,
+    gridExtra,
+    MASS,
+    nnet,
+    betareg
