@@ -2098,3 +2098,500 @@ dendrograma <- function(modelo, k = NULL) {
     graphics::rect.hclust(modelo$hclust, k = k_val, border = "#D90429")
   }
 }
+
+# ==============================================================================
+# MÓDULO 4: ANÁLISE DE VARIÂNCIA MULTIVARIADA (MANOVA)
+# ==============================================================================
+
+# Helper interno: Teste M de Box (Homogeneidade das Matrizes de Covariância)
+.box_m_test <- function(Y, grupo) {
+  p        <- ncol(Y)
+  g_niveis <- levels(grupo)
+  k        <- length(g_niveis)
+  
+  n_i  <- as.numeric(table(grupo))
+  nu_i <- n_i - 1
+  N    <- sum(n_i)
+  nu   <- sum(nu_i)
+  
+  cov_lista <- lapply(g_niveis, function(g) stats::cov(Y[grupo == g, , drop = FALSE]))
+  cov_pooled <- matrix(0, nrow = p, ncol = p)
+  for (i in seq_len(k)) {
+    cov_pooled <- cov_pooled + nu_i[i] * cov_lista[[i]]
+  }
+  cov_pooled <- cov_pooled / nu
+  
+  det_pooled <- det(cov_pooled)
+  dets_i     <- sapply(cov_lista, det)
+  
+  if (any(dets_i <= 0) || det_pooled <= 0) {
+    return(list(M = NA_real_, F = NA_real_, df1 = NA_real_, df2 = NA_real_, p.value = NA_real_))
+  }
+  
+  M <- nu * log(det_pooled) - sum(nu_i * log(dets_i))
+  
+  sum_inv_nu <- sum(1 / nu_i)
+  c1 <- (sum_inv_nu - 1 / nu) * (2 * p^2 + 3 * p - 1) / (6 * (p + 1) * (k - 1))
+  df1 <- p * (p + 1) * (k - 1) / 2
+  
+  sum_inv_nu2 <- sum(1 / (nu_i^2))
+  c2 <- (sum_inv_nu2 - 1 / (nu^2)) * (p - 1) * (p + 2) / (6 * (k - 1))
+  
+  if (c2 - c1^2 > 0) {
+    df2    <- (df1 + 2) / (c2 - c1^2)
+    F_stat <- M * (1 - c1) / df1
+    p_val  <- stats::pf(F_stat, df1, df2, lower.tail = FALSE)
+  } else {
+    df2    <- Inf
+    F_stat <- M * (1 - c1) / df1
+    p_val  <- stats::pchisq(M * (1 - c1), df1, lower.tail = FALSE)
+  }
+  
+  list(M = M, F = F_stat, df1 = df1, df2 = df2, p.value = p_val)
+}
+
+#' @title Análise de Variância Multivariada (MANOVA)
+#' @description Realiza a Análise de Variância Multivariada (MANOVA), avaliando o efeito
+#' de um fator categórico sobre múltiplas variáveis resposta contínuas simultaneamente.
+#' Apresenta o teste de homogeneidade das covariâncias (M de Box), os 4 critérios
+#' multivariados clássicos (Pillai, Wilks, Hotelling-Lawley, Roy), ANOVAs univariadas de
+#' acompanhamento com correção de Bonferroni, médias por grupo e interpretação automatizada.
+#'
+#' @param dados Data frame contendo os dados.
+#' @param variaveis Vetor de variáveis resposta contínuas (com ou sem aspas, ex: \code{c(y1, y2)} ou \code{c("y1", "y2")}).
+#'   Se omitido, seleciona todas as variáveis numéricas do data frame (exceto a variável de grupo).
+#' @param grupo Variável categórica de agrupamento/fator (com ou sem aspas, ex: \code{especie} ou \code{"especie"}).
+#' @param grafico Lógico. Se TRUE, plota o gráfico de perfis médios multivariados. Padrão FALSE.
+#'
+#' @return Retorna um objeto de classe \code{"estatR_manova"} contendo:
+#' \itemize{
+#'   \item \code{modelo_manova}: Objeto nativo da função \code{stats::manova}
+#'   \item \code{box_m}: Resultados do teste M de Box
+#'   \item \code{tabela_multivariada}: Tabela com os critérios multivariados
+#'   \item \code{anovas_univariadas}: Tabela das ANOVAs univariadas com Bonferroni
+#'   \item \code{medias_grupos}: Tabela de médias observadas por grupo
+#'   \item \code{variaveis}: Nomes das variáveis resposta analisadas
+#'   \item \code{grupo}: Nome da variável de agrupamento
+#'   \item \code{dados}: Data frame limpo utilizado no ajuste
+#' }
+#' @export
+analise_manova <- function(dados = NULL, variaveis = NULL, grupo = NULL, grafico = FALSE) {
+  
+  # 1. Tratamento flexível de argumentos posicionais e não avaliados
+  sub_dados <- substitute(dados)
+  sub_vars  <- substitute(variaveis)
+  sub_grupo <- substitute(grupo)
+
+  # Se o usuário passou: analise_manova(variaveis = ..., grupo = ..., dados = ...)
+  # ou analise_manova(dados, variaveis, grupo)
+  if (is.null(dados) && !is.null(sub_vars)) {
+    val_vars <- tryCatch(variaveis, error = function(e) NULL)
+    if (is.data.frame(val_vars)) {
+      dados     <- val_vars
+      variaveis <- NULL
+      sub_vars  <- NULL
+    }
+  }
+
+  if (is.null(dados) || !is.data.frame(dados)) {
+    stop("O argumento 'dados' deve ser fornecido como um data frame.")
+  }
+
+  # Extração de 'grupo' (com ou sem aspas)
+  nome_grupo <- NULL
+  val_grupo  <- tryCatch(grupo, error = function(e) NULL)
+  if (is.character(val_grupo) && length(val_grupo) == 1) {
+    nome_grupo <- val_grupo
+  } else if (!is.null(sub_grupo) && is.symbol(sub_grupo)) {
+    nome_grupo <- as.character(sub_grupo)
+  }
+
+  if (is.null(nome_grupo) || !(nome_grupo %in% names(dados))) {
+    stop("O argumento 'grupo' deve ser uma variável categórica existente no data frame.")
+  }
+
+  # Extração de 'variaveis' (com ou sem aspas)
+  nomes_vars <- NULL
+  val_vars   <- tryCatch(variaveis, error = function(e) NULL)
+  if (is.character(val_vars)) {
+    nomes_vars <- val_vars
+  } else if (!is.null(sub_vars)) {
+    if (is.symbol(sub_vars)) {
+      nomes_vars <- as.character(sub_vars)
+    } else if (is.call(sub_vars)) {
+      elementos <- as.list(sub_vars)[-1]
+      nomes_vars <- sapply(elementos, as.character)
+    }
+  }
+
+  # Se omitido, seleciona todas as numéricas (exceto o grupo)
+  if (is.null(nomes_vars) || length(nomes_vars) == 0) {
+    todas_num  <- names(dados)[sapply(dados, is.numeric)]
+    nomes_vars <- setdiff(todas_num, nome_grupo)
+  }
+
+  # Validação de variáveis resposta
+  if (length(nomes_vars) < 2) {
+    stop("A MANOVA requer pelo menos 2 variáveis resposta numéricas contínuas.")
+  }
+  nao_encontradas <- setdiff(nomes_vars, names(dados))
+  if (length(nao_encontradas) > 0) {
+    stop(sprintf("As seguintes variáveis não foram encontradas no data frame: %s",
+                 paste(nao_encontradas, collapse = ", ")))
+  }
+
+  nao_num <- nomes_vars[!sapply(dados[nomes_vars], is.numeric)]
+  if (length(nao_num) > 0) {
+    stop(sprintf("Todas as variáveis resposta devem ser numéricas. Variáveis não numéricas: %s",
+                 paste(nao_num, collapse = ", ")))
+  }
+
+  # 2. Preparação dos Dados
+  df_analise <- stats::na.omit(dados[, c(nomes_vars, nome_grupo), drop = FALSE])
+  n_total    <- nrow(df_analise)
+  fator      <- as.factor(df_analise[[nome_grupo]])
+  niveis_grp <- levels(fator)
+  k_grupos   <- length(niveis_grp)
+
+  if (k_grupos < 2) {
+    stop("A variável de grupo deve possuir pelo menos 2 categorias distintas.")
+  }
+
+  Y <- as.matrix(df_analise[, nomes_vars, drop = FALSE])
+
+  # 3. Teste M de Box
+  res_box <- .box_m_test(Y, fator)
+
+  # 4. Ajuste da MANOVA
+  mod_manova   <- stats::manova(Y ~ fator)
+  sm_pillai    <- summary(mod_manova, test = "Pillai")
+  sm_wilks     <- summary(mod_manova, test = "Wilks")
+  sm_hotelling <- summary(mod_manova, test = "Hotelling-Lawley")
+  sm_roy       <- summary(mod_manova, test = "Roy")
+
+  st_pillai    <- sm_pillai$stats["fator", ]
+  st_wilks     <- sm_wilks$stats["fator", ]
+  st_hotelling <- sm_hotelling$stats["fator", ]
+  st_roy       <- sm_roy$stats["fator", ]
+
+  tab_multi <- data.frame(
+    Criterio = c("Traço de Pillai", "Lambda de Wilks", "Hotelling-Lawley", "Maior Raiz de Roy"),
+    Valor    = c(st_pillai["Pillai"], st_wilks["Wilks"], st_hotelling["Hotelling-Lawley"], st_roy["Roy"]),
+    F_aprox  = c(st_pillai["approx F"], st_wilks["approx F"], st_hotelling["approx F"], st_roy["approx F"]),
+    gl1      = c(st_pillai["num Df"], st_wilks["num Df"], st_hotelling["num Df"], st_roy["num Df"]),
+    gl2      = c(st_pillai["den Df"], st_wilks["den Df"], st_hotelling["den Df"], st_roy["den Df"]),
+    p_valor  = c(st_pillai["Pr(>F)"], st_wilks["Pr(>F)"], st_hotelling["Pr(>F)"], st_roy["Pr(>F)"]),
+    stringsAsFactors = FALSE
+  )
+
+  # 5. ANOVAs Univariadas de Acompanhamento
+  sm_aov       <- stats::summary.aov(mod_manova)
+  p_ajust_bonf <- length(nomes_vars)
+  tab_aov <- data.frame(
+    Variavel   = nomes_vars,
+    SQ_Fator   = numeric(length(nomes_vars)),
+    SQ_Residuo = numeric(length(nomes_vars)),
+    F_valor    = numeric(length(nomes_vars)),
+    p_valor    = numeric(length(nomes_vars)),
+    p_bonf     = numeric(length(nomes_vars)),
+    stringsAsFactors = FALSE
+  )
+
+  for (i in seq_along(nomes_vars)) {
+    v_nm    <- nomes_vars[i]
+    sub_tab <- sm_aov[[paste0(" Response ", v_nm)]]
+    tab_aov$SQ_Fator[i]   <- sub_tab$"Sum Sq"[1]
+    tab_aov$SQ_Residuo[i] <- sub_tab$"Sum Sq"[2]
+    tab_aov$F_valor[i]    <- sub_tab$"F value"[1]
+    tab_aov$p_valor[i]    <- sub_tab$"Pr(>F)"[1]
+    tab_aov$p_bonf[i]     <- min(1, sub_tab$"Pr(>F)"[1] * p_ajust_bonf)
+  }
+
+  # 6. Médias por Grupo
+  medias_df <- data.frame(Variavel = nomes_vars, stringsAsFactors = FALSE)
+  for (g in niveis_grp) {
+    medias_df[[g]] <- sapply(nomes_vars, function(v) mean(df_analise[[v]][fator == g], na.rm = TRUE))
+  }
+
+  # Helpers de formatação
+  .pad <- function(s, w, align = "center") {
+    s <- trimws(as.character(s))
+    pad <- w - nchar(s)
+    if (pad <= 0) return(s)
+    if (align == "left") return(paste0(s, strrep(" ", pad)))
+    if (align == "right") return(paste0(strrep(" ", pad), s))
+    paste0(strrep(" ", floor(pad/2)), s, strrep(" ", ceiling(pad/2)))
+  }
+  .fmt_f <- function(x, d = 2) {
+    if (is.na(x)) return("-")
+    formatC(x, format = "f", digits = d, decimal.mark = ",")
+  }
+  .fmt_p <- function(x) {
+    if (is.na(x)) return("-")
+    if (x < 0.001) return("< 0,001")
+    formatC(x, format = "f", digits = 3, decimal.mark = ",")
+  }
+  .ast <- function(p) {
+    if (is.na(p) || p >= 0.10) return("")
+    if (p < 0.01) return("***")
+    if (p < 0.05) return("**")
+    return("*")
+  }
+
+  # ==========================================================================
+  # IMPRESSÃO NO CONSOLE
+  # ==========================================================================
+  if (exists(".print_titulo", mode = "function")) {
+    .print_titulo("ANÁLISE DE VARIÂNCIA MULTIVARIADA (MANOVA)")
+  } else {
+    cat("\n── ANÁLISE DE VARIÂNCIA MULTIVARIADA (MANOVA) ──\n")
+  }
+
+  cat(sprintf("  Fator:               %s (%d grupos: %s)\n", nome_grupo, k_grupos, paste(niveis_grp, collapse = ", ")))
+  cat(sprintf("  Variáveis Resposta:  %s (%d variáveis)\n", paste(nomes_vars, collapse = ", "), length(nomes_vars)))
+  cat(sprintf("  Observações Válidas: %d\n\n", n_total))
+
+  # SEÇÃO: TESTE DE HOMOGENEIDADE DAS COVARIÂNCIAS
+  if (exists(".print_topico", mode = "function")) {
+    .print_topico("TESTE DE HOMOGENEIDADE DAS COVARIÂNCIAS (PRESSUPOSTO)")
+  } else {
+    cat("  ▶ TESTE DE HOMOGENEIDADE DAS COVARIÂNCIAS (PRESSUPOSTO)\n")
+  }
+
+  w_box <- c(tst = 22, m = 18, f = 14, p = 14)
+  sep_box <- paste0("  ", strrep("─", sum(w_box)))
+  cat(sep_box, "\n")
+  cat("  ", .pad("Teste", w_box["tst"], "left"),
+             .pad("Estatística (M)", w_box["m"], "center"),
+             .pad("F aprox.", w_box["f"], "center"),
+             .pad("p-valor", w_box["p"], "center"), "\n", sep = "")
+  cat(sep_box, "\n")
+  box_p_ast <- paste0(.fmt_p(res_box$p.value), " ", .ast(res_box$p.value))
+  cat("  ", .pad("M de Box", w_box["tst"], "left"),
+             .pad(.fmt_f(res_box$M, 2), w_box["m"], "center"),
+             .pad(.fmt_f(res_box$F, 2), w_box["f"], "center"),
+             .pad(box_p_ast, w_box["p"], "center"), "\n", sep = "")
+  cat(sep_box, "\n")
+  cat("  * H0: As matrizes de covariância são homogêneas entre os grupos.\n")
+  cat("  * Nota: Pillai é recomendado quando o teste M de Box for significativo.\n\n")
+
+  # SEÇÃO: CRITÉRIOS GLOBAIS DA MANOVA
+  if (exists(".print_topico", mode = "function")) {
+    .print_topico("CRITÉRIOS GLOBAIS DA MANOVA")
+  } else {
+    cat("  ▶ CRITÉRIOS GLOBAIS DA MANOVA\n")
+  }
+
+  w_crit <- c(crit = 20, val = 12, f = 12, gl1 = 8, gl2 = 8, p = 14)
+  sep_crit <- paste0("  ", strrep("─", sum(w_crit)))
+  cat(sep_crit, "\n")
+  cat("  ", .pad("Critério", w_crit["crit"], "left"),
+             .pad("Valor", w_crit["val"], "center"),
+             .pad("F aprox.", w_crit["f"], "center"),
+             .pad("gl1", w_crit["gl1"], "center"),
+             .pad("gl2", w_crit["gl2"], "center"),
+             .pad("p-valor", w_crit["p"], "center"), "\n", sep = "")
+  cat(sep_crit, "\n")
+
+  for (r in seq_len(nrow(tab_multi))) {
+    p_ast <- paste0(.fmt_p(tab_multi$p_valor[r]), " ", .ast(tab_multi$p_valor[r]))
+    gl2_str <- if (is.finite(tab_multi$gl2[r])) sprintf("%.0f", tab_multi$gl2[r]) else "Inf"
+    cat("  ", .pad(tab_multi$Criterio[r], w_crit["crit"], "left"),
+               .pad(.fmt_f(tab_multi$Valor[r], 3), w_crit["val"], "center"),
+               .pad(.fmt_f(tab_multi$F_aprox[r], 2), w_crit["f"], "center"),
+               .pad(sprintf("%.0f", tab_multi$gl1[r]), w_crit["gl1"], "center"),
+               .pad(gl2_str, w_crit["gl2"], "center"),
+               .pad(p_ast, w_crit["p"], "center"), "\n", sep = "")
+  }
+  cat(sep_crit, "\n")
+  cat("  * Significância: *** p < 0,01   ** p < 0,05   * p < 0,10\n\n")
+
+  # SEÇÃO: ANOVAS UNIVARIADAS DE ACOMPANHAMENTO
+  if (exists(".print_topico", mode = "function")) {
+    .print_topico("ANOVAS UNIVARIADAS DE ACOMPANHAMENTO (PÓS-MANOVA)")
+  } else {
+    cat("  ▶ ANOVAS UNIVARIADAS DE ACOMPANHAMENTO (PÓS-MANOVA)\n")
+  }
+
+  w_aov <- c(var = 20, sqf = 13, sqr = 13, f = 11, p = 13, pbonf = 15)
+  sep_aov <- paste0("  ", strrep("─", sum(w_aov)))
+  cat(sep_aov, "\n")
+  cat("  ", .pad("Variável Resposta", w_aov["var"], "left"),
+             .pad("SQ Fator", w_aov["sqf"], "center"),
+             .pad("SQ Resíduo", w_aov["sqr"], "center"),
+             .pad("F", w_aov["f"], "center"),
+             .pad("p-valor", w_aov["p"], "center"),
+             .pad("p (Bonf.)", w_aov["pbonf"], "center"), "\n", sep = "")
+  cat(sep_aov, "\n")
+
+  for (r in seq_len(nrow(tab_aov))) {
+    p_ast  <- paste0(.fmt_p(tab_aov$p_valor[r]), " ", .ast(tab_aov$p_valor[r]))
+    pb_ast <- paste0(.fmt_p(tab_aov$p_bonf[r]), " ", .ast(tab_aov$p_bonf[r]))
+    cat("  ", .pad(tab_aov$Variavel[r], w_aov["var"], "left"),
+               .pad(.fmt_f(tab_aov$SQ_Fator[r], 2), w_aov["sqf"], "center"),
+               .pad(.fmt_f(tab_aov$SQ_Residuo[r], 2), w_aov["sqr"], "center"),
+               .pad(.fmt_f(tab_aov$F_valor[r], 2), w_aov["f"], "center"),
+               .pad(p_ast, w_aov["p"], "center"),
+               .pad(pb_ast, w_aov["pbonf"], "center"), "\n", sep = "")
+  }
+  cat(sep_aov, "\n")
+  cat("  * p (Bonf.): p-valor corrigido para comparações múltiplas (Bonferroni).\n\n")
+
+  # SEÇÃO: MÉDIAS POR GRUPO
+  if (exists(".print_topico", mode = "function")) {
+    .print_topico("MÉDIAS POR GRUPO")
+  } else {
+    cat("  ▶ MÉDIAS POR GRUPO\n")
+  }
+
+  w_var_med <- max(18, max(nchar(nomes_vars)) + 2)
+  w_grp_med <- max(12, max(nchar(niveis_grp)) + 2)
+  total_med_w <- w_var_med + w_grp_med * k_grupos
+  sep_med <- paste0("  ", strrep("─", total_med_w))
+  cat(sep_med, "\n")
+  cat("  ", .pad("Variável", w_var_med, "left"))
+  for (g in niveis_grp) {
+    cat(.pad(g, w_grp_med, "center"))
+  }
+  cat("\n")
+  cat(sep_med, "\n")
+
+  for (r in seq_len(nrow(medias_df))) {
+    cat("  ", .pad(medias_df$Variavel[r], w_var_med, "left"))
+    for (g in niveis_grp) {
+      cat(.pad(.fmt_f(medias_df[[g]][r], 3), w_grp_med, "center"))
+    }
+    cat("\n")
+  }
+  cat(sep_med, "\n\n")
+
+  # SEÇÃO: INTERPRETAÇÃO
+  if (exists(".print_topico", mode = "function")) {
+    .print_topico("INTERPRETAÇÃO")
+  } else {
+    cat("  ▶ INTERPRETAÇÃO\n")
+  }
+
+  p_wilks  <- tab_multi$p_valor[tab_multi$Criterio == "Lambda de Wilks"]
+  f_wilks  <- tab_multi$F_aprox[tab_multi$Criterio == "Lambda de Wilks"]
+  val_wlk  <- tab_multi$Valor[tab_multi$Criterio == "Lambda de Wilks"]
+  p_pillai <- tab_multi$p_valor[tab_multi$Criterio == "Traço de Pillai"]
+  f_pillai <- tab_multi$F_aprox[tab_multi$Criterio == "Traço de Pillai"]
+  val_pil  <- tab_multi$Valor[tab_multi$Criterio == "Traço de Pillai"]
+
+  if (p_wilks < 0.05) {
+    cat(sprintf("  A Análise de Variância Multivariada (MANOVA) indicou um efeito estatisticamente\n  significativo do fator '%s' sobre o conjunto de variáveis resposta consideradas\n  simultaneamente (Lambda de Wilks = %s, F = %s, p %s; Traço de Pillai = %s, F = %s, p %s).\n\n",
+                nome_grupo, .fmt_f(val_wlk, 3), .fmt_f(f_wilks, 2), .fmt_p(p_wilks),
+                .fmt_f(val_pil, 3), .fmt_f(f_pillai, 2), .fmt_p(p_pillai)))
+  } else {
+    cat(sprintf("  A Análise de Variância Multivariada (MANOVA) não encontrou evidências de efeito\n  estatisticamente significativo do fator '%s' sobre o conjunto de variáveis resposta\n  (Lambda de Wilks = %s, F = %s, p = %s).\n\n",
+                nome_grupo, .fmt_f(val_wlk, 3), .fmt_f(f_wilks, 2), .fmt_p(p_wilks)))
+  }
+
+  if (!is.na(res_box$p.value)) {
+    if (res_box$p.value < 0.05) {
+      cat(sprintf("  O teste M de Box indicou que as matrizes de covariância não são homogêneas entre os grupos\n  (M = %s, F = %s, p %s). Nesses casos, o Traço de Pillai deve ser priorizado como o critério\n  mais robusto a desvios de homocedasticidade multivariada.\n\n",
+                  .fmt_f(res_box$M, 2), .fmt_f(res_box$F, 2), .fmt_p(res_box$p.value)))
+    } else {
+      cat(sprintf("  O teste M de Box indicou homogeneidade das matrizes de covariância entre os grupos\n  (M = %s, F = %s, p = %s), atendendo plenamente ao pressuposto clássico da MANOVA.\n\n",
+                  .fmt_f(res_box$M, 2), .fmt_f(res_box$F, 2), .fmt_p(res_box$p.value)))
+    }
+  }
+
+  sig_aov <- tab_aov$Variavel[tab_aov$p_bonf < 0.05]
+  if (length(sig_aov) == length(nomes_vars)) {
+    cat("  Nas análises univariadas de acompanhamento com correção de Bonferroni, todas as variáveis resposta\n  apresentaram diferenças estatisticamente significativas entre os grupos (p < 0,05).\n")
+  } else if (length(sig_aov) > 0) {
+    cat(sprintf("  Nas análises univariadas de acompanhamento com correção de Bonferroni, as variáveis que\n  apresentaram diferenças estatisticamente significativas entre os grupos foram:\n  %s (p < 0,05).\n",
+                paste(paste0("'", sig_aov, "'"), collapse = ", ")))
+  } else {
+    cat("  Nas análises univariadas de acompanhamento com correção de Bonferroni, nenhuma variável resposta\n  individual manteve significância estatística após o ajuste de comparações múltiplas.\n")
+  }
+
+  if (exists(".print_rodape", mode = "function")) {
+    .print_rodape()
+  } else {
+    cat(paste0(strrep("─", 78), "\n\n"))
+  }
+
+  resultado <- list(
+    modelo_manova       = mod_manova,
+    box_m               = res_box,
+    tabela_multivariada = tab_multi,
+    anovas_univariadas  = tab_aov,
+    medias_grupos       = medias_df,
+    variaveis           = nomes_vars,
+    grupo               = nome_grupo,
+    dados               = df_analise
+  )
+  class(resultado) <- c("estatR_manova", "list")
+
+  if (isTRUE(grafico)) {
+    print(plot_manova(resultado))
+  }
+
+  invisible(resultado)
+}
+
+#' @rdname analise_manova
+#' @export
+manova_estatR <- analise_manova
+
+#' @title Gráfico de Perfis Multivariados da MANOVA
+#' @description Plota os perfis médios padronizados (escores Z) de cada grupo
+#' ao longo das variáveis resposta analisadas na MANOVA.
+#' @param modelo Objeto retornado pela função \code{analise_manova}.
+#' @return Objeto ggplot2.
+#' @export
+plot_manova <- function(modelo) {
+  if (!inherits(modelo, "estatR_manova")) {
+    stop("O objeto fornecido deve ser retornado pela função 'analise_manova'.")
+  }
+
+  df_dados   <- modelo$dados
+  nomes_vars <- modelo$variaveis
+  nome_grupo <- modelo$grupo
+
+  # Padronizar variáveis em escore Z para comparar na mesma escala
+  df_pad <- df_dados
+  for (v in nomes_vars) {
+    s_val <- stats::sd(df_pad[[v]], na.rm = TRUE)
+    m_val <- mean(df_pad[[v]], na.rm = TRUE)
+    df_pad[[v]] <- if (s_val > 0) (df_pad[[v]] - m_val) / s_val else 0
+  }
+
+  # Calcular médias de Z por grupo
+  niveis_grp <- levels(as.factor(df_dados[[nome_grupo]]))
+  perfis_lista <- lapply(niveis_grp, function(g) {
+    sub_df <- df_pad[df_pad[[nome_grupo]] == g, , drop = FALSE]
+    medias <- sapply(nomes_vars, function(v) mean(sub_df[[v]], na.rm = TRUE))
+    data.frame(
+      Variavel = factor(nomes_vars, levels = nomes_vars),
+      Grupo    = as.character(g),
+      Media_Z  = medias,
+      stringsAsFactors = FALSE
+    )
+  })
+  df_plot <- do.call(rbind, perfis_lista)
+  df_plot$Grupo <- factor(df_plot$Grupo, levels = niveis_grp)
+
+  p <- ggplot2::ggplot(df_plot, ggplot2::aes(x = Variavel, y = Media_Z, color = Grupo, group = Grupo)) +
+    ggplot2::geom_hline(yintercept = 0, linetype = "dashed", color = "gray60", linewidth = 0.6) +
+    ggplot2::geom_line(linewidth = 1.1) +
+    ggplot2::geom_point(size = 3) +
+    ggplot2::labs(
+      title    = "Perfis Médios Multivariados (Escores Z)",
+      subtitle = sprintf("Comparação dos grupos do fator: %s", nome_grupo),
+      x        = "Variáveis Resposta",
+      y        = "Média Padronizada (Z)",
+      color    = nome_grupo
+    )
+
+  if (exists("tema_estatR", mode = "function")) {
+    p <- p + tema_estatR(estilo = 2)
+  } else {
+    p <- p + ggplot2::theme_minimal()
+  }
+
+  p
+}

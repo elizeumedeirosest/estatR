@@ -355,6 +355,24 @@ modelo_hc <- cluster_hierarquico(mtcars, k = 3, metodo_ligacao = "ward.D2")
 dendrograma(modelo_hc)                   # Dendrograma colorido
 ```
 
+**Análise de Variância Multivariada (MANOVA)**
+
+```r
+# Ajuste da MANOVA (sintaxe flexível: com ou sem aspas)
+modelo_manova <- analise_manova(c(Sepal.Length, Sepal.Width, Petal.Length), grupo = Species, dados = iris)
+# ou pelo alias: manova_estatR(...)
+
+# Acesso direto aos elementos do modelo
+modelo_manova$box_m               # Teste M de Box (Homogeneidade de Covariâncias)
+modelo_manova$tabela_multivariada # 4 Critérios (Pillai, Wilks, Hotelling-Lawley, Roy)
+modelo_manova$anovas_univariadas  # ANOVAs univariadas com correção de Bonferroni
+modelo_manova$medias_grupos       # Médias observadas por grupo
+modelo_manova$modelo_manova       # Objeto nativo manova do R
+
+# Gráfico de Perfis Médios Multivariados (Escores Z padronizados)
+plot_manova(modelo_manova)
+```
+
 </details>
 
 ---
