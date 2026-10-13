@@ -126,3 +126,62 @@
 .print_rodape <- function(w_sep = 78) {
   cat(sprintf("\033[1;34m%s\033[0m\n\n", strrep("─", w_sep)))
 }
+
+# ── SELEÇÃO AUTOMÁTICA DE FUNÇÃO DE LIGAÇÃO (GLMs) ──────────────────────────
+#' @noRd
+.auto_ligacao <- function(formula, dados, familia_fn, candidatas) {
+  resultados <- lapply(candidatas, function(lk) {
+    m <- tryCatch(
+      suppressWarnings(stats::glm(formula, data = dados, family = familia_fn(link = lk))),
+      error = function(e) NULL
+    )
+    convergiu <- !is.null(m) && isTRUE(m$converged)
+    list(
+      ligacao = lk,
+      aic     = if (convergiu) stats::AIC(m) else NA_real_,
+      desvio  = if (convergiu) m$deviance    else NA_real_
+    )
+  })
+  aics <- sapply(resultados, function(r) if (is.na(r$aic)) Inf else r$aic)
+  list(ligacao = candidatas[which.min(aics)], resultados = resultados)
+}
+
+#' @noRd
+.imprimir_selecao_ligacao <- function(resultados, ligacao_escolhida, pad_fn = NULL, sep_fn = NULL) {
+  if (exists(".print_topico", mode = "function")) {
+    .print_topico("SELEÇÃO DA FUNÇÃO DE LIGAÇÃO")
+  } else {
+    cat("  SELEÇÃO DA FUNÇÃO DE LIGAÇÃO\n")
+  }
+  
+  if (is.null(pad_fn)) {
+    pad_fn <- function(s, w, align = "left") {
+      s <- as.character(s)
+      sp <- w - nchar(s)
+      if (sp <= 0) return(s)
+      if (align == "right")  return(paste0(strrep(" ", sp), s))
+      if (align == "center") return(paste0(strrep(" ", floor(sp/2)), s, strrep(" ", ceiling(sp/2))))
+      paste0(s, strrep(" ", sp))
+    }
+  }
+  
+  w <- c(lig = 18, aic = 16, dev = 16)
+  sep_linha <- if (!is.null(sep_fn)) sep_fn(sum(w)) else paste0("  ", strrep("─", sum(w)))
+  
+  cat(sep_linha, "\n")
+  cat("  ", pad_fn("Ligação", w["lig"], "left"),
+             pad_fn("AIC",     w["aic"], "center"),
+             pad_fn("Desvio",  w["dev"], "center"), "\n", sep = "")
+  cat(sep_linha, "\n")
+  for (r in resultados) {
+    aic_str <- if (!is.na(r$aic))
+      formatC(r$aic,    format = "f", digits = 2, decimal.mark = ",") else "—"
+    dev_str <- if (!is.na(r$desvio))
+      formatC(r$desvio, format = "f", digits = 2, decimal.mark = ",") else "—"
+    cat("  ", pad_fn(r$ligacao, w["lig"], "left"),
+               pad_fn(aic_str,  w["aic"], "center"),
+               pad_fn(dev_str,  w["dev"], "center"), "\n", sep = "")
+  }
+  cat(sep_linha, "\n")
+  cat(sprintf("  * Função de ligação selecionada: %s\n\n", ligacao_escolhida))
+}

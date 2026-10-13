@@ -89,13 +89,17 @@
 #'
 #' @param formula Fórmula do modelo (ex: y ~ x1 + x2).
 #' @param dados Data frame contendo os dados.
+#' @param ligacao Função de ligação para o caso binomial: \code{"logit"} (padrão),
+#'   \code{"probit"}, \code{"cloglog"}, \code{"cauchit"}, ou \code{"auto"} para
+#'   seleção automática por AIC. Ignorado para modelos multinomiais e ordinais.
 #' @param tipo Tipo para Y policotômico: \code{"nominal"} (padrão) ou \code{"ordinal"}.
 #'   Ignorado quando Y é binário.
 #' @param corte_prob Ponto de corte para classificação binária. Padrão 0.5.
 #' @param grafico Se TRUE, exibe painel gráfico diagnóstico. Padrão TRUE.
 #' @return Retorna invisivelmente o modelo ajustado.
 #' @export
-regressao_logistica <- function(formula, dados, tipo = c("nominal", "ordinal"),
+regressao_logistica <- function(formula, dados, ligacao = "logit",
+                                tipo = c("nominal", "ordinal"),
                                 corte_prob = 0.5, grafico = TRUE) {
   if (!is.data.frame(dados)) stop("O argumento 'dados' deve ser um data frame.")
   tipo <- match.arg(tipo)
@@ -111,10 +115,19 @@ regressao_logistica <- function(formula, dados, tipo = c("nominal", "ordinal"),
 
   if (n_niv < 2) stop("A variável resposta deve possuir ao menos 2 categorias.")
 
+  # ── Seleção automática de ligação (somente binomial) ───────────────────────
+  sel_resultado <- NULL
+  if (n_niv == 2 && identical(ligacao, "auto")) {
+    candidatas   <- c("logit", "probit", "cloglog", "cauchit")
+    sel          <- .auto_ligacao(formula, dados, binomial, candidatas)
+    ligacao      <- sel$ligacao
+    sel_resultado <- sel$resultados
+  }
+
   # ── Despacho por número de níveis ──────────────────────────────────────────
   if (n_niv == 2) {
     return(.logistica_binomial(formula, dados, corte_prob, grafico,
-                               y_name, x_names, niveis))
+                               y_name, x_names, niveis, ligacao, sel_resultado))
   } else {
     if (tipo == "ordinal") {
       return(.logistica_ordinal(formula, dados, grafico, y_name, x_names, niveis))
@@ -128,9 +141,10 @@ regressao_logistica <- function(formula, dados, tipo = c("nominal", "ordinal"),
 # BINOMIAL (código original preservado integralmente)
 # ─────────────────────────────────────────────────────────────────────────────
 .logistica_binomial <- function(formula, dados, corte_prob, grafico,
-                                y_name, x_names, niveis) {
+                                y_name, x_names, niveis,
+                                ligacao = "logit", sel_resultado = NULL) {
   mod <- tryCatch(
-    glm(formula, data = dados, family = binomial(link = "logit")),
+    glm(formula, data = dados, family = binomial(link = ligacao)),
     error = function(e) stop("Erro ao ajustar o modelo logístico: ", e$message)
   )
 
@@ -199,6 +213,10 @@ regressao_logistica <- function(formula, dados, tipo = c("nominal", "ordinal"),
   .print_titulo("REGRESSÃO LOGÍSTICA BINOMIAL")
   cat(sprintf("  Variável Resposta:   %s (Sucesso = '%s')\n", y_name, sucesso_label))
   cat(sprintf("  Observações Válidas: %d\n\n", n_obs))
+
+  if (!is.null(sel_resultado)) {
+    .imprimir_selecao_ligacao(sel_resultado, ligacao, .pad_log, .sep_log)
+  }
 
   .print_topico("RESUMO GERAL (AJUSTE)")
   w_aj <- c(med = 26, val = 30)
@@ -334,6 +352,11 @@ regressao_logistica <- function(formula, dados, tipo = c("nominal", "ordinal"),
                   x_names[i], direcao, sucesso_label,
                   pct_or, or_val, exp(ci[idx, 1]), exp(ci[idx, 2])))
     }
+  }
+  if (!is.null(sel_resultado)) {
+    candidatas_str <- paste(sapply(sel_resultado, `[[`, "ligacao"), collapse = ", ")
+    cat(sprintf("\n  A fun\u00e7\u00e3o de liga\u00e7\u00e3o %s foi selecionada automaticamente\n  por apresentar o menor AIC entre as candidatas testadas (%s).\n",
+                ligacao, candidatas_str))
   }
   cat("\n")
   .print_rodape()

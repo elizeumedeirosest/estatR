@@ -4,12 +4,15 @@
 \alias{regressao_poisson}
 \title{Regressao de Poisson}
 \usage{
-regressao_poisson(formula, dados, grafico = TRUE)
+regressao_poisson(formula, dados, ligacao = "log", grafico = TRUE)
 }
 \arguments{
 \item{formula}{Formula do modelo (ex: Y ~ X1 + X2).}
 
 \item{dados}{Data frame contendo as variaveis.}
+
+\item{ligacao}{Função de ligação: \code{"log"} (padrão), \code{"sqrt"},
+\code{"identity"}, ou \code{"auto"} para seleção automática por AIC.}
 
 \item{grafico}{Logico. Se TRUE, plota o grafico de Observado vs Predito.}
 }

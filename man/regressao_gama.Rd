@@ -4,17 +4,20 @@
 \alias{regressao_gama}
 \title{Regressao Gama}
 \usage{
-regressao_gama(formula, dados, grafico = TRUE)
+regressao_gama(formula, dados, ligacao = "log", grafico = TRUE)
 }
 \arguments{
 \item{formula}{Formula do modelo (ex: Y ~ X1 + X2).}
 
 \item{dados}{Data frame contendo as variaveis.}
 
+\item{ligacao}{Função de ligação: \code{"log"} (padrão), \code{"inverse"},
+\code{"identity"}, ou \code{"auto"} para seleção automática por AIC.}
+
 \item{grafico}{Logico. Se TRUE, plota o grafico de Observado vs Predito.}
 }
 \description{
-Ajusta um modelo de regressao Gama (link = "log") para variaveis
+Ajusta um modelo de regressao Gama para variaveis
 contínuas e estritamente positivas, geralmente com forte assimetria à direita.
 Apresenta estatisticas de ajuste, parametro de forma, coeficientes (como multiplicadores da média)
 e interpretacao automatizada.

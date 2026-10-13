@@ -1,13 +1,15 @@
 #' @title Regressao Gama
-#' @description Ajusta um modelo de regressao Gama (link = "log") para variaveis
+#' @description Ajusta um modelo de regressao Gama para variaveis
 #' contínuas e estritamente positivas, geralmente com forte assimetria à direita.
 #' Apresenta estatisticas de ajuste, parametro de forma, coeficientes (como multiplicadores da média)
 #' e interpretacao automatizada.
 #' @param formula Formula do modelo (ex: Y ~ X1 + X2).
 #' @param dados Data frame contendo as variaveis.
+#' @param ligacao Função de ligação: \code{"log"} (padrão), \code{"inverse"},
+#'   \code{"identity"}, ou \code{"auto"} para seleção automática por AIC.
 #' @param grafico Logico. Se TRUE, plota o grafico de Observado vs Predito.
 #' @export
-regressao_gama <- function(formula, dados, grafico = TRUE) {
+regressao_gama <- function(formula, dados, ligacao = "log", grafico = TRUE) {
   
   if (!is.data.frame(dados)) stop("O argumento 'dados' deve ser um data frame.")
   
@@ -18,9 +20,17 @@ regressao_gama <- function(formula, dados, grafico = TRUE) {
     stop(sprintf("A regressao Gama exige que a variavel resposta '%s' seja ESTRITAMENTE POSITIVA (> 0).", y_name))
   }
   
-  # Ajuste usando link log para garantir predições positivas
+  # Seleção automática de ligação
+  sel_resultado <- NULL
+  if (identical(ligacao, "auto")) {
+    candidatas   <- c("log", "inverse", "identity")
+    sel          <- .auto_ligacao(formula, dados, stats::Gamma, candidatas)
+    ligacao      <- sel$ligacao
+    sel_resultado <- sel$resultados
+  }
+
   modelo <- tryCatch(
-    glm(formula, data = dados, family = Gamma(link = "log")),
+    glm(formula, data = dados, family = Gamma(link = ligacao)),
     error = function(e) stop("Erro ao ajustar o modelo Gama: ", e$message)
   )
   
@@ -48,7 +58,7 @@ regressao_gama <- function(formula, dados, grafico = TRUE) {
   p_lrt    <- pchisq(lrt_stat, lrt_df, lower.tail = FALSE)
   
   loglik_mod <- as.numeric(logLik(modelo))
-  mod_nulo <- suppressWarnings(glm(stats::reformulate("1", y_name), data = dados, family = Gamma(link = "log")))
+  mod_nulo <- suppressWarnings(glm(stats::reformulate("1", y_name), data = dados, family = Gamma(link = ligacao)))
   loglik_nulo <- as.numeric(logLik(mod_nulo))
   pseudo_r2   <- 1 - (loglik_mod / loglik_nulo)
   
@@ -78,6 +88,11 @@ regressao_gama <- function(formula, dados, grafico = TRUE) {
   }
   
   if (exists(".print_titulo", mode = "function")) .print_titulo("REGRESSÃO GAMA") else cat("\n── REGRESSÃO GAMA ──\n")
+  
+  if (!is.null(sel_resultado)) {
+    .imprimir_selecao_ligacao(sel_resultado, ligacao, .pad, function(w) paste0("  ", strrep("─", w)))
+  }
+
   if (exists(".print_topico", mode = "function")) .print_topico("DIAGNÓSTICO DO AJUSTE")
   
   w_diag <- c(met = 38, val = 15)
@@ -93,7 +108,8 @@ regressao_gama <- function(formula, dados, grafico = TRUE) {
   cat("  ", .pad("Pseudo-R² (McFadden)", w_diag["met"], "left"), .pad(sprintf("%.1f%%", pseudo_r2 * 100), w_diag["val"], "center"), "\n", sep = "")
   cat(sep_diag, "\n\n")
   
-  if (exists(".print_topico", mode = "function")) .print_topico("COEFICIENTES (Link Log)")
+  rotulo_link <- if (ligacao == "log") "Link Log" else sprintf("Link %s", toupper(ligacao))
+  if (exists(".print_topico", mode = "function")) .print_topico(sprintf("COEFICIENTES (%s)", rotulo_link))
   w_c <- c(var=14, est=12, err=11, t=9, pval=14, mult=12, ic_inf=12, ic_sup=12)
   sep_coef <- paste0("  ", strrep("─", sum(w_c) + length(w_c) - 1))
   
@@ -165,6 +181,12 @@ regressao_gama <- function(formula, dados, grafico = TRUE) {
   
   if (significantes == 0) cat("  Nenhum preditor individual apresentou efeito estatisticamente significativo (p < 0,10).\n\n")
   
+  if (!is.null(sel_resultado)) {
+    candidatas_str <- paste(sapply(sel_resultado, `[[`, "ligacao"), collapse = ", ")
+    cat(sprintf("  A função de ligação '%s' foi selecionada automaticamente\n  por apresentar o menor AIC entre as candidatas testadas (%s).\n\n",
+                ligacao, candidatas_str))
+  }
+
   if (exists(".print_rodape", mode = "function")) .print_rodape() else cat(strrep("─", sum(w_c) + length(w_c) - 1), "\n\n")
   
   if (grafico) {

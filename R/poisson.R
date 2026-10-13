@@ -4,13 +4,25 @@
 #' Razao de Taxa de Incidencia (IRR) e interpretacao automatizada.
 #' @param formula Formula do modelo (ex: Y ~ X1 + X2).
 #' @param dados Data frame contendo as variaveis.
+#' @param ligacao Função de ligação: \code{"log"} (padrão), \code{"sqrt"},
+#'   \code{"identity"}, ou \code{"auto"} para seleção automática por AIC.
 #' @param grafico Logico. Se TRUE, plota o grafico de Observado vs Predito.
 #' @export
-regressao_poisson <- function(formula, dados, grafico = TRUE) {
+regressao_poisson <- function(formula, dados, ligacao = "log", grafico = TRUE) {
   
   # 1. Validacao e Ajuste
   if (!is.data.frame(dados)) stop("O argumento 'dados' deve ser um data frame.")
-  modelo <- glm(formula, data = dados, family = poisson(link = "log"))
+
+  # Seleção automática de ligação
+  sel_resultado <- NULL
+  if (identical(ligacao, "auto")) {
+    candidatas   <- c("log", "sqrt", "identity")
+    sel          <- .auto_ligacao(formula, dados, poisson, candidatas)
+    ligacao      <- sel$ligacao
+    sel_resultado <- sel$resultados
+  }
+
+  modelo <- glm(formula, data = dados, family = poisson(link = ligacao))
   
   y_name <- as.character(formula[[2]])
   x_names <- attr(terms(formula), "term.labels")
@@ -38,7 +50,7 @@ regressao_poisson <- function(formula, dados, grafico = TRUE) {
   
   # Pseudo-R2 McFadden
   loglik_mod  <- as.numeric(logLik(modelo))
-  mod_nulo    <- glm(reformulate("1", y_name), data = dados, family = poisson(link = "log"))
+  mod_nulo    <- glm(reformulate("1", y_name), data = dados, family = poisson(link = ligacao))
   loglik_nulo <- as.numeric(logLik(mod_nulo))
   pseudo_r2   <- 1 - (loglik_mod / loglik_nulo)
   
@@ -78,6 +90,10 @@ regressao_poisson <- function(formula, dados, grafico = TRUE) {
     .print_titulo("REGRESS\u00c3O DE POISSON")
   } else {
     cat("\n\u2500\u2500 REGRESS\u00c3O DE POISSON \u2500\u2500\n")
+  }
+
+  if (!is.null(sel_resultado)) {
+    .imprimir_selecao_ligacao(sel_resultado, ligacao, .pad, function(w) paste0("  ", strrep("\u2500", w)))
   }
   
   # DIAGNOSTICO DO AJUSTE
@@ -184,6 +200,12 @@ regressao_poisson <- function(formula, dados, grafico = TRUE) {
     cat("  Nenhum preditor individual apresentou efeito estatisticamente significativo (p < 0,10).\n\n")
   }
   
+  if (!is.null(sel_resultado)) {
+    candidatas_str <- paste(sapply(sel_resultado, `[[`, "ligacao"), collapse = ", ")
+    cat(sprintf("  A fun\u00e7\u00e3o de liga\u00e7\u00e3o '%s' foi selecionada automaticamente\n  por apresentar o menor AIC entre as candidatas testadas (%s).\n\n",
+                ligacao, candidatas_str))
+  }
+
   if (exists(".print_rodape", mode = "function")) {
     .print_rodape()
   } else {

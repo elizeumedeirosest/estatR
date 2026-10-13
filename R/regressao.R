@@ -510,7 +510,8 @@ metricas <- function(modelo, corte_prob = 0.5) {
 analise_residual <- function(modelo, grafico = TRUE) {
   if (inherits(modelo, "glm") && !is.null(modelo$family)) {
     if (modelo$family$family == "binomial") return(analise_residual_logistica(modelo, grafico = grafico))
-    if (modelo$family$family == "poisson") return(analise_residual_poisson(modelo, grafico = grafico))
+    if (modelo$family$family == "poisson")  return(analise_residual_poisson(modelo, grafico = grafico))
+    if (modelo$family$family == "Gamma")    return(analise_residual_gama(modelo, grafico = grafico))
   }
   res <- modelo$residuals
 

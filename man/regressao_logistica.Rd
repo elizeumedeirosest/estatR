@@ -7,6 +7,7 @@
 regressao_logistica(
   formula,
   dados,
+  ligacao = "logit",
   tipo = c("nominal", "ordinal"),
   corte_prob = 0.5,
   grafico = TRUE
@@ -16,6 +17,10 @@ regressao_logistica(
 \item{formula}{Fórmula do modelo (ex: y ~ x1 + x2).}
 
 \item{dados}{Data frame contendo os dados.}
+
+\item{ligacao}{Função de ligação para o caso binomial: \code{"logit"} (padrão),
+\code{"probit"}, \code{"cloglog"}, \code{"cauchit"}, ou \code{"auto"} para
+seleção automática por AIC. Ignorado para modelos multinomiais e ordinais.}
 
 \item{tipo}{Tipo para Y policotômico: \code{"nominal"} (padrão) ou \code{"ordinal"}.
 Ignorado quando Y é binário.}
