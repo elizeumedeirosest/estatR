@@ -23,7 +23,8 @@ meu_tema <- function(fonte = "Segoe UI", estilo = 2, escala = 1, inclinar = FALS
 .detectar_eixo_grade <- function(plot) {
   obter_coluna <- function(aes_role) {
     for (l in plot$layers) {
-      m <- l$mapping[[aes_role]] %||% plot$mapping[[aes_role]]
+      m <- l$mapping[[aes_role]]
+      if (is.null(m)) m <- plot$mapping[[aes_role]]
       if (is.null(m)) next
       d <- if (inherits(l$data, "waiver") || is.null(l$data)) plot$data else l$data
       if (is.function(d)) d <- tryCatch(d(plot$data), error = function(e) NULL)
@@ -55,7 +56,7 @@ ggplot_add.meu_tema_layer <- function(object, plot, object_name) {
   estilo    <- object$estilo
   escala    <- object$escala
   inclinar  <- object$inclinar
-  grade_opt <- object$grade %||% "auto"
+  grade_opt <- if (!is.null(object$grade)) object$grade else "auto"
 
   cor_fundo <- "white"
   cor_texto <- "black"
