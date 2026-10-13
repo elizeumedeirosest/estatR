@@ -514,35 +514,52 @@ analise_residual <- function(modelo, grafico = TRUE) {
     if (modelo$family$family == "Gamma")    return(analise_residual_gama(modelo, grafico = grafico))
   }
   res <- modelo$residuals
+  n   <- length(res)
 
-  # 1. Normalidade (Shapiro-Wilk)
-  st     <- shapiro.test(res)
-  p_norm <- st$p.value
-  w_norm <- st$statistic
+  # 1. Normalidade (Shapiro-Wilk para n <= 5000; Kolmogorov-Smirnov para n > 5000)
+  if (n <= 5000) {
+    nome_norm <- "Normalidade (Shapiro-Wilk)"
+    st        <- shapiro.test(res)
+    stat_norm <- sprintf("W = %-9.3f", st$statistic)
+    p_norm    <- st$p.value
+  } else {
+    nome_norm <- "Normalidade (Kolmogorov-S)"
+    res_pad   <- (res - mean(res)) / sd(res)
+    st        <- suppressWarnings(stats::ks.test(res_pad, "pnorm"))
+    stat_norm <- sprintf("D = %-9.3f", st$statistic)
+    p_norm    <- st$p.value
+  }
 
   # 2. Homocedasticidade (Breusch-Pagan, base R)
   res_sq       <- res^2
   dados_modelo <- modelo$model
   bp_mod       <- lm(res_sq ~ ., data = dados_modelo[, -1, drop = FALSE])
   r2_bp        <- summary(bp_mod)$r.squared
-  n            <- length(res)
   bp_stat      <- n * r2_bp
   df_bp        <- length(modelo$coefficients) - 1
   p_bp         <- pchisq(bp_stat, df_bp, lower.tail = FALSE)
 
+  # 3. Independência (Durbin-Watson, base R)
+  diff_res <- diff(res)
+  dw_stat  <- sum(diff_res^2) / sum(res^2)
+  z_dw     <- (dw_stat - 2) / sqrt(4 / n)
+  p_dw     <- 2 * pnorm(-abs(z_dw))
+
   formata_p <- function(p) {
+    if (is.na(p)) return("-")
     if (p < 0.001) return("<0,001")
     return(formatC(p, format = "f", digits = 3, decimal.mark = ","))
   }
 
-  linha <- paste0(strrep("\u2500", 54), "\n")
+  linha <- paste0(strrep("\u2500", 56), "\n")
 
   .print_titulo("DIAGN\u00d3STICO DOS RES\u00cdDUOS")
 
-  cat(sprintf("%-28s %-14s %s\n", "Teste", "Estat\u00edstica", "p-valor"))
+  cat(sprintf("%-30s %-14s %s\n", "Teste", "Estat\u00edstica", "p-valor"))
   cat(linha)
-  cat(sprintf("%-28s W = %-10.3f %s\n", "Normalidade (Shapiro-Wilk)", w_norm, formata_p(p_norm)))
-  cat(sprintf("%-28s BP = %-9.3f %s\n", "Homocedasticidade (B-P)",   bp_stat, formata_p(p_bp)))
+  cat(sprintf("%-30s %-14s %s\n", nome_norm, stat_norm, formata_p(p_norm)))
+  cat(sprintf("%-30s BP = %-9.3f %s\n", "Homocedasticidade (B-P)", bp_stat, formata_p(p_bp)))
+  cat(sprintf("%-30s DW = %-9.3f %s\n", "Independ\u00eancia (Durbin-Watson)", dw_stat, formata_p(p_dw)))
   cat(linha)
 
   .print_topico("INTERPRETA\u00c7\u00c3O DO DIAGN\u00d3STICO")
@@ -561,6 +578,15 @@ analise_residual <- function(modelo, grafico = TRUE) {
   } else {
     cat(sprintf("[\u2713] : O teste indicou homocedasticidade (p = %s),\n    ou seja, a vari\u00e2ncia dos res\u00edduos \u00e9 considerada constante\n    ao longo dos valores ajustados.\n\n",
                 formata_p(p_bp)))
+  }
+
+  if (p_dw < 0.05) {
+    direcao_ac <- if (dw_stat < 2) "positiva" else "negativa"
+    cat(sprintf("[!] : O teste detectou autocorrela\u00e7\u00e3o %s (p = %s),\n    indicando depend\u00eancia entre os res\u00edduos (DW = %.3f).\n\n",
+                direcao_ac, formata_p(p_dw), dw_stat))
+  } else {
+    cat(sprintf("[\u2713] : O teste indicou independ\u00eancia dos res\u00edduos (p = %s,\n    DW = %.3f), ou seja, n\u00e3o h\u00e1 evid\u00eancia de autocorrela\u00e7\u00e3o.\n\n",
+                formata_p(p_dw), dw_stat))
   }
 
   if (grafico) {
@@ -622,7 +648,9 @@ analise_residual <- function(modelo, grafico = TRUE) {
 
   .print_rodape()
 
-  invisible(list(shapiro = st, bp = list(statistic = bp_stat, p.value = p_bp)))
+  invisible(list(normalidade = st, shapiro = st,
+                 bp = list(statistic = bp_stat, p.value = p_bp),
+                 dw = list(statistic = dw_stat, p.value = p_dw)))
 }
 
 # ─────────────────────────────────────────────────────────────────────────────
