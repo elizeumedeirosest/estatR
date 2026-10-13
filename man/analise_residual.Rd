@@ -7,10 +7,18 @@
 analise_residual(modelo, grafico = TRUE)
 }
 \arguments{
-\item{modelo}{Objeto do tipo lm}
+\item{modelo}{Objeto de modelo ajustado do tipo \code{lm} ou \code{glm}.}
 
-\item{grafico}{Lógico. Se TRUE, exibe o painel 2x2 de diagnóstico dos resíduos.}
+\item{grafico}{Lógico. Se TRUE, exibe o painel gráfico de diagnóstico dos resíduos.}
+}
+\value{
+Retorna invisivelmente uma lista com os objetos dos testes estatísticos realizados.
 }
 \description{
-Realiza os testes estatísticos de diagnóstico dos resíduos e plota o painel gráfico internamente.
+Realiza o diagnóstico completo dos resíduos com testes estatísticos formais,
+interpretação automatizada e painel gráfico. Para modelos lineares (\code{lm}), avalia
+normalidade (Shapiro-Wilk ou Kolmogorov-Smirnov para n > 5000), homocedasticidade
+(Breusch-Pagan) e independência dos resíduos (Durbin-Watson). Para Modelos Lineares
+Generalizados (\code{glm}), despacha automaticamente para o diagnóstico específico
+da família (Logística Binomial, Poisson ou Gama).
 }

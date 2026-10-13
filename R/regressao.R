@@ -503,9 +503,15 @@ metricas <- function(modelo, corte_prob = 0.5) {
 
 
 #' @title Análise Residual
-#' @description Realiza os testes estatísticos de diagnóstico dos resíduos e plota o painel gráfico internamente.
-#' @param modelo Objeto do tipo lm
-#' @param grafico Lógico. Se TRUE, exibe o painel 2x2 de diagnóstico dos resíduos.
+#' @description Realiza o diagnóstico completo dos resíduos com testes estatísticos formais,
+#' interpretação automatizada e painel gráfico. Para modelos lineares (\code{lm}), avalia
+#' normalidade (Shapiro-Wilk ou Kolmogorov-Smirnov para n > 5000), homocedasticidade
+#' (Breusch-Pagan) e independência dos resíduos (Durbin-Watson). Para Modelos Lineares
+#' Generalizados (\code{glm}), despacha automaticamente para o diagnóstico específico
+#' da família (Logística Binomial, Poisson ou Gama).
+#' @param modelo Objeto de modelo ajustado do tipo \code{lm} ou \code{glm}.
+#' @param grafico Lógico. Se TRUE, exibe o painel gráfico de diagnóstico dos resíduos.
+#' @return Retorna invisivelmente uma lista com os objetos dos testes estatísticos realizados.
 #' @export
 analise_residual <- function(modelo, grafico = TRUE) {
   if (inherits(modelo, "glm") && !is.null(modelo$family)) {
