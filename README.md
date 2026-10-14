@@ -445,6 +445,33 @@ grafico_ic(modelo_dic)           # Gráfico horizontal de ICs com linha vermelha
 grafico_regressao(modelo_quanti) # Curva suave ajustada com pontos reais e dose ótima destacada
 ```
 
+**Delineamento em Blocos Casualizados (DBC)**
+
+```r
+# Sintaxe 1 (sem aspas):
+modelo_dbc <- analise_dbc(Produtividade, Tratamento, Bloco, dados = dados, teste = "tukey")
+# ou pelo alias direto:
+modelo_dbc <- dbc(Produtividade, Tratamento, Bloco, dados = dados)
+
+# Sintaxe 2 (com aspas):
+modelo_dbc <- dbc("Produtividade", "Tratamento", "Bloco", dados = dados, teste = "scheffe",
+                  contrastes = c("T1 vs c(T2, T3)", "c(T1, T2) vs c(T3, T4)"))
+
+# Fator Quantitativo com Blocos (Regressão Polinomial controlada por blocos):
+modelo_dbc_quanti <- dbc(Produtividade, Dose, Bloco, dados = dados_quanti)
+
+# Acesso direto aos elementos do modelo DBC
+modelo_dbc$anova                 # Quadro da ANOVA (Bloco, Tratamento, Resíduo, Total)
+modelo_dbc$parametros            # Média geral, CV experimental (%), R² e Eficiência da Blocagem (%)
+modelo_dbc$tabela_grupos         # Médias com letras do teste de agrupamento
+modelo_dbc$comparacoes           # Intervalos de confiança das diferenças pareadas
+modelo_dbc$regressao             # Regressão polinomial controlada por blocos e dose ótima
+modelo_dbc$modelo_aov            # Objeto aov nativo
+
+# Visualização gráfica dedicada em painel
+grafico_dbc(modelo_dbc)          # Painel automático de Médias + Intervalos de Confiança
+```
+
 </details>
 
 ---

@@ -7,7 +7,7 @@
 grafico_regressao(modelo)
 }
 \arguments{
-\item{modelo}{Objeto retornado por \code{analise_dic()} ou \code{dic()}.}
+\item{modelo}{Objeto retornado por \code{analise_dic()} ou \code{analise_dbc()}.}
 }
 \value{
 Objeto \code{ggplot}.
