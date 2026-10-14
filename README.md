@@ -538,6 +538,64 @@ plot_fatorial(modelo_fat)
 ---
 
 <details>
+<summary><strong> Análise de Sobrevivência (Bioestatística e Confiabilidade)</strong></summary>
+<br>
+
+**Estimador de Kaplan-Meier**
+
+```r
+# Curva de Kaplan-Meier com grupos e teste de Log-Rank
+modelo_km <- analise_sobrevivencia(tempo, evento, grupo = tratamento, dados = dados)
+# ou pelo alias direto:
+modelo_km <- kaplan_meier(tempo, evento, grupo = tratamento, dados = dados)
+# ou de forma ultra compacta:
+modelo_km <- km(tempo, evento, grupo = tratamento, dados = dados)
+
+# Curva global (sem grupos):
+km_global <- km(tempo, evento, dados = dados)
+
+# Acesso direto aos resultados
+modelo_km$tabela           # Resumo por grupo: Total, Eventos, Censuras (%), Mediana e IC 95%
+modelo_km$teste_logrank    # Estatística Chi2, GL, p-valor e contagens observadas/esperadas
+modelo_km$fit_km           # Objeto nativo survfit do pacote survival
+
+# Gráfico da curva de sobrevivência em degraus com marcas de censura e Tabela de Risco (Risk Table):
+grafico_sobrevivencia(modelo_km)
+# ou pelo alias:
+plot_sobrevivencia(modelo_km)
+```
+
+**Modelo de Riscos Proporcionais de Cox**
+
+```r
+# Ajuste do modelo semi-paramétrico de Cox
+modelo_cox <- regressao_cox(Surv(tempo, evento) ~ idade + tratamento + estagio, dados = dados)
+# ou pelo alias direto:
+modelo_cox <- cox(Surv(tempo, evento) ~ idade + tratamento + estagio, dados = dados)
+
+# Acesso direto aos resultados
+modelo_cox$tabela          # Coeficientes (Beta), EP, Hazard Ratio (HR), IC 95%, z e p-valor
+modelo_cox$c_index         # Índice de Concordância (C-index / AUC temporal) e Erro Padrão
+modelo_cox$lrt             # Teste da Razão de Verossimilhança global
+modelo_cox$wald            # Teste de Wald global
+modelo_cox$diagnostico     # Teste de Schoenfeld para o pressuposto de Riscos Proporcionais
+
+# Forest Plot dos Hazard Ratios com intervalos de confiança de 95%:
+grafico_cox(modelo_cox)
+# ou pelo alias:
+plot_cox(modelo_cox)
+
+# Diagnóstico e Análise Residual integrada (Schoenfeld, Deviance e Martingale):
+analise_residual(modelo_cox)
+# ou diretamente:
+analise_residual_cox(modelo_cox)
+```
+
+</details>
+
+---
+
+<details>
 <summary><strong> Amostragem</strong></summary>
 <br>
 

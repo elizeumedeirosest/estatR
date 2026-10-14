@@ -514,6 +514,9 @@ metricas <- function(modelo, corte_prob = 0.5) {
 #' @return Retorna invisivelmente uma lista com os objetos dos testes estatísticos realizados.
 #' @export
 analise_residual <- function(modelo, grafico = TRUE) {
+  if (inherits(modelo, c("estatR_cox", "coxph"))) {
+    return(analise_residual_cox(modelo, grafico = grafico))
+  }
   if (inherits(modelo, "glm") && !is.null(modelo$family)) {
     if (modelo$family$family == "binomial") return(analise_residual_logistica(modelo, grafico = grafico))
     if (modelo$family$family == "poisson")  return(analise_residual_poisson(modelo, grafico = grafico))

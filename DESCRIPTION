@@ -26,4 +26,5 @@ Imports:
     gridExtra,
     MASS,
     nnet,
-    betareg
+    betareg,
+    survival
