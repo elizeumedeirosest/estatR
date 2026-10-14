@@ -29,6 +29,7 @@
 #' @param paleta Numérico (1–5) para paletas internas do boxplot, ou string
 #'   (\code{"academic"}, \code{"vibrant"}, etc.) para usar \code{paleta_estatR()}.
 #' @param cor Cor fixa (hex ou nome R) para todos os boxplots, ignora a paleta.
+#'   Pode ser um vetor com uma cor por grupo (na ordem dos níveis do eixo X).
 #' @param destaque Vetor de nomes de categorias a destacar (as demais ficam em cinza).
 #' @param ordenar Lógico. Se \code{TRUE}, ordena o eixo X pelas medianas (decrescente).
 #' @param ordem_grupo Vetor manual com a ordem dos níveis do grupo.
@@ -126,7 +127,6 @@ grafico_boxplot <- function(
   }
 
   # ---- paletas internas do boxplot (mono / básicas) -------------------------
-  # paleta numérica: cores para caixas sem grupo + cor do outlier
   .paletas_box <- list(
     "1" = list(fill = "#CCCCCC", borda = "#555555", out = "#D90429"),
     "2" = list(fill = "#D9E2EC", borda = "#243B53", out = "#D4A017"),
@@ -134,7 +134,6 @@ grafico_boxplot <- function(
     "4" = list(fill = "#E6ECF5", borda = "midnightblue", out = "gold"),
     "5" = list(fill = "#EAF3FB", borda = "#377EB8",      out = "#E31A1C")
   )
-  # paletas multicolores para grupos com paleta numérica
   .paletas_box_multi <- list(
     "1" = c("#555555", "#888888", "#AAAAAA", "#CCCCCC", "#EEEEEE"),
     "2" = c("#243B53", "#486581", "#6E9DC9", "#BCCCDC", "#D9E2EC"),
@@ -147,27 +146,7 @@ grafico_boxplot <- function(
   idx_pal            <- as.character(if (usa_paleta_box_num) paleta else 1)
   pal_box            <- if (idx_pal %in% names(.paletas_box)) .paletas_box[[idx_pal]] else .paletas_box[["1"]]
 
-  # cor do outlier: base da paleta numérica
-  cor_outlier <- pal_box$out
-  if (is.character(paleta) && !is.null(.paletas_estatR[[paleta]])) {
-    cor_outlier <- "#D90429"
-  }
-  
-  # Mapa de cores por nível do eixo X (para vetor de cores em `cor`)
-  # Quando cor é vetor, cada caixa e seu respectivo outlier ganham a mesma cor.
-  cores_por_nivel <- NULL  # named: nivel_x -> cor_hex
-  if (!is.null(cor)) {
-    nivs_x <- levels(dados[[nome_x]])
-    n_x    <- length(nivs_x)
-    cores_expandidas <- if (length(cor) == 1) rep(cor, n_x) else {
-      if (length(cor) < n_x) rep(cor, length.out = n_x) else cor[seq_len(n_x)]
-    }
-    cores_por_nivel <- stats::setNames(cores_expandidas, nivs_x)
-    # Outlier e ponto da média herdam a cor da própria caixa
-    cor_outlier <- NULL  # será atribuído por ponto
-  }
-
-  # ---- flag de visibilidade da legenda ------------------------------------
+  # ---- flag de visibilidade da legenda -------------------------------------
   hide_leg <- !tem_grupo
 
   # ---- cálculo antecipado dos outliers ------------------------------------
@@ -181,7 +160,6 @@ grafico_boxplot <- function(
     d$.is_out <- yv < (q1 - fator_iqr * iq) | yv > (q3 + fator_iqr * iq)
     d
   }
-  # Usa interaction() quando há múltiplas colunas de agrupamento (evita erro de xtfrm em data.frame)
   split_key <- if (length(grupos_iqr) > 1) {
     interaction(dados[, grupos_iqr], drop = TRUE)
   } else {
@@ -189,13 +167,78 @@ grafico_boxplot <- function(
   }
   dados <- do.call(rbind, lapply(split(dados, split_key), .marca_outliers))
 
-  # Adiciona coluna .cor_out para cor dinâmica do outlier por nível
-  if (!is.null(cores_por_nivel)) {
-    dados$.cor_out <- cores_por_nivel[as.character(dados[[nome_x]])]
-  }
-
   # ---- fill_var (o que mapeia cor das caixas) ------------------------------
   fill_var <- if (tem_grupo) q_grupo else q_x
+
+  # ===========================================================================
+  # CONSTRUÇÃO DO MAPA DE CORES (named vector: nível → cor)
+  # Isso centraliza toda a lógica de cor em um único lugar e elimina bugs.
+  # ===========================================================================
+  # A variável de preenchimento mapeada no aes
+  nome_fill_var <- rlang::as_name(fill_var)
+  nivs_fill     <- levels(dados[[nome_fill_var]])
+  n_fill        <- length(nivs_fill)
+
+  # Inicializa com a paleta padrão
+  if (usa_paleta_box_num) {
+    if (tem_grupo) {
+      multi   <- if (idx_pal %in% names(.paletas_box_multi)) .paletas_box_multi[[idx_pal]] else .paletas_box_multi[["1"]]
+      base_cores <- if (n_fill <= length(multi)) multi[seq_len(n_fill)] else grDevices::colorRampPalette(multi)(n_fill)
+    } else {
+      base_cores <- rep(pal_box$fill, n_fill)
+    }
+  } else {
+    # paleta string: começa com cinza neutro, será sobrescrita depois via paleta_estatR()
+    base_cores <- rep("#CCCCCC", n_fill)
+  }
+  mapa_cores <- stats::setNames(base_cores, nivs_fill)
+
+  # Aplica `cor` (vetor ou escalar) sobrescrevendo as cores base
+  usa_cor_manual <- FALSE
+  if (!is.null(cor)) {
+    usa_cor_manual <- TRUE
+    cors_expandidas <- if (length(cor) == 1) {
+      rep(cor, n_fill)
+    } else {
+      # cor é vetor: mapeia posicionalmente aos níveis do fill_var
+      if (length(cor) < n_fill) rep(cor, length.out = n_fill) else cor[seq_len(n_fill)]
+    }
+    mapa_cores <- stats::setNames(cors_expandidas, nivs_fill)
+  }
+
+  # Aplica `destaque`: destacados ficam com sua cor, demais ficam cinza
+  usa_destaque <- FALSE
+  if (!is.null(destaque)) {
+    usa_destaque <- TRUE
+    destaque_chr <- as.character(destaque)
+
+    # Cor para grupos NÃO destacados
+    cinza_dest <- "gray85"
+
+    # Cor para grupos DESTACADOS:
+    # Prioridade: (1) cor[i] correspondente ao nível se cor for vetor, (2) paleta string[1], (3) pal_box$fill
+    cor_para_destaque <- function(nivel) {
+      if (usa_cor_manual && length(cor) > 1) {
+        # Usa a cor correspondente ao índice desse nível no fill_var
+        idx <- which(nivs_fill == nivel)
+        if (length(idx) > 0 && idx <= length(cor)) return(cor[idx])
+      }
+      if (usa_cor_manual && length(cor) == 1) return(cor)
+      if (is.character(paleta) && exists(".paletas_estatR", envir = parent.env(environment()), inherits = TRUE)) {
+        pals <- tryCatch(get(".paletas_estatR", envir = parent.env(environment()), inherits = TRUE), error = function(e) NULL)
+        if (!is.null(pals) && !is.null(pals[[paleta]])) return(pals[[paleta]][1])
+      }
+      pal_box$fill
+    }
+
+    for (nv in nivs_fill) {
+      if (nv %in% destaque_chr) {
+        mapa_cores[nv] <- cor_para_destaque(nv)
+      } else {
+        mapa_cores[nv] <- cinza_dest
+      }
+    }
+  }
 
   # ===========================================================================
   # MONTAGEM DAS CAMADAS
@@ -236,36 +279,27 @@ grafico_boxplot <- function(
 
   p <- p + do.call(ggplot2::geom_boxplot, geom_bx_args)
 
-  # 3. Outliers — cor dinâmica (por nível quando cor é vetor)
+  # 3. Outliers — cor sempre via aes(colour = fill_var) + scale_color_manual
+  #    para ficar 100% sincronizada com a cor da caixa correspondente.
   if (isTRUE(outlier)) {
     dados_out <- dados[dados$.is_out, ]
     if (nrow(dados_out) > 0) {
       pos_out <- if (tem_grupo) ggplot2::position_dodge(0.75) else "identity"
 
-      if (!is.null(cores_por_nivel)) {
-        # Outlier herda a cor da sua caixa via I() — bypassa qualquer scale_colour_*
-        p <- p + ggplot2::geom_point(
-          data        = dados_out,
-          mapping     = ggplot2::aes(x = !!q_x, y = !!q_y, group = !!fill_var,
-                                     colour = I(.cor_out)),
-          position    = pos_out,
-          size        = 2.2 * tam_dispersao_pts,
-          alpha       = 0.9,
-          inherit.aes = FALSE,
-          show.legend = FALSE
-        )
-      } else {
-        p <- p + ggplot2::geom_point(
-          data        = dados_out,
-          mapping     = ggplot2::aes(x = !!q_x, y = !!q_y, group = !!fill_var),
-          position    = pos_out,
-          color       = cor_outlier,
-          size        = 2.2 * tam_dispersao_pts,
-          alpha       = 0.9,
-          inherit.aes = FALSE,
-          show.legend = FALSE
-        )
-      }
+      p <- p + ggplot2::geom_point(
+        data        = dados_out,
+        mapping     = ggplot2::aes(
+          x      = !!q_x,
+          y      = !!q_y,
+          group  = !!fill_var,
+          colour = !!fill_var
+        ),
+        position    = pos_out,
+        size        = 2.2 * tam_dispersao_pts,
+        alpha       = 0.9,
+        inherit.aes = FALSE,
+        show.legend = FALSE
+      )
 
       # Rótulos de outliers (ggrepel)
       if (!is.null(nome_rotulo) && requireNamespace("ggrepel", quietly = TRUE)) {
@@ -310,9 +344,7 @@ grafico_boxplot <- function(
     )
   }
 
-  # 5. Ponto da média — sempre PRETO
-  # Usar colour/fill como params fixos (fora do aes) para ser imune à paleta.
-  # group = !!fill_var no mapping garante o position_dodge correto por grupo.
+  # 5. Ponto da média — sempre PRETO (param fixo, imune a qualquer scale)
   pos_sum <- if (tem_grupo) ggplot2::position_dodge(0.75) else "identity"
 
   if (isTRUE(ponto_media)) {
@@ -322,8 +354,8 @@ grafico_boxplot <- function(
       geom         = "point",
       shape        = 18,
       size         = 3.8,
-      colour       = "black",   # param fixo: imune a scale_colour_* e ggplot_add
-      fill         = "black",   # param fixo: imune a scale_fill_*
+      colour       = "black",
+      fill         = "black",
       position     = pos_sum,
       show.legend  = FALSE
     )
@@ -367,49 +399,36 @@ grafico_boxplot <- function(
   }
 
   # ===========================================================================
-  # ESCALA DE CORES
+  # ESCALAS DE COR — um único ponto de aplicação
   # ===========================================================================
 
-  if (!is.null(destaque)) {
-    # --- Destaque: categorias em cor, demais em cinza
-    nivs_fill <- levels(dados[[rlang::as_name(fill_var)]])
-    cores_dest <- stats::setNames(rep("gray85", length(nivs_fill)), nivs_fill)
-    cor_dest_val <- if (is.character(paleta) && !is.null(.paletas_estatR[[paleta]])) {
-      .paletas_estatR[[paleta]][1]
+  # Quando a paleta é numérica OU há cor/destaque manual: usa scale_*_manual
+  # com o mapa_cores construído acima (fill e colour apontam para o mesmo vetor).
+  # Quando paleta é string e não há cor/destaque: delega ao sistema paleta_estatR().
+
+  usa_scale_manual <- usa_paleta_box_num || usa_cor_manual || usa_destaque
+
+  if (usa_scale_manual) {
+    # Cor do outlier para paleta numérica sem cor/destaque manual
+    cor_outlier_scale <- if (!usa_cor_manual && !usa_destaque) {
+      stats::setNames(rep(pal_box$out, n_fill), nivs_fill)
     } else {
-      pal_box$fill
+      # Outlier herda a cor do fill (mapa_cores) — perfeita sincronização
+      mapa_cores
     }
-    if (!is.null(cor)) cor_dest_val <- cor
-    cores_dest[names(cores_dest) %in% as.character(destaque)] <- cor_dest_val
-    p <- p +
-      ggplot2::scale_fill_manual(values = cores_dest, guide = if (hide_leg) "none" else ggplot2::guide_legend()) +
-      ggplot2::scale_color_manual(values = cores_dest, guide = "none")
 
-  } else if (!is.null(cor)) {
-    # --- Cor fixa para todas as caixas
-    n_nivs <- length(levels(dados[[rlang::as_name(fill_var)]]))
     p <- p +
-      ggplot2::scale_fill_manual(values = rep(cor, n_nivs), guide = if (hide_leg) "none" else ggplot2::guide_legend()) +
-      ggplot2::scale_color_manual(values = rep(cor, n_nivs), guide = "none")
-
-  } else if (!tem_grupo && usa_paleta_box_num) {
-    # --- Sem grupo + paleta numérica: todas as caixas recebem a mesma cor base
-    n_nivs <- length(levels(dados[[nome_x]]))
-    p <- p +
-      ggplot2::scale_fill_manual(values = rep(pal_box$fill, n_nivs), guide = "none") +
-      ggplot2::scale_color_manual(values = rep(pal_box$borda, n_nivs), guide = "none")
-
-  } else if (tem_grupo && usa_paleta_box_num) {
-    # --- Com grupo + paleta numérica: usa cores multicolores internas
-    multi <- if (idx_pal %in% names(.paletas_box_multi)) .paletas_box_multi[[idx_pal]] else .paletas_box_multi[["1"]]
-    n_grupos <- length(levels(dados[[nome_grupo]]))
-    cores_g <- if (n_grupos <= length(multi)) multi[1:n_grupos] else grDevices::colorRampPalette(multi)(n_grupos)
-    p <- p +
-      ggplot2::scale_fill_manual(values = cores_g) +
-      ggplot2::scale_color_manual(values = cores_g, guide = "none")
+      ggplot2::scale_fill_manual(
+        values = mapa_cores,
+        guide  = if (hide_leg) "none" else ggplot2::guide_legend()
+      ) +
+      ggplot2::scale_color_manual(
+        values = cor_outlier_scale,
+        guide  = "none"
+      )
 
   } else if (is.character(paleta)) {
-    # --- Paleta estatR (string): delega ao sistema de paletas do gghelpers
+    # Paleta estatR (string): delega ao sistema de paletas
     if (exists("paleta_estatR", mode = "function")) p <- p + paleta_estatR(paleta)
     if (hide_leg) p <- p + ggplot2::guides(fill = "none", color = "none")
   }
