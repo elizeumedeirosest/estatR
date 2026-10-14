@@ -457,9 +457,13 @@ predicao <- function(modelo, novos_dados,
 #' @param modelo Objeto do tipo lm
 #' @export
 metricas <- function(modelo, corte_prob = 0.5) {
+  if (inherits(modelo, c("estatR_cox", "coxph"))) return(metricas_cox(modelo))
+  if (inherits(modelo, "betareg"))                return(metricas_beta(modelo))
+  if (inherits(modelo, "negbin"))                 return(metricas_binomial_negativa(modelo))
   if (inherits(modelo, "glm") && !is.null(modelo$family)) {
     if (modelo$family$family == "binomial") return(metricas_logistica(modelo, corte_prob = corte_prob))
-    if (modelo$family$family == "poisson") return(metricas_poisson(modelo))
+    if (modelo$family$family == "poisson")  return(metricas_poisson(modelo))
+    if (modelo$family$family == "Gamma")    return(metricas_gama(modelo))
   }
   resumo <- summary(modelo)
   r2     <- resumo$r.squared
@@ -676,6 +680,11 @@ selecao_modelos <- function(formula, dados, top = 5) {
   if (!is.data.frame(dados)) stop("O argumento 'dados' deve ser um data frame.")
   
   # Preparação de variáveis
+  resp_dep <- deparse(formula[[2]])
+  if (grepl("Surv\\(", resp_dep)) {
+    return(selecao_modelos_cox(formula, dados, top = top))
+  }
+  
   termos <- attr(terms(formula, data = dados), "term.labels")
   y_name <- as.character(formula[[2]])
   

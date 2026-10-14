@@ -784,31 +784,9 @@ print.estatR_cox <- function(x, ...) {
               if (x$wald$p < 0.001) "< 0,001" else paste0("= ", .fmt_num(x$wald$p, 3))))
   cat(sprintf("  Critérios de Informação:     AIC = %s  |  BIC = %s\n",
               .fmt_num(x$aic, 1), .fmt_num(x$bic, 1)))
-  cat("  ────────────────────────────────────────────────────────────── \n")
   cat("  * Concordância (C-index): 0.50 (aleatório), > 0.70 (bom), > 0.80 (excelente discriminação).\n\n")
 
-  # 3. DIAGNÓSTICO DE RISCOS PROPORCIONAIS
-  if (!is.null(x$diagnostico)) {
-    .print_topico("DIAGNÓSTICO DE RISCOS PROPORCIONAIS (RESÍDUOS DE SCHOENFELD)")
-    tab_zph <- x$diagnostico$table
-    cat("  ─────────────────────────────────────────────────────── \n")
-    cat("  Covariável              rho      Chi-quadrado   p-valor \n")
-    cat("  ─────────────────────────────────────────────────────── \n")
-    for (i in 1:nrow(tab_zph)) {
-      nm_r <- rownames(tab_zph)[i]
-      rho_v <- if (!is.na(tab_zph[i, "chisq"]) && "rho" %in% colnames(tab_zph)) sprintf("%+7s", .fmt_num(tab_zph[i, "rho"], 3)) else "      -"
-      chi_v <- sprintf("%8s", .fmt_num(tab_zph[i, "chisq"], 2))
-      pv_v  <- tab_zph[i, "p"]
-      pv_s  <- if (pv_v < 0.001) "< 0,001" else sprintf("%7s", .fmt_num(pv_v, 3))
-      status_sig <- if (pv_v < 0.05) " [Violação!]" else " [Atendido]"
-      cat(sprintf("  %-20s %s      %s    %s %s\n",
-                  nm_r, rho_v, chi_v, pv_s, status_sig))
-    }
-    cat("  ─────────────────────────────────────────────────────── \n")
-    cat("  * H0: Riscos são proporcionais (p >= 0.05 indica que o pressuposto foi atendido).\n\n")
-  }
-
-  # 4. INTERPRETAÇÃO PRÁTICA
+  # 3. INTERPRETAÇÃO DOS HAZARD RATIOS
   .print_topico("INTERPRETAÇÃO DOS HAZARD RATIOS")
   for (i in 1:nrow(x$tabela)) {
     cov_i <- x$tabela$Covariavel[i]
@@ -1034,3 +1012,203 @@ analise_residual_cox <- function(modelo, grafico = TRUE) {
     grafico    = p_painel
   ))
 }
+
+
+# ─────────────────────────────────────────────────────────────────────────────
+# 4. MÉTRICAS DO MODELO DE COX
+# ─────────────────────────────────────────────────────────────────────────────
+
+#' @title Métricas de Avaliação do Modelo de Cox
+#' @description Exibe e retorna as principais medidas de qualidade de ajuste,
+#'   discriminação e critérios de informação para o modelo de riscos proporcionais de Cox.
+#' @param modelo Objeto retornado por \code{regressao_cox()} ou \code{coxph}.
+#' @return Data frame invisível contendo as métricas calculadas.
+#' @export
+metricas_cox <- function(modelo) {
+
+  mod_cox <- if (inherits(modelo, "estatR_cox")) modelo$modelo_cox else modelo
+  if (!inherits(mod_cox, "coxph")) {
+    stop("O argumento 'modelo' deve ser um modelo de Cox (coxph ou estatR_cox).", call. = FALSE)
+  }
+
+  sum_c <- summary(mod_cox)
+  n_obs <- mod_cox$n
+  n_ev  <- mod_cox$nevent
+
+  # Concordancia
+  c_idx <- sum_c$concordance[1]
+  se_c  <- sum_c$concordance[2]
+
+  # Log-Verossimilhanca e Pseudo-R2
+  loglik_fit  <- mod_cox$loglik[2]
+  loglik_null <- mod_cox$loglik[1]
+  lrt_stat    <- 2 * (loglik_fit - loglik_null)
+
+  # Cox & Snell R2 e Nagelkerke R2
+  r2_cs  <- 1 - exp(-lrt_stat / n_obs)
+  r2_max <- 1 - exp(2 * loglik_null / n_obs)
+  r2_nag <- if (r2_max > 0) r2_cs / r2_max else NA
+
+  # Criterios de Informacao
+  aic_val <- stats::AIC(mod_cox)
+  bic_val <- stats::BIC(mod_cox)
+
+  # Testes de significancia global
+  lrt_p   <- sum_c$logtest["pvalue"]
+  wald_p  <- sum_c$waldtest["pvalue"]
+  score_p <- sum_c$sctest["pvalue"]
+
+  lw <- 26
+  vw <- 14
+  linha <- paste0(strrep("\u2500", lw + vw + 3), "\n")
+
+  .print_titulo("MÉTRICAS DO MODELO DE SOBREVIVÊNCIA (COX)")
+
+  cat(sprintf("  %-*s %*s\n", lw, "Métrica", vw, "Valor"))
+  cat("  ", linha, sep = "")
+  cat(sprintf("  %-*s %*s\n", lw, "Concordância (C-index)", vw, .fmt_num(c_idx, 3)))
+  cat(sprintf("  %-*s %*s\n", lw, "Erro Padrão do C-index",  vw, .fmt_num(se_c, 3)))
+  cat(sprintf("  %-*s %*s\n", lw, "R² de Cox & Snell",       vw, .fmt_num(r2_cs, 3)))
+  cat(sprintf("  %-*s %*s\n", lw, "R² de Nagelkerke",        vw, .fmt_num(r2_nag, 3)))
+  cat(sprintf("  %-*s %*s\n", lw, "Log-Verossimilhança",     vw, .fmt_num(loglik_fit, 2)))
+  cat(sprintf("  %-*s %*s\n", lw, "AIC",                     vw, .fmt_num(aic_val, 1)))
+  cat(sprintf("  %-*s %*s\n", lw, "BIC",                     vw, .fmt_num(bic_val, 1)))
+  cat(sprintf("  %-*s %*s\n", lw, "Razão Verossimilhança (p)", vw, if (lrt_p < 0.001) "< 0,001" else .fmt_num(lrt_p, 3)))
+  cat(sprintf("  %-*s %*s\n", lw, "Teste de Wald (p)",       vw, if (wald_p < 0.001) "< 0,001" else .fmt_num(wald_p, 3)))
+  cat(sprintf("  %-*s %*s\n", lw, "Teste Score (p)",         vw, if (score_p < 0.001) "< 0,001" else .fmt_num(score_p, 3)))
+  .print_rodape()
+
+  df_res <- data.frame(
+    Metrica = c("C_index", "EP_C_index", "R2_Cox_Snell", "R2_Nagelkerke",
+                "LogLik", "AIC", "BIC", "p_LRT", "p_Wald", "p_Score"),
+    Valor   = c(c_idx, se_c, r2_cs, r2_nag, loglik_fit, aic_val, bic_val, lrt_p, wald_p, score_p),
+    stringsAsFactors = FALSE
+  )
+  invisible(df_res)
+}
+
+
+# ─────────────────────────────────────────────────────────────────────────────
+# 5. SELEÇÃO DE MODELOS DE COX (BEST SUBSETS)
+# ─────────────────────────────────────────────────────────────────────────────
+
+#' @title Seleção de Modelos de Riscos Proporcionais de Cox
+#' @description Avalia todas as combinações de covariáveis para o modelo de Cox,
+#'   ranqueando os melhores modelos pelos critérios de AIC, Delta AIC, pesos de Akaike
+#'   e Índice C de Concordância.
+#'
+#' @param formula Fórmula do modelo inicial (ex: \code{Surv(tempo, evento) ~ .} ou \code{Surv(tempo, evento) ~ x1 + x2 + x3}).
+#' @param dados Data frame contendo os dados.
+#' @param top Número de modelos a serem exibidos no ranking (padrão \code{5}).
+#' @return Data frame invisível com o ranking dos melhores modelos avaliados.
+#' @export
+selecao_modelos_cox <- function(formula, dados, top = 5) {
+
+  if (!requireNamespace("survival", quietly = TRUE)) {
+    stop("O pacote 'survival' é necessário para a seleção de modelos de Cox.", call. = FALSE)
+  }
+
+  if (!is.data.frame(dados)) {
+    stop("O argumento 'dados' deve ser um data frame.", call. = FALSE)
+  }
+
+  # Extrai termos do lado direito da formula
+  termos_todos <- attr(stats::terms(formula, data = dados), "term.labels")
+  if (length(termos_todos) == 0) {
+    stop("A fórmula deve conter ao menos uma covariável preditora.", call. = FALSE)
+  }
+
+  # Formula basica de resposta
+  resp_call <- formula[[2]]
+  resp_str  <- deparse(resp_call)
+
+  # Limita a 10 termos para evitar explosao combinatoria
+  if (length(termos_todos) > 10) {
+    message("Mais de 10 variáveis detectadas. Selecionando os 10 preditores mais promissores para avaliação.")
+    termos_todos <- termos_todos[1:10]
+  }
+
+  # Gera todas as combinacoes possiveis
+  p_tot <- length(termos_todos)
+  todas_combs <- list()
+  for (k in 1:p_tot) {
+    cb <- utils::combn(termos_todos, k, simplify = FALSE)
+    todas_combs <- c(todas_combs, cb)
+  }
+
+  resultados <- list()
+
+  for (i in seq_along(todas_combs)) {
+    vars_i <- todas_combs[[i]]
+    f_txt  <- sprintf("%s ~ %s", resp_str, paste(vars_i, collapse = " + "))
+    f_obj  <- stats::as.formula(f_txt)
+
+    fit_i <- tryCatch(
+      survival::coxph(f_obj, data = dados),
+      error = function(e) NULL
+    )
+
+    if (!is.null(fit_i)) {
+      aic_i <- stats::AIC(fit_i)
+      c_i   <- summary(fit_i)$concordance[1]
+      resultados[[length(resultados) + 1]] <- data.frame(
+        Modelo     = paste(vars_i, collapse = " + "),
+        k          = length(vars_i),
+        AIC        = aic_i,
+        C_index    = c_i,
+        stringsAsFactors = FALSE
+      )
+    }
+  }
+
+  if (length(resultados) == 0) {
+    stop("Nenhum modelo de Cox convergiu satisfatoriamente.", call. = FALSE)
+  }
+
+  df_rank <- do.call(rbind, resultados)
+  df_rank <- df_rank[order(df_rank$AIC), ]
+
+  # Delta AIC e Pesos de Akaike
+  min_aic <- min(df_rank$AIC)
+  df_rank$Delta_AIC <- df_rank$AIC - min_aic
+  pesos_raw <- exp(-0.5 * df_rank$Delta_AIC)
+  df_rank$Peso_Akaike <- pesos_raw / sum(pesos_raw)
+  rownames(df_rank) <- NULL
+
+  # Exibicao do top
+  n_show <- min(top, nrow(df_rank))
+  top_df <- df_rank[1:n_show, ]
+
+  .print_titulo("SELEÇÃO DE MODELOS DE COX (BEST SUBSETS)")
+  cat(sprintf("  Critério de Ranqueamento: Menor AIC  |  Modelos testados: %d\n\n", nrow(df_rank)))
+
+  cat("  ────────────────────────────────────────────────────────────────────────────── \n")
+  cat("  Rank  Preditores Incluídos               k     AIC       Delta AIC   Peso   C-index \n")
+  cat("  ────────────────────────────────────────────────────────────────────────────── \n")
+
+  for (i in 1:n_show) {
+    rk_s   <- sprintf("%2d", i)
+    mod_s  <- top_df$Modelo[i]
+    if (nchar(mod_s) > 30) mod_s <- paste0(substr(mod_s, 1, 27), "...")
+    k_s    <- sprintf("%2d", top_df$k[i])
+    aic_s  <- sprintf("%8.2f", top_df$AIC[i])
+    daic_s <- sprintf("%7.2f", top_df$Delta_AIC[i])
+    w_s    <- sprintf("%6.3f", top_df$Peso_Akaike[i])
+    c_s    <- sprintf("%5.3f", top_df$C_index[i])
+
+    cat(sprintf("  %-4s  %-32s %s  %s    %s   %s   %s\n",
+                rk_s, mod_s, k_s, aic_s, daic_s, w_s, c_s))
+  }
+  cat("  ────────────────────────────────────────────────────────────────────────────── \n")
+  cat("  * Delta AIC <= 2 indica modelos substancialmente equivalentes pelo critério de Burnham & Anderson.\n\n")
+
+  # Modelo recomendado
+  melhor_mod <- df_rank$Modelo[1]
+  cat(sprintf("  ▶ Modelo Recomendado (Menor AIC): %s ~ %s\n", resp_str, melhor_mod))
+  cat(sprintf("    AIC: %.2f  |  Concordância (C-index): %.3f\n\n",
+              df_rank$AIC[1], df_rank$C_index[1]))
+
+  .print_rodape()
+  invisible(df_rank)
+}
+

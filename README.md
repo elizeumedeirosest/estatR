@@ -585,6 +585,12 @@ grafico_cox(modelo_cox)
 # ou pelo alias:
 plot_cox(modelo_cox)
 
+# Métricas polimórficas (C-index, Pseudo-R2, AIC, BIC, LRT, Wald):
+metricas(modelo_cox)
+
+# Seleção polimórfica de modelos (Best Subsets por AIC e C-index):
+selecao_modelos(Surv(tempo, evento) ~ idade + tratamento + estagio, dados = dados)
+
 # Diagnóstico e Análise Residual integrada (Schoenfeld, Deviance e Martingale):
 analise_residual(modelo_cox)
 # ou diretamente:
