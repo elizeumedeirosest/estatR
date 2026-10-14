@@ -1084,8 +1084,11 @@ print.estatR_dic <- function(x, ...) {
 #' @return Objeto \code{ggplot}.
 #' @export
 grafico_medias <- function(modelo, cor_barras = "#008080") {
+  if (inherits(modelo, "estatR_fatorial")) {
+    return(grafico_fatorial(modelo))
+  }
   if (!inherits(modelo, c("estatR_dic", "estatR_dbc", "estatR_dql"))) {
-    stop("O argumento 'modelo' deve ser um objeto retornado por analise_dic(), analise_dbc() ou analise_dql().", call. = FALSE)
+    stop("O argumento 'modelo' deve ser um objeto retornado por analise_dic(), analise_dbc(), analise_dql() ou analise_fatorial_duplo().", call. = FALSE)
   }
   
   df_grp <- if (!is.null(modelo$tabela_grupos)) modelo$tabela_grupos else modelo$tabela_medias

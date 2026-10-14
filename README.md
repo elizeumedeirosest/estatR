@@ -497,6 +497,42 @@ modelo_dql$comparacoes           # Intervalos de confiança das diferenças pare
 grafico_dql(modelo_dql)          # Painel com Gráfico de Médias + ICs das diferenças
 ```
 
+**Esquema Fatorial Duplo (A × B — DIC e DBC)**
+
+```r
+# Sintaxe 1 (sem aspas):
+# Em DIC (sem bloco):
+modelo_fat <- analise_fatorial_duplo(Produtividade, Cultivar, Adubacao, dados = dados, teste = "tukey")
+# ou pelo alias direto:
+modelo_fat <- fat(Produtividade, Cultivar, Adubacao, dados = dados)
+
+# Em DBC (com bloco informado):
+modelo_fat_dbc <- fat(Produtividade, Cultivar, Adubacao, bloco = Bloco, dados = dados)
+
+# Sintaxe 2 (com aspas):
+modelo_fat <- fat("Produtividade", "Cultivar", "Adubacao", dados = dados, teste = "scott_knott")
+
+# Desdobramento automático:
+# - Se a interação for significativa (p < 0.05): realiza o desdobramento dos fatores
+#   e exibe a tabela matricial combinada de médias com letras minúsculas (na linha) e maiúsculas (na coluna).
+# - Se a interação não for significativa: avalia e apresenta os efeitos principais independentes.
+
+# Acesso direto aos elementos do modelo
+modelo_fat$anova                   # Quadro da ANOVA com interação formatada (ex: Cultivar × Adubacao)
+modelo_fat$parametros              # Média geral, CV experimental (%) e R² do modelo
+modelo_fat$medias_comb             # Matriz de médias por combinação dos níveis
+modelo_fat$letras_min              # Letras minúsculas do desdobramento (linha: Fator 1 dentro de Fator 2)
+modelo_fat$letras_mai              # Letras maiúsculas do desdobramento (coluna: Fator 2 dentro de Fator 1)
+modelo_fat$desdobramento_f1_em_f2  # Quadro de ANOVA do Fator 1 desdobrado em cada nível do Fator 2
+modelo_fat$desdobramento_f2_em_f1  # Quadro de ANOVA do Fator 2 desdobrado em cada nível do Fator 1
+modelo_fat$modelo_aov              # Objeto aov nativo
+
+# Visualização gráfica do perfil de interação
+grafico_fatorial(modelo_fat)       # Perfil de interação com barras de erro e letras sobrepostas
+# ou pelo alias:
+plot_fatorial(modelo_fat)
+```
+
 </details>
 
 ---
