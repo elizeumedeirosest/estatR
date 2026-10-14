@@ -8,7 +8,7 @@
 grafico_ic(modelo, cor_sig = "#0099FF", cor_ns = "gray40")
 }
 \arguments{
-\item{modelo}{Objeto retornado por \code{analise_dic()}, \code{dic()}, \code{analise_dbc()} ou \code{dbc()}.}
+\item{modelo}{Objeto retornado por \code{analise_dic()}, \code{analise_dbc()} ou \code{analise_dql()}.}
 
 \item{cor_sig}{Cor para os intervalos significativos que não cruzam o zero (padrão azul \code{"#0099FF"}).}
 

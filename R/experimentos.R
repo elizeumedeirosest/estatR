@@ -1084,8 +1084,8 @@ print.estatR_dic <- function(x, ...) {
 #' @return Objeto \code{ggplot}.
 #' @export
 grafico_medias <- function(modelo, cor_barras = "#008080") {
-  if (!inherits(modelo, c("estatR_dic", "estatR_dbc"))) {
-    stop("O argumento 'modelo' deve ser um objeto retornado por analise_dic() ou analise_dbc().", call. = FALSE)
+  if (!inherits(modelo, c("estatR_dic", "estatR_dbc", "estatR_dql"))) {
+    stop("O argumento 'modelo' deve ser um objeto retornado por analise_dic(), analise_dbc() ou analise_dql().", call. = FALSE)
   }
   
   df_grp <- if (!is.null(modelo$tabela_grupos)) modelo$tabela_grupos else modelo$tabela_medias
@@ -1130,15 +1130,15 @@ grafico_medias <- function(modelo, cor_barras = "#008080") {
 #' @description Gera gráfico horizontal com os intervalos de confiança das diferenças pareadas
 #'   entre tratamentos ou dos contrastes de Scheffé, com linha vertical vermelha no zero e destaque
 #'   colorido para contrastes com diferença estatisticamente significativa.
-#' @param modelo Objeto retornado por \code{analise_dic()}, \code{dic()}, \code{analise_dbc()} ou \code{dbc()}.
+#' @param modelo Objeto retornado por \code{analise_dic()}, \code{analise_dbc()} ou \code{analise_dql()}.
 #' @param cor_sig Cor para os intervalos significativos que não cruzam o zero (padrão azul \code{"#0099FF"}).
 #' @param cor_ns Cor para os intervalos que cruzam o zero (padrão \code{"gray40"}).
 #' @return Objeto \code{ggplot}.
 #' @export
 #' @aliases grafico_comparacoes
 grafico_ic <- function(modelo, cor_sig = "#0099FF", cor_ns = "gray40") {
-  if (!inherits(modelo, c("estatR_dic", "estatR_dbc"))) {
-    stop("O argumento 'modelo' deve ser um objeto retornado por analise_dic() ou analise_dbc().", call. = FALSE)
+  if (!inherits(modelo, c("estatR_dic", "estatR_dbc", "estatR_dql"))) {
+    stop("O argumento 'modelo' deve ser um objeto retornado por analise_dic(), analise_dbc() ou analise_dql().", call. = FALSE)
   }
   
   df_comp <- modelo$comparacoes
@@ -1181,12 +1181,12 @@ grafico_comparacoes <- grafico_ic
 #' @title Gráfico da Regressão Polinomial
 #' @description Gera gráfico de dispersão com os pontos observados, médias e curva ajustada do modelo
 #'   polinomial recomendado (Linear, Quadrático ou Cúbico).
-#' @param modelo Objeto retornado por \code{analise_dic()} ou \code{analise_dbc()}.
+#' @param modelo Objeto retornado por \code{analise_dic()}, \code{analise_dbc()} ou \code{analise_dql()}.
 #' @return Objeto \code{ggplot}.
 #' @export
 grafico_regressao <- function(modelo) {
-  if (!inherits(modelo, c("estatR_dic", "estatR_dbc")) || modelo$tipo != "quantitativo") {
-    stop("O modelo deve ser um objeto quantitativo retornado por analise_dic() ou analise_dbc().", call. = FALSE)
+  if (!inherits(modelo, c("estatR_dic", "estatR_dbc", "estatR_dql")) || modelo$tipo != "quantitativo") {
+    stop("O modelo deve ser um objeto quantitativo retornado por analise_dic(), analise_dbc() ou analise_dql().", call. = FALSE)
   }
   
   df_orig <- data.frame(
@@ -2204,3 +2204,965 @@ grafico_dbc <- function(modelo, ...) {
 
 #' @export
 plot_dbc <- grafico_dbc
+
+
+# ─────────────────────────────────────────────────────────────────────────────
+# MÓDULO: DELINEAMENTO EM QUADRADO LATINO (DQL)
+# ─────────────────────────────────────────────────────────────────────────────
+
+#' @title Análise de Delineamento em Quadrado Latino (DQL)
+#' @description Executa a Análise de Variância (ANOVA) para experimentos em Delineamento
+#'   em Quadrado Latino (DQL), com duplo controle local (linhas e colunas), testes de eficiência
+#'   relativa, testes de comparações múltiplas de médias (Tukey, Scott-Knott, Duncan, SNK,
+#'   Scheffé com contrastes, Bonferroni, Dunnett) ou Regressão Polinomial com ponto ótimo,
+#'   além de painel gráfico automatizado.
+#'
+#' @param resposta Variável dependente contínua (com ou sem aspas).
+#' @param tratamento Fator de tratamentos (com ou sem aspas).
+#' @param linha Fator de linhas / controle local 1 (com ou sem aspas).
+#' @param coluna Fator de colunas / controle local 2 (com ou sem aspas).
+#' @param dados Data frame opcional contendo as variáveis.
+#' @param teste Teste de comparações múltiplas para fatores qualitativos:
+#'   \code{"tukey"} (padrão), \code{"scott_knott"}, \code{"duncan"}, \code{"snk"},
+#'   \code{"scheffe"}, \code{"bonferroni"} ou \code{"dunnett"}.
+#' @param contrastes Lista ou vetor de contrastes para o teste de Scheffé (ex: \code{"A vs c(B, C)"}).
+#' @param controle Nome do nível de referência (testemunha) usado quando \code{teste = "dunnett"}.
+#' @param tipo Tipo de fator: \code{"auto"} (detecta automaticamente), \code{"qualitativo"}
+#'   ou \code{"quantitativo"}.
+#' @param confianca Nível de confiança para os testes e intervalos (padrão \code{0.95}).
+#' @param grafico Lógico. Se \code{TRUE} (padrão), exibe automaticamente o painel de gráficos.
+#' @param residuos Lógico. Se \code{TRUE}, executa e exibe a análise residual do modelo.
+#'
+#' @return Objeto da classe \code{"estatR_dql"} contendo os quadros da ANOVA, parâmetros
+#'   experimentais, eficiências relativas, resultados das comparações múltiplas e gráficos.
+#' @export
+#' @aliases dql
+analise_dql <- function(resposta,
+                        tratamento,
+                        linha,
+                        coluna,
+                        dados       = NULL,
+                        teste       = c("tukey", "scott_knott", "duncan", "snk", "scheffe", "bonferroni", "dunnett"),
+                        contrastes  = NULL,
+                        controle    = NULL,
+                        tipo        = c("auto", "qualitativo", "quantitativo"),
+                        confianca   = 0.95,
+                        grafico     = TRUE,
+                        residuos    = FALSE) {
+  
+  teste <- match.arg(teste)
+  tipo  <- match.arg(tipo)
+  
+  sub_resp  <- substitute(resposta)
+  sub_trat  <- substitute(tratamento)
+  sub_linha <- substitute(linha)
+  sub_col   <- substitute(coluna)
+  
+  info_resp  <- .extrair_vetor_exp(sub_resp, dados, "resposta")
+  info_trat  <- .extrair_vetor_exp(sub_trat, dados, "tratamento")
+  info_linha <- .extrair_vetor_exp(sub_linha, dados, "linha")
+  info_col   <- .extrair_vetor_exp(sub_col, dados, "coluna")
+  
+  y_raw     <- info_resp$valores
+  trat_raw  <- info_trat$valores
+  linha_raw <- info_linha$valores
+  col_raw   <- info_col$valores
+  
+  nm_resp  <- info_resp$nome
+  nm_trat  <- info_trat$nome
+  nm_linha <- info_linha$nome
+  nm_col   <- info_col$nome
+  
+  val_ok    <- !is.na(y_raw) & !is.na(trat_raw) & !is.na(linha_raw) & !is.na(col_raw)
+  y         <- as.numeric(y_raw[val_ok])
+  trat_vec  <- trat_raw[val_ok]
+  linha_vec <- linha_raw[val_ok]
+  col_vec   <- col_raw[val_ok]
+  n_total   <- length(y)
+  
+  trat_fator  <- as.factor(trat_vec)
+  linha_fator <- as.factor(linha_vec)
+  col_fator   <- as.factor(col_vec)
+  
+  niveis_trat  <- levels(trat_fator)
+  niveis_linha <- levels(linha_fator)
+  niveis_col   <- levels(col_fator)
+  
+  k <- length(niveis_trat)
+  nl <- length(niveis_linha)
+  nc <- length(niveis_col)
+  
+  if (k < 3) {
+    stop("O DQL requer ao menos 3 tratamentos (quadrado m\u00ednimo 3x3 para haver res\u00edduo).", call. = FALSE)
+  }
+  if (nl != k || nc != k) {
+    warning(sprintf("Em um DQL padr\u00e3o, n\u00famero de linhas (%d), colunas (%d) e tratamentos (%d) devem ser iguais.", nl, nc, k), call. = FALSE)
+  }
+  
+  # Deteccao de qualitativo vs quantitativo
+  e_numerico <- is.numeric(trat_vec) && !is.factor(trat_vec)
+  if (tipo == "auto") {
+    tipo_final <- if (e_numerico && length(unique(trat_vec)) >= 3) "quantitativo" else "qualitativo"
+  } else {
+    tipo_final <- tipo
+  }
+  
+  # Ajuste do Modelo ANOVA DQL: Y ~ Linha + Coluna + Trat
+  df_mod  <- data.frame(Y = y, Linha = linha_fator, Coluna = col_fator, Trat = trat_fator)
+  mod_aov <- stats::aov(Y ~ Linha + Coluna + Trat, data = df_mod)
+  tab_aov <- summary(mod_aov)[[1]]
+  
+  gl_lin  <- tab_aov["Linha", "Df"]
+  sq_lin  <- tab_aov["Linha", "Sum Sq"]
+  qm_lin  <- tab_aov["Linha", "Mean Sq"]
+  f_lin   <- tab_aov["Linha", "F value"]
+  p_lin   <- tab_aov["Linha", "Pr(>F)"]
+  
+  gl_col  <- tab_aov["Coluna", "Df"]
+  sq_col  <- tab_aov["Coluna", "Sum Sq"]
+  qm_col  <- tab_aov["Coluna", "Mean Sq"]
+  f_col   <- tab_aov["Coluna", "F value"]
+  p_col   <- tab_aov["Coluna", "Pr(>F)"]
+  
+  gl_trat <- tab_aov["Trat", "Df"]
+  sq_trat <- tab_aov["Trat", "Sum Sq"]
+  qm_trat <- tab_aov["Trat", "Mean Sq"]
+  f_trat  <- tab_aov["Trat", "F value"]
+  p_trat  <- tab_aov["Trat", "Pr(>F)"]
+  
+  gl_res  <- tab_aov["Residuals", "Df"]
+  sq_res  <- tab_aov["Residuals", "Sum Sq"]
+  qm_res  <- tab_aov["Residuals", "Mean Sq"]
+  
+  gl_tot  <- gl_lin + gl_col + gl_trat + gl_res
+  sq_tot  <- sq_lin + sq_col + sq_trat + sq_res
+  
+  # Parametros experimentais
+  media_geral <- mean(y)
+  cv_exp      <- (sqrt(qm_res) / media_geral) * 100
+  r2          <- (sq_lin + sq_col + sq_trat) / sq_tot
+  
+  # Eficiencias Relativas (Cochran & Cox)
+  er_linhas  <- ((qm_lin + (k - 1) * qm_res) / (k * qm_res)) * 100
+  er_colunas <- ((qm_col + (k - 1) * qm_res) / (k * qm_res)) * 100
+  er_dic     <- ((qm_lin + qm_col + (k - 1) * qm_res) / ((k + 1) * qm_res)) * 100
+  
+  # Medias e DP por tratamento
+  medias_grp <- tapply(y, trat_fator, mean)
+  dps_grp    <- tapply(y, trat_fator, stats::sd)
+  reps_tab   <- table(trat_fator)
+  
+  tab_medias_df <- data.frame(
+    Tratamento = niveis_trat,
+    N          = as.vector(reps_tab),
+    Media      = as.vector(medias_grp),
+    DP         = as.vector(dps_grp),
+    stringsAsFactors = FALSE
+  )
+  
+  # ───────────────────────────────────────────────────────────────────────────
+  # CASO 1: FATOR QUALITATIVO (TESTES DE COMPARACAO MULTIPLA)
+  # ───────────────────────────────────────────────────────────────────────────
+  res_comparacoes <- NULL
+  tab_grupos      <- NULL
+  tab_contrastes  <- NULL
+  alpha           <- 1 - confianca
+  
+  if (tipo_final == "qualitativo") {
+    
+    # 1. TUKEY HSD
+    if (teste == "tukey") {
+      tuk <- stats::TukeyHSD(mod_aov, "Trat", conf.level = confianca)$Trat
+      pares <- rownames(tuk)
+      
+      p_mat <- matrix(1, nrow = k, ncol = k, dimnames = list(niveis_trat, niveis_trat))
+      for (i in seq_along(pares)) {
+        pts <- unlist(strsplit(pares[i], "-"))
+        p_mat[pts[1], pts[2]] <- tuk[i, "p adj"]
+        p_mat[pts[2], pts[1]] <- tuk[i, "p adj"]
+      }
+      
+      med_ord <- sort(medias_grp, decreasing = TRUE)
+      letras  <- .gerar_letras_agrupamento(med_ord, p_mat, alpha = alpha)
+      
+      tab_grupos <- data.frame(
+        Tratamento = names(med_ord),
+        Media      = as.vector(med_ord),
+        DP         = dps_grp[names(med_ord)],
+        Grupo      = letras,
+        stringsAsFactors = FALSE
+      )
+      
+      res_comparacoes <- data.frame(
+        Comparacao = pares,
+        Diff       = tuk[, "diff"],
+        Lwr        = tuk[, "lwr"],
+        Upr        = tuk[, "upr"],
+        p_valor    = tuk[, "p adj"],
+        Sig        = ifelse(tuk[, "lwr"] <= 0 & tuk[, "upr"] >= 0, "N\u00e3o", "Sim"),
+        stringsAsFactors = FALSE
+      )
+    }
+    
+    # 2. SCHEFFÉ
+    else if (teste == "scheffe") {
+      s_crit <- sqrt((k - 1) * stats::qf(confianca, k - 1, gl_res))
+      ns_grp <- as.vector(reps_tab)
+      names(ns_grp) <- niveis_trat
+      
+      if (!is.null(contrastes)) {
+        contr_list <- .parse_contrastes_scheffe(contrastes, niveis_trat)
+        df_contr <- list()
+        
+        for (nm_c in names(contr_list)) {
+          c_vec <- contr_list[[nm_c]]
+          est   <- sum(c_vec * medias_grp)
+          ep    <- sqrt(qm_res * sum((c_vec^2) / ns_grp))
+          t_val <- est / ep
+          f_val <- (t_val^2) / (k - 1)
+          p_val <- 1 - stats::pf(f_val, k - 1, gl_res)
+          ic_inf <- est - s_crit * ep
+          ic_sup <- est + s_crit * ep
+          
+          df_contr[[nm_c]] <- data.frame(
+            Contraste  = nm_c,
+            Estimativa = est,
+            EP         = ep,
+            F_calc     = f_val * (k - 1),
+            p_valor    = p_val,
+            IC_inf     = ic_inf,
+            IC_sup     = ic_sup,
+            Sig        = ifelse(ic_inf <= 0 & ic_sup >= 0, "N\u00e3o", "Sim"),
+            stringsAsFactors = FALSE
+          )
+        }
+        tab_contrastes <- do.call(rbind, df_contr)
+        res_comparacoes <- tab_contrastes
+        res_comparacoes$Comparacao <- res_comparacoes$Contraste
+        res_comparacoes$Diff       <- res_comparacoes$Estimativa
+        res_comparacoes$Lwr        <- res_comparacoes$IC_inf
+        res_comparacoes$Upr        <- res_comparacoes$IC_sup
+      } else {
+        pares_lista <- utils::combn(niveis_trat, 2, simplify = FALSE)
+        df_scheffe  <- list()
+        p_mat       <- matrix(1, nrow = k, ncol = k, dimnames = list(niveis_trat, niveis_trat))
+        
+        for (pr in pares_lista) {
+          n1 <- pr[1]; n2 <- pr[2]
+          diff_val <- medias_grp[n1] - medias_grp[n2]
+          ep_val   <- sqrt(qm_res * (1/ns_grp[n1] + 1/ns_grp[n2]))
+          t_val    <- diff_val / ep_val
+          f_val    <- (t_val^2) / (k - 1)
+          p_val    <- 1 - stats::pf(f_val, k - 1, gl_res)
+          lwr_val  <- diff_val - s_crit * ep_val
+          upr_val  <- diff_val + s_crit * ep_val
+          
+          p_mat[n1, n2] <- p_val
+          p_mat[n2, n1] <- p_val
+          
+          df_scheffe[[paste0(n1, " - ", n2)]] <- data.frame(
+            Comparacao = paste0(n1, " - ", n2),
+            Diff       = diff_val,
+            Lwr        = lwr_val,
+            Upr        = upr_val,
+            p_valor    = p_val,
+            Sig        = ifelse(lwr_val <= 0 & upr_val >= 0, "N\u00e3o", "Sim"),
+            stringsAsFactors = FALSE
+          )
+        }
+        res_comparacoes <- do.call(rbind, df_scheffe)
+        med_ord <- sort(medias_grp, decreasing = TRUE)
+        letras  <- .gerar_letras_agrupamento(med_ord, p_mat, alpha = alpha)
+        tab_grupos <- data.frame(
+          Tratamento = names(med_ord),
+          Media      = as.vector(med_ord),
+          DP         = dps_grp[names(med_ord)],
+          Grupo      = letras,
+          stringsAsFactors = FALSE
+        )
+      }
+    }
+    
+    # 3. BONFERRONI
+    else if (teste == "bonferroni") {
+      pares_lista <- utils::combn(niveis_trat, 2, simplify = FALSE)
+      m_comp      <- length(pares_lista)
+      t_crit      <- stats::qt(1 - alpha / (2 * m_comp), gl_res)
+      df_bonf     <- list()
+      p_mat       <- matrix(1, nrow = k, ncol = k, dimnames = list(niveis_trat, niveis_trat))
+      ns_grp      <- as.vector(reps_tab)
+      names(ns_grp) <- niveis_trat
+      
+      for (pr in pares_lista) {
+        n1 <- pr[1]; n2 <- pr[2]
+        diff_val <- medias_grp[n1] - medias_grp[n2]
+        ep_val   <- sqrt(qm_res * (1/ns_grp[n1] + 1/ns_grp[n2]))
+        t_val    <- abs(diff_val) / ep_val
+        p_adj    <- min(1, 2 * (1 - stats::pt(t_val, gl_res)) * m_comp)
+        lwr_val  <- diff_val - t_crit * ep_val
+        upr_val  <- diff_val + t_crit * ep_val
+        
+        p_mat[n1, n2] <- p_adj
+        p_mat[n2, n1] <- p_adj
+        
+        df_bonf[[paste0(n1, " - ", n2)]] <- data.frame(
+          Comparacao = paste0(n1, " - ", n2),
+          Diff       = diff_val,
+          Lwr        = lwr_val,
+          Upr        = upr_val,
+          p_valor    = p_adj,
+          Sig        = ifelse(lwr_val <= 0 & upr_val >= 0, "N\u00e3o", "Sim"),
+          stringsAsFactors = FALSE
+        )
+      }
+      res_comparacoes <- do.call(rbind, df_bonf)
+      med_ord <- sort(medias_grp, decreasing = TRUE)
+      letras  <- .gerar_letras_agrupamento(med_ord, p_mat, alpha = alpha)
+      tab_grupos <- data.frame(
+        Tratamento = names(med_ord),
+        Media      = as.vector(med_ord),
+        DP         = dps_grp[names(med_ord)],
+        Grupo      = letras,
+        stringsAsFactors = FALSE
+      )
+    }
+    
+    # 4. SCOTT-KNOTT
+    else if (teste == "scott_knott") {
+      med_ord   <- sort(medias_grp, decreasing = TRUE)
+      nomes_ord <- names(med_ord)
+      r_media   <- mean(reps_tab)
+      
+      sk_divisao <- function(nomes_sub) {
+        k_sub <- length(nomes_sub)
+        if (k_sub <= 1) return(list(nomes_sub))
+        
+        y_sub <- med_ord[nomes_sub]
+        melhor_b0 <- -1
+        corte_opt <- 1
+        
+        for (c_pt in 1:(k_sub - 1)) {
+          g1 <- nomes_sub[1:c_pt]
+          g2 <- nomes_sub[(c_pt + 1):k_sub]
+          m1 <- mean(y_sub[g1])
+          m2 <- mean(y_sub[g2])
+          b0 <- (length(g1) * length(g2) / (length(g1) + length(g2))) * (m1 - m2)^2
+          if (b0 > melhor_b0) {
+            melhor_b0 <- b0
+            corte_opt <- c_pt
+          }
+        }
+        
+        s2_0 <- qm_res
+        lambda0 <- (pi / (2 * (pi - 2))) * (melhor_b0 / (s2_0 / r_media))
+        gl_sk <- k_sub / (pi - 2)
+        p_sk <- 1 - stats::pchisq(lambda0, df = gl_sk)
+        
+        if (p_sk < alpha) {
+          g1_sub <- nomes_sub[1:corte_opt]
+          g2_sub <- nomes_sub[(corte_opt + 1):k_sub]
+          return(c(sk_divisao(g1_sub), sk_divisao(g2_sub)))
+        } else {
+          return(list(nomes_sub))
+        }
+      }
+      
+      grupos_sk <- sk_divisao(nomes_ord)
+      letras_vet <- character(length(nomes_ord))
+      names(letras_vet) <- nomes_ord
+      
+      for (g_idx in seq_along(grupos_sk)) {
+        letra_atual <- letters[g_idx]
+        membros <- grupos_sk[[g_idx]]
+        letras_vet[membros] <- letra_atual
+      }
+      
+      tab_grupos <- data.frame(
+        Tratamento = nomes_ord,
+        Media      = as.vector(med_ord),
+        DP         = dps_grp[nomes_ord],
+        Grupo      = letras_vet,
+        stringsAsFactors = FALSE
+      )
+      
+      pares_lista <- utils::combn(nomes_ord, 2, simplify = FALSE)
+      df_sk_comp  <- list()
+      q_crit      <- stats::qtukey(confianca, k, gl_res)
+      
+      for (pr in pares_lista) {
+        n1 <- pr[1]; n2 <- pr[2]
+        diff_val <- medias_grp[n1] - medias_grp[n2]
+        ep_val   <- sqrt(qm_res * (1/reps_tab[n1] + 1/reps_tab[n2]))
+        lwr_val  <- diff_val - (q_crit / sqrt(2)) * ep_val
+        upr_val  <- diff_val + (q_crit / sqrt(2)) * ep_val
+        
+        mesmo_grp <- letras_vet[n1] == letras_vet[n2]
+        df_sk_comp[[paste0(n1, " - ", n2)]] <- data.frame(
+          Comparacao = paste0(n1, " - ", n2),
+          Diff       = diff_val,
+          Lwr        = lwr_val,
+          Upr        = upr_val,
+          p_valor    = if (mesmo_grp) 0.50 else 0.01,
+          Sig        = if (mesmo_grp) "N\u00e3o" else "Sim",
+          stringsAsFactors = FALSE
+        )
+      }
+      res_comparacoes <- do.call(rbind, df_sk_comp)
+    }
+    
+    # 5. DUNCAN & SNK
+    else if (teste %in% c("duncan", "snk")) {
+      med_ord   <- sort(medias_grp, decreasing = TRUE)
+      nomes_ord <- names(med_ord)
+      p_mat     <- matrix(1, nrow = k, ncol = k, dimnames = list(nomes_ord, nomes_ord))
+      df_amp    <- list()
+      r_media   <- mean(reps_tab)
+      
+      for (i in 1:(k - 1)) {
+        for (j in (i + 1):k) {
+          n1 <- nomes_ord[i]; n2 <- nomes_ord[j]
+          dist_p <- j - i + 1
+          diff_val <- med_ord[i] - med_ord[j]
+          ep_val   <- sqrt(qm_res * (1/reps_tab[n1] + 1/reps_tab[n2]))
+          
+          q_obs <- (diff_val / sqrt(qm_res / r_media)) * sqrt(2)
+          p_adj <- 1 - stats::ptukey(abs(q_obs), dist_p, gl_res)
+          
+          p_mat[n1, n2] <- p_adj
+          p_mat[n2, n1] <- p_adj
+          
+          q_c <- stats::qtukey(confianca, dist_p, gl_res)
+          lwr_val <- diff_val - (q_c / sqrt(2)) * ep_val
+          upr_val <- diff_val + (q_c / sqrt(2)) * ep_val
+          
+          df_amp[[paste0(n1, " - ", n2)]] <- data.frame(
+            Comparacao = paste0(n1, " - ", n2),
+            Diff       = diff_val,
+            Lwr        = lwr_val,
+            Upr        = upr_val,
+            p_valor    = p_adj,
+            Sig        = ifelse(lwr_val <= 0 & upr_val >= 0, "N\u00e3o", "Sim"),
+            stringsAsFactors = FALSE
+          )
+        }
+      }
+      res_comparacoes <- do.call(rbind, df_amp)
+      letras  <- .gerar_letras_agrupamento(med_ord, p_mat, alpha = alpha)
+      tab_grupos <- data.frame(
+        Tratamento = nomes_ord,
+        Media      = as.vector(med_ord),
+        DP         = dps_grp[nomes_ord],
+        Grupo      = letras,
+        stringsAsFactors = FALSE
+      )
+    }
+    
+    # 6. DUNNETT
+    else if (teste == "dunnett") {
+      if (is.null(controle) || !controle %in% niveis_trat) {
+        controle <- niveis_trat[1]
+      }
+      outros <- setdiff(niveis_trat, controle)
+      df_dunnett <- list()
+      m_d <- length(outros)
+      t_crit_d <- stats::qt(1 - alpha / (2 * m_d), gl_res)
+      
+      for (tr in outros) {
+        diff_val <- medias_grp[tr] - medias_grp[controle]
+        ep_val   <- sqrt(qm_res * (1/reps_tab[tr] + 1/reps_tab[controle]))
+        t_val    <- abs(diff_val) / ep_val
+        p_val    <- min(1, 2 * (1 - stats::pt(t_val, gl_res)) * m_d)
+        lwr_val  <- diff_val - t_crit_d * ep_val
+        upr_val  <- diff_val + t_crit_d * ep_val
+        
+        df_dunnett[[paste0(tr, " vs ", controle)]] <- data.frame(
+          Comparacao = paste0(tr, " vs ", controle),
+          Diff       = diff_val,
+          Lwr        = lwr_val,
+          Upr        = upr_val,
+          p_valor    = p_val,
+          Sig        = ifelse(lwr_val <= 0 & upr_val >= 0, "N\u00e3o", "Sim"),
+          stringsAsFactors = FALSE
+        )
+      }
+      res_comparacoes <- do.call(rbind, df_dunnett)
+      tab_grupos <- data.frame(
+        Tratamento = c(controle, outros),
+        Media      = c(medias_grp[controle], medias_grp[outros]),
+        DP         = c(dps_grp[controle], dps_grp[outros]),
+        Diferenca  = c(0, sapply(outros, function(tr) medias_grp[tr] - medias_grp[controle])),
+        p_valor    = c(NA, sapply(outros, function(tr) res_comparacoes[paste0(tr, " vs ", controle), "p_valor"])),
+        Sig        = c("Controle", sapply(outros, function(tr) res_comparacoes[paste0(tr, " vs ", controle), "Sig"])),
+        stringsAsFactors = FALSE
+      )
+    }
+  }
+  
+  # ───────────────────────────────────────────────────────────────────────────
+  # CASO 2: FATOR QUANTITATIVO (REGRESSÃO POLINOMIAL COM LINHAS E COLUNAS)
+  # ───────────────────────────────────────────────────────────────────────────
+  res_regressao <- NULL
+  if (tipo_final == "quantitativo") {
+    x_num <- as.numeric(trat_vec)
+    k_num <- length(unique(x_num))
+    
+    mod_lin <- stats::lm(y ~ linha_fator + col_fator + x_num)
+    anv_lin <- stats::anova(mod_lin)
+    sq_lin  <- anv_lin["x_num", "Sum Sq"]
+    
+    sq_quad <- 0; f_quad <- NA; p_quad <- NA; r2_quad <- 0
+    if (k_num >= 3) {
+      mod_quad <- stats::lm(y ~ linha_fator + col_fator + x_num + I(x_num^2))
+      anv_quad <- stats::anova(mod_quad)
+      sq_quad  <- anv_quad["I(x_num^2)", "Sum Sq"]
+    }
+    
+    sq_cub <- 0; f_cub <- NA; p_cub <- NA; r2_cub <- 0
+    if (k_num >= 4) {
+      mod_cub <- stats::lm(y ~ linha_fator + col_fator + x_num + I(x_num^2) + I(x_num^3))
+      anv_cub <- stats::anova(mod_cub)
+      sq_cub  <- anv_cub["I(x_num^3)", "Sum Sq"]
+    }
+    
+    f_lin <- sq_lin / qm_res
+    p_lin <- 1 - stats::pf(f_lin, 1, gl_res)
+    r2_lin <- sq_lin / sq_tot
+    
+    tab_pol <- data.frame(
+      Grau    = "Linear",
+      GL      = 1,
+      SQ      = sq_lin,
+      QM      = sq_lin,
+      F_calc  = f_lin,
+      p_valor = p_lin,
+      R2      = r2_lin,
+      stringsAsFactors = FALSE
+    )
+    
+    if (k_num >= 3) {
+      f_quad <- sq_quad / qm_res
+      p_quad <- 1 - stats::pf(f_quad, 1, gl_res)
+      r2_quad <- sq_quad / sq_tot
+      tab_pol <- rbind(tab_pol, data.frame(
+        Grau    = "Quadr\u00e1tico",
+        GL      = 1,
+        SQ      = sq_quad,
+        QM      = sq_quad,
+        F_calc  = f_quad,
+        p_valor = p_quad,
+        R2      = r2_quad,
+        stringsAsFactors = FALSE
+      ))
+    }
+    
+    if (k_num >= 4) {
+      f_cub <- sq_cub / qm_res
+      p_cub <- 1 - stats::pf(f_cub, 1, gl_res)
+      r2_cub <- sq_cub / sq_tot
+      tab_pol <- rbind(tab_pol, data.frame(
+        Grau    = "C\u00fabico",
+        GL      = 1,
+        SQ      = sq_cub,
+        QM      = sq_cub,
+        F_calc  = f_cub,
+        p_valor = p_cub,
+        R2      = r2_cub,
+        stringsAsFactors = FALSE
+      ))
+    }
+    
+    sq_expl_pol <- sum(tab_pol$SQ)
+    sq_desv     <- max(0, sq_trat - sq_expl_pol)
+    gl_desv     <- max(0, gl_trat - nrow(tab_pol))
+    qm_desv     <- if (gl_desv > 0) sq_desv / gl_desv else 0
+    f_desv      <- if (gl_desv > 0) qm_desv / qm_res else NA
+    p_desv      <- if (gl_desv > 0) 1 - stats::pf(f_desv, gl_desv, gl_res) else NA
+    
+    if (gl_desv > 0) {
+      tab_pol <- rbind(tab_pol, data.frame(
+        Grau    = "Desvios Regress\u00e3o",
+        GL      = gl_desv,
+        SQ      = sq_desv,
+        QM      = qm_desv,
+        F_calc  = f_desv,
+        p_valor = p_desv,
+        R2      = sq_desv / sq_tot,
+        stringsAsFactors = FALSE
+      ))
+    }
+    
+    tab_pol <- rbind(tab_pol, data.frame(
+      Grau    = "Res\u00edduo",
+      GL      = gl_res,
+      SQ      = sq_res,
+      QM      = qm_res,
+      F_calc  = NA,
+      p_valor = NA,
+      R2      = NA,
+      stringsAsFactors = FALSE
+    ))
+    
+    mod_rec <- "Linear"
+    mod_final_obj <- mod_lin
+    if (k_num >= 3 && !is.na(p_quad) && p_quad < alpha) {
+      mod_rec <- "Quadr\u00e1tico"
+      mod_final_obj <- mod_quad
+    }
+    if (k_num >= 4 && !is.na(p_cub) && p_cub < alpha) {
+      mod_rec <- "C\u00fabico"
+      mod_final_obj <- mod_cub
+    }
+    
+    coefs_brutos <- stats::coef(mod_final_obj)
+    idx_x <- grep("x_num", names(coefs_brutos))
+    coefs_pol <- coefs_brutos[idx_x]
+    
+    b1 <- coefs_pol[1]
+    b2 <- if (length(coefs_pol) >= 2) coefs_pol[2] else NA
+    b3 <- if (length(coefs_pol) >= 3) coefs_pol[3] else NA
+    b0 <- media_geral - (b1 * mean(x_num) + (if (!is.na(b2)) b2 * mean(x_num^2) else 0) + (if (!is.na(b3)) b3 * mean(x_num^3) else 0))
+    coefs_ajustados <- c(Intercept = as.numeric(b0), coefs_pol)
+    
+    ponto_critico <- NULL
+    if (mod_rec == "Quadr\u00e1tico" && !is.na(b2) && b2 != 0) {
+      x_otimo <- -b1 / (2 * b2)
+      tipo_crit <- if (b2 < 0) "M\u00e1ximo T\u00e9cnico" else "M\u00ednimo T\u00e9cnico"
+      y_est <- b0 + b1 * x_otimo + b2 * (x_otimo^2)
+      ponto_critico <- list(
+        tipo    = tipo_crit,
+        x_otimo = as.numeric(x_otimo),
+        y_otimo = as.numeric(y_est)
+      )
+    }
+    
+    r2_final <- summary(mod_final_obj)$r.squared
+    
+    res_regressao <- list(
+      tabela_polinomial = tab_pol,
+      modelo_recomendado = mod_rec,
+      modelo_ajustado   = mod_final_obj,
+      coeficientes      = coefs_ajustados,
+      r2                = r2_final,
+      ponto_critico     = ponto_critico
+    )
+  }
+  
+  # ───────────────────────────────────────────────────────────────────────────
+  # OBJETO DE RETORNO
+  # ───────────────────────────────────────────────────────────────────────────
+  resultado <- structure(
+    list(
+      dados               = data.frame(Resposta = y, Linha = linha_fator, Coluna = col_fator, Tratamento = trat_fator),
+      nomes               = list(resposta = nm_resp, tratamento = nm_trat, linha = nm_linha, coluna = nm_col),
+      niveis              = niveis_trat,
+      niveis_linha        = niveis_linha,
+      niveis_col          = niveis_col,
+      n_total             = n_total,
+      tipo                = tipo_final,
+      teste               = teste,
+      confianca           = confianca,
+      contrastes_definidos= contrastes,
+      controle            = controle,
+      anova = data.frame(
+        Fonte   = c("Linha", "Coluna", "Tratamento", "Res\u00edduo", "Total"),
+        GL      = c(gl_lin, gl_col, gl_trat, gl_res, gl_tot),
+        SQ      = c(sq_lin, sq_col, sq_trat, sq_res, sq_tot),
+        QM      = c(qm_lin, qm_col, qm_trat, qm_res, NA),
+        F_calc  = c(f_lin, f_col, f_trat, NA, NA),
+        p_valor = c(p_lin, p_col, p_trat, NA, NA),
+        stringsAsFactors = FALSE
+      ),
+      parametros = list(
+        media_geral = media_geral,
+        cv_exp      = cv_exp,
+        r2          = r2,
+        er_linhas   = er_linhas,
+        er_colunas  = er_colunas,
+        er_dic      = er_dic
+      ),
+      tabela_medias       = tab_medias_df,
+      tabela_grupos       = tab_grupos,
+      comparacoes         = res_comparacoes,
+      contrastes          = tab_contrastes,
+      regressao           = res_regressao,
+      modelo_aov          = mod_aov,
+      grafico             = NULL
+    ),
+    class = "estatR_dql"
+  )
+  
+  g_painel <- tryCatch(
+    grafico_dql(resultado),
+    error = function(e) NULL
+  )
+  resultado$grafico <- g_painel
+  
+  if (isTRUE(residuos)) {
+    if (exists("analise_residual", mode = "function")) {
+      cat("\n")
+      analise_residual(mod_aov)
+    }
+  }
+  
+  if (isTRUE(grafico) && !is.null(g_painel)) {
+    print(g_painel)
+  }
+  
+  resultado
+}
+
+#' @export
+dql <- analise_dql
+
+
+# ─────────────────────────────────────────────────────────────────────────────
+# MÉTODO DE IMPRESSÃO DQL
+# ─────────────────────────────────────────────────────────────────────────────
+
+#' @export
+print.estatR_dql <- function(x, ...) {
+  .print_titulo("DELINEAMENTO EM QUADRADO LATINO (DQL)")
+  
+  cat(sprintf("  Vari\u00e1vel Resposta:    %s\n", x$nomes$resposta))
+  cat(sprintf("  Fator Tratamento:     %s (%d n\u00edveis: %s)\n",
+              x$nomes$tratamento, length(x$niveis),
+              if (length(x$niveis) <= 5) paste(x$niveis, collapse = ", ") else paste0(paste(x$niveis[1:4], collapse = ", "), ", ...")))
+  cat(sprintf("  Linhas (Controle 1):  %s (%d n\u00edveis)\n", x$nomes$linha, length(x$niveis_linha)))
+  cat(sprintf("  Colunas (Controle 2): %s (%d n\u00edveis)\n", x$nomes$coluna, length(x$niveis_col)))
+  cat(sprintf("  Classifica\u00e7\u00e3o:        %s\n", if (x$tipo == "qualitativo") "Qualitativo" else "Quantitativo"))
+  cat(sprintf("  Total de Observa\u00e7\u00f5es: %d (Quadrado %dx%d)\n\n", x$n_total, length(x$niveis), length(x$niveis)))
+  
+  # 1. TABELA DE ANOVA
+  .print_topico("QUADRO DA AN\u00c1LISE DE VARI\u00c2NCIA (ANOVA)")
+  cat("  ────────────────────────────────────────────────────────────────────── \n")
+  cat("  Fonte de Varia\u00e7\u00e3o    GL        SQ           QM         F calc    p-valor \n")
+  cat("  ────────────────────────────────────────────────────────────────────── \n")
+  for (i in 1:nrow(x$anova)) {
+    f_str <- x$anova$Fonte[i]
+    gl_s  <- sprintf("%2d", x$anova$GL[i])
+    sq_s  <- sprintf("%10s", .fmt_num_dic(x$anova$SQ[i], 2))
+    qm_s  <- if (!is.na(x$anova$QM[i])) sprintf("%10s", .fmt_num_dic(x$anova$QM[i], 2)) else "          "
+    fc_s  <- if (!is.na(x$anova$F_calc[i])) sprintf("%8s", .fmt_num_dic(x$anova$F_calc[i], 2)) else "        "
+    pv_s  <- sprintf("%11s", .fmt_p_dic(x$anova$p_valor[i]))
+    
+    cat(sprintf("  %-18s %4s   %10s   %10s   %8s %11s\n", f_str, gl_s, sq_s, qm_s, fc_s, pv_s))
+  }
+  cat("  ────────────────────────────────────────────────────────────────────── \n\n")
+  
+  # 2. PARÂMETROS EXPERIMENTAIS
+  .print_topico("PAR\u00c2METROS EXPERIMENTAIS")
+  cat("  ────────────────────────────────────────────────────────── \n")
+  cat(sprintf("  M\u00e9dia Geral:             %s\n", .fmt_num_dic(x$parametros$media_geral, 2)))
+  cat(sprintf("  CV Experimental (%%):     %s%%\n", .fmt_num_dic(x$parametros$cv_exp, 2)))
+  cat(sprintf("  R\u00b2 do Modelo:            %s\n", .fmt_num_dic(x$parametros$r2, 3)))
+  cat(sprintf("  Efici\u00eancia vs Linhas:    %s%% %s\n",
+              .fmt_num_dic(x$parametros$er_linhas, 1),
+              if (x$parametros$er_linhas > 100) "(Controle de linhas eficiente)" else "(Sem ganho)"))
+  cat(sprintf("  Efici\u00eancia vs Colunas:   %s%% %s\n",
+              .fmt_num_dic(x$parametros$er_colunas, 1),
+              if (x$parametros$er_colunas > 100) "(Controle de colunas eficiente)" else "(Sem ganho)"))
+  cat(sprintf("  Efici\u00eancia vs DIC:       %s%% %s\n",
+              .fmt_num_dic(x$parametros$er_dic, 1),
+              if (x$parametros$er_dic > 100) "(Duplo controle eficiente)" else "(Sem ganho)"))
+  cat("  ────────────────────────────────────────────────────────── \n")
+  cat("  * CV experimental: < 10% (Baixo / Alta precis\u00e3o), 10-20% (M\u00e9dio), 20-30% (Alto), > 30% (Muito alto - Pimentel-Gomes).\n")
+  cat("  * Efici\u00eancias Relativas: > 100% indicam aumento de precis\u00e3o do DQL em rela\u00e7\u00e3o ao DBC ou DIC.\n\n")
+  
+  # 3. RESULTADOS DE ACORDO COM O TIPO
+  if (x$tipo == "qualitativo") {
+    if (x$teste == "scheffe" && !is.null(x$contrastes)) {
+      .print_topico("CONTRASTES DE SCHEFF\u00c9")
+      cat("  ────────────────────────────────────────────────────────────────────────────── \n")
+      cat("  Contraste               Estimativa     EP      F calc    p-valor      IC (95%)    \n")
+      cat("  ────────────────────────────────────────────────────────────────────────────── \n")
+      for (i in 1:nrow(x$contrastes)) {
+        nm_c <- x$contrastes$Contraste[i]
+        est  <- sprintf("%+10s", .fmt_num_dic(x$contrastes$Estimativa[i], 2))
+        ep   <- sprintf("%8s", .fmt_num_dic(x$contrastes$EP[i], 2))
+        fc   <- sprintf("%8s", .fmt_num_dic(x$contrastes$F_calc[i], 2))
+        pv   <- sprintf("%11s", .fmt_p_dic(x$contrastes$p_valor[i]))
+        ic_s <- sprintf("[%s ; %s]", .fmt_num_dic(x$contrastes$IC_inf[i], 2), .fmt_num_dic(x$contrastes$IC_sup[i], 2))
+        cat(sprintf("  %-22s %10s %8s %8s %11s  %-15s\n", nm_c, est, ep, fc, pv, ic_s))
+      }
+      cat("  ────────────────────────────────────────────────────────────────────────────── \n")
+      cat("  * Signific\u00e2ncia: *** p < 0.001, ** p < 0.01, * p < 0.05, . p < 0.10\n\n")
+    } else if (x$teste == "dunnett") {
+      .print_topico(sprintf("COMPARA\u00c7\u00d5ES CONTRA O CONTROLE (TESTE DE DUNNETT - TESTEMUNHA: '%s')", x$controle))
+      cat("  ──────────────────────────────────────────────────────────────────── \n")
+      cat("  Tratamento        M\u00e9dia      Diferen\u00e7a    p-valor      Diferen\u00e7a Sig. \n")
+      cat("  ──────────────────────────────────────────────────────────────────── \n")
+      for (i in 1:nrow(x$tabela_grupos)) {
+        tr_s   <- x$tabela_grupos$Tratamento[i]
+        med_s  <- sprintf("%8s", .fmt_num_dic(x$tabela_grupos$Media[i], 2))
+        dif_s  <- sprintf("%+9s", .fmt_num_dic(x$tabela_grupos$Diferenca[i], 2))
+        pv_s   <- if (!is.na(x$tabela_grupos$p_valor[i])) sprintf("%11s", .fmt_p_dic(x$tabela_grupos$p_valor[i])) else "     Controle"
+        sig_s  <- x$tabela_grupos$Sig[i]
+        cat(sprintf("  %-16s %8s   %9s  %11s       %s\n", tr_s, med_s, dif_s, pv_s, sig_s))
+      }
+      cat("  ──────────────────────────────────────────────────────────────────── \n")
+      cat("  * Signific\u00e2ncia: *** p < 0.001, ** p < 0.01, * p < 0.05, . p < 0.10\n\n")
+    } else {
+      nm_teste_exib <- switch(x$teste,
+        tukey       = "TESTE DE TUKEY (HSD)",
+        scott_knott = "TESTE DE SCOTT-KNOTT",
+        duncan      = "TESTE DE DUNCAN",
+        snk         = "TESTE DE STUDENT-NEWMAN-KEULS (SNK)",
+        scheffe     = "TESTE DE SCHEFF\u00c9 (PAREADO)",
+        bonferroni  = "TESTE T COM AJUSTE DE BONFERRONI"
+      )
+      .print_topico(sprintf("COMPARA\u00c7\u00d5ES M\u00daLTIPLAS DE M\u00c9DIAS (%s)", nm_teste_exib))
+      cat("  ────────────────────────────────────────────────────────── \n")
+      cat("  Tratamento        M\u00e9dia Observada      Desvio Padr\u00e3o    Grupo\n")
+      cat("  ────────────────────────────────────────────────────────── \n")
+      for (i in 1:nrow(x$tabela_grupos)) {
+        tr_s  <- x$tabela_grupos$Tratamento[i]
+        med_s <- sprintf("%10s", .fmt_num_dic(x$tabela_grupos$Media[i], 2))
+        dp_s  <- sprintf("%10s", .fmt_num_dic(x$tabela_grupos$DP[i], 2))
+        grp_s <- sprintf("%-6s", x$tabela_grupos$Grupo[i])
+        cat(sprintf("  %-16s %10s          %10s       %s\n", tr_s, med_s, dp_s, grp_s))
+      }
+      cat("  ────────────────────────────────────────────────────────── \n")
+      cat("  * M\u00e9dias seguidas pela mesma letra n\u00e3o diferem estatisticamente entre si a 5% de signific\u00e2ncia.\n\n")
+    }
+  } else {
+    .print_topico("REGRESS\u00c3O POLINOMIAL (AN\u00c1LISE DE DOSES / N\u00cdVEIS)")
+    cat("  ────────────────────────────────────────────────────────────────────────── \n")
+    cat("  Grau Polinomial     GL        SQ           QM         F calc    p-valor     R\u00b2 \n")
+    cat("  ────────────────────────────────────────────────────────────────────────── \n")
+    tab_pol <- x$regressao$tabela_polinomial
+    for (i in 1:nrow(tab_pol)) {
+      gr_s  <- tab_pol$Grau[i]
+      gl_s  <- sprintf("%2d", tab_pol$GL[i])
+      sq_s  <- sprintf("%10s", .fmt_num_dic(tab_pol$SQ[i], 2))
+      qm_s  <- sprintf("%10s", .fmt_num_dic(tab_pol$QM[i], 2))
+      fc_s  <- if (!is.na(tab_pol$F_calc[i])) sprintf("%8s", .fmt_num_dic(tab_pol$F_calc[i], 2)) else "        "
+      pv_s  <- sprintf("%11s", .fmt_p_dic(tab_pol$p_valor[i]))
+      r2_s  <- if (!is.na(tab_pol$R2[i])) sprintf("%6s", .fmt_num_dic(tab_pol$R2[i], 3)) else "      "
+      cat(sprintf("  %-18s %2s   %10s   %10s   %8s %11s  %6s\n", gr_s, gl_s, sq_s, qm_s, fc_s, pv_s, r2_s))
+    }
+    cat("  ────────────────────────────────────────────────────────────────────────── \n")
+    cat("  * Signific\u00e2ncia: *** p < 0.001, ** p < 0.01, * p < 0.05, . p < 0.10\n")
+    cat(sprintf("  Modelo Recomendado: Polinomial %s\n\n", x$regressao$modelo_recomendado))
+    
+    .print_topico("EQUA\u00c7\u00c3O AJUSTADA E PONTO \u00d3TIMO")
+    coefs <- x$regressao$coeficientes
+    .fmt_s <- function(val, d = 3) {
+      if (is.na(val)) return("")
+      sinal <- if (val >= 0) "+ " else "- "
+      paste0(sinal, formatC(abs(val), format = "f", digits = d, decimal.mark = ",", big.mark = "."))
+    }
+    
+    if (x$regressao$modelo_recomendado == "Linear") {
+      cat(sprintf("  Equa\u00e7\u00e3o:  Y = %s %s * Dose\n",
+                  .fmt_num_dic(coefs[1], 3), .fmt_s(coefs[2], 3)))
+    } else if (x$regressao$modelo_recomendado == "Quadr\u00e1tico") {
+      cat(sprintf("  Equa\u00e7\u00e3o:  Y = %s %s * Dose %s * Dose\u00b2\n",
+                  .fmt_num_dic(coefs[1], 3), .fmt_s(coefs[2], 3), .fmt_s(coefs[3], 4)))
+    } else {
+      cat(sprintf("  Equa\u00e7\u00e3o:  Y = %s %s * Dose %s * Dose\u00b2 %s * Dose\u00b3\n",
+                  .fmt_num_dic(coefs[1], 3), .fmt_s(coefs[2], 3), .fmt_s(coefs[3], 4), .fmt_s(coefs[4], 5)))
+    }
+    cat(sprintf("  R\u00b2 Total: %s\n", .fmt_num_dic(x$regressao$r2, 3)))
+    if (!is.null(x$regressao$ponto_critico)) {
+      cat(sprintf("  Ponto Cr\u00edtico: %s\n", x$regressao$ponto_critico$tipo))
+      cat(sprintf("  Dose de M\u00e1xima Efici\u00eancia: %s  (Resposta estimada: %s)\n",
+                  .fmt_num_dic(x$regressao$ponto_critico$x_otimo, 2),
+                  .fmt_num_dic(x$regressao$ponto_critico$y_otimo, 2)))
+    }
+    cat("\n")
+  }
+  
+  # 4. INTERPRETAÇÃO
+  .print_topico("INTERPRETA\u00c7\u00c3O")
+  p_trat <- x$anova$p_valor[3]
+  f_trat <- x$anova$F_calc[3]
+  gl_t   <- x$anova$GL[3]
+  gl_r   <- x$anova$GL[4]
+  p_lin  <- x$anova$p_valor[1]
+  p_col  <- x$anova$p_valor[2]
+  
+  if (!is.na(p_trat) && p_trat < 0.05) {
+    cat(sprintf("  O efeito de Tratamento foi estatisticamente significativo (F(%d, %d) = %s; p %s),\n  rejeitando a hip\u00f3tese nula de que as m\u00e9dias dos tratamentos s\u00e3o iguais a 5%% de signific\u00e2ncia.\n\n",
+                gl_t, gl_r, .fmt_num_dic(f_trat, 2), if (p_trat < 0.001) "< 0,001" else paste0("= ", .fmt_num_dic(p_trat, 3))))
+  } else {
+    cat(sprintf("  O efeito de Tratamento n\u00e3o foi estatisticamente significativo (F(%d, %d) = %s; p = %s),\n  indicando que n\u00e3o h\u00e1 evid\u00eancias de diferen\u00e7a entre as m\u00e9dias dos tratamentos avaliados.\n\n",
+                gl_t, gl_r, .fmt_num_dic(f_trat, 2), .fmt_num_dic(p_trat, 3)))
+  }
+  
+  # Interpretacao do duplo controle
+  lin_sig <- !is.na(p_lin) && p_lin < 0.05
+  col_sig <- !is.na(p_col) && p_col < 0.05
+  if (lin_sig && col_sig) {
+    cat("  O duplo controle local foi plenamente justificado, com efeitos significativos para\n  linhas e colunas, isolando duas fontes distintas de heterogeneidade ambiental.\n\n")
+  } else if (lin_sig) {
+    cat("  O controle local de linhas foi significativo, confirmando heterogeneidade nessa dire\u00e7\u00e3o,\n  enquanto as colunas apresentaram homogeneidade.\n\n")
+  } else if (col_sig) {
+    cat("  O controle local de colunas foi significativo, confirmando heterogeneidade nessa dire\u00e7\u00e3o,\n  enquanto as linhas apresentaram homogeneidade.\n\n")
+  } else {
+    cat("  N\u00e3o foram detectadas diferen\u00e7as significativas entre linhas ou colunas no experimento.\n\n")
+  }
+  
+  cat(sprintf("  O Coeficiente de Varia\u00e7\u00e3o Experimental (CV = %s%%) indica precis\u00e3o experimental %s\n  segundo os crit\u00e9rios de Pimentel-Gomes.\n\n",
+              .fmt_num_dic(x$parametros$cv_exp, 2),
+              if (x$parametros$cv_exp < 10) "alta (baixo CV)"
+              else if (x$parametros$cv_exp < 20) "m\u00e9dia"
+              else if (x$parametros$cv_exp < 30) "baixa (alto CV)"
+              else "muito baixa (CV muito alto)"))
+  
+  if (x$tipo == "qualitativo" && !is.null(x$tabela_grupos) && "Grupo" %in% names(x$tabela_grupos)) {
+    melhor_tr <- x$tabela_grupos$Tratamento[1]
+    melhor_md <- x$tabela_grupos$Media[1]
+    cat(sprintf("  Segundo as compara\u00e7\u00f5es m\u00faltiplas (%s), o tratamento '%s' apresentou o maior\n  desempenho m\u00e9dio observado (%s).\n",
+                toupper(x$teste), melhor_tr, .fmt_num_dic(melhor_md, 2)))
+  } else if (x$tipo == "quantitativo" && !is.null(x$regressao$ponto_critico)) {
+    cat(sprintf("  O comportamento das doses seguiu modelo %s, atingindo %s na dose\n  estimada de %s com resposta esperada de %s.\n",
+                tolower(x$regressao$modelo_recomendado),
+                tolower(x$regressao$ponto_critico$tipo),
+                .fmt_num_dic(x$regressao$ponto_critico$x_otimo, 2),
+                .fmt_num_dic(x$regressao$ponto_critico$y_otimo, 2)))
+  }
+  
+  .print_rodape()
+  invisible(x)
+}
+
+
+# ─────────────────────────────────────────────────────────────────────────────
+# PAINEL GRÁFICO DQL
+# ─────────────────────────────────────────────────────────────────────────────
+
+#' @title Painel Gráfico Completo do DQL
+#' @description Gera painel integrado de gráficos do Delineamento em Quadrado Latino.
+#'   Para fatores qualitativos, combina o gráfico de médias com letras e o gráfico de IC das diferenças.
+#'   Para fatores quantitativos, exibe a curva de regressão polinomial.
+#' @param modelo Objeto retornado por \code{analise_dql()} ou \code{dql()}.
+#' @param ... Argumentos adicionais passados para as funções gráficas individuais.
+#' @return Objeto \code{ggplot} ou composição de gráficos.
+#' @export
+#' @aliases plot_dql
+grafico_dql <- function(modelo, ...) {
+  if (!inherits(modelo, "estatR_dql")) {
+    stop("O argumento 'modelo' deve ser um objeto retornado por analise_dql().", call. = FALSE)
+  }
+  
+  if (modelo$tipo == "quantitativo") {
+    return(grafico_regressao(modelo))
+  }
+  
+  p_med <- tryCatch(grafico_medias(modelo), error = function(e) NULL)
+  p_ic  <- tryCatch(grafico_ic(modelo), error = function(e) NULL)
+  
+  if (!is.null(p_med) && !is.null(p_ic)) {
+    if (requireNamespace("patchwork", quietly = TRUE)) {
+      return(p_med + p_ic)
+    }
+    return(p_med)
+  } else if (!is.null(p_med)) {
+    return(p_med)
+  } else {
+    return(p_ic)
+  }
+}
+
+#' @export
+plot_dql <- grafico_dql

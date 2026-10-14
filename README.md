@@ -472,6 +472,31 @@ modelo_dbc$modelo_aov            # Objeto aov nativo
 grafico_dbc(modelo_dbc)          # Painel automático de Médias + Intervalos de Confiança
 ```
 
+**Delineamento em Quadrado Latino (DQL)**
+
+```r
+# Sintaxe 1 (sem aspas):
+modelo_dql <- analise_dql(Produtividade, Tratamento, Linha, Coluna, dados = dados, teste = "tukey")
+# ou pelo alias direto:
+modelo_dql <- dql(Produtividade, Tratamento, Linha, Coluna, dados = dados)
+
+# Sintaxe 2 (com aspas):
+modelo_dql <- dql("Produtividade", "Tratamento", "Linha", "Coluna", dados = dados, teste = "scott_knott")
+
+# Teste de Scheffé com contrastes personalizados:
+dql(Produtividade, Tratamento, Linha, Coluna, dados = dados, teste = "scheffe",
+    contrastes = c("A vs c(B, C)", "c(A, B) vs c(C, D)"))
+
+# Acesso direto aos elementos do modelo DQL
+modelo_dql$anova                 # Quadro da ANOVA (Linha, Coluna, Tratamento, Resíduo, Total)
+modelo_dql$parametros            # Média geral, CV (%), R² e Eficiências Relativas (vs Linhas, vs Colunas, vs DIC)
+modelo_dql$tabela_grupos         # Médias observadas com letras do teste de médias
+modelo_dql$comparacoes           # Intervalos de confiança das diferenças pareadas
+
+# Visualização gráfica dedicada em painel
+grafico_dql(modelo_dql)          # Painel com Gráfico de Médias + ICs das diferenças
+```
+
 </details>
 
 ---
