@@ -405,6 +405,51 @@ plot_discriminante(modelo_lda)
 ---
 
 <details>
+<summary><strong> Planejamento e Análise de Experimentos</strong></summary>
+<br>
+
+**Delineamento Inteiramente Casualizado (DIC)**
+
+```r
+# Sintaxe 1 (sem aspas):
+modelo_dic <- analise_dic(Produtividade, Adubo, dados = soja, teste = "tukey")
+# ou pelo alias direto:
+modelo_dic <- dic(Produtividade, Adubo, dados = soja)
+
+# Sintaxe 2 (com aspas):
+modelo_dic <- dic("Produtividade", "Adubo", dados = soja, teste = "scott_knott")
+
+# Teste de Scheffé com contrastes em linguagem natural:
+dic(Produtividade, Adubo, dados = soja, teste = "scheffe",
+    contrastes = c("A vs c(B, C)", "c(A, B) vs c(C, D)"))
+
+# Teste de Dunnett contra testemunha/controle:
+dic(Produtividade, Adubo, dados = soja, teste = "dunnett", controle = "Testemunha")
+
+# Fator Quantitativo (Doses/Níveis numéricos — Regressão Polinomial com Ponto Ótimo):
+modelo_quanti <- dic(Produtividade, Dose_N, dados = milho)
+
+# Acesso direto aos elementos do modelo
+modelo_dic$anova                 # Quadro completo da ANOVA (Tratamento, Resíduo, Total)
+modelo_dic$parametros            # Média geral, CV experimental (%) e R² do modelo
+modelo_dic$tabela_grupos         # Médias, desvios padrões e letras do agrupamento (a, b, ab)
+modelo_dic$comparacoes           # Diferenças pareadas com intervalos de confiança e p-valores
+modelo_dic$contrastes            # Estimativas e testes dos contrastes de Scheffé
+modelo_dic$regressao             # ANOVA polinomial (Linear, Quadrático, Cúbico) e ponto ótimo
+modelo_dic$modelo_aov            # Objeto nativo aov do R
+
+# Visualizações gráficas dedicadas (tema 2 com grade dupla)
+grafico_dic(modelo_dic)          # Painel lado a lado: Médias com letras + ICs das diferenças
+grafico_medias(modelo_dic)       # Gráfico de barras com erro e letras do teste sobrepostas
+grafico_ic(modelo_dic)           # Gráfico horizontal de ICs com linha vermelha no zero e destaque
+grafico_regressao(modelo_quanti) # Curva suave ajustada com pontos reais e dose ótima destacada
+```
+
+</details>
+
+---
+
+<details>
 <summary><strong> Amostragem</strong></summary>
 <br>
 
