@@ -10,7 +10,7 @@ acp(
   n_comp = NULL,
   analise_paralela = TRUE,
   n_sim = 100,
-  grafico = FALSE
+  grafico = TRUE
 )
 }
 \arguments{

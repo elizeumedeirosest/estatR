@@ -11,7 +11,7 @@ analise_discriminante(
   grupo = NULL,
   metodo = c("lda", "qda"),
   validacao_cruzada = TRUE,
-  grafico = FALSE
+  grafico = TRUE
 )
 
 discriminante(
@@ -20,7 +20,7 @@ discriminante(
   grupo = NULL,
   metodo = c("lda", "qda"),
   validacao_cruzada = TRUE,
-  grafico = FALSE
+  grafico = TRUE
 )
 }
 \arguments{

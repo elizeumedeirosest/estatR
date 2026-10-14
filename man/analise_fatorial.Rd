@@ -13,7 +13,7 @@ analise_fatorial(
   analise_paralela = TRUE,
   n_sim = 100,
   corte_carga = 0.3,
-  grafico = FALSE
+  grafico = TRUE
 )
 
 afe(
@@ -24,7 +24,7 @@ afe(
   analise_paralela = TRUE,
   n_sim = 100,
   corte_carga = 0.3,
-  grafico = FALSE
+  grafico = TRUE
 )
 }
 \arguments{

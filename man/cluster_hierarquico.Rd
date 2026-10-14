@@ -10,7 +10,7 @@ cluster_hierarquico(
   metodo_dist = "euclidean",
   metodo_ligacao = "ward.D2",
   padronizar = TRUE,
-  grafico = FALSE
+  grafico = TRUE
 )
 }
 \arguments{

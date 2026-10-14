@@ -25,7 +25,7 @@ acp <- function(dados,
                 n_comp           = NULL,
                 analise_paralela = TRUE,
                 n_sim            = 100,
-                grafico          = FALSE) {
+                grafico          = TRUE) {
 
   # 1. Validação e seleção de variáveis numéricas
   if (!is.data.frame(dados) && !is.matrix(dados)) {
@@ -573,34 +573,61 @@ screeplot_acp <- function(modelo, analise_paralela = TRUE) {
     Autovalor      = modelo$autovalores$Autovalor
   )
 
-  p <- ggplot2::ggplot(df_scree, ggplot2::aes(x = Componente_num, y = Autovalor)) +
-    ggplot2::geom_line(color = "#1D3557", linewidth = 1) +
-    ggplot2::geom_point(color = "#1D3557", size = 3) +
-    ggplot2::geom_hline(yintercept = 1.0, linetype = "dashed", color = "#D90429", linewidth = 0.8) +
-    ggplot2::scale_x_continuous(breaks = df_scree$Componente_num, labels = df_scree$Componente) +
-    ggplot2::labs(
-      title    = "Scree Plot — ACP",
-      subtitle = "Autovalores Observados vs Critério de Kaiser (linha vermelha: autovalor = 1)",
-      x = "Componente Principal",
-      y = "Autovalor"
-    )
+  tem_ap <- analise_paralela && !is.null(modelo$criterios$autovalores_simulados_p95) &&
+            !any(is.na(modelo$criterios$autovalores_simulados_p95))
 
-  if (analise_paralela && !is.null(modelo$criterios$autovalores_simulados_p95) &&
-      !any(is.na(modelo$criterios$autovalores_simulados_p95))) {
+  cores_legenda <- c(
+    "Autovalores Observados"             = "#1D3557",
+    "Critério de Kaiser (Autovalor = 1)" = "#D90429"
+  )
+  linetypes_legenda <- c(
+    "Autovalores Observados"             = "solid",
+    "Critério de Kaiser (Autovalor = 1)" = "dashed"
+  )
+
+  if (tem_ap) {
+    cores_legenda["Análise Paralela de Horn (P95)"]     <- "#457B9D"
+    linetypes_legenda["Análise Paralela de Horn (P95)"] <- "dotted"
+  }
+
+  p <- ggplot2::ggplot(df_scree, ggplot2::aes(x = Componente_num, y = Autovalor)) +
+    ggplot2::geom_hline(ggplot2::aes(yintercept = 1.0, color = "Critério de Kaiser (Autovalor = 1)",
+                                     linetype = "Critério de Kaiser (Autovalor = 1)"),
+                        linewidth = 0.8) +
+    ggplot2::geom_line(ggplot2::aes(color = "Autovalores Observados", linetype = "Autovalores Observados"),
+                       linewidth = 1) +
+    ggplot2::geom_point(ggplot2::aes(color = "Autovalores Observados"), size = 3)
+
+  if (tem_ap) {
     df_ap <- data.frame(
       Componente_num = seq_along(modelo$criterios$autovalores_simulados_p95),
       Autovalor_AP   = modelo$criterios$autovalores_simulados_p95
     )
     p <- p +
-      ggplot2::geom_line(data = df_ap, ggplot2::aes(x = Componente_num, y = Autovalor_AP),
-                         color = "#457B9D", linetype = "dotted", linewidth = 1) +
-      ggplot2::geom_point(data = df_ap, ggplot2::aes(x = Componente_num, y = Autovalor_AP),
-                          color = "#457B9D", size = 2.5, shape = 17) +
-      ggplot2::labs(subtitle = "Linha azul contínua: Observado | Linha vermelha: Kaiser (1,0) | Linha pontilhada: Horn (P95 Simulado)")
+      ggplot2::geom_line(data = df_ap,
+                         ggplot2::aes(x = Componente_num, y = Autovalor_AP,
+                                      color = "Análise Paralela de Horn (P95)",
+                                      linetype = "Análise Paralela de Horn (P95)"),
+                         linewidth = 1) +
+      ggplot2::geom_point(data = df_ap,
+                          ggplot2::aes(x = Componente_num, y = Autovalor_AP,
+                                       color = "Análise Paralela de Horn (P95)"),
+                          size = 2.5, shape = 17)
   }
 
+  p <- p +
+    ggplot2::scale_x_continuous(breaks = df_scree$Componente_num, labels = df_scree$Componente) +
+    ggplot2::scale_color_manual(name = "Critério", values = cores_legenda) +
+    ggplot2::scale_linetype_manual(name = "Critério", values = linetypes_legenda) +
+    ggplot2::labs(
+      title = "Scree Plot — ACP",
+      x     = "Componente Principal",
+      y     = "Autovalor"
+    ) +
+    ggplot2::theme(legend.position = "bottom")
+
   if (exists("tema_estatR", mode = "function")) {
-    p <- p + tema_estatR(estilo = 2)
+    p <- p + tema_estatR(estilo = 2, grade = "dupla")
   } else {
     p <- p + ggplot2::theme_minimal()
   }
@@ -649,7 +676,7 @@ analise_fatorial <- function(dados,
                              analise_paralela = TRUE,
                              n_sim            = 100,
                              corte_carga      = 0.30,
-                             grafico          = FALSE) {
+                             grafico          = TRUE) {
 
   if (!requireNamespace("psych", quietly = TRUE)) {
     stop("O pacote 'psych' e necessario para a Analise Fatorial Exploratoria. Instale com install.packages('psych').")
@@ -1209,34 +1236,61 @@ screeplot_fatorial <- function(modelo, analise_paralela = TRUE) {
     Autovalor = ev
   )
 
-  p <- ggplot2::ggplot(df_scree, ggplot2::aes(x = Fator_num, y = Autovalor)) +
-    ggplot2::geom_line(color = "#1D3557", linewidth = 1) +
-    ggplot2::geom_point(color = "#1D3557", size = 3) +
-    ggplot2::geom_hline(yintercept = 1.0, linetype = "dashed", color = "#D90429", linewidth = 0.8) +
-    ggplot2::scale_x_continuous(breaks = df_scree$Fator_num, labels = df_scree$Fator) +
-    ggplot2::labs(
-      title    = "Scree Plot — Análise Fatorial Exploratória",
-      subtitle = "Autovalores Observados vs Critério de Kaiser (linha vermelha: autovalor = 1)",
-      x = "Fator",
-      y = "Autovalor"
-    )
+  tem_ap <- analise_paralela && !is.null(modelo$criterios$autovalores_simulados_p95) &&
+            !any(is.na(modelo$criterios$autovalores_simulados_p95))
 
-  if (analise_paralela && !is.null(modelo$criterios$autovalores_simulados_p95) &&
-      !any(is.na(modelo$criterios$autovalores_simulados_p95))) {
+  cores_legenda <- c(
+    "Autovalores Observados"             = "#1D3557",
+    "Critério de Kaiser (Autovalor = 1)" = "#D90429"
+  )
+  linetypes_legenda <- c(
+    "Autovalores Observados"             = "solid",
+    "Critério de Kaiser (Autovalor = 1)" = "dashed"
+  )
+
+  if (tem_ap) {
+    cores_legenda["Análise Paralela de Horn (P95)"]     <- "#457B9D"
+    linetypes_legenda["Análise Paralela de Horn (P95)"] <- "dotted"
+  }
+
+  p <- ggplot2::ggplot(df_scree, ggplot2::aes(x = Fator_num, y = Autovalor)) +
+    ggplot2::geom_hline(ggplot2::aes(yintercept = 1.0, color = "Critério de Kaiser (Autovalor = 1)",
+                                     linetype = "Critério de Kaiser (Autovalor = 1)"),
+                        linewidth = 0.8) +
+    ggplot2::geom_line(ggplot2::aes(color = "Autovalores Observados", linetype = "Autovalores Observados"),
+                       linewidth = 1) +
+    ggplot2::geom_point(ggplot2::aes(color = "Autovalores Observados"), size = 3)
+
+  if (tem_ap) {
     df_ap <- data.frame(
       Fator_num    = seq_along(modelo$criterios$autovalores_simulados_p95),
       Autovalor_AP = modelo$criterios$autovalores_simulados_p95
     )
     p <- p +
-      ggplot2::geom_line(data = df_ap, ggplot2::aes(x = Fator_num, y = Autovalor_AP),
-                         color = "#457B9D", linetype = "dotted", linewidth = 1) +
-      ggplot2::geom_point(data = df_ap, ggplot2::aes(x = Fator_num, y = Autovalor_AP),
-                          color = "#457B9D", size = 2.5, shape = 17) +
-      ggplot2::labs(subtitle = "Linha azul contínua: Observado | Linha vermelha: Kaiser (1,0) | Linha pontilhada: Horn (P95 Simulado)")
+      ggplot2::geom_line(data = df_ap,
+                         ggplot2::aes(x = Fator_num, y = Autovalor_AP,
+                                      color = "Análise Paralela de Horn (P95)",
+                                      linetype = "Análise Paralela de Horn (P95)"),
+                         linewidth = 1) +
+      ggplot2::geom_point(data = df_ap,
+                          ggplot2::aes(x = Fator_num, y = Autovalor_AP,
+                                       color = "Análise Paralela de Horn (P95)"),
+                          size = 2.5, shape = 17)
   }
 
+  p <- p +
+    ggplot2::scale_x_continuous(breaks = df_scree$Fator_num, labels = df_scree$Fator) +
+    ggplot2::scale_color_manual(name = "Critério", values = cores_legenda) +
+    ggplot2::scale_linetype_manual(name = "Critério", values = linetypes_legenda) +
+    ggplot2::labs(
+      title = "Scree Plot — Análise Fatorial Exploratória",
+      x     = "Fator",
+      y     = "Autovalor"
+    ) +
+    ggplot2::theme(legend.position = "bottom")
+
   if (exists("tema_estatR", mode = "function")) {
-    p <- p + tema_estatR(estilo = 2)
+    p <- p + tema_estatR(estilo = 2, grade = "dupla")
   } else {
     p <- p + ggplot2::theme_minimal()
   }
@@ -1390,7 +1444,7 @@ cluster_kmeans <- function(dados,
                            k_max      = 10,
                            padronizar = TRUE,
                            nstart     = NULL,
-                           grafico    = FALSE) {
+                           grafico    = TRUE) {
 
   if (!requireNamespace("cluster", quietly = TRUE)) {
     stop("O pacote 'cluster' e necessario. Instale com install.packages('cluster').")
@@ -1769,7 +1823,7 @@ cluster_hierarquico <- function(dados,
                                 metodo_dist    = "euclidean",
                                 metodo_ligacao = "ward.D2",
                                 padronizar     = TRUE,
-                                grafico        = FALSE) {
+                                grafico        = TRUE) {
 
   if (!requireNamespace("cluster", quietly = TRUE)) {
     stop("O pacote 'cluster' e necessario. Instale com install.packages('cluster').")
@@ -2175,7 +2229,7 @@ dendrograma <- function(modelo, k = NULL) {
 #'   \item \code{dados}: Data frame limpo utilizado no ajuste
 #' }
 #' @export
-analise_manova <- function(dados = NULL, variaveis = NULL, grupo = NULL, grafico = FALSE) {
+analise_manova <- function(dados = NULL, variaveis = NULL, grupo = NULL, grafico = TRUE) {
   
   # 1. Tratamento flexível de argumentos posicionais e não avaliados
   sub_dados <- substitute(dados)
@@ -2679,7 +2733,7 @@ plot_manova <- function(modelo) {
 analise_discriminante <- function(dados = NULL, variaveis = NULL, grupo = NULL,
                                   metodo = c("lda", "qda"),
                                   validacao_cruzada = TRUE,
-                                  grafico = FALSE) {
+                                  grafico = TRUE) {
   metodo <- match.arg(metodo)
 
   # 1. Tratamento flexível de argumentos posicionais e não avaliados

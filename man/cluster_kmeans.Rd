@@ -10,7 +10,7 @@ cluster_kmeans(
   k_max = 10,
   padronizar = TRUE,
   nstart = NULL,
-  grafico = FALSE
+  grafico = TRUE
 )
 }
 \arguments{
