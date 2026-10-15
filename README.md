@@ -328,7 +328,7 @@ modelo_afe$bartlett        # Teste de Esfericidade de Bartlett
 
 # Gráficos dedicados
 cargasplot_fatorial(modelo_afe, corte = 0.30)   # Gráfico de barras das cargas
-screeplot_fatorial(modelo_afe)                 # Scree plot com Horn
+screeplot_fatorial(modelo_afe)                  # Scree plot com Horn
 biplot_fatorial(modelo_afe, grupo = mtcars$cyl) # Biplot 2D com escores e cargas
 ```
 
@@ -339,12 +339,12 @@ biplot_fatorial(modelo_afe, grupo = mtcars$cyl) # Biplot 2D com escores e cargas
 modelo_km <- cluster_kmeans(mtcars, k = 3)
 
 # Acesso aos elementos do modelo K-Means
-modelo_km$clusters          # Atribuição de cada observação ao cluster
-modelo_km$dados_cluster     # Dados originais com a coluna $Cluster anexada
-modelo_km$centroides        # Médias das variáveis por cluster (escala original)
-modelo_km$resumo            # Tamanho (n), proporção (%) e silhueta de cada grupo
-modelo_km$criterios_k       # WSS, Silhueta e Calinski-Harabasz de k = 2 a k_max
-modelo_km$diagnostico_nstart# Teste de estabilização de variância do nstart
+modelo_km$clusters           # Atribuição de cada observação ao cluster
+modelo_km$dados_cluster      # Dados originais com a coluna $Cluster anexada
+modelo_km$centroides         # Médias das variáveis por cluster (escala original)
+modelo_km$resumo             # Tamanho (n), proporção (%) e silhueta de cada grupo
+modelo_km$criterios_k        # WSS, Silhueta e Calinski-Harabasz de k = 2 a k_max
+modelo_km$diagnostico_nstart # Teste de estabilização de variância do nstart
 
 # Gráficos do K-Means
 plot_clusters(modelo_km, elipses = TRUE) # Projeção 2D com centroidas
