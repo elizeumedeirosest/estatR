@@ -538,7 +538,7 @@ plot_fatorial(modelo_fat)
 ---
 
 <details>
-<summary><strong> Análise de Sobrevivência (Bioestatística e Confiabilidade)</strong></summary>
+<summary><strong> Análise de Sobrevivência</strong></summary>
 <br>
 
 **Estimador de Kaplan-Meier**
