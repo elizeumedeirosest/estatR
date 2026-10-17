@@ -169,6 +169,21 @@ gerar_amostra(n = 1000, distribuicao = "exponencial", taxa = 0.5)
 <summary><strong> Modelagem e Regressão</strong></summary>
 <br>
 
+**Modelos Lineares Generalizados (MLG / GLM Flexível)**
+
+```r
+# Função unificada com dados em primeiro argumento (compatível com pipe |>)
+# Suporta: "binomial", "poisson", "quasipoisson", "gama", "gaussian", "binomial_negativa", "beta"
+mod_mlg <- regressao_mlg(mtcars, mpg ~ wt + hp, familia = "gaussian", teste = "ambos")
+# ou pelo alias direto:
+mod_mlg <- mlg(mtcars, mpg ~ wt + hp, familia = "poisson")
+
+# Gráfico de Coeficientes estilo Forest Plot (nativo em ggplot2 com tema estatR e grade dupla):
+grafico_coeficientes(mod_mlg)
+# ou pelo alias:
+grafico_modelo(mod_mlg)
+```
+
 **Regressão Linear**
 
 ```r
@@ -180,16 +195,17 @@ modelo2 <- regressao_linear(mpg ~ wt + hp, dados = mtcars)
 predicao(modelo,  data.frame(wt = c(2.5, 3.0)))
 predicao(modelo2, data.frame(wt = 2.5, hp = 110), intervalo = "predicao")
 
-# Métricas e diagnóstico de resíduos
+# Métricas e diagnóstico de resíduos polimórfico
 metricas(modelo)
 analise_residual(modelo)
+grafico_coeficientes(modelo2)
 ```
 
 **Regressão Logística (Binomial, Multinomial e Ordinal)**
 
 ```r
-# Logística Binária (automático para resposta com 2 níveis)
-mod_bin <- regressao_logistica(am ~ mpg + hp, dados = mtcars)
+# Logística Binária com definição de categoria de referência
+mod_bin <- regressao_logistica(vs ~ wt + hp, dados = mtcars, referencia = 0)
 
 # Logística Multinomial (3+ níveis não ordenados)
 mod_multi <- regressao_logistica(Species ~ Sepal.Length + Petal.Length, 
@@ -201,9 +217,10 @@ mod_ord <- regressao_logistica(nota ~ horas + esforco,
                                dados = dados_alunos, tipo = "ordinal")
 
 # Métricas, diagnóstico de resíduos e Best Subsets
-metricas_logistica(mod_bin)
-analise_residual_logistica(mod_bin)
-selecao_modelos_logistica(am ~ mpg + hp + wt + qsec, dados = mtcars)
+metricas(mod_bin)
+analise_residual(mod_bin)
+grafico_coeficientes(mod_bin) # Plota Odds Ratios (OR) automaticamente
+selecao_modelos(vs ~ wt + hp + qsec, dados = mtcars)
 ```
 
 **Regressão de Poisson**
@@ -214,6 +231,7 @@ mod_pois <- regressao_poisson(breaks ~ wool + tension, dados = warpbreaks)
 # Funções polimórficas (adaptam-se automaticamente ao modelo de Poisson)
 metricas(mod_pois)
 analise_residual(mod_pois)
+grafico_coeficientes(mod_pois) # Plota Razões de Taxas de Incidência (IRR) automaticamente
 selecao_modelos(breaks ~ wool + tension, dados = warpbreaks)
 ```
 
@@ -223,22 +241,23 @@ selecao_modelos(breaks ~ wool + tension, dados = warpbreaks)
 mod_nb <- regressao_binomial_negativa(breaks ~ wool + tension, dados = warpbreaks)
 
 # Métricas globais, análise de resíduos e seleção
-metricas_binomial_negativa(mod_nb)
-analise_residual_binomial_negativa(mod_nb)
-selecao_modelos_binomial_negativa(breaks ~ wool + tension, dados = warpbreaks)
+metricas(mod_nb)
+analise_residual(mod_nb)
+grafico_coeficientes(mod_nb)
+selecao_modelos(breaks ~ wool + tension, dados = warpbreaks)
 ```
 
 **Regressão Beta (Proporções e Taxas)**
 
 ```r
-# A variável resposta deve estar no intervalo (0, 1) excluso.
-# Se tiver zeros ou uns, use a transformação de Smithson & Verkuilen.
+# A variável resposta deve estar no intervalo (0, 1) exclusivo.
 mod_beta <- regressao_beta(taxa_sucesso ~ metodo + experiencia, dados = dados_taxas)
 
-# Métricas, diagnóstico de resíduos e Best Subsets
-metricas_beta(mod_beta)
-analise_residual_beta(mod_beta)
-selecao_modelos_beta(taxa_sucesso ~ metodo + experiencia + idade, dados = dados_taxas)
+# Métricas, diagnóstico de resíduos e seleção polimórficos
+metricas(mod_beta)
+analise_residual(mod_beta)
+grafico_coeficientes(mod_beta)
+selecao_modelos(taxa_sucesso ~ metodo + experiencia + idade, dados = dados_taxas)
 ```
 
 **Regressão Gama**
@@ -247,10 +266,11 @@ selecao_modelos_beta(taxa_sucesso ~ metodo + experiencia + idade, dados = dados_
 # A variável resposta deve ser estritamente positiva (> 0). Ideal para custos e tempos.
 mod_gama <- regressao_gama(custos ~ tratamento + idade, dados = dados_saude)
 
-# Métricas, resíduos e seleção
-metricas_gama(mod_gama)
-analise_residual_gama(mod_gama)
-selecao_modelos_gama(custos ~ tratamento + idade + bmi, dados = dados_saude)
+# Métricas, resíduos e seleção polimórficos
+metricas(mod_gama)
+analise_residual(mod_gama)
+grafico_coeficientes(mod_gama)
+selecao_modelos(custos ~ tratamento + idade + bmi, dados = dados_saude)
 ```
 
 **Correlação**
@@ -593,8 +613,6 @@ selecao_modelos(Surv(tempo, evento) ~ idade + tratamento + estagio, dados = dado
 
 # Diagnóstico e Análise Residual integrada (Schoenfeld, Deviance e Martingale):
 analise_residual(modelo_cox)
-# ou diretamente:
-analise_residual_cox(modelo_cox)
 ```
 
 </details>
@@ -664,6 +682,9 @@ grafico_boxplot(mtcars, cyl, mpg, grupo = am,
 
 # Destaque de categorias e ordenamento por mediana
 grafico_boxplot(mtcars, cyl, mpg, ordenar = TRUE, destaque = "8")
+
+# Forest Plot de coeficientes de modelos
+grafico_coeficientes(modelo)
 ```
 
 **Tema e Paletas para ggplot2**
@@ -672,16 +693,17 @@ grafico_boxplot(mtcars, cyl, mpg, ordenar = TRUE, destaque = "8")
 # Aplicar tema padronizado
 ggplot(iris, aes(x = Species, y = Sepal.Length, fill = Species)) +
   geom_boxplot() +
-  tema_estatR(estilo = 2) +     # 1 = classic, 2 = minimal com grade, 3 = limpo
-  paleta_estatR("academic")     # Paleta de cores padronizada
+  tema_estatR(estilo = 2, grade = "dupla") + # 1 = classic, 2 = minimal com grade, 3 = limpo
+  paleta_estatR("academic")                 # Paleta de cores padronizada
 
 # Outros ajustes de tema
-tema_estatR(modo = "dark")      # Tema escuro
-tema_estatR(inclinar = 45)      # Inclina rótulos do eixo X
+tema_estatR(modo = "dark")                  # Tema escuro
+tema_estatR(inclinar = 45)                  # Inclina rótulos do eixo X
+tema_estatR(fundo_transparente = TRUE)      # Fundo 100% transparente (para slides/apresentações)
 
 # Visualizar paletas disponíveis
-paleta_estatR()                 # Painel com todas as paletas
-paleta_estatR("vibrant")        # Ver uma paleta específica
+paleta_estatR()                             # Painel com todas as paletas
+paleta_estatR("vibrant")                    # Ver uma paleta específica
 ```
 
 </details>
