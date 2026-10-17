@@ -57,24 +57,17 @@ ggplot_add.paleta_estatR_layer <- function(object, plot, object_name) {
     plot <- plot + ggplot2::discrete_scale("colour", palette = palette_fn, labels = .formatar_label_paleta, guide = "none")
   }
   
-  # Recolore geometrias estáticas (não-mapeadas e não-protegidas)
+  # Recolore geometrias estáticas
   for (i in seq_along(plot$layers)) {
-    layer      <- plot$layers[[i]]
+    layer <- plot$layers[[i]]
     geom_class <- class(layer$geom)
-    stat_class <- class(layer$stat)
     
-    # Proteção: não recolorir ponto de média (StatSummary) nem camadas com inherit.aes=FALSE
-    is_stat_summary <- "StatSummary" %in% stat_class
-    is_no_inherit   <- identical(layer$inherit.aes, FALSE)
-    if (is_stat_summary || is_no_inherit) next
-    
-    has_fill_mapping  <- !is.null(plot$mapping$fill)   || !is.null(layer$mapping$fill)
-    has_color_mapping <- !is.null(plot$mapping$color)  || !is.null(plot$mapping$colour) ||
-                         !is.null(layer$mapping$color) || !is.null(layer$mapping$colour)
+    has_fill_mapping <- !is.null(plot$mapping$fill) || !is.null(layer$mapping$fill)
+    has_color_mapping <- !is.null(plot$mapping$color) || !is.null(plot$mapping$colour) || !is.null(layer$mapping$color) || !is.null(layer$mapping$colour)
     
     if ("GeomPoint" %in% geom_class) {
       if (!has_color_mapping && !is.null(layer$aes_params$colour)) layer$aes_params$colour <- pal[1]
-      if (!has_fill_mapping  && !is.null(layer$aes_params$fill))   layer$aes_params$fill   <- pal[1]
+      if (!has_fill_mapping && !is.null(layer$aes_params$fill)) layer$aes_params$fill <- pal[1]
     } else if ("GeomBar" %in% geom_class || "GeomCol" %in% geom_class || "GeomRect" %in% geom_class) {
       if (!has_fill_mapping && !is.null(layer$aes_params$fill)) layer$aes_params$fill <- pal[1]
     } else if ("GeomLine" %in% geom_class) {
@@ -195,14 +188,15 @@ print.paleta_estatR_layer <- function(x, ...) {
 #' @param inclinar Grau de inclinação dos rótulos do eixo X (ex: 45). Se TRUE, assume 45.
 #' @param modo "light" (padrão) ou "dark" (fundo escuro).
 #' @param grade Posição da grade no estilo 2 ("auto", "x", "y", "dupla", "nenhuma").
+#' @param fundo_transparente Lógico. Se TRUE, define o fundo do gráfico, do painel e da legenda como transparente (ideal para apresentações ou relatórios com fundo customizado). Padrão FALSE.
 #' @return Objeto de tema para adicionar ao ggplot.
 #' @export
-tema_estatR <- function(fonte = "sans", estilo = 1, escala = 1, inclinar = FALSE, modo = "light", grade = "auto") {
+tema_estatR <- function(fonte = "sans", estilo = 1, escala = 1, inclinar = FALSE, modo = "light", grade = "auto", fundo_transparente = FALSE) {
   if (is.numeric(fonte)) {
     estilo <- fonte
     fonte  <- "sans"
   }
-  structure(list(fonte = fonte, estilo = estilo, escala = escala, inclinar = inclinar, modo = modo, grade = grade), class = "tema_estatR_layer")
+  structure(list(fonte = fonte, estilo = estilo, escala = escala, inclinar = inclinar, modo = modo, grade = grade, fundo_transparente = fundo_transparente), class = "tema_estatR_layer")
 }
 
 #' @export
@@ -213,9 +207,11 @@ ggplot_add.tema_estatR_layer <- function(object, plot, object_name) {
   inclinar <- object$inclinar
   modo <- object$modo
   grade_opt <- object$grade
+  fundo_transp <- isTRUE(object$fundo_transparente)
   
   is_dark <- modo == "dark"
-  cor_fundo <- if (is_dark) "#1A1A1A" else "white"
+  cor_fundo <- if (fundo_transp) "transparent" else if (is_dark) "#1A1A1A" else "white"
+  cor_borda_fundo <- if (fundo_transp) NA else cor_fundo
   cor_texto <- if (is_dark) "#E5E5E5" else "black"
   cor_sub <- if (is_dark) "#A0A0A0" else "gray40"
   cor_linha <- if (is_dark) "#E5E5E5" else "black"
@@ -236,11 +232,11 @@ ggplot_add.tema_estatR_layer <- function(object, plot, object_name) {
     plot.subtitle     = ggplot2::element_text(color = cor_sub, size = 13 * escala),
     legend.title      = ggplot2::element_text(size = 14 * escala, color = cor_texto, margin = ggplot2::margin(b = 8)),
     legend.text       = ggplot2::element_text(size = 13 * escala, color = cor_texto),
-    legend.background = ggplot2::element_rect(fill = cor_fundo, color = cor_fundo),
-    legend.key        = ggplot2::element_rect(fill = cor_fundo, color = cor_fundo),
+    legend.background = ggplot2::element_rect(fill = cor_fundo, color = cor_borda_fundo),
+    legend.key        = ggplot2::element_rect(fill = cor_fundo, color = cor_borda_fundo),
     strip.text        = ggplot2::element_text(size = 14 * escala, face = "bold", color = cor_texto),
-    strip.background  = ggplot2::element_rect(fill = if(is_dark) "#333333" else "gray90", color = if(is_dark) "#333333" else "gray90"),
-    plot.background   = ggplot2::element_rect(fill = cor_fundo, color = cor_fundo, linewidth = 1)
+    strip.background  = ggplot2::element_rect(fill = if(fundo_transp) "transparent" else if(is_dark) "#333333" else "gray90", color = if(fundo_transp) NA else if(is_dark) "#333333" else "gray90"),
+    plot.background   = ggplot2::element_rect(fill = cor_fundo, color = cor_borda_fundo, linewidth = 1)
   )
   
   tema_base <- if (estilo == 2) {
@@ -258,13 +254,13 @@ ggplot_add.tema_estatR_layer <- function(object, plot, object_name) {
     }
     
     ggplot2::theme_minimal(base_family = fonte) + textos_comuns + grid_theme +
-      ggplot2::theme(panel.grid.minor = ggplot2::element_blank(), panel.background = ggplot2::element_rect(fill = cor_fundo, color = cor_fundo), axis.line = ggplot2::element_blank(), axis.ticks = ggplot2::element_blank()) + inclinacao_text
+      ggplot2::theme(panel.grid.minor = ggplot2::element_blank(), panel.background = ggplot2::element_rect(fill = cor_fundo, color = cor_borda_fundo), axis.line = ggplot2::element_blank(), axis.ticks = ggplot2::element_blank()) + inclinacao_text
   } else if (estilo == 3) {
     ggplot2::theme_minimal(base_family = fonte) + textos_comuns +
-      ggplot2::theme(panel.grid = ggplot2::element_blank(), panel.background = ggplot2::element_rect(fill = cor_fundo, color = cor_fundo), axis.line = ggplot2::element_blank(), axis.ticks = ggplot2::element_blank()) + inclinacao_text
+      ggplot2::theme(panel.grid = ggplot2::element_blank(), panel.background = ggplot2::element_rect(fill = cor_fundo, color = cor_borda_fundo), axis.line = ggplot2::element_blank(), axis.ticks = ggplot2::element_blank()) + inclinacao_text
   } else {
     ggplot2::theme_classic(base_family = fonte) + textos_comuns +
-      ggplot2::theme(panel.grid = ggplot2::element_blank(), panel.background = ggplot2::element_rect(fill = cor_fundo, color = cor_fundo), axis.line = ggplot2::element_line(color = cor_linha, linewidth = 0.35), axis.ticks = ggplot2::element_line(color = cor_linha, linewidth = 0.35), axis.ticks.length = ggplot2::unit(4, "pt"), axis.text.x = ggplot2::element_text(margin = ggplot2::margin(t = 7)), axis.text.y = ggplot2::element_text(margin = ggplot2::margin(r = 7))) + inclinacao_text
+      ggplot2::theme(panel.grid = ggplot2::element_blank(), panel.background = ggplot2::element_rect(fill = cor_fundo, color = cor_borda_fundo), axis.line = ggplot2::element_line(color = cor_linha, linewidth = 0.35), axis.ticks = ggplot2::element_line(color = cor_linha, linewidth = 0.35), axis.ticks.length = ggplot2::unit(4, "pt"), axis.text.x = ggplot2::element_text(margin = ggplot2::margin(t = 7)), axis.text.y = ggplot2::element_text(margin = ggplot2::margin(r = 7))) + inclinacao_text
   }
   
   if (is_dark) {

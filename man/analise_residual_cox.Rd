@@ -19,3 +19,4 @@ Executa diagnóstico completo de resíduos para modelos de riscos
 proporcionais de Cox, incluindo avaliação de proporcionalidade (Schoenfeld),
 detecção de outliers (Deviance) e forma funcional/linearidade (Martingale).
 }
+\keyword{internal}

@@ -508,7 +508,13 @@ print.estatR_fatorial <- function(x, ...) {
   cat("  ────────────────────────────────────────────────────────── \n")
   cat(sprintf("  Média Geral:             %s\n", .fmt_num_dic(x$parametros$media_geral, 2)))
   cat(sprintf("  CV Experimental (%%):     %s%%\n", .fmt_num_dic(x$parametros$cv_exp, 2)))
-  cat(sprintf("  R² do Modelo:            %s\n", .fmt_num_dic(x$parametros$r2, 3)))
+  if (identical(x$tipo_A, "qualitativo") && identical(x$tipo_B, "qualitativo")) {
+    cat(sprintf("  Eta² (Tamanho de Efeito): %s%% (%s)\n",
+                .fmt_num_dic(x$parametros$r2 * 100, 2),
+                .fmt_num_dic(x$parametros$r2, 3)))
+  } else {
+    cat(sprintf("  R² do Modelo:            %s\n", .fmt_num_dic(x$parametros$r2, 3)))
+  }
   cat("  ────────────────────────────────────────────────────────── \n")
   cat("  * CV experimental: < 10% (Baixo / Alta precisão), 10-20% (Médio), 20-30% (Alto), > 30% (Muito alto - Pimentel-Gomes).\n\n")
 

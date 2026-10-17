@@ -109,6 +109,7 @@ regressao_poisson <- function(formula, dados, ligacao = "log", grafico = TRUE) {
   cat("  ", .pad("Sobredispers\u00e3o (\u03c7\u00b2/df)", w_diag["met"], "left"), .pad(sprintf("%.3f", dispersion_ratio), w_diag["val"], "center"), "\n", sep = "")
   cat("  ", .pad("Teste LRT (\u03c7\u00b2)", w_diag["met"], "left"), .pad(sprintf("%.2f (%s)", lrt_stat, .fmt_p(p_lrt)), w_diag["val"], "center"), .ast(p_lrt), "\n", sep = "")
   cat("  ", .pad("Pseudo-R\u00b2 (McFadden)", w_diag["met"], "left"), .pad(sprintf("%.1f%%", pseudo_r2 * 100), w_diag["val"], "center"), "\n", sep = "")
+  cat("  ", .pad("Itera\u00e7\u00f5es (Fisher)", w_diag["met"], "left"), .pad(sprintf("%d", if (!is.null(modelo$iter)) modelo$iter else NA), w_diag["val"], "center"), "\n", sep = "")
   cat(sep_diag, "\n\n")
   
   # COEFICIENTES E IRR
@@ -326,7 +327,7 @@ metricas_poisson <- function(modelo) {
 #' @description Realiza o diagnostico de residuos para modelos de Poisson.
 #' @param modelo Objeto glm Poisson
 #' @param grafico Logico. Plota o painel se TRUE.
-#' @export
+#' @keywords internal
 analise_residual_poisson <- function(modelo, grafico = TRUE) {
   if (exists(".print_titulo", mode = "function")) .print_titulo("ANÁLISE DE RESÍDUOS — REGRESSÃO DE POISSON")
   

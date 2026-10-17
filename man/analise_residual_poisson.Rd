@@ -14,3 +14,4 @@ analise_residual_poisson(modelo, grafico = TRUE)
 \description{
 Realiza o diagnostico de residuos para modelos de Poisson.
 }
+\keyword{internal}

@@ -71,7 +71,8 @@ usa o nome de uma coluna do data frame para rotular os outliers.}
 \item{paleta}{Numérico (1–5) para paletas internas do boxplot, ou string
 (\code{"academic"}, \code{"vibrant"}, etc.) para usar \code{paleta_estatR()}.}
 
-\item{cor}{Cor fixa (hex ou nome R) para todos os boxplots, ignora a paleta.}
+\item{cor}{Cor fixa (hex ou nome R) para todos os boxplots, ignora a paleta.
+Pode ser um vetor com uma cor por grupo (na ordem dos níveis do eixo X).}
 
 \item{destaque}{Vetor de nomes de categorias a destacar (as demais ficam em cinza).}
 

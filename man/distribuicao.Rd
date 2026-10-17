@@ -5,42 +5,53 @@
 \title{Distribuição Estatística}
 \usage{
 distribuicao(
-  tipo = c("normal", "binomial", "poisson", "exponencial"),
+  tipo = c("normal", "binomial", "poisson", "exponencial", "uniforme", "t",
+    "qui_quadrado", "f", "gama"),
   media = 0,
   dp = 1,
   n = 10,
   p = 0.5,
   lambda = 1,
   taxa = 1,
+  min = 0,
+  max = 1,
+  gl = 10,
+  gl1 = 5,
+  gl2 = 10,
+  forma = 2,
+  escala = 1,
   grafico = TRUE,
   simulacao = FALSE,
   semente = 42
 )
 }
 \arguments{
-\item{tipo}{Tipo da distribuição: "normal", "binomial", "poisson" ou "exponencial".}
+\item{tipo}{Tipo da distribuição.}
 
-\item{media}{Parâmetro da Normal: média (μ). Padrão: 0.}
+\item{media, dp}{Parâmetros da Normal.}
 
-\item{dp}{Parâmetro da Normal: desvio-padrão (σ). Padrão: 1.}
+\item{n, p}{Parâmetros da Binomial.}
 
-\item{n}{Parâmetro da Binomial: número de ensaios. Padrão: 10.}
+\item{lambda}{Parâmetro da Poisson.}
 
-\item{p}{Parâmetro da Binomial: probabilidade de sucesso. Padrão: 0.5.}
+\item{taxa}{Parâmetro da Exponencial.}
 
-\item{lambda}{Parâmetro da Poisson: taxa de ocorrência (λ). Padrão: 1.}
+\item{min, max}{Parâmetros da Uniforme.}
 
-\item{taxa}{Parâmetro da Exponencial: taxa (λ). Padrão: 1.}
+\item{gl}{Graus de liberdade (t de Student e Qui-Quadrado).}
+
+\item{gl1, gl2}{Graus de liberdade (F de Snedecor).}
+
+\item{forma, escala}{Parâmetros da Gama.}
 
 \item{grafico}{Lógico. Se TRUE, exibe o gráfico pedagógico da distribuição.}
 
-\item{simulacao}{Lógico. Se TRUE, exibe painel com histogramas simulados
-para n = 10, 50, 100, 250, 500 e 1000 observações.}
+\item{simulacao}{Lógico. Se TRUE, exibe painel com histogramas simulados.}
 
 \item{semente}{Semente para reprodutibilidade da simulação.}
 }
 \description{
 Exibe uma visão completa e pedagógica de uma distribuição de probabilidade:
 parâmetros, momentos teóricos, quantis-chave e gráfico ilustrativo.
-Suporta: "normal", "binomial", "poisson", "exponencial".
+Suporta: "normal", "binomial", "poisson", "exponencial", "uniforme", "t", "qui_quadrado", "f", "gama".
 }

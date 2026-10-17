@@ -7,7 +7,8 @@
 analise_residual(modelo, grafico = TRUE)
 }
 \arguments{
-\item{modelo}{Objeto de modelo ajustado do tipo \code{lm} ou \code{glm}.}
+\item{modelo}{Objeto de modelo ajustado do tipo \code{lm}, \code{glm}, \code{aov},
+\code{estatR_dic}, \code{estatR_dbc}, \code{estatR_dql}, \code{estatR_fatorial} ou \code{estatR_cox}.}
 
 \item{grafico}{Lógico. Se TRUE, exibe o painel gráfico de diagnóstico dos resíduos.}
 }
@@ -20,5 +21,11 @@ interpretação automatizada e painel gráfico. Para modelos lineares (\code{lm}
 normalidade (Shapiro-Wilk ou Kolmogorov-Smirnov para n > 5000), homocedasticidade
 (Breusch-Pagan) e independência dos resíduos (Durbin-Watson). Para Modelos Lineares
 Generalizados (\code{glm}), despacha automaticamente para o diagnóstico específico
-da família (Logística Binomial, Poisson ou Gama).
+Análise Residual Completa para Modelos Estatísticos
+
+Realiza o diagnóstico completo de resíduos com testes estatísticos
+de Normalidade, Homocedasticidade e Independência, além de painel gráfico em ggplot2.
+Suporta modelos de regressão linear (\code{lm}), delineamentos experimentais
+(\code{estatR_dic}, \code{estatR_dbc}, \code{estatR_dql}, \code{estatR_fatorial}, \code{aov}),
+modelos lineares generalizados (\code{glm}) e modelos de sobrevivência (\code{estatR_cox}, \code{coxph}).
 }

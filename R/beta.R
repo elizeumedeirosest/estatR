@@ -308,7 +308,7 @@ metricas_beta <- function(modelo) {
 #' @description Realiza o diagnostico de residuos para regressao Beta (residuos padronizados ponderados).
 #' @param modelo Objeto betareg
 #' @param grafico Logico. Plota o painel se TRUE.
-#' @export
+#' @keywords internal
 analise_residual_beta <- function(modelo, grafico = TRUE) {
   if (!inherits(modelo, "betareg")) stop("O modelo fornecido nao e 'betareg'.")
   

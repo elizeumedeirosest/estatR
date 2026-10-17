@@ -304,7 +304,7 @@ metricas_binomial_negativa <- function(modelo) {
 #' @description Realiza o diagnostico de residuos para modelos de regressao Binomial Negativa.
 #' @param modelo Objeto glm.nb (negbin)
 #' @param grafico Logico. Plota o painel se TRUE.
-#' @export
+#' @keywords internal
 analise_residual_binomial_negativa <- function(modelo, grafico = TRUE) {
   if (exists(".print_titulo", mode = "function")) .print_titulo("ANÁLISE DE RESÍDUOS — BINOMIAL NEGATIVA")
   

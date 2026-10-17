@@ -10,7 +10,8 @@ tema_estatR(
   escala = 1,
   inclinar = FALSE,
   modo = "light",
-  grade = "auto"
+  grade = "auto",
+  fundo_transparente = FALSE
 )
 }
 \arguments{
@@ -25,6 +26,8 @@ tema_estatR(
 \item{modo}{"light" (padrão) ou "dark" (fundo escuro).}
 
 \item{grade}{Posição da grade no estilo 2 ("auto", "x", "y", "dupla", "nenhuma").}
+
+\item{fundo_transparente}{Lógico. Se TRUE, define o fundo do gráfico, do painel e da legenda como transparente (ideal para apresentações ou relatórios com fundo customizado). Padrão FALSE.}
 }
 \value{
 Objeto de tema para adicionar ao ggplot.

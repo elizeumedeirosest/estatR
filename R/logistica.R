@@ -97,10 +97,13 @@
 #' @param corte_prob Ponto de corte para classificação binária. Padrão 0.5.
 #' @param grafico Se TRUE, exibe painel gráfico diagnóstico. Padrão TRUE.
 #' @return Retorna invisivelmente o modelo ajustado.
+#' @param referencia Categoria de referência para a variável resposta categórica (opcional).
+#'   Se informada, a categoria escolhida será tratada como base (nível de referência).
 #' @export
 regressao_logistica <- function(formula, dados, ligacao = "logit",
                                 tipo = c("nominal", "ordinal"),
-                                corte_prob = 0.5, grafico = TRUE) {
+                                corte_prob = 0.5, grafico = TRUE,
+                                referencia = NULL) {
   if (!is.data.frame(dados)) stop("O argumento 'dados' deve ser um data frame.")
   tipo <- match.arg(tipo)
 
@@ -109,8 +112,17 @@ regressao_logistica <- function(formula, dados, ligacao = "logit",
 
   if (!(y_name %in% names(dados))) stop("Variável resposta não encontrada.")
 
+  # Se foi informada categoria de referência, reordena os níveis da resposta
+  if (!is.null(referencia)) {
+    if (!referencia %in% as.character(dados[[y_name]])) {
+      stop(sprintf("A categoria de refer\u00eancia '%s' n\u00e3o foi encontrada na vari\u00e1vel resposta '%s'.",
+                   referencia, y_name))
+    }
+    dados[[y_name]] <- stats::relevel(as.factor(dados[[y_name]]), ref = as.character(referencia))
+  }
+
   Y_raw  <- na.omit(dados[[y_name]])
-  niveis <- sort(unique(as.character(Y_raw)))
+  niveis <- if (is.factor(dados[[y_name]])) levels(dados[[y_name]]) else sort(unique(as.character(Y_raw)))
   n_niv  <- length(niveis)
 
   if (n_niv < 2) stop("A variável resposta deve possuir ao menos 2 categorias.")
@@ -232,6 +244,7 @@ regressao_logistica <- function(formula, dados, ligacao = "logit",
   aj_row("Teste LRT (\u03c7\u00b2)",   sprintf("%.2f  (p %s)  %s", lrt_chi,
                                               if (lrt_p < 0.001) "< 0,001" else paste0("= ", formatC(lrt_p, format="f", digits=3, decimal.mark=",")),
                                               .asterisk_log(lrt_p)))
+  aj_row("Itera\u00e7\u00f5es (Fisher)", sprintf("%d", if (!is.null(mod$iter)) mod$iter else NA))
   aj_row("AIC",   sprintf("%.2f", aic_val))
   aj_row("AICc",  sprintf("%.2f", aicc_val))
   aj_row("BIC",   sprintf("%.2f", bic_val))
@@ -937,7 +950,7 @@ selecao_modelos_logistica <- function(formula, dados, tipo = c("nominal", "ordin
 #' @param modelo Objeto \code{glm} retornado por \code{regressao_logistica()}.
 #' @param grafico Se TRUE, exibe o painel de diagnóstico. Padrão TRUE.
 #' @return Retorna invisivelmente uma lista com os diagnósticos.
-#' @export
+#' @keywords internal
 analise_residual_logistica <- function(modelo, grafico = TRUE) {
   if (inherits(modelo, c("multinom", "polr"))) stop("A análise de resíduos avançada (Hosmer-Lemeshow, Pearson) atualmente está implementada apenas para a regressão logística binomial no pacote estatR.")
   if (!inherits(modelo, "glm")) stop("'modelo' deve ser um objeto glm retornado por regressao_logistica().")

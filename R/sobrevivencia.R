@@ -894,7 +894,7 @@ plot_cox <- grafico_cox
 #' @param modelo Objeto do modelo de Cox (\code{"estatR_cox"} ou \code{"coxph"}).
 #' @param grafico Lógico. Se \code{TRUE} (padrão), exibe o painel de diagnóstico gráfico.
 #' @return Lista invisível contendo os testes e dados de resíduos.
-#' @export
+#' @keywords internal
 analise_residual_cox <- function(modelo, grafico = TRUE) {
 
   if (!requireNamespace("survival", quietly = TRUE)) {

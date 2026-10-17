@@ -14,3 +14,4 @@ analise_residual_binomial_negativa(modelo, grafico = TRUE)
 \description{
 Realiza o diagnostico de residuos para modelos de regressao Binomial Negativa.
 }
+\keyword{internal}

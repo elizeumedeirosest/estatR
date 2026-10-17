@@ -106,6 +106,7 @@ regressao_gama <- function(formula, dados, ligacao = "log", grafico = TRUE) {
   cat("  ", .pad("Parâmetro de Forma (1/Disp)", w_diag["met"], "left"), .pad(sprintf("%.3f", forma_est), w_diag["val"], "center"), "\n", sep = "")
   cat("  ", .pad("Teste LRT", w_diag["met"], "left"), .pad(sprintf("%.2f (%s)", lrt_stat, .fmt_p(p_lrt)), w_diag["val"], "center"), .ast(p_lrt), "\n", sep = "")
   cat("  ", .pad("Pseudo-R² (McFadden)", w_diag["met"], "left"), .pad(sprintf("%.1f%%", pseudo_r2 * 100), w_diag["val"], "center"), "\n", sep = "")
+  cat("  ", .pad("Itera\u00e7\u00f5es (Fisher)", w_diag["met"], "left"), .pad(sprintf("%d", if (!is.null(modelo$iter)) modelo$iter else NA), w_diag["val"], "center"), "\n", sep = "")
   cat(sep_diag, "\n\n")
   
   rotulo_link <- if (ligacao == "log") "Link Log" else sprintf("Link %s", toupper(ligacao))
@@ -254,7 +255,7 @@ metricas_gama <- function(modelo) {
 #' @description Painel de residuos e analise de pontos influentes.
 #' @param modelo Objeto glm Gama
 #' @param grafico Logico. Plota o painel se TRUE.
-#' @export
+#' @keywords internal
 analise_residual_gama <- function(modelo, grafico = TRUE) {
   if (!inherits(modelo, "glm") || modelo$family$family != "Gamma") stop("O modelo fornecido não é um modelo Gama.")
   if (exists(".print_titulo", mode = "function")) .print_titulo("ANÁLISE DE RESÍDUOS — REGRESSÃO GAMA")

@@ -10,7 +10,8 @@ regressao_logistica(
   ligacao = "logit",
   tipo = c("nominal", "ordinal"),
   corte_prob = 0.5,
-  grafico = TRUE
+  grafico = TRUE,
+  referencia = NULL
 )
 }
 \arguments{
@@ -28,6 +29,9 @@ Ignorado quando Y é binário.}
 \item{corte_prob}{Ponto de corte para classificação binária. Padrão 0.5.}
 
 \item{grafico}{Se TRUE, exibe painel gráfico diagnóstico. Padrão TRUE.}
+
+\item{referencia}{Categoria de referência para a variável resposta categórica (opcional).
+Se informada, a categoria escolhida será tratada como base (nível de referência).}
 }
 \value{
 Retorna invisivelmente o modelo ajustado.

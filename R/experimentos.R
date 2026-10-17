@@ -917,7 +917,13 @@ print.estatR_dic <- function(x, ...) {
   cat("  ────────────────────────────────────────────────────────── \n")
   cat(sprintf("  M\u00e9dia Geral:             %s\n", .fmt_num_dic(x$parametros$media_geral, 2)))
   cat(sprintf("  CV Experimental (%%):     %s%%\n", .fmt_num_dic(x$parametros$cv_exp, 2)))
-  cat(sprintf("  R\u00b2 do Modelo:            %s\n", .fmt_num_dic(x$parametros$r2, 3)))
+  if (identical(x$tipo, "qualitativo")) {
+    cat(sprintf("  Eta\u00b2 (Tamanho de Efeito): %s%% (%s)\n",
+                .fmt_num_dic(x$parametros$r2 * 100, 2),
+                .fmt_num_dic(x$parametros$r2, 3)))
+  } else {
+    cat(sprintf("  R\u00b2 do Modelo:            %s\n", .fmt_num_dic(x$parametros$r2, 3)))
+  }
   cat("  ────────────────────────────────────────────────────────── \n")
   cat("  * CV experimental: < 10% (Baixo / Alta precis\u00e3o), 10-20% (M\u00e9dio), 20-30% (Alto), > 30% (Muito alto - Pimentel-Gomes).\n\n")
   
@@ -2005,7 +2011,13 @@ print.estatR_dbc <- function(x, ...) {
   cat("  ────────────────────────────────────────────────────────── \n")
   cat(sprintf("  M\u00e9dia Geral:             %s\n", .fmt_num_dic(x$parametros$media_geral, 2)))
   cat(sprintf("  CV Experimental (%%):     %s%%\n", .fmt_num_dic(x$parametros$cv_exp, 2)))
-  cat(sprintf("  R\u00b2 do Modelo:            %s\n", .fmt_num_dic(x$parametros$r2, 3)))
+  if (identical(x$tipo, "qualitativo")) {
+    cat(sprintf("  Eta\u00b2 (Tamanho de Efeito): %s%% (%s)\n",
+                .fmt_num_dic(x$parametros$r2 * 100, 2),
+                .fmt_num_dic(x$parametros$r2, 3)))
+  } else {
+    cat(sprintf("  R\u00b2 do Modelo:            %s\n", .fmt_num_dic(x$parametros$r2, 3)))
+  }
   cat(sprintf("  Efici\u00eancia da Blocagem:  %s%% %s\n",
               .fmt_num_dic(x$parametros$eficiencia_relativa, 1),
               if (x$parametros$eficiencia_relativa > 100) "(Blocagem eficiente)" else "(Sem ganho em rela\u00e7\u00e3o ao DIC)"))
@@ -2957,7 +2969,13 @@ print.estatR_dql <- function(x, ...) {
   cat("  ────────────────────────────────────────────────────────── \n")
   cat(sprintf("  M\u00e9dia Geral:             %s\n", .fmt_num_dic(x$parametros$media_geral, 2)))
   cat(sprintf("  CV Experimental (%%):     %s%%\n", .fmt_num_dic(x$parametros$cv_exp, 2)))
-  cat(sprintf("  R\u00b2 do Modelo:            %s\n", .fmt_num_dic(x$parametros$r2, 3)))
+  if (identical(x$tipo, "qualitativo")) {
+    cat(sprintf("  Eta\u00b2 (Tamanho de Efeito): %s%% (%s)\n",
+                .fmt_num_dic(x$parametros$r2 * 100, 2),
+                .fmt_num_dic(x$parametros$r2, 3)))
+  } else {
+    cat(sprintf("  R\u00b2 do Modelo:            %s\n", .fmt_num_dic(x$parametros$r2, 3)))
+  }
   cat(sprintf("  Efici\u00eancia vs Linhas:    %s%% %s\n",
               .fmt_num_dic(x$parametros$er_linhas, 1),
               if (x$parametros$er_linhas > 100) "(Controle de linhas eficiente)" else "(Sem ganho)"))

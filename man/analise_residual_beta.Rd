@@ -14,3 +14,4 @@ analise_residual_beta(modelo, grafico = TRUE)
 \description{
 Realiza o diagnostico de residuos para regressao Beta (residuos padronizados ponderados).
 }
+\keyword{internal}

@@ -18,3 +18,4 @@ Retorna invisivelmente uma lista com os diagnósticos.
 Diagnóstico de resíduos de um modelo logístico binomial
 (Hosmer-Lemeshow, dispersão, influência, painel 2x2).
 }
+\keyword{internal}

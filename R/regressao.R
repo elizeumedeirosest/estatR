@@ -512,21 +512,67 @@ metricas <- function(modelo, corte_prob = 0.5) {
 #' normalidade (Shapiro-Wilk ou Kolmogorov-Smirnov para n > 5000), homocedasticidade
 #' (Breusch-Pagan) e independência dos resíduos (Durbin-Watson). Para Modelos Lineares
 #' Generalizados (\code{glm}), despacha automaticamente para o diagnóstico específico
-#' da família (Logística Binomial, Poisson ou Gama).
-#' @param modelo Objeto de modelo ajustado do tipo \code{lm} ou \code{glm}.
+#' Análise Residual Completa para Modelos Estatísticos
+#'
+#' @title Diagnóstico de Resíduos Polimórfico
+#' @description Realiza o diagnóstico completo de resíduos com testes estatísticos
+#' de Normalidade, Homocedasticidade e Independência, além de painel gráfico em ggplot2.
+#' Suporta modelos de regressão linear (\code{lm}), delineamentos experimentais
+#' (\code{estatR_dic}, \code{estatR_dbc}, \code{estatR_dql}, \code{estatR_fatorial}, \code{aov}),
+#' modelos lineares generalizados (\code{glm}) e modelos de sobrevivência (\code{estatR_cox}, \code{coxph}).
+#'
+#' @param modelo Objeto de modelo ajustado do tipo \code{lm}, \code{glm}, \code{aov},
+#' \code{estatR_dic}, \code{estatR_dbc}, \code{estatR_dql}, \code{estatR_fatorial} ou \code{estatR_cox}.
 #' @param grafico Lógico. Se TRUE, exibe o painel gráfico de diagnóstico dos resíduos.
 #' @return Retorna invisivelmente uma lista com os objetos dos testes estatísticos realizados.
 #' @export
 analise_residual <- function(modelo, grafico = TRUE) {
+  # 1. Suporte a Sobrevivência (Cox)
   if (inherits(modelo, c("estatR_cox", "coxph"))) {
     return(analise_residual_cox(modelo, grafico = grafico))
   }
-  if (inherits(modelo, "glm") && !is.null(modelo$family)) {
-    if (modelo$family$family == "binomial") return(analise_residual_logistica(modelo, grafico = grafico))
-    if (modelo$family$family == "poisson")  return(analise_residual_poisson(modelo, grafico = grafico))
-    if (modelo$family$family == "Gamma")    return(analise_residual_gama(modelo, grafico = grafico))
+
+  # 2. Suporte a Modelos de Experimentos do estatR (DIC, DBC, DQL, Fatorial)
+  if (inherits(modelo, c("estatR_dic", "estatR_dbc", "estatR_dql", "estatR_fatorial"))) {
+    if (!is.null(modelo$modelo_aov)) {
+      modelo <- modelo$modelo_aov
+    } else {
+      stop("O objeto de experimento n\u00e3o cont\u00e9m o modelo ANOVA ajustado ($modelo_aov).")
+    }
   }
-  res <- modelo$residuals
+
+  # 3. Suporte a Modelos Lineares Generalizados (GLM) e correlatos
+  if (inherits(modelo, "betareg") && exists("analise_residual_beta", mode = "function")) {
+    return(analise_residual_beta(modelo, grafico = grafico))
+  }
+  if (inherits(modelo, "negbin") && exists("analise_residual_binomial_negativa", mode = "function")) {
+    return(analise_residual_binomial_negativa(modelo, grafico = grafico))
+  }
+  if (inherits(modelo, "glm") && !is.null(modelo$family)) {
+    fam <- modelo$family$family
+    if (fam == "binomial" && exists("analise_residual_logistica", mode = "function")) {
+      return(analise_residual_logistica(modelo, grafico = grafico))
+    }
+    if (fam == "poisson" && exists("analise_residual_poisson", mode = "function")) {
+      return(analise_residual_poisson(modelo, grafico = grafico))
+    }
+    if (fam == "Gamma" && exists("analise_residual_gama", mode = "function")) {
+      return(analise_residual_gama(modelo, grafico = grafico))
+    }
+    if (grepl("Negative Binomial", fam, ignore.case = TRUE) && exists("analise_residual_binomial_negativa", mode = "function")) {
+      return(analise_residual_binomial_negativa(modelo, grafico = grafico))
+    }
+  }
+
+  # Suporte a objetos com classe 'aov' ou 'lm'
+  res <- stats::residuals(modelo)
+  if (is.null(res) || !is.numeric(res)) {
+    if (!is.null(modelo$residuals) && is.numeric(modelo$residuals)) {
+      res <- modelo$residuals
+    } else {
+      stop("N\u00e3o foi poss\u00edvel extrair res\u00edduos num\u00e9ricos do modelo fornecido.")
+    }
+  }
   n   <- length(res)
 
   # 1. Normalidade (Shapiro-Wilk para n <= 5000; Kolmogorov-Smirnov para n > 5000)

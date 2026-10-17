@@ -14,3 +14,4 @@ analise_residual_gama(modelo, grafico = TRUE)
 \description{
 Painel de residuos e analise de pontos influentes.
 }
+\keyword{internal}
