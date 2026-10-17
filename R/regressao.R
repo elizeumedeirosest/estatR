@@ -532,8 +532,8 @@ analise_residual <- function(modelo, grafico = TRUE) {
     return(analise_residual_cox(modelo, grafico = grafico))
   }
 
-  # 2. Suporte a Modelos de Experimentos do estatR (DIC, DBC, DQL, Fatorial)
-  if (inherits(modelo, c("estatR_dic", "estatR_dbc", "estatR_dql", "estatR_fatorial"))) {
+  # 2. Suporte a Modelos de Experimentos do estatR (DIC, DBC, DQL, Fatorial, Subdividida, Fatorial Adicional)
+  if (inherits(modelo, c("estatR_dic", "estatR_dbc", "estatR_dql", "estatR_fatorial", "estatR_subdividida", "estatR_fatorial_adicional"))) {
     if (!is.null(modelo$modelo_aov)) {
       modelo <- modelo$modelo_aov
     } else {

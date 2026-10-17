@@ -2,21 +2,18 @@
 % Please edit documentation in R/fatorial.R
 \name{grafico_fat}
 \alias{grafico_fat}
-\alias{plot_fat}
 \title{Painel Gráfico Completo do Fatorial}
 \usage{
 grafico_fat(modelo, ...)
 }
 \arguments{
-\item{modelo}{Objeto retornado por \code{analise_fatorial_duplo()} ou \code{fatorial()}.}
+\item{modelo}{Objeto retornado por \code{analise_fatorial_duplo()}.}
 
-\item{...}{Argumentos adicionais passados para as funções gráficas individuais.}
+\item{...}{Argumentos adicionais passados para as funções gráficas.}
 }
 \value{
-Objeto \code{ggplot} ou composição de gráficos.
+Objeto \code{ggplot}.
 }
 \description{
 Exibe o gráfico de perfil de interação do esquema fatorial duplo.
-Quando a interação não é significativa, pode incluir gráficos de efeito
-principal lado a lado usando patchwork.
 }

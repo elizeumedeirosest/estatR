@@ -112,17 +112,16 @@
 #'   esquema fatorial duplo (A × B) nos delineamentos DIC ou DBC.
 #'   Quando a interação é significativa, realiza o desdobramento dos fatores
 #'   e apresenta uma tabela matricial combinada com letras minúsculas (comparação
-#'   de A dentro de B) e letras maiúsculas (comparação de B dentro de A).
-#'   Quando a interação não é significativa, os efeitos principais são avaliados
-#'   de forma independente.
-#'
+#' @title Análise de Experimentos em Esquema Fatorial Duplo (A × B)
+#' @description Realiza a análise estatística completa de experimentos em esquema
+#'   fatorial duplo (A × B) em DIC ou DBC, com desdobramento automático da interação
+#'   e testes de comparações múltiplas.
 #' @param resposta Variável resposta contínua (com ou sem aspas).
 #' @param fator1 Primeiro fator (com ou sem aspas). Aparece nas colunas da tabela.
 #' @param fator2 Segundo fator (com ou sem aspas). Aparece nas linhas da tabela.
 #' @param bloco Fator de blocos (com ou sem aspas). Se fornecido, adota o DBC.
 #' @param dados Data frame opcional contendo as variáveis.
 #' @param delineamento \code{"auto"} (padrão), \code{"dic"} ou \code{"dbc"}.
-#'   No modo \code{"auto"}, usa DBC se \code{bloco} for fornecido, DIC caso contrário.
 #' @param teste Teste de comparações múltiplas: \code{"tukey"} (padrão),
 #'   \code{"scott_knott"}, \code{"duncan"}, \code{"snk"}, \code{"scheffe"} ou
 #'   \code{"bonferroni"}.
@@ -130,20 +129,18 @@
 #' @param grafico Lógico. Se \code{TRUE} (padrão), exibe o gráfico de perfil de interação.
 #' @param residuos Lógico. Se \code{TRUE}, executa a análise de resíduos.
 #'
-#' @return Objeto da classe \code{"estatR_fatorial"} com ANOVA, desdobramentos,
-#'   tabela matricial de médias e gráfico de interação.
+#' @return Objeto da classe \code{"estatR_fatorial"}.
 #' @export
-#' @aliases fatorial fat
 analise_fatorial_duplo <- function(resposta,
-                              fator1,
-                              fator2,
-                              bloco       = NULL,
-                              dados       = NULL,
-                              delineamento = c("auto", "dic", "dbc"),
-                              teste       = c("tukey", "scott_knott", "duncan", "snk", "scheffe", "bonferroni"),
-                              confianca   = 0.95,
-                              grafico     = TRUE,
-                              residuos    = FALSE) {
+                                   fator1,
+                                   fator2,
+                                   bloco        = NULL,
+                                   dados        = NULL,
+                                   delineamento = c("auto", "dic", "dbc"),
+                                   teste        = c("tukey", "scott_knott", "duncan", "snk", "scheffe", "bonferroni"),
+                                   confianca    = 0.95,
+                                   grafico      = TRUE,
+                                   residuos     = FALSE) {
 
   delineamento <- match.arg(delineamento)
   teste        <- match.arg(teste)
@@ -838,13 +835,10 @@ plot_fatorial <- grafico_fatorial
 
 #' @title Painel Gráfico Completo do Fatorial
 #' @description Exibe o gráfico de perfil de interação do esquema fatorial duplo.
-#'   Quando a interação não é significativa, pode incluir gráficos de efeito
-#'   principal lado a lado usando patchwork.
-#' @param modelo Objeto retornado por \code{analise_fatorial_duplo()} ou \code{fatorial()}.
-#' @param ... Argumentos adicionais passados para as funções gráficas individuais.
-#' @return Objeto \code{ggplot} ou composição de gráficos.
+#' @param modelo Objeto retornado por \code{analise_fatorial_duplo()}.
+#' @param ... Argumentos adicionais passados para as funções gráficas.
+#' @return Objeto \code{ggplot}.
 #' @export
-#' @aliases plot_fat
 grafico_fat <- function(modelo, ...) {
   if (!inherits(modelo, "estatR_fatorial")) {
     stop("O argumento 'modelo' deve ser um objeto retornado por analise_fatorial_duplo().", call. = FALSE)
@@ -854,4 +848,7 @@ grafico_fat <- function(modelo, ...) {
 
 #' @export
 plot_fat <- grafico_fat
+
+
+
 

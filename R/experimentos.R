@@ -1369,26 +1369,56 @@ analise_dbc <- function(resposta,
     tipo_final <- tipo
   }
   
+  # Repeticoes por celula (Bloco x Tratamento)
+  tab_cruzada <- table(trat_fator, bloco_fator)
+  tem_parcela_perdida <- any(tab_cruzada == 0)
+  balanceado <- all(tab_cruzada == 1)
+
   # Ajuste do Modelo ANOVA DBC: Y ~ Bloco + Trat
   df_mod  <- data.frame(Y = y, Trat = trat_fator, Bloco = bloco_fator)
   mod_aov <- stats::aov(Y ~ Bloco + Trat, data = df_mod)
-  tab_aov <- summary(mod_aov)[[1]]
   
-  gl_bloco <- tab_aov["Bloco", "Df"]
-  sq_bloco <- tab_aov["Bloco", "Sum Sq"]
-  qm_bloco <- tab_aov["Bloco", "Mean Sq"]
-  f_bloco  <- tab_aov["Bloco", "F value"]
-  p_bloco  <- tab_aov["Bloco", "Pr(>F)"]
-  
-  gl_trat  <- tab_aov["Trat", "Df"]
-  sq_trat  <- tab_aov["Trat", "Sum Sq"]
-  qm_trat  <- tab_aov["Trat", "Mean Sq"]
-  f_trat   <- tab_aov["Trat", "F value"]
-  p_trat   <- tab_aov["Trat", "Pr(>F)"]
-  
-  gl_res   <- tab_aov["Residuals", "Df"]
-  sq_res   <- tab_aov["Residuals", "Sum Sq"]
-  qm_res   <- tab_aov["Residuals", "Mean Sq"]
+  if (tem_parcela_perdida || !balanceado) {
+    # Modelo desbalanceado / parcelas perdidas: usa Somas de Quadrados Tipo III (Quadrados Mínimos)
+    # Ajusta modelo com contrastes soma-zero para garantir ortogonalidade do Tipo III
+    mod_lm_tipo3 <- stats::lm(Y ~ Bloco + Trat, data = df_mod, contrasts = list(Bloco = "contr.sum", Trat = "contr.sum"))
+    d1 <- stats::drop1(mod_lm_tipo3, ~ Bloco + Trat, test = "F")
+    
+    gl_bloco <- d1["Bloco", "Df"]
+    sq_bloco <- d1["Bloco", "Sum of Sq"]
+    qm_bloco <- sq_bloco / gl_bloco
+    f_bloco  <- d1["Bloco", "F value"]
+    p_bloco  <- d1["Bloco", "Pr(>F)"]
+    
+    gl_trat  <- d1["Trat", "Df"]
+    sq_trat  <- d1["Trat", "Sum of Sq"]
+    qm_trat  <- sq_trat / gl_trat
+    f_trat   <- d1["Trat", "F value"]
+    p_trat   <- d1["Trat", "Pr(>F)"]
+    
+    gl_res   <- stats::df.residual(mod_lm_tipo3)
+    sq_res   <- sum(stats::residuals(mod_lm_tipo3)^2)
+    qm_res   <- sq_res / gl_res
+  } else {
+    tab_aov <- summary(mod_aov)[[1]]
+    rownames(tab_aov) <- trimws(rownames(tab_aov))
+    
+    gl_bloco <- tab_aov["Bloco", "Df"]
+    sq_bloco <- tab_aov["Bloco", "Sum Sq"]
+    qm_bloco <- tab_aov["Bloco", "Mean Sq"]
+    f_bloco  <- tab_aov["Bloco", "F value"]
+    p_bloco  <- tab_aov["Bloco", "Pr(>F)"]
+    
+    gl_trat  <- tab_aov["Trat", "Df"]
+    sq_trat  <- tab_aov["Trat", "Sum Sq"]
+    qm_trat  <- tab_aov["Trat", "Mean Sq"]
+    f_trat   <- tab_aov["Trat", "F value"]
+    p_trat   <- tab_aov["Trat", "Pr(>F)"]
+    
+    gl_res   <- tab_aov["Residuals", "Df"]
+    sq_res   <- tab_aov["Residuals", "Sum Sq"]
+    qm_res   <- tab_aov["Residuals", "Mean Sq"]
+  }
   
   gl_tot   <- gl_bloco + gl_trat + gl_res
   sq_tot   <- sq_bloco + sq_trat + sq_res

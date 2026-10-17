@@ -2,8 +2,6 @@
 % Please edit documentation in R/fatorial.R
 \name{analise_fatorial_duplo}
 \alias{analise_fatorial_duplo}
-\alias{fatorial}
-\alias{fat}
 \title{Análise Fatorial Duplo (A × B) — DIC e DBC}
 \usage{
 analise_fatorial_duplo(
@@ -30,8 +28,7 @@ analise_fatorial_duplo(
 
 \item{dados}{Data frame opcional contendo as variáveis.}
 
-\item{delineamento}{\code{"auto"} (padrão), \code{"dic"} ou \code{"dbc"}.
-No modo \code{"auto"}, usa DBC se \code{bloco} for fornecido, DIC caso contrário.}
+\item{delineamento}{\code{"auto"} (padrão), \code{"dic"} ou \code{"dbc"}.}
 
 \item{teste}{Teste de comparações múltiplas: \code{"tukey"} (padrão),
 \code{"scott_knott"}, \code{"duncan"}, \code{"snk"}, \code{"scheffe"} ou
@@ -44,15 +41,15 @@ No modo \code{"auto"}, usa DBC se \code{bloco} for fornecido, DIC caso contrári
 \item{residuos}{Lógico. Se \code{TRUE}, executa a análise de resíduos.}
 }
 \value{
-Objeto da classe \code{"estatR_fatorial"} com ANOVA, desdobramentos,
-tabela matricial de médias e gráfico de interação.
+Objeto da classe \code{"estatR_fatorial"}.
 }
 \description{
 Executa a Análise de Variância (ANOVA) para experimentos em
 esquema fatorial duplo (A × B) nos delineamentos DIC ou DBC.
 Quando a interação é significativa, realiza o desdobramento dos fatores
 e apresenta uma tabela matricial combinada com letras minúsculas (comparação
-de A dentro de B) e letras maiúsculas (comparação de B dentro de A).
-Quando a interação não é significativa, os efeitos principais são avaliados
-de forma independente.
+
+Realiza a análise estatística completa de experimentos em esquema
+fatorial duplo (A × B) em DIC ou DBC, com desdobramento automático da interação
+e testes de comparações múltiplas.
 }

@@ -553,6 +553,47 @@ grafico_fatorial(modelo_fat)       # Perfil de interação com barras de erro e 
 plot_fatorial(modelo_fat)
 ```
 
+**Parcelas Subdivididas (Split-Plot — DIC e DBC)**
+
+```r
+# Em DBC (com Bloco):
+modelo_psub <- analise_parcela_subdividida(Produtividade, Parcela = Manejo, Subparcela = Adubacao, bloco = Bloco, dados = dados)
+
+# Em DIC (sem Bloco):
+modelo_psub_dic <- analise_parcela_subdividida(Produtividade, Parcela = Manejo, Subparcela = Adubacao, dados = dados)
+
+# Acesso aos resultados
+modelo_psub$anova          # ANOVA com Erro (a) para Parcelas e Erro (b) para Subparcelas
+modelo_psub$parametros     # CV(a) das parcelas, CV(b) das subparcelas e QM combinado
+modelo_psub$letras_min     # Letras minúsculas: Subparcela dentro de Parcela (Erro b)
+modelo_psub$letras_mai     # Letras maiúsculas: Parcela dentro de Subparcela (Erro combinado Satterthwaite)
+
+# Diagnóstico de resíduos integrado
+analise_residual(modelo_psub)
+```
+
+**Esquema Fatorial com Testemunha Adicional (A × B + 1)**
+
+```r
+# Fatorial 2x2 + 1 Testemunha isolada
+modelo_fat_ad <- analise_fatorial_adicional(
+  resposta   = Produtividade,
+  fator1     = Cultivar,
+  fator2     = Adubo,
+  tratamento = Tratamento,
+  testemunha = "Testemunha",
+  bloco      = Bloco,
+  dados      = dados
+)
+
+# Acesso aos resultados
+modelo_fat_ad$anova        # Decomposição ortogonal: Fatorial, F1, F2, F1xF2 e Fatorial vs Testemunha
+modelo_fat_ad$dunnett      # Teste de Dunnett comparando cada combinação diretamente contra a Testemunha
+
+# Diagnóstico de resíduos integrado
+analise_residual(modelo_fat_ad)
+```
+
 </details>
 
 ---
