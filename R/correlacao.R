@@ -112,17 +112,37 @@ teste_correlacao <- function(dados, var1, var2, metodo = c("pearson", "spearman"
   invisible(res)
 }
 
-#' @title Matriz de Correlação (Tabela e Correlograma)
-#' @description Gera e imprime no console a matriz de correlação completa (com p-valores em asteriscos)
-#'   e plota o correlograma.
-#' @param dados Data frame (usa todas as variáveis numéricas automaticamente)
+#' @title Matriz de Correlação com Ranking dos Maiores Pares
+#' @description Gera e imprime no console a matriz de correlação completa (com p-valores em asteriscos),
+#'   exibe tabelas de ranking das maiores correlações positivas e negativas com classificação qualitativa
+#'   centralizada, e plota o correlograma em \code{ggplot2}.
+#'
+#' @param dados Data frame (seleciona todas as variáveis numéricas automaticamente).
 #' @param variaveis Vetor opcional com nomes específicos de variáveis para incluir.
-#' @param metodo Método ("pearson", "spearman", "kendall")
-#' @param top Opcional. Se definido (ex: 5), exibe no gráfico apenas as variáveis envolvidas
-#'   nos 'top' pares com maior correlação absoluta.
+#' @param metodo Método de correlação: \code{"pearson"} (padrão), \code{"spearman"} ou \code{"kendall"}.
+#' @param top Número de pares a exibir nos rankings de maiores correlações (padrão: 5).
+#'   Se \code{0} ou \code{FALSE}, desativa a exibição das tabelas de ranking.
+#' @param filtrar_matriz Lógico. Se \code{TRUE}, restringe a matriz de correlação quadrada e o gráfico
+#'   apenas às variáveis presentes no ranking TOP selecionado. Padrão \code{FALSE}.
+#' @param criterio Critério de ordenação do ranking: \code{"maiores"} (padrão, associações mais fortes)
+#'   ou \code{"menores"} (associações mais fracas / próximas de zero).
+#' @param grafico Lógico. Se \code{TRUE} (padrão), exibe o correlograma.
+#'
+#' @return Retorna invisivelmente uma lista com:
+#'   \item{matriz_r}{Matriz com os coeficientes de correlação}
+#'   \item{matriz_p}{Matriz com os p-valores correspondentes}
+#'   \item{top_positivas}{Data frame com o ranking das correlações positivas}
+#'   \item{top_negativas}{Data frame com o ranking das correlações negativas}
 #' @export
-matriz_correlacao <- function(dados, variaveis = NULL, metodo = c("pearson", "spearman", "kendall"), top = NULL) {
-  metodo <- match.arg(metodo)
+matriz_correlacao <- function(dados,
+                              variaveis      = NULL,
+                              metodo         = c("pearson", "spearman", "kendall"),
+                              top            = 5,
+                              filtrar_matriz = FALSE,
+                              criterio       = c("maiores", "menores"),
+                              grafico        = TRUE) {
+  metodo   <- match.arg(metodo)
+  criterio <- match.arg(criterio)
   
   if (!is.null(variaveis)) {
     dados <- dados[, variaveis, drop = FALSE]
@@ -131,21 +151,21 @@ matriz_correlacao <- function(dados, variaveis = NULL, metodo = c("pearson", "sp
   
   if (ncol(df_num) < 2) stop("S\u00e3o necess\u00e1rias pelo menos 2 vari\u00e1veis num\u00e9ricas para correla\u00e7\u00e3o.")
   
-  # ── Cálculo da Matriz de Correlação e p-valores ───────────────────────────
-  k <- ncol(df_num)
-  vars <- names(df_num)
+  # ── Cálculo da Matriz de Correlação e p-valores Completa ───────────────────
+  k_total   <- ncol(df_num)
+  vars_orig <- names(df_num)
   
-  mat_r <- cor(df_num, method = metodo, use = "pairwise.complete.obs")
-  mat_p <- matrix(NA, k, k)
+  mat_r_completa <- stats::cor(df_num, method = metodo, use = "pairwise.complete.obs")
+  mat_p_completa <- matrix(NA, k_total, k_total, dimnames = list(vars_orig, vars_orig))
   
-  for (i in 1:(k-1)) {
-    for (j in (i+1):k) {
+  for (i in 1:(k_total - 1)) {
+    for (j in (i + 1):k_total) {
       x_val <- df_num[[i]]; y_val <- df_num[[j]]
-      idx <- complete.cases(x_val, y_val)
+      idx   <- stats::complete.cases(x_val, y_val)
       if (sum(idx) > 2) {
-        ct <- suppressWarnings(cor.test(x_val[idx], y_val[idx], method = metodo, exact = FALSE))
-        mat_p[i, j] <- ct$p.value
-        mat_p[j, i] <- ct$p.value
+        ct <- suppressWarnings(stats::cor.test(x_val[idx], y_val[idx], method = metodo, exact = FALSE))
+        mat_p_completa[i, j] <- ct$p.value
+        mat_p_completa[j, i] <- ct$p.value
       }
     }
   }
@@ -158,23 +178,101 @@ matriz_correlacao <- function(dados, variaveis = NULL, metodo = c("pearson", "sp
   }
   
   pad <- function(s, w, align = "left") {
-    s <- as.character(s); sp <- w - nchar(s)
+    s  <- as.character(s)
+    sp <- w - nchar(s)
     if (sp <= 0) return(s)
     if (align == "right")  return(paste0(strrep(" ", sp), s))
     if (align == "center") return(paste0(strrep(" ", floor(sp/2)), s, strrep(" ", ceiling(sp/2))))
     paste0(s, strrep(" ", sp))
   }
   
-  # ── Impressão no Console (Tabela Arrumada) ────────────────────────────────
-  .print_titulo("MATRIZ DE CORRELA\u00c7\u00c3O %s")
-  cat(sprintf("  M\u00e9todo: %s\n\n", tools::toTitleCase(metodo)))
+  # Classificação qualitativa da correlação
+  classificar_cor <- function(val) {
+    a <- abs(val)
+    if (is.na(a)) return("-")
+    if (a >= 0.90) return("Alt\u00edssima")
+    if (a >= 0.70) return("Alta")
+    if (a >= 0.40) return("Moderada")
+    if (a >= 0.20) return("Fraca")
+    return("Muito Fraca")
+  }
   
-  # Preparando a tabela de texto
-  # Para não quebrar a tela, se houver muitas variáveis, avisamos e truncamos ou imprimimos tudo.
-  # Geralmente, 10 variáveis cabem bem se usarmos 8 caracteres por coluna.
+  # ── Extração de todos os pares únicos ─────────────────────────────────────
+  pares_list <- list()
+  for (i in 1:(k_total - 1)) {
+    for (j in (i + 1):k_total) {
+      r_v <- mat_r_completa[i, j]
+      p_v <- mat_p_completa[i, j]
+      if (!is.na(r_v)) {
+        pares_list[[length(pares_list) + 1]] <- data.frame(
+          Var1          = vars_orig[i],
+          Var2          = vars_orig[j],
+          Par           = sprintf("%s  \u2194  %s", vars_orig[i], vars_orig[j]),
+          Correlacao    = r_v,
+          p_valor       = p_v,
+          Significancia = asterisk(p_v),
+          Classificacao = classificar_cor(r_v),
+          stringsAsFactors = FALSE
+        )
+      }
+    }
+  }
+  df_todos_pares <- if (length(pares_list) > 0) do.call(rbind, pares_list) else data.frame()
+  
+  # ── Rankings TOP (Positivas e Negativas) ──────────────────────────────────
+  top_pos <- data.frame()
+  top_neg <- data.frame()
+  vars_top_selecionadas <- character(0)
+  
+  n_top <- if (is.numeric(top) && top > 0) as.integer(top) else 0
+  
+  if (nrow(df_todos_pares) > 0 && n_top > 0) {
+    # Positivas
+    df_p <- df_todos_pares[df_todos_pares$Correlacao > 0, ]
+    if (nrow(df_p) > 0) {
+      ord_p <- if (criterio == "maiores") order(df_p$Correlacao, decreasing = TRUE) else order(df_p$Correlacao, decreasing = FALSE)
+      df_p <- df_p[ord_p, ]
+      top_pos <- head(df_p, n_top)
+    }
+    
+    # Negativas
+    df_n <- df_todos_pares[df_todos_pares$Correlacao < 0, ]
+    if (nrow(df_n) > 0) {
+      ord_n <- if (criterio == "maiores") order(abs(df_n$Correlacao), decreasing = TRUE) else order(abs(df_n$Correlacao), decreasing = FALSE)
+      df_n <- df_n[ord_n, ]
+      top_neg <- head(df_n, n_top)
+    }
+    
+    vars_top_selecionadas <- unique(c(top_pos$Var1, top_pos$Var2, top_neg$Var1, top_neg$Var2))
+  }
+  
+  # ── Filtragem da Matriz se solicitado ─────────────────────────────────────
+  if (isTRUE(filtrar_matriz) && length(vars_top_selecionadas) >= 2) {
+    df_num <- df_num[, vars_top_selecionadas, drop = FALSE]
+    mat_r  <- mat_r_completa[vars_top_selecionadas, vars_top_selecionadas, drop = FALSE]
+    mat_p  <- mat_p_completa[vars_top_selecionadas, vars_top_selecionadas, drop = FALSE]
+  } else {
+    mat_r <- mat_r_completa
+    mat_p <- mat_p_completa
+  }
+  
+  k    <- ncol(df_num)
+  vars <- names(df_num)
+  
+  # ── Impressão no Console ──────────────────────────────────────────────────
+  if (exists(".print_titulo", mode = "function")) {
+    .print_titulo("MATRIZ DE CORRELA\u00c7\u00c3O")
+  } else {
+    cat("\n── MATRIZ DE CORRELAÇÃO ──\n")
+  }
+  
+  cat(sprintf("  M\u00e9todo: %s\n", tools::toTitleCase(metodo)))
+  cat(sprintf("  Vari\u00e1veis Analisadas: %d%s\n\n", k,
+              if (isTRUE(filtrar_matriz)) " (Filtrada para as vari\u00e1veis do TOP)" else ""))
+  
   vars_rotulos <- sapply(vars, function(x) substr(x, 1, 8))
-  w_var <- max(nchar(vars_rotulos))
-  w_col <- 10 # Largura das colunas numéricas
+  w_var <- max(nchar(vars_rotulos), 8)
+  w_col <- 11
   
   hdr_linha <- paste0("  ", pad("Vari\u00e1vel", w_var, "left"), " |")
   for (v in vars_rotulos) {
@@ -192,52 +290,97 @@ matriz_correlacao <- function(dados, variaveis = NULL, metodo = c("pearson", "sp
       if (i == j) {
         val_txt <- "1.00"
       } else {
-        r_txt <- formatC(mat_r[i, j], format="f", digits=2, decimal.mark=".") # Usando ponto para alinhar visualmente
-        ast <- asterisk(mat_p[i, j])
-        val_txt <- paste0(r_txt, ast)
+        r_txt <- formatC(mat_r[i, j], format="f", digits=2, decimal.mark=".")
+        ast   <- asterisk(mat_p[i, j])
+        val_txt <- paste0(r_txt, if (nchar(ast) > 0) paste0(" ", ast) else "")
       }
       linha <- paste0(linha, pad(val_txt, w_col, "center"))
     }
     cat(linha, "\n")
   }
-  cat("  ", strrep("\u2500", w_total), "\n", sep = "")
-  cat("  Signific\u00e2ncia: *** p < 0.01   ** p < 0.05   * p < 0.10\n\n")
+  cat("  ", strrep("\u2500", w_total), "\n\n")
   
-  # ── Gráfico (Correlograma com filtro top opcional) ────────────────────────
-  if (!is.null(top) && is.numeric(top) && top > 0) {
-    mat_tmp <- mat_r
-    mat_tmp[lower.tri(mat_tmp, diag = TRUE)] <- NA
+  # ── Impressão das Tabelas TOP (Positivas e Negativas) ─────────────────────
+  if (n_top > 0) {
+    w_t <- c(par = 28, cor = 16, clas = 18)
+    sep_top <- paste0("  ", strrep("\u2500", sum(w_t) + length(w_t) - 1))
     
-    df_pairs <- as.data.frame(as.table(mat_tmp))
-    df_pairs <- df_pairs[!is.na(df_pairs$Freq), ]
-    df_pairs <- df_pairs[order(abs(df_pairs$Freq), decreasing = TRUE), ]
+    # 1. Positivas
+    if (nrow(top_pos) > 0) {
+      if (exists(".print_topico", mode = "function")) {
+        .print_topico(sprintf("MAIORES CORRELA\u00c7\u00d5ES POSITIVAS (TOP %d)", nrow(top_pos)))
+      } else {
+        cat(sprintf("\n▶ MAIORES CORRELAÇÕES POSITIVAS (TOP %d)\n", nrow(top_pos)))
+      }
+      cat(sep_top, "\n  ")
+      cat(pad("Par de Vari\u00e1veis", w_t["par"], "center"))
+      cat(pad("Correla\u00e7\u00e3o", w_t["cor"], "center"))
+      cat(pad("Classifica\u00e7\u00e3o", w_t["clas"], "center"), "\n")
+      cat(sep_top, "\n")
+      
+      for (m in seq_len(nrow(top_pos))) {
+        cor_txt <- paste0(formatC(top_pos$Correlacao[m], format="f", digits=2, decimal.mark="."),
+                          if (nchar(top_pos$Significancia[m]) > 0) paste0(" ", top_pos$Significancia[m]) else "")
+        cat("  ")
+        cat(pad(top_pos$Par[m], w_t["par"], "center"))
+        cat(pad(cor_txt, w_t["cor"], "center"))
+        cat(pad(top_pos$Classificacao[m], w_t["clas"], "center"), "\n")
+      }
+      cat(sep_top, "\n\n")
+    }
     
-    n_pares <- min(top, nrow(df_pairs))
-    pares_selecionados <- df_pairs[1:n_pares, ]
+    # 2. Negativas
+    if (nrow(top_neg) > 0) {
+      if (exists(".print_topico", mode = "function")) {
+        .print_topico(sprintf("MAIORES CORRELA\u00c7\u00d5ES NEGATIVAS (TOP %d)", nrow(top_neg)))
+      } else {
+        cat(sprintf("\n▶ MAIORES CORRELAÇÕES NEGATIVAS (TOP %d)\n", nrow(top_neg)))
+      }
+      cat(sep_top, "\n  ")
+      cat(pad("Par de Vari\u00e1veis", w_t["par"], "center"))
+      cat(pad("Correla\u00e7\u00e3o", w_t["cor"], "center"))
+      cat(pad("Classifica\u00e7\u00e3o", w_t["clas"], "center"), "\n")
+      cat(sep_top, "\n")
+      
+      for (m in seq_len(nrow(top_neg))) {
+        cor_txt <- paste0(formatC(top_neg$Correlacao[m], format="f", digits=2, decimal.mark="."),
+                          if (nchar(top_neg$Significancia[m]) > 0) paste0(" ", top_neg$Significancia[m]) else "")
+        cat("  ")
+        cat(pad(top_neg$Par[m], w_t["par"], "center"))
+        cat(pad(cor_txt, w_t["cor"], "center"))
+        cat(pad(top_neg$Classificacao[m], w_t["clas"], "center"), "\n")
+      }
+      cat(sep_top, "\n\n")
+    }
     
-    vars_top <- unique(c(as.character(pares_selecionados$Var1), as.character(pares_selecionados$Var2)))
-    df_num <- df_num[, vars_top, drop = FALSE]
-    
-    message(sprintf("[estatR] Gr\u00e1fico reduzido: exibindo as %d vari\u00e1veis mais fortemente correlacionadas.", length(vars_top)))
+    cat("  Notas:\n")
+    cat("  Signific\u00e2ncia: *** p < 0,01   ** p < 0,05   * p < 0,10\n")
+    cat("  Classifica\u00e7\u00e3o (|r|): 0,90\u20131,00 (Alt\u00edssima); 0,70\u20130,89 (Alta);\n")
+    cat("                       0,40\u20130,69 (Moderada); 0,20\u20130,39 (Fraca); 0,00\u20130,19 (Muito Fraca).\n\n")
   }
   
-  if (exists("grafico_correlacao") && exists("meu_tema")) {
-    tryCatch({
-      legenda_titulo <- switch(metodo, pearson="R", spearman="\u03c1", kendall="\u03c4")
-      
-      p_corr <- ggplot2::ggplot() + 
-                grafico_correlacao(data = df_num, metodo = metodo, sig = TRUE, 
-                                   mostrar_val = TRUE, paleta = 1) + 
-                meu_tema(estilo = 3) + 
-                ggplot2::labs(title = "Correlograma", caption = "estatR", fill = legenda_titulo)
-      
-      suppressMessages(print(p_corr))
-    }, error = function(e) {
-      message("[Aviso] N\u00e3o foi poss\u00edvel gerar o correlograma: ", e$message)
-    })
-  } else {
-    message("[Aviso] A fun\u00e7\u00e3o 'grafico_correlacao' n\u00e3o foi encontrada.")
+  # ── Gráfico (Correlograma) ────────────────────────────────────────────────
+  if (isTRUE(grafico)) {
+    if (exists("grafico_correlacao") && exists("meu_tema")) {
+      tryCatch({
+        legenda_titulo <- switch(metodo, pearson="R", spearman="\u03c1", kendall="\u03c4")
+        p_corr <- ggplot2::ggplot() + 
+                  grafico_correlacao(data = df_num, metodo = metodo, sig = TRUE, 
+                                     mostrar_val = TRUE, paleta = 1) + 
+                  meu_tema(estilo = 3) + 
+                  ggplot2::labs(title = "Correlograma", caption = "estatR", fill = legenda_titulo)
+        suppressMessages(print(p_corr))
+      }, error = function(e) {
+        message("[Aviso] N\u00e3o foi poss\u00edvel gerar o correlograma: ", e$message)
+      })
+    }
   }
   
-  invisible(mat_r)
+  invisible(list(
+    matriz_r      = mat_r,
+    matriz_p      = mat_p,
+    top_positivas = top_pos,
+    top_negativas = top_neg
+  ))
 }
+

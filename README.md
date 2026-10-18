@@ -280,9 +280,14 @@ selecao_modelos(custos ~ tratamento + idade + bmi, dados = dados_saude)
 teste_correlacao(mtcars, wt, mpg)
 teste_correlacao(mtcars, wt, mpg, metodo = "spearman")
 
-# Correlograma completo
-matriz_correlacao(mtcars)
-matriz_correlacao(mtcars, c("mpg", "wt", "hp", "disp"), metodo = "kendall")
+# Matriz completa de correlação com rankings TOP (positivas e negativas) e correlograma:
+matriz_correlacao(mtcars, top = 5)
+
+# Matriz e gráfico filtrados apenas para as variáveis com maiores correlações:
+matriz_correlacao(mtcars, top = 3, filtrar_matriz = TRUE)
+
+# Seleção manual de variáveis específicas
+matriz_correlacao(mtcars, variaveis = c("mpg", "wt", "hp", "disp"), metodo = "kendall")
 ```
 
 **Divisão de Dados**

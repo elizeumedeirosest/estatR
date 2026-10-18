@@ -2,26 +2,45 @@
 % Please edit documentation in R/correlacao.R
 \name{matriz_correlacao}
 \alias{matriz_correlacao}
-\title{Matriz de Correlação (Tabela e Correlograma)}
+\title{Matriz de Correlação com Ranking dos Maiores Pares}
 \usage{
 matriz_correlacao(
   dados,
   variaveis = NULL,
   metodo = c("pearson", "spearman", "kendall"),
-  top = NULL
+  top = 5,
+  filtrar_matriz = FALSE,
+  criterio = c("maiores", "menores"),
+  grafico = TRUE
 )
 }
 \arguments{
-\item{dados}{Data frame (usa todas as variáveis numéricas automaticamente)}
+\item{dados}{Data frame (seleciona todas as variáveis numéricas automaticamente).}
 
 \item{variaveis}{Vetor opcional com nomes específicos de variáveis para incluir.}
 
-\item{metodo}{Método ("pearson", "spearman", "kendall")}
+\item{metodo}{Método de correlação: \code{"pearson"} (padrão), \code{"spearman"} ou \code{"kendall"}.}
 
-\item{top}{Opcional. Se definido (ex: 5), exibe no gráfico apenas as variáveis envolvidas
-nos 'top' pares com maior correlação absoluta.}
+\item{top}{Número de pares a exibir nos rankings de maiores correlações (padrão: 5).
+Se \code{0} ou \code{FALSE}, desativa a exibição das tabelas de ranking.}
+
+\item{filtrar_matriz}{Lógico. Se \code{TRUE}, restringe a matriz de correlação quadrada e o gráfico
+apenas às variáveis presentes no ranking TOP selecionado. Padrão \code{FALSE}.}
+
+\item{criterio}{Critério de ordenação do ranking: \code{"maiores"} (padrão, associações mais fortes)
+ou \code{"menores"} (associações mais fracas / próximas de zero).}
+
+\item{grafico}{Lógico. Se \code{TRUE} (padrão), exibe o correlograma.}
+}
+\value{
+Retorna invisivelmente uma lista com:
+\item{matriz_r}{Matriz com os coeficientes de correlação}
+\item{matriz_p}{Matriz com os p-valores correspondentes}
+\item{top_positivas}{Data frame com o ranking das correlações positivas}
+\item{top_negativas}{Data frame com o ranking das correlações negativas}
 }
 \description{
-Gera e imprime no console a matriz de correlação completa (com p-valores em asteriscos)
-e plota o correlograma.
+Gera e imprime no console a matriz de correlação completa (com p-valores em asteriscos),
+exibe tabelas de ranking das maiores correlações positivas e negativas com classificação qualitativa
+centralizada, e plota o correlograma em \code{ggplot2}.
 }
