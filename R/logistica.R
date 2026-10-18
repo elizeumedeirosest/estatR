@@ -1014,20 +1014,25 @@ analise_residual_logistica <- function(modelo, grafico = TRUE) {
   }
 
   .print_topico("INTERPRETAÇÃO DO DIAGNÓSTICO")
+  cor_ok   <- "\033[1;32m"
+  cor_erro <- "\033[1;31m"
+  cor_warn <- "\033[1;33m"
+  reset    <- "\033[0m"
+
   if (!is.na(hl$p.value)) {
     if (hl$p.value > 0.05) {
-      cat(sprintf("  [\u2713] : Hosmer-Lemeshow não rejeitou H\u2080 (p = %s).\n  As probabilidades preditas estão bem calibradas.\n\n", formata_p(hl$p.value)))
+      cat(sprintf("  %s[\u2713]%s Hosmer-Lemeshow não rejeitou H\u2080 (p = %s).\n  As probabilidades preditas estão bem calibradas.\n\n", cor_ok, reset, formata_p(hl$p.value)))
     } else {
-      cat(sprintf("  [!] : Hosmer-Lemeshow rejeitou H\u2080 (p = %s).\n  Possível problema de especificação do modelo.\n\n", formata_p(hl$p.value)))
+      cat(sprintf("  %s[!]%s Hosmer-Lemeshow rejeitou H\u2080 (p = %s).\n  Possível problema de especificação do modelo.\n\n", cor_erro, reset, formata_p(hl$p.value)))
     }
   }
   if (disp_pearson > 1.5) {
-    cat(sprintf("  [!] : Dispersão de Pearson = %.3f (> 1,5). Pode indicar\n  sobredispersão ou pontos influentes.\n\n", disp_pearson))
+    cat(sprintf("  %s[!]%s Dispersão de Pearson = %.3f (> 1,5). Pode indicar\n  sobredispersão ou pontos influentes.\n\n", cor_erro, reset, disp_pearson))
   } else {
-    cat(sprintf("  [\u2713] : Dispersão de Pearson = %.3f. Sem sinais de sobredispersão relevante.\n\n", disp_pearson))
+    cat(sprintf("  %s[\u2713]%s Dispersão de Pearson = %.3f. Sem sinais de sobredispersão relevante.\n\n", cor_ok, reset, disp_pearson))
   }
   if (length(infl_idx) > 0) {
-    cat(sprintf("  [!] : %d observação(ões) com alta influência detectada(s).\n  Considere investigar ou remover essas observações.\n\n", length(infl_idx)))
+    cat(sprintf("  %s[!]%s %d observação(ões) com alta influência detectada(s).\n  Considere investigar ou remover essas observações.\n\n", cor_warn, reset, length(infl_idx)))
   }
   cat(sep_t, "\n\n")
   .print_rodape()

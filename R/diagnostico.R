@@ -226,13 +226,15 @@ diagnostico <- function(dados) {
   # Duplicatas (Somente se for Data Frame com > 1 coluna)
   if (!is_vetor && n_cols > 1) {
     alertas <- character(0)
+    cor_warn <- "\033[1;33m"
+    reset    <- "\033[0m"
     
     # Busca 1: Colunas exatas idênticas
     for (i in 1:(n_cols - 1)) {
       for (j in (i + 1):n_cols) {
         if (identical(dados[[i]], dados[[j]])) {
-          alertas <- c(alertas, sprintf("  [!] : '%s' e '%s' possuem dados exatos idênticos.", 
-                                        names(dados)[i], names(dados)[j]))
+          alertas <- c(alertas, sprintf("  %s[!]%s '%s' e '%s' possuem dados exatos idênticos.", 
+                                        cor_warn, reset, names(dados)[i], names(dados)[j]))
         }
       }
     }
@@ -250,8 +252,8 @@ diagnostico <- function(dados) {
             if (sum(comp) > 2) {
               r <- cor(v1[comp], v2[comp])
               if (!is.na(r) && abs(r) > 0.99) {
-                alertas <- c(alertas, sprintf("  [!] : '%s' e '%s' altamente correlacionadas (r = %.3f).", 
-                                              num_cols[i], num_cols[j], r))
+                alertas <- c(alertas, sprintf("  %s[!]%s '%s' e '%s' altamente correlacionadas (r = %.3f).", 
+                                              cor_warn, reset, num_cols[i], num_cols[j], r))
               }
             }
           }

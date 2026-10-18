@@ -952,11 +952,15 @@ analise_residual_cox <- function(modelo, grafico = TRUE) {
   res_mart <- stats::residuals(mod_cox, type = "martingale")
 
   .print_topico("INTERPRETAÇÃO DO DIAGNÓSTICO")
+  cor_ok   <- "\033[1;32m"
+  cor_erro <- "\033[1;31m"
+  reset    <- "\033[0m"
+
   p_global <- tab_zph["GLOBAL", "p"]
   if (!is.na(p_global) && p_global >= 0.05) {
-    cat("  O teste global de Schoenfeld confirmou o pressuposto de Riscos Proporcionais\n  (p >= 0,05), validando o uso do modelo de Cox para o conjunto de dados.\n\n")
+    cat(sprintf("  %s[\u2713]%s O teste global de Schoenfeld confirmou o pressuposto de Riscos Proporcionais\n    (p >= 0,05), validando o uso do modelo de Cox para o conjunto de dados.\n\n", cor_ok, reset))
   } else {
-    cat("  Atenção: O teste global de Schoenfeld indicou violação do pressuposto de\n  proporcionalidade para uma ou mais covariáveis (p < 0,05).\n  Considere estratificação ou inclusão de termos dependentes do tempo.\n\n")
+    cat(sprintf("  %s[!]%s O teste global de Schoenfeld indicou violação do pressuposto de\n    proporcionalidade para uma ou mais covariáveis (p < 0,05).\n    Considere estratificação ou inclusão de termos dependentes do tempo.\n\n", cor_erro, reset))
   }
 
   .print_rodape()

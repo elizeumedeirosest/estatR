@@ -205,11 +205,15 @@ simular_tcl <- function(x, n_amostra = 30, repeticoes = 1000, semente = NULL) {
 
   .print_topico("NORMALIDADE DAS MÉDIAS SIMULADAS (Shapiro-Wilk)")
   formata_p <- function(p) if (p < 0.001) "< 0.001" else formatC(p, format="f", digits=3, decimal.mark=",")
+  cor_ok   <- "\033[1;32m"
+  cor_warn <- "\033[1;33m"
+  reset    <- "\033[0m"
+
   cat(sprintf("  W = %s   |   p = %s\n", .sim_fmt(st$statistic, 4), formata_p(st$p.value)))
   if (st$p.value >= 0.05) {
-    cat(sprintf("  [\u2713] As m\u00e9dias simuladas seguem distribui\u00e7\u00e3o Normal (n = %d confirma o TCL).\n\n", n_amostra))
+    cat(sprintf("  %s[\u2713]%s As m\u00e9dias simuladas seguem distribui\u00e7\u00e3o Normal (n = %d confirma o TCL).\n\n", cor_ok, reset, n_amostra))
   } else {
-    cat(sprintf("  [!] As m\u00e9dias ainda n\u00e3o s\u00e3o perfeitamente normais. Tente aumentar 'n_amostra'.\n\n"))
+    cat(sprintf("  %s[!]%s As m\u00e9dias ainda n\u00e3o s\u00e3o perfeitamente normais. Tente aumentar 'n_amostra'.\n\n", cor_warn, reset))
   }
   .print_rodape()
 

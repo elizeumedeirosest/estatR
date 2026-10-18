@@ -633,29 +633,33 @@ analise_residual <- function(modelo, grafico = TRUE) {
 
   .print_topico("INTERPRETA\u00c7\u00c3O DO DIAGN\u00d3STICO")
 
+  cor_ok   <- "\033[1;32m"
+  cor_erro <- "\033[1;31m"
+  reset    <- "\033[0m"
+
   if (p_norm < 0.05) {
-    cat(sprintf("[!] : O teste de normalidade rejeitou a hip\u00f3tese nula\n    (p = %s). Os res\u00edduos n\u00e3o seguem uma distribui\u00e7\u00e3o normal,\n    o que pode afetar a confiabilidade dos intervalos de confian\u00e7a.\n\n",
-                formata_p(p_norm)))
+    cat(sprintf("  %s[!]%s O teste de normalidade rejeitou a hip\u00f3tese nula\n    (p = %s). Os res\u00edduos n\u00e3o seguem uma distribui\u00e7\u00e3o normal,\n    o que pode afetar a confiabilidade dos intervalos de confian\u00e7a.\n\n",
+                cor_erro, reset, formata_p(p_norm)))
   } else {
-    cat(sprintf("[\u2713] : O teste n\u00e3o encontrou evid\u00eancias para rejeitar a normalidade\n    dos res\u00edduos (p = %s).\n\n",
-                formata_p(p_norm)))
+    cat(sprintf("  %s[\u2713]%s O teste n\u00e3o encontrou evid\u00eancias para rejeitar a normalidade\n    dos res\u00edduos (p = %s).\n\n",
+                cor_ok, reset, formata_p(p_norm)))
   }
 
   if (p_bp < 0.05) {
-    cat(sprintf("[!] : O teste detectou heterocedasticidade (p = %s),\n    indicando que a vari\u00e2ncia dos res\u00edduos n\u00e3o \u00e9 constante.\n\n",
-                formata_p(p_bp)))
+    cat(sprintf("  %s[!]%s O teste detectou heterocedasticidade (p = %s),\n    indicando que a vari\u00e2ncia dos res\u00edduos n\u00e3o \u00e9 constante.\n\n",
+                cor_erro, reset, formata_p(p_bp)))
   } else {
-    cat(sprintf("[\u2713] : O teste indicou homocedasticidade (p = %s),\n    ou seja, a vari\u00e2ncia dos res\u00edduos \u00e9 considerada constante\n    ao longo dos valores ajustados.\n\n",
-                formata_p(p_bp)))
+    cat(sprintf("  %s[\u2713]%s O teste indicou homocedasticidade (p = %s),\n    ou seja, a vari\u00e2ncia dos res\u00edduos \u00e9 considerada constante\n    ao longo dos valores ajustados.\n\n",
+                cor_ok, reset, formata_p(p_bp)))
   }
 
   if (p_dw < 0.05) {
     direcao_ac <- if (dw_stat < 2) "positiva" else "negativa"
-    cat(sprintf("[!] : O teste detectou autocorrela\u00e7\u00e3o %s (p = %s),\n    indicando depend\u00eancia entre os res\u00edduos (DW = %.3f).\n\n",
-                direcao_ac, formata_p(p_dw), dw_stat))
+    cat(sprintf("  %s[!]%s O teste detectou autocorrela\u00e7\u00e3o %s (p = %s),\n    indicando depend\u00eancia entre os res\u00edduos (DW = %.3f).\n\n",
+                cor_erro, reset, direcao_ac, formata_p(p_dw), dw_stat))
   } else {
-    cat(sprintf("[\u2713] : O teste indicou independ\u00eancia dos res\u00edduos (p = %s,\n    DW = %.3f), ou seja, n\u00e3o h\u00e1 evid\u00eancia de autocorrela\u00e7\u00e3o.\n\n",
-                formata_p(p_dw), dw_stat))
+    cat(sprintf("  %s[\u2713]%s O teste indicou independ\u00eancia dos res\u00edduos (p = %s,\n    DW = %.3f), ou seja, n\u00e3o h\u00e1 evid\u00eancia de autocorrela\u00e7\u00e3o.\n\n",
+                cor_ok, reset, formata_p(p_dw), dw_stat))
   }
 
   if (grafico) {

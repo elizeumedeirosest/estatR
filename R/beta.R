@@ -321,15 +321,19 @@ analise_residual_beta <- function(modelo, grafico = TRUE) {
   corte_cook <- 4 / n
   infl_pts <- which(cooks_d > corte_cook)
   
+  cor_ok   <- "\033[1;32m"
+  cor_erro <- "\033[1;31m"
+  reset    <- "\033[0m"
+
   if (exists(".print_topico", mode = "function")) .print_topico("PONTOS INFLUENTES (Distância de Cook)")
   if (length(infl_pts) > 0) {
     cat(sprintf("  Observações com distância > %.4f (4/n):\n", corte_cook))
     for (i in infl_pts) {
       cat(sprintf("  Obs. %s: Cook = %.4f | Res. Padronizado = %.3f\n", names(cooks_d)[i], cooks_d[i], res_pad[i]))
     }
-    cat("  [!] Avalie remover essas observações ou investigar outliers.\n\n")
+    cat(sprintf("  %s[!]%s Avalie remover essas observações ou investigar outliers.\n\n", cor_erro, reset))
   } else {
-    cat("  [✓] Nenhuma observação excessivamente influente detectada.\n\n")
+    cat(sprintf("  %s[\u2713]%s Nenhuma observação excessivamente influente detectada.\n\n", cor_ok, reset))
   }
   
   if (exists(".print_rodape", mode = "function")) .print_rodape()

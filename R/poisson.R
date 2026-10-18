@@ -171,11 +171,11 @@ regressao_poisson <- function(formula, dados, ligacao = "log", grafico = TRUE) {
   }
   
   if (dispersion_ratio > 1.2) {
-    cat(sprintf("  [!] ATEN\u00c7\u00c3O: O fator de sobredispers\u00e3o (\u03c7\u00b2/df) \u00e9 %.2f (maior que 1.2).\n  Isso indica que a vari\u00e2ncia dos dados \u00e9 maior que a m\u00e9dia.\n  O modelo de Poisson pode subestimar os erros padr\u00e3o.\n  Considere utilizar uma Regress\u00e3o Quase-Poisson ou Binomial Negativa.\n\n", dispersion_ratio))
+    cat(sprintf("  Aten\u00c7\u00c3O: O fator de sobredispers\u00e3o (\u03c7\u00b2/df) \u00e9 %.2f (maior que 1.2).\n  Isso indica que a vari\u00e2ncia dos dados \u00e9 maior que a m\u00e9dia.\n  O modelo de Poisson pode subestimar os erros padr\u00e3o.\n  Considere utilizar uma Regress\u00e3o Quase-Poisson ou Binomial Negativa.\n\n", dispersion_ratio))
   } else if (dispersion_ratio < 0.8) {
-    cat(sprintf("  [!] ATEN\u00c7\u00c3O: O fator de subdispers\u00e3o (\u03c7\u00b2/df) \u00e9 %.2f (menor que 0.8).\n  A vari\u00e2ncia \u00e9 menor que a m\u00e9dia. Considere uma Regress\u00e3o Quase-Poisson.\n\n", dispersion_ratio))
+    cat(sprintf("  Aten\u00c7\u00c3O: O fator de subdispers\u00e3o (\u03c7\u00b2/df) \u00e9 %.2f (menor que 0.8).\n  A vari\u00e2ncia \u00e9 menor que a m\u00e9dia. Considere uma Regress\u00e3o Quase-Poisson.\n\n", dispersion_ratio))
   } else {
-    cat(sprintf("  [\u2713] O fator de dispers\u00e3o (\u03c7\u00b2/df) \u00e9 %.2f, pr\u00f3ximo de 1.\n  N\u00e3o h\u00e1 ind\u00edcios fortes de viola\u00e7\u00e3o do pressuposto (m\u00e9dia = vari\u00e2ncia).\n\n", dispersion_ratio))
+    cat(sprintf("  O fator de dispers\u00e3o (\u03c7\u00b2/df) \u00e9 %.2f, pr\u00f3ximo de 1.\n  N\u00e3o h\u00e1 ind\u00edcios fortes de viola\u00e7\u00e3o do pressuposto (m\u00e9dia = vari\u00e2ncia).\n\n", dispersion_ratio))
   }
   
   # Interpretacao dos coeficientes
@@ -335,16 +335,18 @@ analise_residual_poisson <- function(modelo, grafico = TRUE) {
   pearson_res <- residuals(modelo, type = "pearson")
   dispersion_ratio <- sum(pearson_res^2) / df_res
   
+  cor_ok   <- "\033[1;32m"
+  cor_erro <- "\033[1;31m"
+  cor_warn <- "\033[1;33m"
+  reset    <- "\033[0m"
+
   if (exists(".print_topico", mode = "function")) .print_topico("DIAGNÓSTICO DA DISPERSÃO")
   if (dispersion_ratio > 1.2) {
-    cat(sprintf("  [!] Sobredispersão detectada (χ²/df = %.2f).
-  A variância é maior que a média. O modelo de Poisson pode ser inadequado.
-  Sugestão: Regressão Binomial Negativa ou Quase-Poisson.\n\n", dispersion_ratio))
+    cat(sprintf("  %s[!]%s Sobredispersão detectada (χ²/df = %.2f).\n  A variância é maior que a média. O modelo de Poisson pode ser inadequado.\n  Sugestão: Regressão Binomial Negativa ou Quase-Poisson.\n\n", cor_erro, reset, dispersion_ratio))
   } else if (dispersion_ratio < 0.8) {
-    cat(sprintf("  [!] Subdispersão detectada (χ²/df = %.2f).
-  A variância é menor que a média. Sugestão: Regressão Quase-Poisson.\n\n", dispersion_ratio))
+    cat(sprintf("  %s[!]%s Subdispersão detectada (χ²/df = %.2f).\n  A variância é menor que a média. Sugestão: Regressão Quase-Poisson.\n\n", cor_warn, reset, dispersion_ratio))
   } else {
-    cat(sprintf("  [✓] Dispersão adequada (χ²/df = %.2f). A premissa média = variância é plausível.\n\n", dispersion_ratio))
+    cat(sprintf("  %s[\u2713]%s Dispersão adequada (χ²/df = %.2f). A premissa média = variância é plausível.\n\n", cor_ok, reset, dispersion_ratio))
   }
   
   cooks_d <- cooks.distance(modelo)
@@ -358,9 +360,9 @@ analise_residual_poisson <- function(modelo, grafico = TRUE) {
     for (i in infl_pts) {
       cat(sprintf("  Obs. %s: Cook = %.4f | Res. Pearson = %.3f\n", names(cooks_d)[i], cooks_d[i], pearson_res[i]))
     }
-    cat("  [!] Avalie remover essas observações ou investigar outliers.\n\n")
+    cat(sprintf("  %s[!]%s Avalie remover essas observações ou investigar outliers.\n\n", cor_erro, reset))
   } else {
-    cat("  [✓] Nenhuma observação excessivamente influente detectada.\n\n")
+    cat(sprintf("  %s[\u2713]%s Nenhuma observação excessivamente influente detectada.\n\n", cor_ok, reset))
   }
   
   if (exists(".print_rodape", mode = "function")) .print_rodape()
