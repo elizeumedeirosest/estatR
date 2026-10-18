@@ -1099,3 +1099,232 @@ selecao_modelos_serie <- function(serie, h = 12, frequencia = 12,
 
   invisible(df_rank)
 }
+
+
+# ── 8. ANÁLISE RESIDUAL DE SÉRIES TEMPORAIS ─────────────────────────────────
+
+#' @title Análise Residual para Séries Temporais
+#' @description Realiza o diagnóstico formal dos resíduos de modelos de séries temporais
+#'   (\code{previsao_serie}, \code{forecast}, \code{Arima}, \code{ets}, \code{stlm}).
+#'   Avalia normalidade (Shapiro-Wilk ou Kolmogorov-Smirnov), ausência de viés (teste t para média zero),
+#'   independência e ruído branco (teste de Ljung-Box em defasagens múltiplas) e
+#'   gera um painel gráfico com 4 diagnósticos visuais.
+#'
+#' @param modelo Objeto ajustado da classe \code{previsao_serie}, \code{forecast},
+#'   \code{Arima}, \code{ets}, \code{HoltWinters} ou \code{stlm}.
+#' @param grafico Lógico. Se \code{TRUE} (padrão), exibe o painel gráfico de diagnóstico.
+#'
+#' @return Retorna invisivelmente uma lista com os objetos dos testes estatísticos e resíduos.
+#' @export
+analise_residual_serie <- function(modelo, grafico = TRUE) {
+
+  # Extração dos resíduos conforme a classe do objeto
+  res <- if (inherits(modelo, "previsao_serie")) {
+    if (!is.null(modelo$previsao$residuals)) {
+      as.numeric(modelo$previsao$residuals)
+    } else {
+      as.numeric(stats::residuals(modelo$modelo))
+    }
+  } else if (inherits(modelo, "forecast")) {
+    as.numeric(modelo$residuals)
+  } else {
+    as.numeric(stats::residuals(modelo))
+  }
+
+  res <- res[!is.na(res)]
+  n   <- length(res)
+
+  if (n < 4) {
+    stop("Quantidade insuficiente de res\u00edduos v\u00e1lidos para realizar a an\u00e1lise (m\u00ednimo 4).")
+  }
+
+  nome_modelo <- if (inherits(modelo, "previsao_serie")) {
+    if (inherits(modelo$previsao$model, "ets")) {
+      paste0("ETS (", modelo$previsao$model$method, ")")
+    } else {
+      modelo$previsao$method
+    }
+  } else if (inherits(modelo, "forecast")) {
+    modelo$method
+  } else if (inherits(modelo, "Arima")) {
+    a <- modelo$arma
+    if (!is.null(a) && length(a) >= 7) {
+      if (a[7] > 0) {
+        sprintf("SARIMA(%d,%d,%d)(%d,%d,%d)[%d]", a[1], a[6], a[2], a[3], a[7], a[4], a[5])
+      } else {
+        sprintf("ARIMA(%d,%d,%d)", a[1], a[6], a[2])
+      }
+    } else {
+      "ARIMA"
+    }
+  } else if (inherits(modelo, "ets")) {
+    paste0("ETS (", modelo$method, ")")
+  } else {
+    class(modelo)[1]
+  }
+
+  # 1. Média Zero / Ausência de Viés (Teste t para H0: mu = 0)
+  t_test <- stats::t.test(res, mu = 0)
+  stat_t <- t_test$statistic
+  p_t    <- t_test$p.value
+
+  # 2. Normalidade (Shapiro-Wilk para n <= 5000; Kolmogorov-Smirnov para n > 5000)
+  if (n <= 5000) {
+    nome_norm <- "Normalidade (Shapiro-Wilk)"
+    st_norm   <- stats::shapiro.test(res)
+    stat_norm <- st_norm$statistic
+    p_norm    <- st_norm$p.value
+    txt_stat_norm <- sprintf("W = %.3f", stat_norm)
+  } else {
+    nome_norm <- "Normalidade (Kolmogorov-S)"
+    res_pad   <- (res - mean(res)) / stats::sd(res)
+    st_norm   <- suppressWarnings(stats::ks.test(res_pad, "pnorm"))
+    stat_norm <- st_norm$statistic
+    p_norm    <- st_norm$p.value
+    txt_stat_norm <- sprintf("D = %.3f", stat_norm)
+  }
+
+  # 3. Independência e Ruído Branco (Ljung-Box)
+  # Seleciona defasagens recomendadas pela literatura: min(10 ou 2m, n-2)
+  lag_box <- min(12, n - 2)
+  st_box  <- stats::Box.test(res, lag = lag_box, type = "Ljung-Box")
+  stat_box <- st_box$statistic
+  p_box   <- st_box$p.value
+
+  # Formatação dos p-valores
+  fmt_p <- function(p) {
+    if (is.na(p)) return("-")
+    if (p < 0.001) return("< 0,001")
+    formatC(p, format = "f", digits = 3, decimal.mark = ",")
+  }
+
+  df_tab <- data.frame(
+    Pressuposto = c("M\u00e9dia Zero (Sem vi\u00e9s)", nome_norm, sprintf("Ru\u00eddo Branco (Ljung-Box, lag %d)", lag_box)),
+    "Estat\u00edstica" = c(sprintf("t = %.3f", stat_t), txt_stat_norm, sprintf("Q = %.2f", stat_box)),
+    "p-valor"   = c(fmt_p(p_t), fmt_p(p_norm), fmt_p(p_box)),
+    "Diagn\u00f3stico" = c(
+      if (p_t >= 0.05) "Sem Vi\u00e9s" else "Vi\u00e9s Detectado",
+      if (p_norm >= 0.05) "Normal" else "N\u00e3o Normal",
+      if (p_box >= 0.05) "Ru\u00eddo Branco" else "Autocorrelacionado"
+    ),
+    stringsAsFactors = FALSE, check.names = FALSE
+  )
+
+  # ── Saída no Console ───────────────────────────────────────────────────────
+  .print_titulo("DIAGN\u00d3STICO DOS RES\u00cdDUOS DE S\u00c9RIE TEMPORAL")
+
+  cat(sprintf("  Modelo avaliado:  %s\n", nome_modelo))
+  cat(sprintf("  Res\u00edduos totais:  %d observa\u00e7\u00f5es\n", n))
+  cat(sprintf("  M\u00e9dia residual:   %s (Desvio: %s)\n\n",
+              .fmt_num(mean(res), 4), .fmt_num(stats::sd(res), 4)))
+
+  .print_topico("RESULTADOS DOS TESTES DE DIAGN\u00d3STICO")
+
+  if (exists(".print_tabela_estatR", mode = "function")) {
+    .print_tabela_estatR(df_tab, align = c("left", "center", "center", "center"))
+  } else {
+    print(df_tab, row.names = FALSE)
+  }
+  cat("\n")
+
+  .print_topico("INTERPRETA\u00c7\u00c3O")
+
+  cor_ok   <- "\033[1;32m"
+  cor_erro <- "\033[1;31m"
+  reset    <- "\033[0m"
+
+  # Interpretação da Média Zero
+  if (p_t >= 0.05) {
+    cat(sprintf("  %s[\u2713]%s A m\u00e9dia dos res\u00edduos n\u00e3o difere de zero (p = %s). O modelo n\u00e3o apresenta vi\u00e9s sistem\u00e1tico.\n",
+                cor_ok, reset, fmt_p(p_t)))
+  } else {
+    cat(sprintf("  %s[!]%s Vi\u00e9s detectado nos res\u00edduos (p = %s). As previs\u00f5es tendem a subestimar ou superestimar a s\u00e9rie.\n",
+                cor_erro, reset, fmt_p(p_t)))
+  }
+
+  # Interpretação da Normalidade
+  if (p_norm >= 0.05) {
+    cat(sprintf("  %s[\u2713]%s Os res\u00edduos seguem distribui\u00e7\u00e3o normal (p = %s), validando os intervalos de confian\u00e7a anal\u00edticos.\n",
+                cor_ok, reset, fmt_p(p_norm)))
+  } else {
+    cat(sprintf("  %s[!]%s Os res\u00edduos n\u00e3o s\u00e3o estritamente normais (p = %s). Recomenda-se cautela ou intervalos bootstrap.\n",
+                cor_erro, reset, fmt_p(p_norm)))
+  }
+
+  # Interpretação do Ruído Branco
+  if (p_box >= 0.05) {
+    cat(sprintf("  %s[\u2713]%s Res\u00edduos comportam-se como RU\u00cdDO BRANCO (p = %s, lag %d). Toda a depend\u00eancia temporal foi capturada.\n",
+                cor_ok, reset, fmt_p(p_box), lag_box))
+  } else {
+    cat(sprintf("  %s[!]%s Autocorrela\u00e7\u00e3o residual remanescente detectada (p = %s, lag %d). Considere ajustar ordens adicionais de AR/MA.\n",
+                cor_erro, reset, fmt_p(p_box), lag_box))
+  }
+
+  .print_rodape()
+
+  # ── Painel Gráfico de 4 Resíduos ───────────────────────────────────────────
+  p_painel <- NULL
+  if (isTRUE(grafico)) {
+    df_res_plot <- data.frame(
+      Index = seq_along(res),
+      Res   = res
+    )
+
+    # 1. Resíduos no Tempo
+    p1 <- ggplot2::ggplot(df_res_plot, ggplot2::aes(x = Index, y = Res)) +
+      ggplot2::geom_hline(yintercept = 0, color = "black", linewidth = 0.5) +
+      ggplot2::geom_hline(yintercept = c(-2 * stats::sd(res), 2 * stats::sd(res)),
+                          linetype = "dashed", color = "#E31A1C", linewidth = 0.5) +
+      ggplot2::geom_line(color = "#377EB8", linewidth = 0.75) +
+      ggplot2::geom_point(color = "#377EB8", size = 1.3) +
+      ggplot2::labs(title = "Res\u00edduos ao Longo do Tempo", x = "\u00cdndice Temporal", y = "Res\u00edduo") +
+      tema_estatR(estilo = 2, grade = "dupla")
+
+    # 2. Histograma com Densidade
+    p2 <- ggplot2::ggplot(df_res_plot, ggplot2::aes(x = Res)) +
+      ggplot2::geom_histogram(ggplot2::aes(y = ggplot2::after_stat(density)),
+                              bins = min(20, max(8, floor(n / 6))),
+                              fill = "gray85", color = "gray40") +
+      ggplot2::stat_function(fun = stats::dnorm,
+                             args = list(mean = mean(res), sd = stats::sd(res)),
+                             color = "#E31A1C", linewidth = 0.85) +
+      ggplot2::labs(title = "Histograma & Densidade Normal", x = "Res\u00edduo", y = "Densidade") +
+      tema_estatR(estilo = 2, grade = "dupla")
+
+    # 3. QQ-Plot Normal
+    p3 <- ggplot2::ggplot(df_res_plot, ggplot2::aes(sample = Res)) +
+      ggplot2::stat_qq(color = "#377EB8", size = 1.5, alpha = 0.8) +
+      ggplot2::stat_qq_line(color = "#E31A1C", linewidth = 0.75, linetype = "dashed") +
+      ggplot2::labs(title = "QQ-Plot Normal dos Res\u00edduos", x = "Quantis Te\u00f3ricos", y = "Quantis Amostrais") +
+      tema_estatR(estilo = 2, grade = "dupla")
+
+    # 4. ACF dos Resíduos (Autocorrelação com limites Bartlett)
+    max_lag_acf <- min(24, n - 2)
+    acf_obj <- stats::acf(res, lag.max = max_lag_acf, plot = FALSE)
+    df_acf_res <- data.frame(
+      Lag   = as.numeric(acf_obj$lag)[-1],
+      Valor = as.numeric(acf_obj$acf)[-1]
+    )
+    ic_bart <- 1.96 / sqrt(n)
+
+    p4 <- ggplot2::ggplot(df_acf_res, ggplot2::aes(x = Lag, y = Valor)) +
+      ggplot2::geom_hline(yintercept = 0, color = "black", linewidth = 0.5) +
+      ggplot2::geom_hline(yintercept = c(-ic_bart, ic_bart), linetype = "dashed", color = "#E31A1C", linewidth = 0.6) +
+      ggplot2::geom_segment(ggplot2::aes(x = Lag, xend = Lag, y = 0, yend = Valor),
+                            color = "#377EB8", linewidth = 0.75) +
+      ggplot2::geom_point(color = "#377EB8", size = 1.6) +
+      ggplot2::labs(title = "FAC dos Res\u00edduos (Ru\u00eddo Branco)", x = "Defasagem (Lag)", y = "Autocorrela\u00e7\u00e3o") +
+      tema_estatR(estilo = 2, grade = "dupla")
+
+    p_painel <- patchwork::wrap_plots(p1, p2, p3, p4, ncol = 2)
+    print(p_painel)
+  }
+
+  invisible(list(
+    residuos = res,
+    t_test = t_test,
+    normalidade = st_norm,
+    ljung_box = st_box,
+    grafico = p_painel
+  ))
+}

@@ -801,6 +801,15 @@ metricas(modelo_previsao)                # Polimórfico: detecta automaticamente
 metricas_serie(real = y_teste, previsto = y_hat, treino = y_treino)  # Vetores diretos
 ```
 
+**Diagnóstico de Resíduos (Polimórfico)**
+
+```r
+# Testes formais (Média Zero, Normalidade, Ljung-Box) + Painel com 4 gráficos
+analise_residual(modelo_previsao)             # Objeto de previsão estatR
+analise_residual(modelo_arima)                # Modelos ARIMA / SARIMA
+analise_residual_serie(modelo_previsao)       # Chamada direta específica
+```
+
 **Seleção de Modelos (Out-of-Sample Ranking)**
 
 ```r
