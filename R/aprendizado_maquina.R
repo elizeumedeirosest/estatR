@@ -39,9 +39,9 @@
 #'
 #' @param formula Fórmula no formato \code{y ~ x1 + x2} ou \code{y ~ .}.
 #' @param dados Data frame contendo as variáveis do modelo.
-#' @param metodo Algoritmo a utilizar: \code{"rf"} (Random Forest / Floresta Aleatória, padrão),
-#'   \code{"xgboost"} (Extreme Gradient Boosting), \code{"svm"} (Máquina de Vetores de Suporte)
-#'   ou \code{"arvore"} (Árvore de Decisão / CART).
+#' @param algoritmo Algoritmo a utilizar: \code{"rf"} (Random Forest / Floresta Aleatória, padrão),
+#'   \code{"xgboost"} (Extreme Gradient Boosting), \code{"svm"} (Máquina de Vetores de Suporte),
+#'   \code{"lasso"} (Lasso Penalizado L1), \code{"ridge"} (Ridge Penalizado L2) ou \code{"arvore"} (CART).
 #' @param proporcao_treino Proporção da amostra destinada ao treino (padrão \code{0.75}).
 #' @param semente Valor inteiro para reprodutibilidade (padrão \code{42}).
 #' @param n_arvores Número de árvores (para \code{"rf"}). Se \code{NULL} (padrão),
@@ -61,7 +61,7 @@
 #' @export
 previsao_aprend_maq <- function(formula,
                                 dados,
-                                metodo             = c("rf", "xgboost", "svm", "arvore"),
+                                algoritmo          = c("rf", "xgboost", "svm", "lasso", "ridge", "arvore"),
                                 proporcao_treino   = 0.75,
                                 semente            = 42,
                                 n_arvores          = NULL,
@@ -72,7 +72,7 @@ previsao_aprend_maq <- function(formula,
                                 custo              = 1,
                                 grafico            = TRUE) {
 
-  metodo <- match.arg(metodo)
+  algoritmo <- match.arg(algoritmo)
   if (!is.data.frame(dados)) stop("O argumento 'dados' deve ser um data frame.")
 
   # Extração de variáveis da fórmula
@@ -106,7 +106,7 @@ previsao_aprend_maq <- function(formula,
   importancia_df     <- NULL
 
   # ── AJUSTE: RANDOM FOREST (via ranger ou randomForest) ─────────────────────
-  if (metodo == "rf") {
+  if (algoritmo == "rf") {
     vars_por_no_usado <- if (!is.null(vars_por_no)) as.integer(vars_por_no) else max(1, floor(p_pred / 3))
 
     # Otimização automática do número de árvores por estabilização OOB
@@ -172,9 +172,9 @@ previsao_aprend_maq <- function(formula,
   }
 
   # ── AJUSTE: XGBOOST ───────────────────────────────────────────────────────
-  if (metodo == "xgboost") {
+  if (algoritmo == "xgboost") {
     if (!requireNamespace("xgboost", quietly = TRUE)) {
-      stop("O pacote 'xgboost' é necessário para este método.")
+      stop("O pacote 'xgboost' \u00e9 necess\u00e1rio para este algoritmo.")
     }
 
     X_tr <- model.matrix(formula, data = df_treino)[, -1, drop = FALSE]
@@ -210,7 +210,7 @@ previsao_aprend_maq <- function(formula,
   }
 
   # ── AJUSTE: SVM (e1071) ───────────────────────────────────────────────────
-  if (metodo == "svm") {
+  if (algoritmo == "svm") {
     if (!requireNamespace("e1071", quietly = TRUE)) {
       stop("O pacote 'e1071' é necessário para este método.")
     }
@@ -220,8 +220,38 @@ previsao_aprend_maq <- function(formula,
     pred_teste      <- predict(modelo_ajustado, newdata = df_teste)
   }
 
+  # ── AJUSTE: LASSO E RIDGE (glmnet) ────────────────────────────────────────
+  if (algoritmo %in% c("lasso", "ridge")) {
+    if (!requireNamespace("glmnet", quietly = TRUE)) {
+      stop("O pacote 'glmnet' é necessário para regularização.")
+    }
+    alpha_val <- if (algoritmo == "lasso") 1 else 0
+    X_tr <- model.matrix(formula, data = df_treino)[, -1, drop = FALSE]
+    y_tr <- df_treino[[y_nome]]
+    X_te <- model.matrix(formula, data = df_teste)[, -1, drop = FALSE]
+
+    if (!is.null(semente)) set.seed(semente)
+    cv_glm <- glmnet::cv.glmnet(x = X_tr, y = y_tr, alpha = alpha_val)
+    modelo_ajustado <- cv_glm
+    pred_treino     <- as.numeric(predict(cv_glm, newx = X_tr, s = "lambda.min"))
+    pred_teste      <- as.numeric(predict(cv_glm, newx = X_te, s = "lambda.min"))
+
+    coefs_glm <- as.matrix(coef(cv_glm, s = "lambda.min"))[-1, , drop = FALSE]
+    imp_glm   <- abs(coefs_glm[, 1])
+    if (sum(imp_glm) > 0) {
+      importancia_df <- data.frame(
+        Variavel    = rownames(coefs_glm),
+        Importancia = round(imp_glm, 4),
+        Percentual  = round((imp_glm / sum(imp_glm)) * 100, 1),
+        stringsAsFactors = FALSE
+      )
+      importancia_df <- importancia_df[order(importancia_df$Importancia, decreasing = TRUE), ]
+      rownames(importancia_df) <- NULL
+    }
+  }
+
   # ── AJUSTE: ÁRVORE DE DECISÃO (rpart) ─────────────────────────────────────
-  if (metodo == "arvore") {
+  if (algoritmo == "arvore") {
     prof_usada <- if (!is.null(profundidade)) as.integer(profundidade) else 10
     modelo_ajustado <- rpart::rpart(formula = formula, data = df_treino, control = rpart::rpart.control(maxdepth = prof_usada))
     pred_treino     <- predict(modelo_ajustado, newdata = df_treino)
@@ -268,10 +298,12 @@ previsao_aprend_maq <- function(formula,
 
   # ── Saída no Console ──────────────────────────────────────────────────────
   metodo_rotulo <- switch(
-    metodo,
+    algoritmo,
     rf      = "Random Forest (Floresta Aleat\u00f3ria)",
     xgboost = "XGBoost (Extreme Gradient Boosting)",
     svm     = "M\u00e1quina de Vetores de Suporte (SVM)",
+    lasso   = "Regress\u00e3o Lasso (Penalizada L1)",
+    ridge   = "Regress\u00e3o Ridge (Penalizada L2)",
     arvore  = "\u00c1rvore de Decis\u00e3o (CART)"
   )
 
@@ -283,19 +315,21 @@ previsao_aprend_maq <- function(formula,
   cat(sprintf("  Parti\u00e7\u00e3o:           %.0f%% Treino (%d obs) | %.0f%% Teste (%d obs)\n",
               proporcao_treino * 100, nrow(df_treino), (1 - proporcao_treino) * 100, nrow(df_teste)))
 
-  if (metodo == "rf") {
+  if (algoritmo == "rf") {
     if (!is.null(diag_estabilizacao)) {
       cat(sprintf("  N. \u00c1rvores:        %d (otimiza\u00e7\u00e3o autom\u00e1tica por estabiliza\u00e7\u00e3o OOB)\n", n_arv_usado))
     } else {
       cat(sprintf("  N. \u00c1rvores:        %d (definido manualmente)\n", n_arv_usado))
     }
     cat(sprintf("  Vars por Divis\u00e3o:   %d (n_vars)\n", vars_por_no_usado))
-  } else if (metodo == "xgboost") {
+  } else if (algoritmo == "xgboost") {
     cat(sprintf("  Rodadas (nrounds): %d | Profundidade: %d | Taxa (eta): %.2f\n",
                 n_r_usado, prof_usada, taxa_aprendizado))
-  } else if (metodo == "svm") {
+  } else if (algoritmo == "svm") {
     cat(sprintf("  Custo (C):         %.2f\n", custo))
-  } else if (metodo == "arvore") {
+  } else if (algoritmo %in% c("lasso", "ridge")) {
+    cat(sprintf("  Penaliza\u00e7\u00e3o (\u03bb):    %.5f (otimizado via CV: lambda.min)\n", modelo_ajustado$lambda.min))
+  } else if (algoritmo == "arvore") {
     cat(sprintf("  Profundidade M\u00e1x:  %d\n", prof_usada))
   }
   cat("\n")
@@ -385,7 +419,8 @@ previsao_aprend_maq <- function(formula,
   # Objeto de Retorno S3
   resultado <- list(
     tipo               = "previsao",
-    metodo             = metodo,
+    algoritmo          = algoritmo,
+    metodo             = algoritmo,
     formula            = formula,
     modelo             = modelo_ajustado,
     metricas           = tabela_metricas,
@@ -412,7 +447,7 @@ previsao_aprend_maq <- function(formula,
 #'
 #' @param formula Fórmula no formato \code{y ~ x1 + x2} ou \code{y ~ .}.
 #' @param dados Data frame contendo as variáveis do modelo.
-#' @param metodo Algoritmo a utilizar: \code{"rf"} (Random Forest / Floresta Aleatória, padrão),
+#' @param algoritmo Algoritmo a utilizar: \code{"rf"} (Random Forest / Floresta Aleatória, padrão),
 #'   \code{"xgboost"} (Extreme Gradient Boosting), \code{"svm"} (Máquina de Vetores de Suporte),
 #'   \code{"knn"} (K-Vizinhos Mais Próximos) ou \code{"arvore"} (CART).
 #' @param proporcao_treino Proporção da amostra destinada ao treino (padrão \code{0.75}).
@@ -434,7 +469,7 @@ previsao_aprend_maq <- function(formula,
 #' @export
 classificacao_aprend_maq <- function(formula,
                                      dados,
-                                     metodo             = c("rf", "xgboost", "svm", "knn", "arvore"),
+                                     algoritmo          = c("rf", "xgboost", "svm", "knn", "arvore"),
                                      proporcao_treino   = 0.75,
                                      semente            = 42,
                                      n_arvores          = NULL,
@@ -446,7 +481,7 @@ classificacao_aprend_maq <- function(formula,
                                      custo              = 1,
                                      grafico            = TRUE) {
 
-  metodo <- match.arg(metodo)
+  algoritmo <- match.arg(algoritmo)
   if (!is.data.frame(dados)) stop("O argumento 'dados' deve ser um data frame.")
 
   termos_obj <- terms(formula, data = dados)
@@ -489,7 +524,7 @@ classificacao_aprend_maq <- function(formula,
   importancia_df     <- NULL
 
   # ── AJUSTE: RANDOM FOREST ─────────────────────────────────────────────────
-  if (metodo == "rf") {
+  if (algoritmo == "rf") {
     vars_por_no_usado <- if (!is.null(vars_por_no)) as.integer(vars_por_no) else max(1, floor(sqrt(p_pred)))
 
     if (is.null(n_arvores)) {
@@ -554,7 +589,7 @@ classificacao_aprend_maq <- function(formula,
   }
 
   # ── AJUSTE: XGBOOST ───────────────────────────────────────────────────────
-  if (metodo == "xgboost") {
+  if (algoritmo == "xgboost") {
     if (!requireNamespace("xgboost", quietly = TRUE)) {
       stop("O pacote 'xgboost' é necessário para este método.")
     }
@@ -609,8 +644,8 @@ classificacao_aprend_maq <- function(formula,
   }
 
   # ── AJUSTE: SVM ───────────────────────────────────────────────────────────
-  if (metodo == "svm") {
-    if (!requireNamespace("e1071", quietly = TRUE)) stop("O pacote 'e1071' é necessário para este método.")
+  if (algoritmo == "svm") {
+    if (!requireNamespace("e1071", quietly = TRUE)) stop("O pacote 'e1071' \u00e9 necess\u00e1rio para este algoritmo.")
     if (!is.null(semente)) set.seed(semente)
     modelo_ajustado <- e1071::svm(formula = formula, data = df_treino, cost = custo, probability = TRUE)
     pred_treino     <- predict(modelo_ajustado, newdata = df_treino)
@@ -618,7 +653,7 @@ classificacao_aprend_maq <- function(formula,
   }
 
   # ── AJUSTE: KNN ───────────────────────────────────────────────────────────
-  if (metodo == "knn") {
+  if (algoritmo == "knn") {
     cols_num_p <- pred_nomes[vapply(df_treino[pred_nomes], is.numeric, logical(1))]
     if (length(cols_num_p) == 0) stop("O algoritmo KNN requer pelo menos uma variável preditora numérica.")
 
@@ -634,7 +669,7 @@ classificacao_aprend_maq <- function(formula,
   }
 
   # ── AJUSTE: ÁRVORE (rpart) ────────────────────────────────────────────────
-  if (metodo == "arvore") {
+  if (algoritmo == "arvore") {
     prof_usada <- if (!is.null(profundidade)) as.integer(profundidade) else 10
     modelo_ajustado <- rpart::rpart(formula = formula, data = df_treino, method = "class",
                                     control = rpart::rpart.control(maxdepth = prof_usada))
@@ -680,8 +715,8 @@ classificacao_aprend_maq <- function(formula,
   )
 
   # ── Saída no Console ──────────────────────────────────────────────────────
-  metodo_rotulo <- switch(
-    metodo,
+  algoritmo_rotulo <- switch(
+    algoritmo,
     rf      = "Random Forest (Floresta Aleat\u00f3ria)",
     xgboost = "XGBoost (Extreme Gradient Boosting)",
     svm     = "M\u00e1quina de Vetores de Suporte (SVM)",
@@ -689,30 +724,30 @@ classificacao_aprend_maq <- function(formula,
     arvore  = "\u00c1rvore de Decis\u00e3o (CART)"
   )
 
-  .print_titulo(sprintf("CLASSIFICA\u00c7\u00c3O \u2014 %s", toupper(metodo_rotulo)))
+  .print_titulo(sprintf("CLASSIFICA\u00c7\u00c3O \u2014 %s", toupper(algoritmo_rotulo)))
 
-  cat("  ▶ CONFIGURA\u00c7\u00c3O DO MODELO\n\n")
+  cat("  \u25b6 CONFIGURA\u00c7\u00c3O DO MODELO\n\n")
   cat(sprintf("  Vari\u00e1vel Resposta: %s (%d classes: %s)\n",
               y_nome, n_classes, paste(classes_y, collapse = ", ")))
   cat(sprintf("  Preditores:        %s\n", paste(pred_nomes, collapse = ", ")))
   cat(sprintf("  Parti\u00e7\u00e3o:           %.0f%% Treino (%d obs) | %.0f%% Teste (%d obs)\n",
               proporcao_treino * 100, nrow(df_treino), (1 - proporcao_treino) * 100, nrow(df_teste)))
 
-  if (metodo == "rf") {
+  if (algoritmo == "rf") {
     if (!is.null(diag_estabilizacao)) {
       cat(sprintf("  N. \u00c1rvores:        %d (otimiza\u00e7\u00e3o autom\u00e1tica por estabiliza\u00e7\u00e3o OOB)\n", n_arv_usado))
     } else {
       cat(sprintf("  N. \u00c1rvores:        %d (definido manualmente)\n", n_arv_usado))
     }
     cat(sprintf("  Vars por Divis\u00e3o:   %d (n_vars)\n", vars_por_no_usado))
-  } else if (metodo == "knn") {
+  } else if (algoritmo == "knn") {
     cat(sprintf("  Vizinhos (k):      %d\n", k_usado))
-  } else if (metodo == "xgboost") {
+  } else if (algoritmo == "xgboost") {
     cat(sprintf("  Rodadas (nrounds): %d | Profundidade: %d | Taxa (eta): %.2f\n",
                 n_r_usado, prof_usada, taxa_aprendizado))
-  } else if (metodo == "svm") {
+  } else if (algoritmo == "svm") {
     cat(sprintf("  Custo (C):         %.2f\n", custo))
-  } else if (metodo == "arvore") {
+  } else if (algoritmo == "arvore") {
     cat(sprintf("  Profundidade M\u00e1x:  %d\n", prof_usada))
   }
   cat("\n")
@@ -774,7 +809,8 @@ classificacao_aprend_maq <- function(formula,
 
   resultado <- list(
     tipo             = "classificacao",
-    metodo           = metodo,
+    algoritmo        = algoritmo,
+    metodo           = algoritmo,
     formula          = formula,
     modelo           = modelo_ajustado,
     metricas         = tabela_metricas,

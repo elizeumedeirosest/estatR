@@ -7,7 +7,7 @@
 classificacao_aprend_maq(
   formula,
   dados,
-  metodo = c("rf", "xgboost", "svm", "knn", "arvore"),
+  algoritmo = c("rf", "xgboost", "svm", "knn", "arvore"),
   proporcao_treino = 0.75,
   semente = 42,
   n_arvores = NULL,
@@ -25,7 +25,7 @@ classificacao_aprend_maq(
 
 \item{dados}{Data frame contendo as variáveis do modelo.}
 
-\item{metodo}{Algoritmo a utilizar: \code{"rf"} (Random Forest / Floresta Aleatória, padrão),
+\item{algoritmo}{Algoritmo a utilizar: \code{"rf"} (Random Forest / Floresta Aleatória, padrão),
 \code{"xgboost"} (Extreme Gradient Boosting), \code{"svm"} (Máquina de Vetores de Suporte),
 \code{"knn"} (K-Vizinhos Mais Próximos) ou \code{"arvore"} (CART).}
 

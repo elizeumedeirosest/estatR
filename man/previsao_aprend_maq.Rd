@@ -7,7 +7,7 @@
 previsao_aprend_maq(
   formula,
   dados,
-  metodo = c("rf", "xgboost", "svm", "arvore"),
+  algoritmo = c("rf", "xgboost", "svm", "lasso", "ridge", "arvore"),
   proporcao_treino = 0.75,
   semente = 42,
   n_arvores = NULL,
@@ -24,9 +24,9 @@ previsao_aprend_maq(
 
 \item{dados}{Data frame contendo as variáveis do modelo.}
 
-\item{metodo}{Algoritmo a utilizar: \code{"rf"} (Random Forest / Floresta Aleatória, padrão),
-\code{"xgboost"} (Extreme Gradient Boosting), \code{"svm"} (Máquina de Vetores de Suporte)
-ou \code{"arvore"} (Árvore de Decisão / CART).}
+\item{algoritmo}{Algoritmo a utilizar: \code{"rf"} (Random Forest / Floresta Aleatória, padrão),
+\code{"xgboost"} (Extreme Gradient Boosting), \code{"svm"} (Máquina de Vetores de Suporte),
+\code{"lasso"} (Lasso Penalizado L1), \code{"ridge"} (Ridge Penalizado L2) ou \code{"arvore"} (CART).}
 
 \item{proporcao_treino}{Proporção da amostra destinada ao treino (padrão \code{0.75}).}
 
