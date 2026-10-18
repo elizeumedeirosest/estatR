@@ -917,20 +917,19 @@ analise_residual_cox <- function(modelo, grafico = TRUE) {
   tab_zph <- zph$table
 
   .print_topico("1. PRESSUPOSTO DE RISCOS PROPORCIONAIS (SCHOENFELD)")
-  cat("  ─────────────────────────────────────────────────────── \n")
+  cat("  ───────────────────────────────────────────────── \n")
   cat("  Covariável              rho      Chi-quadrado   p-valor \n")
-  cat("  ─────────────────────────────────────────────────────── \n")
+  cat("  ───────────────────────────────────────────────── \n")
   for (i in 1:nrow(tab_zph)) {
     nm_r <- rownames(tab_zph)[i]
     rho_v <- if (!is.na(tab_zph[i, "chisq"]) && "rho" %in% colnames(tab_zph)) sprintf("%+7s", .fmt_num(tab_zph[i, "rho"], 3)) else "      -"
     chi_v <- sprintf("%8s", .fmt_num(tab_zph[i, "chisq"], 2))
     pv_v  <- tab_zph[i, "p"]
     pv_s  <- if (pv_v < 0.001) "< 0,001" else sprintf("%7s", .fmt_num(pv_v, 3))
-    status_sig <- if (pv_v < 0.05) " [Violação]" else " [Atendido]"
-    cat(sprintf("  %-20s %s      %s    %s %s\n",
-                nm_r, rho_v, chi_v, pv_s, status_sig))
+    cat(sprintf("  %-20s %s      %s    %s\n",
+                nm_r, rho_v, chi_v, pv_s))
   }
-  cat("  ─────────────────────────────────────────────────────── \n")
+  cat("  ───────────────────────────────────────────────── \n")
   cat("  * Critério: p >= 0.05 indica que a premissa de proporcionalidade dos riscos é válida.\n\n")
 
   # 2. Residuos Deviance (Outliers)
