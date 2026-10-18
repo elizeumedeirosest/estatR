@@ -30,3 +30,9 @@ Imports:
     survival,
     forecast,
     tseries
+Suggests:
+    ranger,
+    xgboost,
+    e1071,
+    rpart,
+    class
