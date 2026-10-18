@@ -460,6 +460,9 @@ metricas <- function(modelo, corte_prob = 0.5) {
   if (inherits(modelo, c("estatR_cox", "coxph"))) return(metricas_cox(modelo))
   if (inherits(modelo, "betareg"))                return(metricas_beta(modelo))
   if (inherits(modelo, "negbin"))                 return(metricas_binomial_negativa(modelo))
+  if (inherits(modelo, c("forecast", "previsao_serie", "Arima", "ets", "HoltWinters", "stlm"))) {
+    return(metricas_serie(modelo))
+  }
   if (inherits(modelo, "glm") && !is.null(modelo$family)) {
     if (modelo$family$family == "binomial") return(metricas_logistica(modelo, corte_prob = corte_prob))
     if (modelo$family$family == "poisson")  return(metricas_poisson(modelo))

@@ -756,6 +756,66 @@ paleta_estatR("vibrant")                    # Ver uma paleta específica
 
 ---
 
+<details>
+<summary><strong> Séries Temporais</strong></summary>
+<br>
+
+**Diagnóstico e Decomposição**
+
+```r
+# Análise completa da série: estatísticas, força dos componentes e painel gráfico (4 painéis)
+analise_serie(AirPassengers, tipo = "multiplicativa")
+analise_serie(dados, y = vendas, data = mes, frequencia = 12)
+```
+
+**Estacionariedade**
+
+```r
+# Testes ADF e KPSS com veredito [✓] / [!]
+teste_estacionariedade(AirPassengers)
+teste_estacionariedade(AirPassengers, diferencas = 1)
+```
+
+**Autocorrelação (FAC e FACP)**
+
+```r
+# Gráfico de barras (lollipop) com faixas de Bartlett + Ljung-Box
+grafico_autocorrelacao(AirPassengers, defasagens = 24)
+grafico_acf(AirPassengers)  # alias amigável
+```
+
+**Previsão com Suavização Exponencial (Fan Chart)**
+
+```r
+# Seleção automática (menor AICc) ou método explícito
+previsao_serie(AirPassengers, horizonte = 12, metodo = "auto")
+previsao_serie(AirPassengers, horizonte = 12, metodo = "holt_winters", tipo = "multiplicativa")
+```
+
+**Métricas de Acurácia**
+
+```r
+# RMSE, MAE, MAPE, sMAPE, MASE, UMBRAE, AIC, AICc, BIC
+metricas_serie(modelo_previsao)          # Objeto de previsão
+metricas(modelo_previsao)                # Polimórfico: detecta automaticamente série temporal
+metricas_serie(real = y_teste, previsto = y_hat, treino = y_treino)  # Vetores diretos
+```
+
+**Seleção de Modelos (Out-of-Sample Ranking)**
+
+```r
+# Compara famílias de modelos por desempenho fora da amostra (holdout)
+selecao_modelos_serie(AirPassengers, h = 12)
+selecao_modelos_serie(AirPassengers, familia = "suavizacao", top = 5, ordenar_por = "sMAPE")
+selecao_modelos_serie(AirPassengers, familia = c("estocastica"))  # ARIMA/SARIMA
+
+# Famílias disponíveis: "todas", "suavizacao", "estocastica", "decomposicao"
+```
+
+</details>
+
+---
+
 ## Autor
 
 **Elizeu Medeiros**  

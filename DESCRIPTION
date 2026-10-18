@@ -27,4 +27,6 @@ Imports:
     MASS,
     nnet,
     betareg,
-    survival
+    survival,
+    forecast,
+    tseries
