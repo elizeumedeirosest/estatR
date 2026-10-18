@@ -4,12 +4,21 @@
 \alias{selecao_modelos}
 \title{Seleção Múltipla de Modelos (Best Subsets / Stepwise)}
 \usage{
-selecao_modelos(formula, dados, top = 5)
+selecao_modelos(
+  formula,
+  dados,
+  comparar_modelos = c("estatistico", "aprend_maq"),
+  top = 5
+)
 }
 \arguments{
 \item{formula}{Fórmula do modelo inicial (ex: y ~ .).}
 
 \item{dados}{Data frame contendo os dados.}
+
+\item{comparar_modelos}{Famílias de modelos a comparar: \code{"estatistico"} (padrão,
+avalia subconjuntos de variáveis da regressão estatística), \code{"aprend_maq"}
+ou ambos \code{c("estatistico", "aprend_maq")}.}
 
 \item{top}{Número máximo de modelos a serem exibidos no ranking (padrão: 5).}
 }

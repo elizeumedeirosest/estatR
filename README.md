@@ -863,6 +863,56 @@ grafico_bland_altman(dados, metodo1 = Aparelho_A, metodo2 = Aparelho_B)
 
 ---
 
+<details>
+<summary><strong> Aprendizado de Máquina (Machine Learning)</strong></summary>
+<br>
+
+**Previsão Numérica (Regressão)**
+
+```r
+# Random Forest com auto-tuning de árvores por estabilização OOB
+mod_prev <- previsao_aprend_maq(mpg ~ wt + hp + qsec, dados = mtcars, metodo = "rf")
+
+# Parametrização manual em português
+mod_prev <- previsao_aprend_maq(mpg ~ wt + hp, dados = mtcars, metodo = "rf",
+                                n_arvores = 500, vars_por_no = 2)
+
+# Outros algoritmos suportados: "xgboost", "svm", "arvore"
+mod_xgb <- previsao_aprend_maq(mpg ~ ., dados = mtcars, metodo = "xgboost",
+                               taxa_aprendizado = 0.05, profundidade = 4)
+
+# Métricas de desempenho (Treino vs Teste)
+metricas(mod_prev)
+
+# Diagnóstico de resíduos formal (viés sistemático, normalidade e outliers)
+analise_residual(mod_prev)
+```
+
+**Classificação Categórica e Binária**
+
+```r
+# Classificação com Random Forest e matriz de confusão
+mod_cls <- classificacao_aprend_maq(Species ~ ., dados = iris, metodo = "rf")
+
+# Métodos disponíveis: "rf", "xgboost", "svm", "knn", "arvore"
+mod_knn <- classificacao_aprend_maq(Species ~ ., dados = iris, metodo = "knn", k = 5)
+
+# Métricas polimórficas (Acurácia, Kappa de Cohen)
+metricas(mod_cls)
+```
+
+**Seleção e Comparação de Modelos (Estatística vs Aprendizado de Máquina)**
+
+```r
+# Compara modelos estatísticos clássicos (OLS/GLM) com modelos de ML sob Validação Cruzada (5-fold CV)
+selecao_modelos(mpg ~ wt + hp + qsec, dados = mtcars,
+                comparar_modelos = c("estatistico", "aprend_maq"), top = 5)
+```
+
+</details>
+
+---
+
 ## Autor
 
 **Elizeu Medeiros**  

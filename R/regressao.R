@@ -463,6 +463,9 @@ metricas <- function(modelo, corte_prob = 0.5) {
   if (inherits(modelo, c("forecast", "previsao_serie", "Arima", "ets", "HoltWinters", "stlm"))) {
     return(metricas_serie(modelo))
   }
+  if (inherits(modelo, "estatR_aprend_maq")) {
+    if (exists("metricas_aprend_maq", mode = "function")) return(metricas_aprend_maq(modelo))
+  }
   if (inherits(modelo, "glm") && !is.null(modelo$family)) {
     if (modelo$family$family == "binomial") return(metricas_logistica(modelo, corte_prob = corte_prob))
     if (modelo$family$family == "poisson")  return(metricas_poisson(modelo))
@@ -537,7 +540,14 @@ analise_residual <- function(modelo, grafico = TRUE) {
     }
   }
 
-  # 1. Suporte a Sobrevivência (Cox)
+  # 1. Suporte a Aprendizado de Máquina (estatR_aprend_maq)
+  if (inherits(modelo, "estatR_aprend_maq")) {
+    if (exists("analise_residual_aprend_maq", mode = "function")) {
+      return(analise_residual_aprend_maq(modelo, grafico = grafico))
+    }
+  }
+
+  # 2. Suporte a Sobrevivência (Cox)
   if (inherits(modelo, c("estatR_cox", "coxph"))) {
     return(analise_residual_cox(modelo, grafico = grafico))
   }
@@ -733,12 +743,27 @@ analise_residual <- function(modelo, grafico = TRUE) {
 #' algoritmo exaustivo para até 10 preditores e heurística inteligente para mais.
 #' @param formula Fórmula do modelo inicial (ex: y ~ .).
 #' @param dados Data frame contendo os dados.
+#' @param comparar_modelos Famílias de modelos a comparar: \code{"estatistico"} (padrão,
+#'   avalia subconjuntos de variáveis da regressão estatística), \code{"aprend_maq"}
+#'   ou ambos \code{c("estatistico", "aprend_maq")}.
 #' @param top Número máximo de modelos a serem exibidos no ranking (padrão: 5).
 #' @return Retorna invisivelmente um data frame com o ranking completo.
 #' @export
-selecao_modelos <- function(formula, dados, top = 5) {
+selecao_modelos <- function(formula,
+                            dados,
+                            comparar_modelos = c("estatistico", "aprend_maq"),
+                            top = 5) {
   if (!is.data.frame(dados)) stop("O argumento 'dados' deve ser um data frame.")
-  
+
+  # Se o usuário solicitou comparar com ou exclusivamente Aprendizado de Máquina
+  if (identical(comparar_modelos, "aprend_maq") ||
+      (is.character(comparar_modelos) && "aprend_maq" %in% comparar_modelos && length(comparar_modelos) > 1)) {
+    if (exists(".selecao_comparativa_modelos", mode = "function")) {
+      return(.selecao_comparativa_modelos(formula = formula, dados = dados,
+                                          comparar_modelos = comparar_modelos, top = top))
+    }
+  }
+
   # Preparação de variáveis
   resp_dep <- deparse(formula[[2]])
   if (grepl("Surv\\(", resp_dep)) {
