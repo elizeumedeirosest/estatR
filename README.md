@@ -825,6 +825,44 @@ selecao_modelos_serie(AirPassengers, familia = c("estocastica"))  # ARIMA/SARIMA
 
 ---
 
+<details>
+<summary><strong> Estatística Não-Paramétrica e Concordância</strong></summary>
+<br>
+
+**Comparações de Múltiplos Grupos Não-Paramétricos**
+
+```r
+# Kruskal-Wallis com pós-teste automático de Dunn e ajuste de p-valor (Holm/Bonferroni)
+teste_kruskal(airquality, Ozone ~ Month)
+teste_kruskal(dados, y = rendimento, grupo = tratamento)
+
+# Teste de Friedman para medidas repetidas / blocos casualizados com Wilcoxon pareado
+teste_friedman(dados, valor ~ tempo | sujeito)
+teste_friedman(dados, y = resposta, grupo = periodo, bloco = paciente)
+```
+
+**Concordância e Confiabilidade entre Avaliadores**
+
+```r
+# Kappa de Cohen (2 avaliadores - simples, linear ou quadrático)
+concordancia_kappa(dados, avaliador1 = Medico_A, avaliador2 = Medico_B)
+concordancia_kappa(dados, Medico_A, Medico_B, ponderado = "quadratico")
+
+# Kappa de Fleiss (3 ou mais avaliadores)
+concordancia_kappa(matriz_avaliadores)  # Matriz de sujeitos x categorias
+```
+
+**Concordância Contínua de Métodos (Bland-Altman)**
+
+```r
+# Viés médio, limites de concordância de 95%, ICs e gráfico com grade dupla
+grafico_bland_altman(dados, metodo1 = Aparelho_A, metodo2 = Aparelho_B)
+```
+
+</details>
+
+---
+
 ## Autor
 
 **Elizeu Medeiros**  
