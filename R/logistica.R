@@ -184,6 +184,11 @@ regressao_logistica <- function(formula, dados, ligacao = "logit",
   lrt_df    <- df_nula  - df_res_df
   lrt_p     <- 1 - pchisq(lrt_chi, lrt_df)
   pseudo_r2 <- 1 - dev_res / dev_nula
+  r2_cs <- 1 - exp(-lrt_chi / n_obs)
+  max_r2_cs <- 1 - exp(-dev_nula / n_obs)
+  r2_nagelkerke <- if (max_r2_cs > 0) min(1, r2_cs / max_r2_cs) else 0
+  p_pos <- probs[Y_num == 1]; p_neg <- probs[Y_num == 0]
+  r2_tjur <- if (length(p_pos) > 0 && length(p_neg) > 0) mean(p_pos) - mean(p_neg) else 0
   aic_val   <- AIC(mod)
   bic_val   <- BIC(mod)
   K_params  <- length(coef(mod)) + 1
@@ -255,7 +260,9 @@ regressao_logistica <- function(formula, dados, ligacao = "logit",
   cat(aj_sep, "\n")
   cat("  ", .pad_log("Métrica", w_aj["med"], "left"), .pad_log("Valor", w_aj["val"], "right"), "\n", sep = "")
   cat(aj_sep, "\n")
-  aj_row("Pseudo-R\u00b2 (McFadden)", .fmt_pct(pseudo_r2, 1))
+  aj_row("R\u00b2 (Nagelkerke)",    .fmt_pct(r2_nagelkerke, 1))
+  aj_row("R\u00b2 (Tjur)",          .fmt_pct(r2_tjur, 1))
+  aj_row("R\u00b2 (McFadden)",      .fmt_pct(pseudo_r2, 1))
   aj_row("Acurácia Global",    sprintf("%s  (Corte: %.2f)", .fmt_pct(acc, 1), corte_prob))
   aj_row("Sensibilidade",      if (!is.na(sensib))  .fmt_pct(sensib, 1)  else "-")
   aj_row("Especificidade",     if (!is.na(especif)) .fmt_pct(especif, 1) else "-")
@@ -447,6 +454,11 @@ regressao_logistica <- function(formula, dados, ligacao = "logit",
   lrt_df    <- (length(cats)) * length(x_names)
   lrt_p     <- 1 - pchisq(lrt_chi, lrt_df)
   pseudo_r2 <- 1 - dev_res / dev_nula
+  r2_cs <- 1 - exp(-lrt_chi / n_obs)
+  max_r2_cs <- 1 - exp(-dev_nula / n_obs)
+  r2_nagelkerke <- if (max_r2_cs > 0) min(1, r2_cs / max_r2_cs) else 0
+  p_pos <- probs[Y_num == 1]; p_neg <- probs[Y_num == 0]
+  r2_tjur <- if (length(p_pos) > 0 && length(p_neg) > 0) mean(p_pos) - mean(p_neg) else 0
   aic_val   <- AIC(mod)
   bic_val   <- BIC(mod)
   K         <- length(coef(mod)) + 1
@@ -473,7 +485,9 @@ regressao_logistica <- function(formula, dados, ligacao = "logit",
   aj_row("Teste LRT (\u03c7\u00b2)",    sprintf("%.2f  (p %s)  %s", lrt_chi,
                                                if (lrt_p < 0.001) "< 0,001" else paste0("= ", formatC(lrt_p, format="f", digits=3, decimal.mark=",")),
                                                .asterisk_log(lrt_p)))
-  aj_row("Pseudo-R\u00b2 (McFadden)", .fmt_pct(pseudo_r2, 1))
+  aj_row("R\u00b2 (Nagelkerke)",    .fmt_pct(r2_nagelkerke, 1))
+  aj_row("R\u00b2 (Tjur)",          .fmt_pct(r2_tjur, 1))
+  aj_row("R\u00b2 (McFadden)",      .fmt_pct(pseudo_r2, 1))
   aj_row("Acurácia Global",   .fmt_pct(acc, 1))
   aj_row("AIC",  sprintf("%.2f", aic_val))
   aj_row("AICc", sprintf("%.2f", aicc_val))
@@ -650,7 +664,7 @@ regressao_logistica <- function(formula, dados, ligacao = "logit",
     aj_row("Teste LRT (\u03c7\u00b2)", sprintf("%.2f  (p %s)  %s", lrt_chi,
                                               if (lrt_p < 0.001) "< 0,001" else paste0("= ", formatC(lrt_p, format="f", digits=3, decimal.mark=",")),
                                               .asterisk_log(lrt_p)))
-  if (!is.na(pseudo_r2)) aj_row("Pseudo-R\u00b2 (McFadden)", .fmt_pct(pseudo_r2, 1))
+  if (!is.na(pseudo_r2)) aj_row("R\u00b2 (McFadden)", .fmt_pct(pseudo_r2, 1))
   aj_row("Acurácia Global",   .fmt_pct(acc, 1))
   aj_row("AIC",  sprintf("%.2f", aic_val))
   aj_row("AICc", sprintf("%.2f", aicc_val))
@@ -807,6 +821,11 @@ metricas_logistica <- function(modelo, corte_prob = 0.5) {
   dev_nula  <- modelo$null.deviance
   dev_res   <- modelo$deviance
   pseudo_r2 <- 1 - dev_res / dev_nula
+  r2_cs <- 1 - exp(-lrt_chi / n_obs)
+  max_r2_cs <- 1 - exp(-dev_nula / n_obs)
+  r2_nagelkerke <- if (max_r2_cs > 0) min(1, r2_cs / max_r2_cs) else 0
+  p_pos <- probs[Y_num == 1]; p_neg <- probs[Y_num == 0]
+  r2_tjur <- if (length(p_pos) > 0 && length(p_neg) > 0) mean(p_pos) - mean(p_neg) else 0
   aic_val   <- AIC(modelo)
   bic_val   <- BIC(modelo)
   aicc_val  <- if (n_obs - K - 1 > 0) aic_val + (2 * K * (K + 1)) / (n_obs - K - 1) else Inf
@@ -830,7 +849,15 @@ metricas_logistica <- function(modelo, corte_prob = 0.5) {
   cat(sep)
   cat("  ", .pad_log("Métrica", lw, "left"), .pad_log("Valor", vw, "right"), "\n", sep = "")
   cat(sep)
-  cat("  ", .pad_log("Pseudo-R\u00b2 (McFadden)", lw, "left"), .pad_log(.fmt_pct(pseudo_r2, 2), vw, "right"), "\n", sep = "")
+  lrt_chi_m <- dev_nula - dev_res
+  r2_cs_m <- 1 - exp(-lrt_chi_m / n_obs)
+  max_r2_cs_m <- 1 - exp(-dev_nula / n_obs)
+  r2_nag_m <- if (max_r2_cs_m > 0) min(1, r2_cs_m / max_r2_cs_m) else 0
+  p_pos_m <- probs[Y_num == 1]; p_neg_m <- probs[Y_num == 0]
+  r2_tjur_m <- if (length(p_pos_m) > 0 && length(p_neg_m) > 0) mean(p_pos_m) - mean(p_neg_m) else 0
+  cat("  ", .pad_log("R\u00b2 (Nagelkerke)", lw, "left"), .pad_log(.fmt_pct(r2_nag_m, 2), vw, "right"), "\n", sep = "")
+  cat("  ", .pad_log("R\u00b2 (Tjur)",       lw, "left"), .pad_log(.fmt_pct(r2_tjur_m, 2), vw, "right"), "\n", sep = "")
+  cat("  ", .pad_log("R\u00b2 (McFadden)",   lw, "left"), .pad_log(.fmt_pct(pseudo_r2, 2), vw, "right"), "\n", sep = "")
   cat("  ", .pad_log("AIC",      lw, "left"), .pad_log(sprintf("%.2f", aic_val),  vw, "right"), "\n", sep = "")
   cat("  ", .pad_log("AICc",     lw, "left"), .pad_log(sprintf("%.2f", aicc_val), vw, "right"), "\n", sep = "")
   cat("  ", .pad_log("BIC",      lw, "left"), .pad_log(sprintf("%.2f", bic_val),  vw, "right"), "\n", sep = "")

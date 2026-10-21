@@ -944,3 +944,489 @@ selecao_modelos <- function(formula,
   
   invisible(df_res)
 }
+
+
+# ─────────────────────────────────────────────────────────────────────────────
+#' @title Diagnóstico de Alavancagem e Pontos Influentes
+#' @description Identifica observações atípicas, pontos de alta alavancagem (leverage) e
+#'   observações influentes que afetam desproporcionalmente a estimação dos parâmetros
+#'   do modelo de regressão linear (\code{lm}) ou modelo linear generalizado (\code{glm}).
+#'   Opcionalmente reestima o modelo omitindo tais observações para comparar o impacto
+#'   nos coeficientes e exibe gráficos diagnósticos com grade dupla.
+#'
+#' @param modelo Objeto de modelo ajustado da classe \code{lm} ou \code{glm}.
+#' @param corte Critério para limites críticos: \code{"automatico"} (padrão:
+#'   Cook > 4/n, Leverage > 2p/n, |DFFITS| > 2*sqrt(p/n)) ou \code{"conservador"}
+#'   (Cook > 1, Leverage > 3p/n, |DFFITS| > 3*sqrt(p/n)).
+#' @param comparar Lógico. Se TRUE (padrão) e forem detectados pontos influentes,
+#'   reajusta o modelo omitindo tais observações e exibe a comparação dos coeficientes.
+#' @param grafico Lógico. Se TRUE (padrão), plota diagnóstico visual com \code{grade = "dupla"}.
+#'   Para regressão linear simples (1 preditor), sobrepõe as retas ajustadas com e sem
+#'   os pontos influentes. Para regressão múltipla ou GLM, gera gráfico de dispersão
+#'   Alavancagem vs. Distância de Cook.
+#'
+#' @return Retorna invisivelmente uma lista com:
+#'   \item{tabela_pontos}{Data frame com as observações destacadas e suas métricas.}
+#'   \item{n_influentes}{Número de observações influentes encontradas.}
+#'   \item{indices_influentes}{Vetor de índices das observações influentes.}
+#'   \item{comparacao_coefs}{Data frame comparativo de coeficientes (quando aplicável).}
+#'   \item{modelo_sem_influentes}{Modelo reajustado sem os pontos influentes (quando aplicável).}
+#' @export
+pontos_influentes <- function(modelo,
+                              corte = c("automatico", "conservador"),
+                              comparar = TRUE,
+                              grafico = TRUE) {
+  if (!inherits(modelo, c("lm", "glm"))) {
+    stop("O argumento 'modelo' deve ser um objeto da classe 'lm' ou 'glm'.")
+  }
+  corte <- match.arg(corte)
+
+  n <- stats::nobs(modelo)
+  p <- length(stats::coef(modelo))
+
+  if (n <= p + 1) {
+    stop("Número insuficiente de graus de liberdade residuais para cálculo de influência.")
+  }
+
+  hat_vals  <- stats::hatvalues(modelo)
+  cooks_d   <- stats::cooks.distance(modelo)
+  res_stud  <- tryCatch(stats::rstudent(modelo), error = function(e) stats::rstandard(modelo))
+
+  dffits_v  <- tryCatch({
+    stats::dffits(modelo)
+  }, error = function(e) {
+    res_stud * sqrt(hat_vals / pmax(1e-10, 1 - hat_vals))
+  })
+
+  if (corte == "automatico") {
+    lim_hat   <- 2 * p / n
+    lim_cook  <- 4 / n
+    lim_dff   <- 2 * sqrt(p / n)
+    lim_res   <- 2.0
+  } else {
+    lim_hat   <- 3 * p / n
+    lim_cook  <- 1.0
+    lim_dff   <- 3 * sqrt(p / n)
+    lim_res   <- 2.5
+  }
+
+  is_cook  <- !is.na(cooks_d) & (cooks_d > lim_cook)
+  is_dff   <- !is.na(dffits_v) & (abs(dffits_v) > lim_dff)
+  is_infl  <- is_cook | is_dff
+  is_alav  <- !is.na(hat_vals) & (hat_vals > lim_hat)
+  is_outl  <- !is.na(res_stud) & (abs(res_stud) > lim_res)
+
+  classificacao <- character(n)
+  for (i in seq_len(n)) {
+    if (is_infl[i] && is_alav[i]) {
+      classificacao[i] <- "Alavancagem e Influ\u00eancia"
+    } else if (is_infl[i]) {
+      classificacao[i] <- "Ponto Influente"
+    } else if (is_alav[i]) {
+      classificacao[i] <- "Alta Alavancagem"
+    } else if (is_outl[i]) {
+      classificacao[i] <- "Res\u00edduo At\u00edpico"
+    } else {
+      classificacao[i] <- "T\u00edpico"
+    }
+  }
+
+  idx_destaque <- which(classificacao != "T\u00edpico")
+  idx_infl_pur <- which(is_infl)
+  n_infl       <- length(idx_infl_pur)
+
+  nomes_obs <- names(hat_vals)
+  if (is.null(nomes_obs)) nomes_obs <- as.character(seq_len(n))
+
+  df_todos <- data.frame(
+    Indice        = seq_len(n),
+    Obs           = nomes_obs,
+    Resid_Stud    = round(res_stud, 3),
+    Leverage      = round(hat_vals, 3),
+    Cook_D        = round(cooks_d, 4),
+    DFFITS        = round(dffits_v, 3),
+    Classificacao = classificacao,
+    stringsAsFactors = FALSE
+  )
+
+  df_destaque <- df_todos[idx_destaque, , drop = FALSE]
+  if (nrow(df_destaque) > 0) {
+    df_destaque <- df_destaque[order(df_destaque$Cook_D, decreasing = TRUE), ]
+  }
+
+  tabela_comp  <- NULL
+  modelo_sem   <- NULL
+
+  if (comparar && n_infl > 0 && (n - n_infl > p)) {
+    dados_orig <- tryCatch(stats::model.frame(modelo), error = function(e) NULL)
+    if (!is.null(dados_orig)) {
+      dados_sem <- dados_orig[-idx_infl_pur, , drop = FALSE]
+      modelo_sem <- tryCatch(stats::update(modelo, data = dados_sem), error = function(e) NULL)
+
+      if (!is.null(modelo_sem)) {
+        cf_com <- stats::coef(modelo)
+        cf_sem <- stats::coef(modelo_sem)
+        sm_sem <- summary(modelo_sem)
+        p_sem  <- sm_sem$coefficients[, 4]
+
+        var_pct <- ((cf_sem - cf_com) / pmax(1e-10, abs(cf_com))) * 100
+
+        tabela_comp <- data.frame(
+          "Termo"         = names(cf_com),
+          "Modelo Completo" = sapply(cf_com, .fmt_num, decimais = 3),
+          "Sem Influentes"= sapply(cf_sem, .fmt_num, decimais = 3),
+          "Variação (%)"  = sprintf("%+.1f%%", var_pct),
+          "p-valor (Sem)" = sapply(p_sem, function(pv) if (pv < 0.001) "< 0,001" else .fmt_p(pv)),
+          stringsAsFactors = FALSE, check.names = FALSE
+        )
+      }
+    }
+  }
+
+  .print_titulo("DIAGN\u00d3STICO DE ALAVANCAGEM E PONTOS INFLUENTES")
+  cat(sprintf("  Modelo avaliado:   %s (%d observa\u00e7\u00f5es, %d par\u00e2metros)\n",
+              class(modelo)[1], n, p))
+  cat(sprintf("  Crit\u00e9rio de corte:  %s\n", ifelse(corte == "automatico", "Autom\u00e1tico (Literatura Padr\u00e3o)", "Conservador")))
+  cat(sprintf("  Limites de Alerta: Cook > %s | Alavancagem > %s | |DFFITS| > %s\n\n",
+              .fmt_num(lim_cook, 4), .fmt_num(lim_hat, 3), .fmt_num(lim_dff, 3)))
+
+  .print_topico(sprintf("OBSERVA\u00c7\u00d5ES DESTACADAS (%d detectadas)", nrow(df_destaque)))
+
+  if (nrow(df_destaque) > 0) {
+    df_print <- data.frame(
+      "Obs."           = df_destaque$Obs,
+      "Res\u00edduo Stud." = sprintf("%.3f", df_destaque$Resid_Stud),
+      "Alavancagem (h)" = sprintf("%.3f", df_destaque$Leverage),
+      "Cook (D)"       = sprintf("%.4f", df_destaque$Cook_D),
+      "DFFITS"         = sprintf("%.3f", df_destaque$DFFITS),
+      "Diagn\u00f3stico" = df_destaque$Classificacao,
+      stringsAsFactors = FALSE, check.names = FALSE
+    )
+    .print_tabela_estatR(head(df_print, 15), align = c("center", "center", "center", "center", "center", "left"))
+    if (nrow(df_print) > 15) {
+      cat(sprintf("  * Exibindo as 15 principais de %d observa\u00e7\u00f5es at\u00edpicas ordenadas por Cook (D).\n\n", nrow(df_print)))
+    }
+  } else {
+    cat("  Nenhuma observa\u00e7\u00e3o at\u00edpica ou influente ultrapassou os limites de alerta.\n\n")
+  }
+
+  if (!is.null(tabela_comp)) {
+    .print_topico(sprintf("IMPACTO NOS COEFICIENTES (Removendo %d ponto(s) influente(s))", n_infl))
+    .print_tabela_estatR(tabela_comp, align = c("left", "center", "center", "center", "center"))
+  }
+
+  cor_ok   <- "\033[1;32m"
+  cor_warn <- "\033[1;33m"
+  cor_erro <- "\033[1;31m"
+  reset    <- "\033[0m"
+
+  .print_topico("CONCLUS\u00c3O DO DIAGN\u00d3STICO")
+  if (n_infl == 0) {
+    cat(sprintf("  %s[\u2713]%s Aus\u00eancia de pontos influentes desestabilizadores. As estimativas s\u00e3o robustas.\n\n", cor_ok, reset))
+  } else if (n_infl <= max(1, floor(0.02 * n))) {
+    cat(sprintf("  %s[!]%s Detectado(s) %d ponto(s) influente(s) com impacto nos coeficientes. Recomenda-se investigar a origem destas observa\u00e7\u00f5es.\n\n", cor_warn, reset, n_infl))
+  } else {
+    cat(sprintf("  %s[!]%s Detectada presen\u00e7a expressiva de observa\u00e7\u00f5es influentes (%d obs). Considere modelos robustos ou investiga\u00e7\u00e3o aprofundada.\n\n", cor_erro, reset, n_infl))
+  }
+
+  .print_rodape()
+
+  if (grafico && requireNamespace("ggplot2", quietly = TRUE)) {
+    tryCatch({
+      tema_padrao <- if (exists("meu_tema", mode = "function")) {
+        meu_tema(grade = "dupla")
+      } else if (exists("tema_estatR", mode = "function")) {
+        tema_estatR(estilo = 2, grade = "dupla")
+      } else {
+        ggplot2::theme_minimal()
+      }
+
+      termos <- attr(stats::terms(modelo), "term.labels")
+      is_reg_simples <- inherits(modelo, "lm") && length(termos) == 1 &&
+                        is.numeric(stats::model.frame(modelo)[[termos[1]]])
+
+      if (is_reg_simples && !is.null(modelo_sem)) {
+        mf <- stats::model.frame(modelo)
+        y_col <- names(mf)[1]
+        x_col <- termos[1]
+
+        df_scatter <- data.frame(
+          x = mf[[x_col]],
+          y = mf[[y_col]],
+          Tipo = ifelse(seq_len(n) %in% idx_infl_pur, "Ponto Influente", "Observação Típica"),
+          Obs = nomes_obs
+        )
+
+        p_plot <- ggplot2::ggplot(df_scatter, ggplot2::aes(x = x, y = y)) +
+          ggplot2::geom_point(ggplot2::aes(color = Tipo, shape = Tipo, size = Tipo), alpha = 0.85) +
+          ggplot2::scale_color_manual(values = c("Ponto Influente" = "#D90429", "Observação Típica" = "#2B5C8F")) +
+          ggplot2::scale_shape_manual(values = c("Ponto Influente" = 17, "Observação Típica" = 16)) +
+          ggplot2::scale_size_manual(values = c("Ponto Influente" = 3.5, "Observação Típica" = 2.2)) +
+          ggplot2::geom_abline(intercept = stats::coef(modelo)[1], slope = stats::coef(modelo)[2],
+                               color = "#2B5C8F", linewidth = 1.0, linetype = "solid") +
+          ggplot2::geom_abline(intercept = stats::coef(modelo_sem)[1], slope = stats::coef(modelo_sem)[2],
+                               color = "#D90429", linewidth = 1.1, linetype = "dashed") +
+          ggplot2::labs(
+            title = "Ajuste Linear: Modelo Completo vs. Sem Pontos Influentes",
+            subtitle = sprintf("Linha contínua azul: Completo | Linha tracejada vermelha: Sem %d influente(s)", n_infl),
+            x = x_col, y = y_col
+          ) +
+          tema_padrao
+
+        print(p_plot)
+
+      } else {
+        df_diag_plot <- data.frame(
+          Leverage = hat_vals,
+          Cook     = cooks_d,
+          Tipo     = df_todos$Classificacao,
+          Obs      = nomes_obs
+        )
+        df_diag_plot$Destaque <- df_diag_plot$Tipo != "Típico"
+
+        p_plot <- ggplot2::ggplot(df_diag_plot, ggplot2::aes(x = Leverage, y = Cook)) +
+          ggplot2::geom_hline(yintercept = lim_cook, linetype = "dashed", color = "#D90429", linewidth = 0.8) +
+          ggplot2::geom_vline(xintercept = lim_hat, linetype = "dashed", color = "#E69F00", linewidth = 0.8) +
+          ggplot2::geom_point(ggplot2::aes(color = Tipo, size = Cook), alpha = 0.8) +
+          ggplot2::scale_color_manual(values = c(
+            "Alavancagem e Influência" = "#D90429",
+            "Ponto Influente"          = "#E69F00",
+            "Alta Alavancagem"         = "#56B4E9",
+            "Resíduo Atípico"          = "#CC79A7",
+            "Típico"                   = "#999999"
+          )) +
+          ggplot2::labs(
+            title = "Alavancagem (Leverage) vs. Distância de Cook",
+            subtitle = sprintf("Linhas pontilhadas: Limite Cook (%.4f) e Limite Alavancagem (%.3f)", lim_cook, lim_hat),
+            x = "Alavancagem (hatvalues)", y = "Distância de Cook"
+          ) +
+          tema_padrao
+
+        print(p_plot)
+      }
+    }, error = function(e) {
+      message("[Aviso] Não foi possível renderizar o gráfico diagnóstico: ", e$message)
+    })
+  }
+
+  resultado <- list(
+    tabela_pontos         = df_destaque,
+    n_influentes          = n_infl,
+    indices_influentes    = idx_infl_pur,
+    comparacao_coefs      = tabela_comp,
+    modelo_sem_influentes = modelo_sem
+  )
+  invisible(resultado)
+}
+
+# ─────────────────────────────────────────────────────────────────────────────
+#' @title Diagnóstico de Multicolinearidade (VIF e GVIF)
+#' @description Avalia a presença e a gravidade de multicolinearidade entre as variáveis
+#'   preditoras de um modelo linear (\code{lm}) ou modelo linear generalizado (\code{glm}).
+#'   Calcula o Fator de Inflação da Variância clássico (VIF) para variáveis contínuas
+#'   e o VIF Generalizado (GVIF) para fatores com mais de dois níveis (Fox & Monette, 1992),
+#'   além da Tolerância e do Número de Condição da matriz de planejamento.
+#'
+#' @param modelo Objeto ajustado da classe \code{lm} ou \code{glm}.
+#' @param grafico Lógico. Se TRUE, plota gráfico de barras horizontais do VIF/GVIF
+#'   com linhas de corte em 5 (moderado) e 10 (severo) com \code{grade = "dupla"}.
+#'
+#' @return Retorna invisivelmente um data frame com as métricas de multicolinearidade.
+#' @export
+multicolinearidade <- function(modelo, grafico = FALSE) {
+  if (!inherits(modelo, c("lm", "glm"))) {
+    stop("O argumento 'modelo' deve ser um objeto da classe 'lm' ou 'glm'.")
+  }
+
+  termos_obj <- stats::terms(modelo)
+  term_labels <- attr(termos_obj, "term.labels")
+
+  if (length(term_labels) < 2) {
+    message("[Informação] Modelos com apenas uma variável preditora não apresentam multicolinearidade.")
+    return(invisible(NULL))
+  }
+
+  X <- stats::model.matrix(modelo)
+  tem_intercepto <- attr(termos_obj, "intercept") == 1
+
+  assign_vec <- attr(X, "assign")
+  if (tem_intercepto) {
+    X <- X[, -1, drop = FALSE]
+    assign_vec <- assign_vec[-1]
+  }
+
+  p_cols <- ncol(X)
+  if (p_cols < 2) {
+    message("[Informação] Menos de duas colunas de preditores na matriz de planejamento.")
+    return(invisible(NULL))
+  }
+
+  sd_cols <- apply(X, 2, stats::sd)
+  if (any(sd_cols == 0)) {
+    warning("Colunas constantes detectadas entre os preditores.")
+  }
+
+  R <- tryCatch(stats::cor(X), error = function(e) NULL)
+  det_R <- if (!is.null(R)) tryCatch(det(R), error = function(e) 0) else 0
+
+  u_assign <- sort(unique(assign_vec))
+  n_termos <- length(u_assign)
+
+  df_list <- list()
+
+  for (i in seq_along(u_assign)) {
+    as_val <- u_assign[i]
+    nome_termo <- term_labels[as_val]
+    cols_termo <- which(assign_vec == as_val)
+    df_termo   <- length(cols_termo)
+
+    if (df_termo == 1 && !is.null(R) && det_R > 1e-12) {
+      inv_R <- tryCatch(solve(R), error = function(e) NULL)
+      if (!is.null(inv_R)) {
+        vif_val <- inv_R[cols_termo, cols_termo]
+      } else {
+        m_aux <- stats::lm(X[, cols_termo] ~ X[, -cols_termo, drop = FALSE])
+        r2_aux <- summary(m_aux)$r.squared
+        vif_val <- if (r2_aux < 0.99999) 1 / (1 - r2_aux) else 999
+      }
+      gvif_val <- vif_val
+      gvif_adj <- sqrt(vif_val)
+      vif_equiv <- vif_val
+    } else if (df_termo > 1 && !is.null(R) && det_R > 1e-12) {
+      R11 <- R[cols_termo, cols_termo, drop = FALSE]
+      R22 <- R[-cols_termo, -cols_termo, drop = FALSE]
+      det_R11 <- det(R11)
+      det_R22 <- det(R22)
+      gvif_val <- (det_R11 * det_R22) / det_R
+      gvif_adj <- gvif_val^(1 / (2 * df_termo))
+      vif_equiv <- gvif_adj^2
+    } else {
+      gvif_val <- Inf
+      gvif_adj <- Inf
+      vif_equiv <- Inf
+    }
+
+    tol_val <- if (is.finite(vif_equiv) && vif_equiv > 0) 1 / vif_equiv else 0
+
+    diag_txt <- if (vif_equiv < 5) {
+      "Baixa (Ideal)"
+    } else if (vif_equiv < 10) {
+      "Moderada (Atenção)"
+    } else {
+      "Severa (Crítica)"
+    }
+
+    df_list[[i]] <- data.frame(
+      Termo        = nome_termo,
+      gl           = df_termo,
+      VIF_GVIF     = gvif_val,
+      GVIF_Ajust   = gvif_adj,
+      VIF_Equiv    = vif_equiv,
+      Tolerancia   = tol_val,
+      Diagnostico  = diag_txt,
+      stringsAsFactors = FALSE
+    )
+  }
+
+  tabela_vif <- do.call(rbind, df_list)
+
+  X_scaled <- scale(X, center = FALSE, scale = sqrt(colSums(X^2)))
+  sv_vals  <- tryCatch(svd(X_scaled)$d, error = function(e) c(1, 1))
+  kappa_val <- if (min(sv_vals) > 1e-12) max(sv_vals) / min(sv_vals) else Inf
+
+  .print_titulo("DIAGN\u00d3STICO DE MULTICOLINEARIDADE")
+  cat(sprintf("  Modelo avaliado:     %s (%d preditores na f\u00f3rmula)\n", class(modelo)[1], n_termos))
+  cat(sprintf("  N\u00famero de Condi\u00e7\u00e3o: \u03ba = %s (%s)\n\n",
+              if (is.infinite(kappa_val)) "Inf" else .fmt_num(kappa_val, 2),
+              if (kappa_val < 15) "estabilidade global excelente" else
+              if (kappa_val < 30) "colinearidade global moderada" else "colinearidade severa"))
+
+  .print_topico("FATORES DE INFLA\u00c7\u00c3O DA VARI\u00c2NCIA (VIF / GVIF)")
+
+  tem_fator_mult <- any(tabela_vif$gl > 1)
+
+  df_print <- if (tem_fator_mult) {
+    data.frame(
+      "Preditor"       = tabela_vif$Termo,
+      "gl"             = tabela_vif$gl,
+      "GVIF"           = sapply(tabela_vif$VIF_GVIF, function(v) if (is.infinite(v)) "Inf" else .fmt_num(v, 2)),
+      "GVIF^(1/(2*gl))"= sapply(tabela_vif$GVIF_Ajust, function(v) if (is.infinite(v)) "Inf" else .fmt_num(v, 3)),
+      "VIF Equivalente"= sapply(tabela_vif$VIF_Equiv, function(v) if (is.infinite(v)) "Inf" else .fmt_num(v, 2)),
+      "Toler\u00e2ncia"= sapply(tabela_vif$Tolerancia, .fmt_num, decimais = 3),
+      "Diagn\u00f3stico" = tabela_vif$Diagnostico,
+      stringsAsFactors = FALSE, check.names = FALSE
+    )
+  } else {
+    data.frame(
+      "Preditor"       = tabela_vif$Termo,
+      "VIF"            = sapply(tabela_vif$VIF_GVIF, function(v) if (is.infinite(v)) "Inf" else .fmt_num(v, 2)),
+      "Toler\u00e2ncia"= sapply(tabela_vif$Tolerancia, .fmt_num, decimais = 3),
+      "Diagn\u00f3stico" = tabela_vif$Diagnostico,
+      stringsAsFactors = FALSE, check.names = FALSE
+    )
+  }
+
+  align_vec <- if (tem_fator_mult) c("left", "center", "center", "center", "center", "center", "center") else c("left", "center", "center", "center")
+  .print_tabela_estatR(df_print, align = align_vec)
+
+  cat("  * Crit\u00e9rios: VIF < 5 (Ideal) | 5 a 10 (Moderado / Alerta) | >= 10 (Severo / Cr\u00edtico).\n")
+  if (tem_fator_mult) {
+    cat("  * Para fatores com gl > 1, avalia-se GVIF^(1/(2*gl)) comparado \u00e0 raiz do VIF padr\u00e3o.\n")
+  }
+  cat("\n")
+
+  cor_ok   <- "\033[1;32m"
+  cor_warn <- "\033[1;33m"
+  cor_erro <- "\033[1;31m"
+  reset    <- "\033[0m"
+
+  max_vif <- max(tabela_vif$VIF_Equiv)
+  .print_topico("CONCLUS\u00c3O DO DIAGN\u00d3STICO")
+  if (max_vif < 5 && kappa_val < 15) {
+    cat(sprintf("  %s[\u2713]%s Aus\u00eancia de multicolinearidade prejudicial. O modelo preserva estabilidade param\u00e9trica.\n\n", cor_ok, reset))
+  } else if (max_vif < 10 && kappa_val < 30) {
+    cat(sprintf("  %s[!]%s Multicolinearidade moderada detectada. Recomenda-se aten\u00e7\u00e3o aos erros padr\u00e3o dos preditores destacados.\n\n", cor_warn, reset))
+  } else {
+    cat(sprintf("  %s[!]%s Multicolinearidade severa detectada (VIF >= 10). Recomenda-se eliminar preditores redundantes ou utilizar regulariza\u00e7\u00e3o (Lasso/Ridge).\n\n", cor_erro, reset))
+  }
+
+  .print_rodape()
+
+  if (grafico && requireNamespace("ggplot2", quietly = TRUE)) {
+    tryCatch({
+      tema_padrao <- if (exists("meu_tema", mode = "function")) {
+        meu_tema(grade = "dupla")
+      } else if (exists("tema_estatR", mode = "function")) {
+        tema_estatR(estilo = 2, grade = "dupla")
+      } else {
+        ggplot2::theme_minimal()
+      }
+
+      df_g <- tabela_vif
+      df_g$Termo <- factor(df_g$Termo, levels = rev(df_g$Termo))
+
+      p_vif <- ggplot2::ggplot(df_g, ggplot2::aes(x = Termo, y = VIF_Equiv)) +
+        ggplot2::geom_col(ggplot2::aes(fill = Diagnostico), width = 0.6) +
+        ggplot2::geom_hline(yintercept = 5, linetype = "dashed", color = "#E69F00", linewidth = 0.8) +
+        ggplot2::geom_hline(yintercept = 10, linetype = "dashed", color = "#D90429", linewidth = 0.8) +
+        ggplot2::scale_fill_manual(values = c(
+          "Baixa (Ideal)"       = "#2B5C8F",
+          "Moderada (Atenção)"  = "#E69F00",
+          "Severa (Crítica)"    = "#D90429"
+        )) +
+        ggplot2::coord_flip() +
+        ggplot2::labs(
+          title = "Fator de Inflação da Variância (VIF / GVIF)",
+          subtitle = "Linhas pontilhadas: Limite de Alerta (5) e Limite Crítico (10)",
+          x = "", y = "VIF Equivalente"
+        ) +
+        tema_padrao
+
+      print(p_vif)
+    }, error = function(e) {
+      message("[Aviso] Não foi possível renderizar o gráfico de VIF: ", e$message)
+    })
+  }
+
+  invisible(tabela_vif)
+}

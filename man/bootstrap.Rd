@@ -2,11 +2,15 @@
 % Please edit documentation in R/simulacao.R
 \name{bootstrap}
 \alias{bootstrap}
-\title{Bootstrap: Estimação por Reamostragem}
+\title{Bootstrap: Estimação por Reamostragem (Simples, Estratificado, Residual e por Bloco)}
 \usage{
 bootstrap(
-  x,
+  x = NULL,
   estatistica = "media",
+  tipo = c("simples", "estratificado", "residual", "bloco"),
+  estrato = NULL,
+  modelo = NULL,
+  bloco = NULL,
   repeticoes = 1000,
   confianca = 0.95,
   semente = NULL,
@@ -14,12 +18,20 @@ bootstrap(
 )
 }
 \arguments{
-\item{x}{Vetor numérico com os dados observados.}
+\item{x}{Vetor numérico ou série temporal (para \code{"simples"}, \code{"estratificado"} ou \code{"bloco"}).}
 
-\item{estatistica}{A estatística de interesse. Pode ser um nome entre
-\code{"media"}, \code{"mediana"}, \code{"variancia"}, \code{"dp"} ou
-\code{"proporcao"} (proporção de valores > 0), ou uma \strong{função} customizada
-(ex: \code{estatistica = function(x) quantile(x, 0.9)}).}
+\item{estatistica}{A estatística de interesse (padrão \code{"media"}). Pode ser
+\code{"media"}, \code{"mediana"}, \code{"variancia"}, \code{"dp"}, \code{"proporcao"}
+ou uma função customizada.}
+
+\item{tipo}{Modalidade de Bootstrap: \code{"simples"} (padrão), \code{"estratificado"},
+\code{"residual"} (para regressão) ou \code{"bloco"} (para séries temporais).}
+
+\item{estrato}{Vetor de fatores ou caracteres definindo os estratos (obrigatório se \code{tipo = "estratificado"}).}
+
+\item{modelo}{Objeto da classe \code{lm} (obrigatório se \code{tipo = "residual"}).}
+
+\item{bloco}{Tamanho do bloco para reamostragem temporal (se \code{NULL}, calculado automaticamente).}
 
 \item{repeticoes}{Número de amostras Bootstrap a gerar (padrão 1000).}
 
@@ -27,13 +39,19 @@ bootstrap(
 
 \item{semente}{Semente para reprodutibilidade (padrão \code{NULL}).}
 
-\item{grafico}{Lógico. Se TRUE, plota o histograma das estimativas Bootstrap.}
+\item{grafico}{Lógico. Se TRUE (padrão), plota gráfico com \code{grade = "dupla"}.}
 }
 \value{
-Retorna invisivelmente um data frame com as estimativas Bootstrap.
+Retorna invisivelmente uma lista com as estimativas Bootstrap e métricas.
 }
 \description{
-Estima a variabilidade de uma estatística usando reamostragem Bootstrap.
-Calcula a estimativa original, o viés estimado, o erro padrão Bootstrap e o
-Intervalo de Confiança por percentis.
+Estima a variabilidade, viés, erro padrão e intervalos de confiança não-paramétricos
+usando reamostragem Bootstrap. Suporta quatro modalidades principais:
+\itemize{
+\item \code{"simples"}: Reamostragem padrão independente com reposição sobre vetor.
+\item \code{"estratificado"}: Reamostragem balanceada dentro de subgrupos/estratos.
+\item \code{"residual"}: Reamostragem de resíduos para modelos de regressão (\code{lm}),
+gerando distribuições e ICs robustos para os coeficientes \eqn{\beta} e \eqn{R^2}.
+\item \code{"bloco"}: Moving Block Bootstrap para dados com dependência temporal.
+}
 }

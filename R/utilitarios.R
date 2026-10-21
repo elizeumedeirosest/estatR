@@ -39,8 +39,14 @@
   paste0(.fmt_num(x * 100, decimais), "%")
 }
 
-#' Alinha texto ou números para exibir em formato tabular
+#' Formata p-valor
 #' @noRd
+.fmt_p <- function(p) {
+  if (is.na(p) || is.nan(p)) return("-")
+  if (p < 0.001) return("< 0,001")
+  format(round(p, 3), nsmall = 3, decimal.mark = ",")
+}
+
 .pad_string <- function(x, width, align = c("right", "left", "center")) {
   align <- match.arg(align)
   x <- as.character(x)

@@ -109,9 +109,17 @@ estimar_momentos(mtcars$wt,  distribuicao = "gamma")
 **Simulação Estatística**
 
 ```r
-# Bootstrap
+# Bootstrap Simples (vetor independente)
 bootstrap(mtcars$mpg, estatistica = "media",  repeticoes = 2000)
-bootstrap(mtcars$mpg, estatistica = "mediana", repeticoes = 2000)
+
+# Bootstrap Estratificado (reamostragem balanceada dentro de subgrupos)
+bootstrap(mtcars$mpg, estatistica = "media", tipo = "estratificado", estrato = mtcars$am)
+
+# Bootstrap Residual para Regressão (distribuições e ICs robustos para coeficientes e R²)
+bootstrap(modelo = modelo2, tipo = "residual", repeticoes = 1000)
+
+# Bootstrap de Blocos Móveis (Moving Block Bootstrap para séries temporais)
+bootstrap(serie_temp, tipo = "bloco", repeticoes = 1000)
 
 # Teorema Central do Limite
 simular_tcl(mtcars$mpg, n_amostra = 30, repeticoes = 1000)
@@ -199,6 +207,13 @@ predicao(modelo2, data.frame(wt = 2.5, hp = 110), intervalo = "predicao")
 metricas(modelo)
 analise_residual(modelo)
 grafico_coeficientes(modelo2)
+
+# Diagnóstico de Alavancagem e Pontos Influentes (Cook, Leverage, DFFITS e reajuste comparativo)
+pontos_influentes(modelo)
+pontos_influentes(modelo2)
+
+# Diagnóstico de Multicolinearidade (VIF para numéricas, GVIF para fatores e Número de Condição)
+multicolinearidade(modelo2)
 ```
 
 **Regressão Logística (Binomial, Multinomial e Ordinal)**

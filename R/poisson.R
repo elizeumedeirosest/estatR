@@ -108,7 +108,11 @@ regressao_poisson <- function(formula, dados, ligacao = "log", grafico = TRUE) {
   cat("  ", .pad("Deviance Residual", w_diag["met"], "left"), .pad(sprintf("%.2f (df=%d)", dev_res, df_res), w_diag["val"], "center"), "\n", sep = "")
   cat("  ", .pad("Sobredispers\u00e3o (\u03c7\u00b2/df)", w_diag["met"], "left"), .pad(sprintf("%.3f", dispersion_ratio), w_diag["val"], "center"), "\n", sep = "")
   cat("  ", .pad("Teste LRT (\u03c7\u00b2)", w_diag["met"], "left"), .pad(sprintf("%.2f (%s)", lrt_stat, .fmt_p(p_lrt)), w_diag["val"], "center"), .ast(p_lrt), "\n", sep = "")
-  cat("  ", .pad("Pseudo-R\u00b2 (McFadden)", w_diag["met"], "left"), .pad(sprintf("%.1f%%", pseudo_r2 * 100), w_diag["val"], "center"), "\n", sep = "")
+  y_obs_p <- modelo$y; y_fit_p <- fitted(modelo)
+  ss_tot_p <- sum((y_obs_p - mean(y_obs_p))^2); ss_res_p <- sum((y_obs_p - y_fit_p)^2)
+  r2_efron_p <- if (ss_tot_p > 0) max(0, 1 - ss_res_p / ss_tot_p) else 0
+  cat("  ", .pad("R\u00b2 (McFadden)", w_diag["met"], "left"), .pad(sprintf("%.1f%%", pseudo_r2 * 100), w_diag["val"], "center"), "\n", sep = "")
+  cat("  ", .pad("R\u00b2 (Efron)", w_diag["met"], "left"), .pad(sprintf("%.1f%%", r2_efron_p * 100), w_diag["val"], "center"), "\n", sep = "")
   cat("  ", .pad("Itera\u00e7\u00f5es (Fisher)", w_diag["met"], "left"), .pad(sprintf("%d", if (!is.null(modelo$iter)) modelo$iter else NA), w_diag["val"], "center"), "\n", sep = "")
   cat(sep_diag, "\n\n")
   
@@ -164,7 +168,7 @@ regressao_poisson <- function(formula, dados, ligacao = "log", grafico = TRUE) {
   cat(sprintf("  O modelo de regress\u00e3o de Poisson foi ajustado para\n  estimar a contagem de '%s'.\n\n", y_name))
   
   if (p_lrt < 0.05) {
-    cat(sprintf("  O modelo \u00e9 globalmente v\u00e1lido (LRT %s) e apresenta um\n  Pseudo-R\u00b2 de McFadden de %.1f%%, indicando a propor\u00e7\u00e3o da variabilidade\n  da contagem explicada pelo modelo.\n\n", 
+    cat(sprintf("  O modelo \u00e9 globalmente v\u00e1lido (LRT %s) e apresenta um\n  R\u00b2 de McFadden de %.1f%%, indicando a propor\u00e7\u00e3o da variabilidade\n  da contagem explicada pelo modelo.\n\n", 
                 ifelse(p_lrt < 0.001, "p < 0,001", sprintf("p = %s", .fmt_p(p_lrt))), pseudo_r2 * 100))
   } else {
     cat(sprintf("  O modelo n\u00e3o se mostrou globalmente significativo (LRT p = %s).\n  Os preditores n\u00e3o explicam a variabilidade da contagem melhor que um modelo nulo.\n\n", .fmt_p(p_lrt)))
