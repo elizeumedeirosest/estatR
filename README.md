@@ -183,13 +183,9 @@ gerar_amostra(n = 1000, distribuicao = "exponencial", taxa = 0.5)
 # Função unificada com dados em primeiro argumento (compatível com pipe |>)
 # Suporta: "binomial", "poisson", "quasipoisson", "gama", "gaussian", "binomial_negativa", "beta"
 mod_mlg <- regressao_mlg(mtcars, mpg ~ wt + hp, familia = "gaussian", teste = "ambos")
-# ou pelo alias direto:
-mod_mlg <- mlg(mtcars, mpg ~ wt + hp, familia = "poisson")
 
 # Gráfico de Coeficientes estilo Forest Plot (nativo em ggplot2 com tema estatR e grade dupla):
 grafico_coeficientes(mod_mlg)
-# ou pelo alias:
-grafico_modelo(mod_mlg)
 ```
 
 **Regressão Linear**
@@ -355,7 +351,6 @@ biplot_acp(modelo_acp, grupo = mtcars$cyl, elipses = TRUE)
 ```r
 # Ajuste fatorial com rotação Varimax e método dos Eixos Principais
 modelo_afe <- analise_fatorial(mtcars, rotacao = "varimax", metodo = "pa")
-# ou abreviado: afe(mtcars)
 
 # Acesso direto aos elementos do modelo
 modelo_afe$cargas          # Cargas fatoriais, Comunalidades (h²) e Unicidades (u²)
@@ -400,7 +395,6 @@ dendrograma(modelo_hc)                   # Dendrograma colorido
 ```r
 # Ajuste da MANOVA (sintaxe flexível: com ou sem aspas)
 modelo_manova <- analise_manova(c(Sepal.Length, Sepal.Width, Petal.Length), grupo = Species, dados = iris)
-# ou pelo alias: manova_estatR(...)
 
 # Acesso direto aos elementos do modelo
 modelo_manova$box_m               # Teste M de Box (Homogeneidade de Covariâncias)
@@ -453,21 +447,19 @@ plot_discriminante(modelo_lda)
 ```r
 # Sintaxe 1 (sem aspas):
 modelo_dic <- analise_dic(Produtividade, Adubo, dados = soja, teste = "tukey")
-# ou pelo alias direto:
-modelo_dic <- dic(Produtividade, Adubo, dados = soja)
 
 # Sintaxe 2 (com aspas):
-modelo_dic <- dic("Produtividade", "Adubo", dados = soja, teste = "scott_knott")
+modelo_dic <- analise_dic("Produtividade", "Adubo", dados = soja, teste = "scott_knott")
 
 # Teste de Scheffé com contrastes em linguagem natural:
-dic(Produtividade, Adubo, dados = soja, teste = "scheffe",
+analise_dic(Produtividade, Adubo, dados = soja, teste = "scheffe",
     contrastes = c("A vs c(B, C)", "c(A, B) vs c(C, D)"))
 
 # Teste de Dunnett contra testemunha/controle:
-dic(Produtividade, Adubo, dados = soja, teste = "dunnett", controle = "Testemunha")
+analise_dic(Produtividade, Adubo, dados = soja, teste = "dunnett", controle = "Testemunha")
 
 # Fator Quantitativo (Doses/Níveis numéricos — Regressão Polinomial com Ponto Ótimo):
-modelo_quanti <- dic(Produtividade, Dose_N, dados = milho)
+modelo_quanti <- analise_dic(Produtividade, Dose_N, dados = milho)
 
 # Acesso direto aos elementos do modelo
 modelo_dic$anova                 # Quadro completo da ANOVA (Tratamento, Resíduo, Total)
@@ -490,15 +482,13 @@ grafico_regressao(modelo_quanti) # Curva suave ajustada com pontos reais e dose 
 ```r
 # Sintaxe 1 (sem aspas):
 modelo_dbc <- analise_dbc(Produtividade, Tratamento, Bloco, dados = dados, teste = "tukey")
-# ou pelo alias direto:
-modelo_dbc <- dbc(Produtividade, Tratamento, Bloco, dados = dados)
 
 # Sintaxe 2 (com aspas):
-modelo_dbc <- dbc("Produtividade", "Tratamento", "Bloco", dados = dados, teste = "scheffe",
+modelo_dbc <- analise_dbc("Produtividade", "Tratamento", "Bloco", dados = dados, teste = "scheffe",
                   contrastes = c("T1 vs c(T2, T3)", "c(T1, T2) vs c(T3, T4)"))
 
 # Fator Quantitativo com Blocos (Regressão Polinomial controlada por blocos):
-modelo_dbc_quanti <- dbc(Produtividade, Dose, Bloco, dados = dados_quanti)
+modelo_dbc_quanti <- analise_dbc(Produtividade, Dose, Bloco, dados = dados_quanti)
 
 # Acesso direto aos elementos do modelo DBC
 modelo_dbc$anova                 # Quadro da ANOVA (Bloco, Tratamento, Resíduo, Total)
@@ -517,14 +507,12 @@ grafico_dbc(modelo_dbc)          # Painel automático de Médias + Intervalos de
 ```r
 # Sintaxe 1 (sem aspas):
 modelo_dql <- analise_dql(Produtividade, Tratamento, Linha, Coluna, dados = dados, teste = "tukey")
-# ou pelo alias direto:
-modelo_dql <- dql(Produtividade, Tratamento, Linha, Coluna, dados = dados)
 
 # Sintaxe 2 (com aspas):
-modelo_dql <- dql("Produtividade", "Tratamento", "Linha", "Coluna", dados = dados, teste = "scott_knott")
+modelo_dql <- analise_dql("Produtividade", "Tratamento", "Linha", "Coluna", dados = dados, teste = "scott_knott")
 
 # Teste de Scheffé com contrastes personalizados:
-dql(Produtividade, Tratamento, Linha, Coluna, dados = dados, teste = "scheffe",
+analise_dql(Produtividade, Tratamento, Linha, Coluna, dados = dados, teste = "scheffe",
     contrastes = c("A vs c(B, C)", "c(A, B) vs c(C, D)"))
 
 # Acesso direto aos elementos do modelo DQL
@@ -543,14 +531,12 @@ grafico_dql(modelo_dql)          # Painel com Gráfico de Médias + ICs das dife
 # Sintaxe 1 (sem aspas):
 # Em DIC (sem bloco):
 modelo_fat <- analise_fatorial_duplo(Produtividade, Cultivar, Adubacao, dados = dados, teste = "tukey")
-# ou pelo alias direto:
-modelo_fat <- fat(Produtividade, Cultivar, Adubacao, dados = dados)
 
 # Em DBC (com bloco informado):
-modelo_fat_dbc <- fat(Produtividade, Cultivar, Adubacao, bloco = Bloco, dados = dados)
+modelo_fat_dbc <- analise_fatorial_duplo(Produtividade, Cultivar, Adubacao, bloco = Bloco, dados = dados)
 
 # Sintaxe 2 (com aspas):
-modelo_fat <- fat("Produtividade", "Cultivar", "Adubacao", dados = dados, teste = "scott_knott")
+modelo_fat <- analise_fatorial_duplo("Produtividade", "Cultivar", "Adubacao", dados = dados, teste = "scott_knott")
 
 # Desdobramento automático:
 # - Se a interação for significativa (p < 0.05): realiza o desdobramento dos fatores
@@ -569,8 +555,6 @@ modelo_fat$modelo_aov              # Objeto aov nativo
 
 # Visualização gráfica do perfil de interação
 grafico_fatorial(modelo_fat)       # Perfil de interação com barras de erro e letras sobrepostas
-# ou pelo alias:
-plot_fatorial(modelo_fat)
 ```
 
 **Parcelas Subdivididas (Split-Plot — DIC e DBC)**
@@ -625,25 +609,29 @@ analise_residual(modelo_fat_ad)
 **Estimador de Kaplan-Meier**
 
 ```r
-# Curva de Kaplan-Meier com grupos e teste de Log-Rank
+# Curva de Kaplan-Meier com grupos e teste de Log-Rank:
 modelo_km <- analise_sobrevivencia(tempo, evento, grupo = tratamento, dados = dados)
-# ou pelo alias direto:
-modelo_km <- kaplan_meier(tempo, evento, grupo = tratamento, dados = dados)
-# ou de forma ultra compacta:
-modelo_km <- km(tempo, evento, grupo = tratamento, dados = dados)
+
+# Com estratificação (Log-Rank Estratificado para controle de variáveis):
+modelo_km_est <- analise_sobrevivencia(tempo, evento, grupo = tratamento, estrato = sexo, dados = dados)
+
+# Estimador de Nelson-Aalen e Fleming-Harrington:
+modelo_na <- analise_sobrevivencia(tempo, evento, grupo = tratamento, dados = dados, metodo = "nelson-aalen")
 
 # Curva global (sem grupos):
-km_global <- km(tempo, evento, dados = dados)
+km_global <- analise_sobrevivencia(tempo, evento, dados = dados)
 
-# Acesso direto aos resultados
+# Acesso direto aos resultados:
 modelo_km$tabela           # Resumo por grupo: Total, Eventos, Censuras (%), Mediana e IC 95%
-modelo_km$teste_logrank    # Estatística Chi2, GL, p-valor e contagens observadas/esperadas
+modelo_km$curva            # Tabela pontual completa: S(t), Risco Acumulado H(t), Taxa de Risco h(t) e Densidade f(t)
+modelo_km$teste_logrank    # Estatística Chi2, GL, p-valor (com indicador de estratificação)
 modelo_km$fit_km           # Objeto nativo survfit do pacote survival
 
-# Gráfico da curva de sobrevivência em degraus com marcas de censura e Tabela de Risco (Risk Table):
-grafico_sobrevivencia(modelo_km)
-# ou pelo alias:
-plot_sobrevivencia(modelo_km)
+# Gráficos Analíticos com Grade Dupla (4 funções da Sobrevivência):
+grafico_sobrevivencia(modelo_km, tipo = "sobrevivencia")     # Curva clássica S(t) com Risk Table
+grafico_sobrevivencia(modelo_km, tipo = "risco_acumulado")   # Risco acumulado H(t) de Nelson-Aalen
+grafico_sobrevivencia(modelo_km, tipo = "risco_instantaneo") # Taxa de risco h(t) com tendência LOESS
+grafico_sobrevivencia(modelo_km, tipo = "densidade")         # Função de densidade de falhas f(t)
 ```
 
 **Modelo de Riscos Proporcionais de Cox**
@@ -651,8 +639,6 @@ plot_sobrevivencia(modelo_km)
 ```r
 # Ajuste do modelo semi-paramétrico de Cox
 modelo_cox <- regressao_cox(Surv(tempo, evento) ~ idade + tratamento + estagio, dados = dados)
-# ou pelo alias direto:
-modelo_cox <- cox(Surv(tempo, evento) ~ idade + tratamento + estagio, dados = dados)
 
 # Acesso direto aos resultados
 modelo_cox$tabela          # Coeficientes (Beta), EP, Hazard Ratio (HR), IC 95%, z e p-valor
@@ -663,8 +649,6 @@ modelo_cox$diagnostico     # Teste de Schoenfeld para o pressuposto de Riscos Pr
 
 # Forest Plot dos Hazard Ratios com intervalos de confiança de 95%:
 grafico_cox(modelo_cox)
-# ou pelo alias:
-plot_cox(modelo_cox)
 
 # Métricas polimórficas (C-index, Pseudo-R2, AIC, BIC, LRT, Wald):
 metricas(modelo_cox)

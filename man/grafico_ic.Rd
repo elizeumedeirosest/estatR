@@ -2,7 +2,6 @@
 % Please edit documentation in R/experimentos.R
 \name{grafico_ic}
 \alias{grafico_ic}
-\alias{grafico_comparacoes}
 \title{Gráfico de Intervalos de Confiança das Diferenças de Médias}
 \usage{
 grafico_ic(modelo, cor_sig = "#0099FF", cor_ns = "gray40")

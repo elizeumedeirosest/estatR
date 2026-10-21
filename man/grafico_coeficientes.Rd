@@ -2,19 +2,9 @@
 % Please edit documentation in R/grafico_coeficientes.R
 \name{grafico_coeficientes}
 \alias{grafico_coeficientes}
-\alias{grafico_modelo}
 \title{Gráfico de Coeficientes do Modelo (Forest Plot)}
 \usage{
 grafico_coeficientes(
-  modelo,
-  incluir_intercepto = FALSE,
-  exponencial = "auto",
-  cor = "#1E3A8A",
-  tamanho_ponto = 3,
-  tema_estilo = 2
-)
-
-grafico_modelo(
   modelo,
   incluir_intercepto = FALSE,
   exponencial = "auto",

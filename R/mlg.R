@@ -200,13 +200,10 @@ regressao_mlg <- function(dados, formula,
   cat("  Notas:\n")
   cat("  Signific\u00e2ncia: *** p < 0,01   ** p < 0,05   * p < 0,10\n\n")
 
-  if (grafico && exists("grafico_modelo", mode = "function")) {
-    tryCatch(print(grafico_modelo(mod)), error = function(e) NULL)
+  if (grafico && exists("grafico_coeficientes", mode = "function")) {
+    tryCatch(print(grafico_coeficientes(mod)), error = function(e) NULL)
   }
 
   invisible(mod)
 }
 
-#' @rdname regressao_mlg
-#' @export
-mlg <- regressao_mlg

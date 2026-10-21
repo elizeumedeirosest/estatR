@@ -2,17 +2,26 @@
 % Please edit documentation in R/sobrevivencia.R
 \name{grafico_sobrevivencia}
 \alias{grafico_sobrevivencia}
-\alias{plot_sobrevivencia}
-\title{Gráfico de Curva de Sobrevivência de Kaplan-Meier}
+\title{Gráfico de Curva de Sobrevivência e Funções de Risco}
 \usage{
-grafico_sobrevivencia(modelo, tabela_risco = TRUE, conf_int = TRUE, ...)
+grafico_sobrevivencia(
+  modelo,
+  tipo = c("sobrevivencia", "risco_acumulado", "risco_instantaneo", "densidade"),
+  tabela_risco = TRUE,
+  conf_int = TRUE,
+  ...
+)
 }
 \arguments{
-\item{modelo}{Objeto retornado por \code{analise_sobrevivencia()} ou \code{kaplan_meier()}.}
+\item{modelo}{Objeto retornado por \code{analise_sobrevivencia()}.}
 
-\item{tabela_risco}{Lógico. Se \code{TRUE} (padrão), inclui a tabela de indivíduos em risco.}
+\item{tipo}{Tipo de função a visualizar: \code{"sobrevivencia"} (padrão, curva S(t) com Risk Table),
+\code{"risco_acumulado"} (H(t) de Nelson-Aalen), \code{"risco_instantaneo"} (taxa h(t) com tendência)
+ou \code{"densidade"} (f(t) de probabilidade de falha).}
 
-\item{conf_int}{Lógico. Se \code{TRUE} (padrão), inclui a faixa de confiança sombreada.}
+\item{tabela_risco}{Lógico. Se \code{TRUE} (padrão) e \code{tipo = "sobrevivencia"}, inclui a tabela de indivíduos em risco.}
+
+\item{conf_int}{Lógico. Se \code{TRUE} (padrão), inclui a faixa de confiança sombreada quando aplicável.}
 
 \item{...}{Argumentos adicionais (não utilizados).}
 }
@@ -20,6 +29,7 @@ grafico_sobrevivencia(modelo, tabela_risco = TRUE, conf_int = TRUE, ...)
 Objeto \code{ggplot} ou composição de gráficos.
 }
 \description{
-Gera gráfico da curva de sobrevivência em degraus com marcas de
-censura, intervalo de confiança sombreado e tabela de indivíduos em risco (\emph{Risk Table}).
+Gera visualizações para análise de sobrevivência em degraus ou curvas suavizadas,
+incluindo curva de sobrevivência S(t), risco acumulado H(t) (Nelson-Aalen), taxa de risco
+instantâneo h(t) (hazard rate) e densidade de falhas f(t).
 }

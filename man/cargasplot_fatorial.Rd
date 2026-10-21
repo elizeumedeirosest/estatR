@@ -7,7 +7,7 @@
 cargasplot_fatorial(modelo, corte = 0.3)
 }
 \arguments{
-\item{modelo}{Objeto retornado pela função \code{analise_fatorial()} ou \code{afe()}.}
+\item{modelo}{Objeto retornado pela função \code{analise_fatorial()}.}
 
 \item{corte}{Numérico. Linha de referência tracejada para cargas salientes (padrão: 0.30).}
 }

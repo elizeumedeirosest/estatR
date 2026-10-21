@@ -2,7 +2,6 @@
 % Please edit documentation in R/experimentos.R
 \name{grafico_dbc}
 \alias{grafico_dbc}
-\alias{plot_dbc}
 \title{Painel Gráfico Completo do DBC}
 \usage{
 grafico_dbc(modelo, ...)

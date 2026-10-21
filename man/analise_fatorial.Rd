@@ -2,21 +2,9 @@
 % Please edit documentation in R/multivariada.R
 \name{analise_fatorial}
 \alias{analise_fatorial}
-\alias{afe}
 \title{Análise Fatorial Exploratória (AFE)}
 \usage{
 analise_fatorial(
-  dados,
-  n_fatores = NULL,
-  rotacao = "varimax",
-  metodo = "pa",
-  analise_paralela = TRUE,
-  n_sim = 100,
-  corte_carga = 0.3,
-  grafico = TRUE
-)
-
-afe(
   dados,
   n_fatores = NULL,
   rotacao = "varimax",

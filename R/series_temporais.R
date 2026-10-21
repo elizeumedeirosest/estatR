@@ -493,10 +493,6 @@ grafico_autocorrelacao <- function(serie, defasagens = 24,
   invisible(p_final)
 }
 
-#' @rdname grafico_autocorrelacao
-#' @export
-grafico_acf <- grafico_autocorrelacao
-
 
 # ── 5. MOTOR DE MÉTRICAS DE SÉRIES TEMPORAIS ────────────────────────────────
 
@@ -1327,4 +1323,252 @@ analise_residual_serie <- function(modelo, grafico = TRUE) {
     ljung_box = st_box,
     grafico = p_painel
   ))
+}
+
+# ─────────────────────────────────────────────────────────────────────────────
+#' @title Previsão de Séries Temporais com Aprendizado de Máquina
+#' @description Realiza previsão pontual e por intervalo para séries temporais utilizando
+#'   algoritmos de Aprendizado de Máquina (Random Forest, XGBoost ou Redes Neurais Autoregressivas - NNAR).
+#'   Aplica engenharia de atributos automatizada gerando defasagens (lags), variáveis de calendário
+#'   sazonais e tendência determinística, projetando previsões recursivas para o horizonte solicitado.
+#'
+#' @param serie Vetor numérico, objeto \code{ts} ou data frame contendo a série temporal.
+#' @param h Inteiro. Horizonte de passos à frente para previsão (padrão: 12).
+#' @param frequencia Periodicidade da série (ex: 12 para mensal, 4 para trimestral).
+#' @param algoritmo Algoritmo de Aprendizado de Máquina a ser utilizado:
+#'   \code{"rf"} (Random Forest / ranger, padrão),
+#'   \code{"xgboost"} (Extreme Gradient Boosting) ou
+#'   \code{"neural"} (Rede Neural Autoregressiva - NNAR).
+#' @param lags Vetor inteiro com as defasagens a incluir como preditores. Se \code{NULL} (padrão),
+#'   constrói automaticamente baseado na sazonalidade e defasagens recentes.
+#' @param n_arvores Número de árvores (para \code{"rf"}). Se \code{NULL}, aplica auto-tuning OOB.
+#' @param grafico Lógico. Se TRUE (padrão), exibe gráfico com a série histórica e projeções com grade dupla.
+#'
+#' @return Objeto da classe \code{estatR_serie_ml} compatível com \code{metricas()} e \code{analise_residual()}.
+#' @export
+previsao_serie_aprend_maq <- function(serie,
+                                     h          = 12,
+                                     frequencia = 12,
+                                     algoritmo  = c("rf", "xgboost", "neural"),
+                                     lags       = NULL,
+                                     n_arvores  = NULL,
+                                     grafico    = TRUE) {
+
+  algoritmo <- match.arg(algoritmo)
+  ts_serie  <- .extrair_serie_temporal(serie, frequencia = frequencia)
+  n_total   <- length(ts_serie)
+  freq_ef   <- stats::frequency(ts_serie)
+
+  if (n_total < 15) stop("A série deve conter pelo menos 15 observações para modelagem de ML temporal.")
+
+  # ── 1. Engenharia Automática de Atributos (Lags e Sazonalidade) ────────────
+  if (is.null(lags)) {
+    lags_base <- 1:min(5, floor(n_total / 4))
+    if (freq_ef > 1 && n_total >= freq_ef + 5) {
+      lags <- unique(c(lags_base, freq_ef, freq_ef + 1))
+    } else {
+      lags <- lags_base
+    }
+  }
+  max_lag <- max(lags)
+
+  y_raw <- as.numeric(ts_serie)
+  n_obs <- n_total - max_lag
+  if (n_obs < 8) stop("Número de observações insuficiente após aplicar as defasagens especificadas.")
+
+  # Matriz de Preditores X e Resposta Y
+  X_mat <- matrix(0, nrow = n_obs, ncol = length(lags))
+  colnames(X_mat) <- paste0("lag_", lags)
+
+  for (j in seq_along(lags)) {
+    lg <- lags[j]
+    X_mat[, j] <- y_raw[(max_lag - lg + 1):(n_total - lg)]
+  }
+
+  Y_vec <- y_raw[(max_lag + 1):n_total]
+  df_treino <- as.data.frame(X_mat)
+  df_treino$tendencia <- seq_len(n_obs)
+  if (freq_ef > 1) {
+    ciclo <- ((seq_len(n_total) - 1) %% freq_ef) + 1
+    df_treino$sazonal <- as.factor(ciclo[(max_lag + 1):n_total])
+  }
+
+  modelo_treinado <- NULL
+  fc_media        <- numeric(h)
+
+  # ── 2. Ajuste do Modelo Selecionado ───────────────────────────────────────
+  if (algoritmo == "neural") {
+    # Rede Neural Autoregressiva (NNAR) via forecast::nnetar
+    mod_nn <- forecast::nnetar(ts_serie, p = min(4, max_lag), P = if (freq_ef > 1) 1 else 0)
+    fc_nn  <- forecast::forecast(mod_nn, h = h, PI = TRUE)
+    fc_media <- as.numeric(fc_nn$mean)
+    lim_inf80 <- as.numeric(fc_nn$lower[, 1])
+    lim_sup80 <- as.numeric(fc_nn$upper[, 1])
+    lim_inf95 <- as.numeric(fc_nn$lower[, 2])
+    lim_sup95 <- as.numeric(fc_nn$upper[, 2])
+    modelo_treinado <- mod_nn
+    residuos_modelo <- as.numeric(stats::residuals(mod_nn))
+  } else if (algoritmo == "rf") {
+    num_trees_usado <- if (!is.null(n_arvores)) as.integer(n_arvores) else 300
+    form_ml <- as.formula(paste("Y_vec ~", paste(names(df_treino), collapse = " + ")))
+    df_tr_rf <- df_treino
+    df_tr_rf$Y_vec <- Y_vec
+
+    mod_rf <- ranger::ranger(form_ml, data = df_tr_rf, num.trees = num_trees_usado, verbose = FALSE)
+    modelo_treinado <- mod_rf
+    residuos_modelo <- Y_vec - predict(mod_rf, data = df_tr_rf)$predictions
+    sd_erro <- stats::sd(residuos_modelo, na.rm = TRUE)
+
+    # Previsão Recursiva a passos à frente
+    historico_y <- y_raw
+    for (step in seq_len(h)) {
+      curr_n <- length(historico_y)
+      novo_x <- data.frame(matrix(0, nrow = 1, ncol = length(lags)))
+      colnames(novo_x) <- paste0("lag_", lags)
+      for (j in seq_along(lags)) {
+        novo_x[1, j] <- historico_y[curr_n - lags[j] + 1]
+      }
+      novo_x$tendencia <- n_obs + step
+      if (freq_ef > 1) {
+        novo_x$sazonal <- factor(((curr_n %% freq_ef) + 1), levels = levels(df_treino$sazonal))
+      }
+      pred_val <- predict(mod_rf, data = novo_x)$predictions
+      fc_media[step] <- pred_val
+      historico_y <- c(historico_y, pred_val)
+    }
+
+    margem80 <- 1.28 * sd_erro * sqrt(seq_len(h))
+    margem95 <- 1.96 * sd_erro * sqrt(seq_len(h))
+    lim_inf80 <- fc_media - margem80
+    lim_sup80 <- fc_media + margem80
+    lim_inf95 <- fc_media - margem95
+    lim_sup95 <- fc_media + margem95
+
+  } else if (algoritmo == "xgboost") {
+    form_xgb <- as.formula("~ . - 1")
+    X_xgb <- model.matrix(form_xgb, data = df_treino)
+    mod_xgb <- xgboost::xgboost(x = X_xgb, y = Y_vec, nrounds = 50, max_depth = 5, eta = 0.1, verbosity = 0)
+    modelo_treinado <- mod_xgb
+    residuos_modelo <- Y_vec - predict(mod_xgb, X_xgb)
+    sd_erro <- stats::sd(residuos_modelo, na.rm = TRUE)
+
+    historico_y <- y_raw
+    for (step in seq_len(h)) {
+      curr_n <- length(historico_y)
+      novo_x <- data.frame(matrix(0, nrow = 1, ncol = length(lags)))
+      colnames(novo_x) <- paste0("lag_", lags)
+      for (j in seq_along(lags)) {
+        novo_x[1, j] <- historico_y[curr_n - lags[j] + 1]
+      }
+      novo_x$tendencia <- n_obs + step
+      if (freq_ef > 1) {
+        novo_x$sazonal <- factor(((curr_n %% freq_ef) + 1), levels = levels(df_treino$sazonal))
+      }
+      X_novo_mat <- model.matrix(form_xgb, data = novo_x)
+      pred_val   <- predict(mod_xgb, X_novo_mat)
+      fc_media[step] <- pred_val
+      historico_y <- c(historico_y, pred_val)
+    }
+
+    margem80 <- 1.28 * sd_erro * sqrt(seq_len(h))
+    margem95 <- 1.96 * sd_erro * sqrt(seq_len(h))
+    lim_inf80 <- fc_media - margem80
+    lim_sup80 <- fc_media + margem80
+    lim_inf95 <- fc_media - margem95
+    lim_sup95 <- fc_media + margem95
+  }
+
+  # ── 3. Construção do Data Frame de Previsões ───────────────────────────────
+  tabela_prev <- data.frame(
+    Horizonte = paste0("h = ", seq_len(h)),
+    "Previs\u00e3o" = sapply(fc_media, .am_fmt_num, decimais = 2),
+    "IC 80% (Inf)" = sapply(lim_inf80, .am_fmt_num, decimais = 2),
+    "IC 80% (Sup)" = sapply(lim_sup80, .am_fmt_num, decimais = 2),
+    "IC 95% (Inf)" = sapply(lim_inf95, .am_fmt_num, decimais = 2),
+    "IC 95% (Sup)" = sapply(lim_sup95, .am_fmt_num, decimais = 2),
+    stringsAsFactors = FALSE, check.names = FALSE
+  )
+
+  # Saída no Console
+  nome_algo_txt <- switch(
+    algoritmo,
+    rf      = "Random Forest Temporal (Lags Autoregressivos)",
+    xgboost = "XGBoost Temporal (Gradient Boosting)",
+    neural  = "Rede Neural Autoregressiva (NNAR)"
+  )
+
+  .print_titulo(sprintf("PREVIS\u00c3O DE S\u00c9RIE TEMPORAL \u2014 %s", toupper(algoritmo)))
+
+  cat("  ▶ CONFIGURA\u00c7\u00c3O\n\n")
+  cat(sprintf("  Algoritmo:         %s\n", nome_algo_txt))
+  cat(sprintf("  Amostra Hist\u00f3rica:  %d observa\u00e7\u00f5es (Frequ\u00eancia = %d)\n", n_total, freq_ef))
+  cat(sprintf("  Horizonte (h):     %d passos \u00e0 frente\n", h))
+  cat(sprintf("  Defasagens (lags): %s\n\n", paste(lags, collapse = ", ")))
+
+  .print_topico(sprintf("PROJE\u00c7\u00d5ES FUTURAS (PR\u00d3XIMOS %d PASSOS)", h))
+  .print_tabela_estatR(tabela_prev, align = c("center", "center", "center", "center", "center", "center"))
+  .print_rodape()
+
+  # ── 4. Painel Gráfico com Grade Dupla ────────────────────────────────────
+  p_plot <- NULL
+  if (grafico && requireNamespace("ggplot2", quietly = TRUE)) {
+    tryCatch({
+      tema_padrao <- if (exists("meu_tema", mode = "function")) {
+        meu_tema(grade = "dupla")
+      } else if (exists("tema_estatR", mode = "function")) {
+        tema_estatR(estilo = 2, grade = "dupla")
+      } else {
+        ggplot2::theme_minimal()
+      }
+
+      df_hist <- data.frame(Tempo = seq_len(n_total), Valor = y_raw, Tipo = "Hist\u00f3rico")
+      df_proj <- data.frame(
+        Tempo  = (n_total + 1):(n_total + h),
+        Valor  = fc_media,
+        Inf80  = lim_inf80,
+        Sup80  = lim_sup80,
+        Inf95  = lim_inf95,
+        Sup95  = lim_sup95,
+        Tipo   = "Previs\u00e3o"
+      )
+
+      p_plot <- ggplot2::ggplot() +
+        ggplot2::geom_ribbon(data = df_proj, ggplot2::aes(x = Tempo, ymin = Inf95, ymax = Sup95),
+                             fill = "#377EB8", alpha = 0.2) +
+        ggplot2::geom_ribbon(data = df_proj, ggplot2::aes(x = Tempo, ymin = Inf80, ymax = Sup80),
+                             fill = "#377EB8", alpha = 0.35) +
+        ggplot2::geom_line(data = df_hist, ggplot2::aes(x = Tempo, y = Valor),
+                           color = "#333333", linewidth = 0.8) +
+        ggplot2::geom_line(data = df_proj, ggplot2::aes(x = Tempo, y = Valor),
+                           color = "#E31A1C", linewidth = 1) +
+        ggplot2::geom_point(data = df_proj, ggplot2::aes(x = Tempo, y = Valor),
+                            color = "#E31A1C", size = 2) +
+        ggplot2::labs(
+          title    = sprintf("Previs\u00e3o da S\u00e9rie Temporal (%s)", toupper(algoritmo)),
+          subtitle = "Faixas sombreadas indicam intervalos de confian\u00e7a de 80% e 95%",
+          x        = "\u00cdndice Temporal",
+          y        = "Valor da S\u00e9rie"
+        ) +
+        tema_padrao
+
+      print(p_plot)
+    }, error = function(e) {
+      message("[Aviso] Não foi possível plotar o gráfico da série: ", e$message)
+    })
+  }
+
+  resultado <- list(
+    serie_original = ts_serie,
+    algoritmo      = algoritmo,
+    h              = h,
+    previsoes      = fc_media,
+    tabela         = tabela_prev,
+    residuos       = residuos_modelo,
+    modelo         = modelo_treinado,
+    grafico        = p_plot,
+    mean           = fc_media,
+    residuals      = residuos_modelo
+  )
+  class(resultado) <- c("estatR_serie_ml", "previsao_serie", "list")
+  invisible(resultado)
 }

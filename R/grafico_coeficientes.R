@@ -131,6 +131,3 @@ grafico_coeficientes <- function(modelo,
   p
 }
 
-#' @rdname grafico_coeficientes
-#' @export
-grafico_modelo <- grafico_coeficientes

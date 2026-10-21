@@ -2,7 +2,6 @@
 % Please edit documentation in R/sobrevivencia.R
 \name{grafico_cox}
 \alias{grafico_cox}
-\alias{plot_cox}
 \title{Forest Plot dos Hazard Ratios do Modelo de Cox}
 \usage{
 grafico_cox(modelo, escala_log = TRUE, ...)

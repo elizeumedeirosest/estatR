@@ -2,7 +2,6 @@
 % Please edit documentation in R/experimentos.R
 \name{analise_dbc}
 \alias{analise_dbc}
-\alias{dbc}
 \title{Análise de Delineamento em Blocos Casualizados (DBC)}
 \usage{
 analise_dbc(

@@ -2,12 +2,9 @@
 % Please edit documentation in R/multivariada.R
 \name{biplot_lda}
 \alias{biplot_lda}
-\alias{plot_discriminante}
 \title{Gráfico da Análise Discriminante (Biplot / Dispersão)}
 \usage{
 biplot_lda(modelo, elipses = TRUE)
-
-plot_discriminante(modelo, elipses = TRUE)
 }
 \arguments{
 \item{modelo}{Objeto retornado pela função \code{analise_discriminante}.}

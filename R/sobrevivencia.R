@@ -73,33 +73,41 @@
 
 
 # ─────────────────────────────────────────────────────────────────────────────
-# 1. ESTIMADOR DE KAPLAN-MEIER
+# 1. ESTIMADOR DE KAPLAN-MEIER E NELSON-AALEN
 # ─────────────────────────────────────────────────────────────────────────────
 
-#' @title Análise de Sobrevivência com Estimador de Kaplan-Meier
-#' @description Ajusta e apresenta curvas de sobrevivência não-paramétricas pelo
-#'   método de Kaplan-Meier, com cálculo de medianas de sobrevivência, intervalos
-#'   de confiança, taxas de censura e teste de Log-Rank para comparação de grupos.
+#' @title Análise de Sobrevivência (Kaplan-Meier e Nelson-Aalen)
+#' @description Ajusta e apresenta curvas de sobrevivência não-paramétricas pelos
+#'   métodos de Kaplan-Meier e Nelson-Aalen / Fleming-Harrington, com cálculo de
+#'   medianas de sobrevivência, intervalos de confiança, taxas de censura,
+#'   tabela pontual completa com estimativas de S(t), risco acumulado H(t), taxa
+#'   de risco instantâneo h(t) e densidade f(t), além de teste de Log-Rank
+#'   (simples ou estratificado) para comparação de grupos.
 #'
 #' @param tempo Variável com os tempos até o evento ou censura (com ou sem aspas).
 #' @param evento Variável indicadora do status/evento (1 = evento/óbito, 0 = censura).
 #'   Aceita variáveis numéricas (0/1 ou 1/2), lógicas ou fatores.
 #' @param grupo Variável categórica opcional que define os grupos de comparação.
 #'   Se omitida (\code{NULL}), calcula a curva de sobrevivência global.
+#' @param estrato Variável categórica opcional que define estratos de controle
+#'   (gera o teste de Log-Rank estratificado para controlar variáveis de confusão).
 #' @param dados Data frame opcional contendo as variáveis.
+#' @param metodo Método de estimação: \code{"kaplan-meier"} (padrão, produto-limite)
+#'   ou \code{"nelson-aalen"} (risco acumulado de Nelson-Aalen e sobrevivência de Fleming-Harrington).
 #' @param confianca Nível de confiança para os intervalos (padrão \code{0.95}).
 #' @param tabela_risco Lógico. Se \code{TRUE} (padrão), inclui a tabela de indivíduos
-#'   em risco (*Risk Table*) no gráfico.
+#'   em risco (*Risk Table*) no gráfico de sobrevivência.
 #' @param grafico Lógico. Se \code{TRUE} (padrão), exibe o gráfico de sobrevivência.
 #'
-#' @return Objeto da classe \code{"estatR_sobrevivencia"} contendo o ajuste de
-#'   Kaplan-Meier, resumo dos grupos, teste de Log-Rank e gráfico.
+#' @return Objeto da classe \code{"estatR_sobrevivencia"} contendo o ajuste,
+#'   resumo dos grupos, tabela pontual com S(t), H(t), h(t) e f(t), teste de Log-Rank e gráfico.
 #' @export
-#' @aliases kaplan_meier km
 analise_sobrevivencia <- function(tempo,
                                   evento,
                                   grupo        = NULL,
+                                  estrato      = NULL,
                                   dados        = NULL,
+                                  metodo       = c("kaplan-meier", "nelson-aalen"),
                                   confianca    = 0.95,
                                   tabela_risco = TRUE,
                                   grafico      = TRUE) {
@@ -108,9 +116,12 @@ analise_sobrevivencia <- function(tempo,
     stop("O pacote 'survival' é necessário para a análise de sobrevivência.", call. = FALSE)
   }
 
-  sub_tempo  <- substitute(tempo)
-  sub_evento <- substitute(evento)
-  sub_grupo  <- substitute(grupo)
+  metodo <- match.arg(tolower(metodo), c("kaplan-meier", "nelson-aalen"))
+
+  sub_tempo   <- substitute(tempo)
+  sub_evento  <- substitute(evento)
+  sub_grupo   <- substitute(grupo)
+  sub_estrato <- substitute(estrato)
 
   info_tempo  <- .extrair_vetor_sob(sub_tempo,  dados, "tempo")
   info_evento <- .extrair_vetor_sob(sub_evento, dados, "evento")
@@ -127,20 +138,28 @@ analise_sobrevivencia <- function(tempo,
     nm_grupo <- info_grupo$nome
   }
 
-  # Filtro de observacoes completas e tempo > 0
-  if (tem_grupo) {
-    ok <- !is.na(t_raw) & !is.na(e_raw) & !is.na(g_raw) & (t_raw >= 0)
-    t_vec <- t_raw[ok]
-    e_vec <- e_raw[ok]
-    g_vec <- droplevels(g_raw[ok])
-    df_sob <- data.frame(Tempo = t_vec, Evento = e_vec, Grupo = g_vec)
-  } else {
-    ok <- !is.na(t_raw) & !is.na(e_raw) & (t_raw >= 0)
-    t_vec <- t_raw[ok]
-    e_vec <- e_raw[ok]
-    g_vec <- NULL
-    df_sob <- data.frame(Tempo = t_vec, Evento = e_vec)
+  tem_estrato <- !is.null(sub_estrato) && !identical(sub_estrato, as.name("NULL"))
+  est_raw <- NULL
+  nm_estrato <- NULL
+  if (tem_estrato) {
+    info_estrato <- .extrair_vetor_sob(sub_estrato, dados, "estrato")
+    est_raw <- as.factor(info_estrato$valores)
+    nm_estrato <- info_estrato$nome
   }
+
+  # Filtro de observações completas e tempo >= 0
+  ok <- !is.na(t_raw) & !is.na(e_raw) & (t_raw >= 0)
+  if (tem_grupo)   ok <- ok & !is.na(g_raw)
+  if (tem_estrato) ok <- ok & !is.na(est_raw)
+
+  t_vec   <- t_raw[ok]
+  e_vec   <- e_raw[ok]
+  g_vec   <- if (tem_grupo) droplevels(g_raw[ok]) else NULL
+  est_vec <- if (tem_estrato) droplevels(est_raw[ok]) else NULL
+
+  df_sob <- data.frame(Tempo = t_vec, Evento = e_vec)
+  if (tem_grupo)   df_sob$Grupo   <- g_vec
+  if (tem_estrato) df_sob$Estrato <- est_vec
 
   n_total   <- length(t_vec)
   n_eventos <- sum(e_vec == 1)
@@ -150,26 +169,60 @@ analise_sobrevivencia <- function(tempo,
     stop("São necessárias ao menos 3 observações válidas para a análise.", call. = FALSE)
   }
 
-  # ── AJUSTE DE KAPLAN-MEIER ────────────────────────────────────────────────
-  surv_obj <- survival::Surv(t_vec, e_vec)
+  # ── AJUSTE DE MODELO ──────────────────────────────────────────────────────
+  surv_obj  <- survival::Surv(t_vec, e_vec)
+  stype_val <- if (metodo == "nelson-aalen") 2 else 1
 
-  if (tem_grupo && length(levels(g_vec)) > 1) {
-    fit_km  <- survival::survfit(surv_obj ~ g_vec, conf.int = confianca)
-    # Teste de Log-Rank
+  if (tem_grupo && tem_estrato && length(levels(g_vec)) > 1) {
+    fit_km  <- survival::survfit(surv_obj ~ g_vec + strata(est_vec), conf.int = confianca, stype = stype_val)
+    logrank <- survival::survdiff(surv_obj ~ g_vec + strata(est_vec))
+    gl_lr   <- length(logrank$n) - 1
+    chi_lr  <- logrank$chisq
+    p_lr    <- 1 - stats::pchisq(chi_lr, gl_lr)
+    teste_lr <- list(
+      estatistica   = chi_lr,
+      gl            = gl_lr,
+      p_valor       = p_lr,
+      obs           = logrank$obs,
+      exp           = logrank$exp,
+      grupos        = levels(g_vec),
+      estratificado = TRUE,
+      nome_estrato  = nm_estrato
+    )
+  } else if (tem_grupo && length(levels(g_vec)) > 1) {
+    fit_km  <- survival::survfit(surv_obj ~ g_vec, conf.int = confianca, stype = stype_val)
     logrank <- survival::survdiff(surv_obj ~ g_vec)
     gl_lr   <- length(logrank$n) - 1
     chi_lr  <- logrank$chisq
     p_lr    <- 1 - stats::pchisq(chi_lr, gl_lr)
     teste_lr <- list(
-      estatistica = chi_lr,
-      gl          = gl_lr,
-      p_valor     = p_lr,
-      obs         = logrank$obs,
-      exp         = logrank$exp,
-      grupos      = levels(g_vec)
+      estatistica   = chi_lr,
+      gl            = gl_lr,
+      p_valor       = p_lr,
+      obs           = logrank$obs,
+      exp           = logrank$exp,
+      grupos        = levels(g_vec),
+      estratificado = FALSE,
+      nome_estrato  = NULL
+    )
+  } else if (tem_estrato && length(levels(est_vec)) > 1) {
+    fit_km  <- survival::survfit(surv_obj ~ est_vec, conf.int = confianca, stype = stype_val)
+    logrank <- survival::survdiff(surv_obj ~ est_vec)
+    gl_lr   <- length(logrank$n) - 1
+    chi_lr  <- logrank$chisq
+    p_lr    <- 1 - stats::pchisq(chi_lr, gl_lr)
+    teste_lr <- list(
+      estatistica   = chi_lr,
+      gl            = gl_lr,
+      p_valor       = p_lr,
+      obs           = logrank$obs,
+      exp           = logrank$exp,
+      grupos        = levels(est_vec),
+      estratificado = FALSE,
+      nome_estrato  = nm_estrato
     )
   } else {
-    fit_km   <- survival::survfit(surv_obj ~ 1, conf.int = confianca)
+    fit_km   <- survival::survfit(surv_obj ~ 1, conf.int = confianca, stype = stype_val)
     teste_lr <- NULL
   }
 
@@ -177,8 +230,11 @@ analise_sobrevivencia <- function(tempo,
   summ_tab <- summary(fit_km)$table
 
   if (is.matrix(summ_tab)) {
-    # Multiplos grupos
-    nomes_grps <- levels(g_vec)
+    nomes_grps <- rownames(summ_tab)
+    nomes_grps <- gsub("g_vec=", "", nomes_grps)
+    nomes_grps <- gsub(", strata\\(est_vec\\)=", " | Estrato: ", nomes_grps)
+    nomes_grps <- gsub("est_vec=", "Estrato: ", nomes_grps)
+
     n_grps     <- as.vector(summ_tab[, "records"])
     ev_grps    <- as.vector(summ_tab[, "events"])
     cens_grps  <- n_grps - ev_grps
@@ -199,7 +255,6 @@ analise_sobrevivencia <- function(tempo,
       stringsAsFactors = FALSE
     )
   } else {
-    # Curva global (1 grupo)
     n_g    <- as.numeric(summ_tab["records"])
     ev_g   <- as.numeric(summ_tab["events"])
     cens_g <- n_g - ev_g
@@ -223,19 +278,60 @@ analise_sobrevivencia <- function(tempo,
     )
   }
 
+  # ── TABELA PONTUAL DETALHADA: S(t), H(t), h(t), f(t) ──────────────────────
+  sf <- summary(fit_km, censored = TRUE)
+  strata_names <- if (!is.null(sf$strata)) as.character(sf$strata) else rep("Global", length(sf$time))
+  strata_clean <- gsub("g_vec=", "", strata_names)
+  strata_clean <- gsub(", strata\\(est_vec\\)=", " | Estrato: ", strata_clean)
+  strata_clean <- gsub("est_vec=", "Estrato: ", strata_clean)
+
+  df_pontos_raw <- data.frame(
+    tempo        = sf$time,
+    em_risco     = sf$n.risk,
+    eventos      = sf$n.event,
+    censuras     = sf$n.censor,
+    sobrevivencia= sf$surv,
+    ic_inf       = sf$lower,
+    ic_sup       = sf$upper,
+    cumhaz       = if (!is.null(sf$cumhaz)) sf$cumhaz else -log(pmax(1e-10, sf$surv)),
+    grupo        = strata_clean,
+    stringsAsFactors = FALSE
+  )
+
+  pontos_por_grupo <- list()
+  for (grp in unique(df_pontos_raw$grupo)) {
+    sub_df <- df_pontos_raw[df_pontos_raw$grupo == grp, ]
+    sub_df <- sub_df[order(sub_df$tempo), ]
+
+    times_prev <- c(0, sub_df$tempo[-nrow(sub_df)])
+    dt <- sub_df$tempo - times_prev
+    surv_prev <- c(1, sub_df$sobrevivencia[-nrow(sub_df)])
+
+    sub_df$taxa_risco      <- ifelse(dt > 0, sub_df$eventos / (sub_df$em_risco * dt), 0)
+    sub_df$densidade       <- ifelse(dt > 0, (surv_prev - sub_df$sobrevivencia) / dt, 0)
+    sub_df$risco_acumulado <- sub_df$cumhaz
+    pontos_por_grupo[[grp]] <- sub_df
+  }
+  df_curva <- do.call(rbind, pontos_por_grupo)
+  rownames(df_curva) <- NULL
+
   resultado <- structure(
     list(
       nomes = list(
-        tempo  = info_tempo$nome,
-        evento = info_evento$nome,
-        grupo  = nm_grupo
+        tempo   = info_tempo$nome,
+        evento  = info_evento$nome,
+        grupo   = nm_grupo,
+        estrato = nm_estrato
       ),
       tem_grupo    = tem_grupo,
+      tem_estrato  = tem_estrato,
+      metodo       = metodo,
       n_total      = n_total,
       n_eventos    = n_eventos,
       n_censurados = n_cens,
       confianca    = confianca,
       tabela       = tab_resumo,
+      curva        = df_curva,
       teste_logrank= teste_lr,
       fit_km       = fit_km,
       dados        = df_sob,
@@ -245,9 +341,9 @@ analise_sobrevivencia <- function(tempo,
     class = "estatR_sobrevivencia"
   )
 
-  # Gera grafico
+  # Gera gráfico
   g_km <- tryCatch(
-    grafico_sobrevivencia(resultado, tabela_risco = tabela_risco),
+    grafico_sobrevivencia(resultado, tipo = "sobrevivencia", tabela_risco = tabela_risco),
     error = function(e) NULL
   )
   resultado$grafico <- g_km
@@ -259,12 +355,6 @@ analise_sobrevivencia <- function(tempo,
   resultado
 }
 
-#' @export
-kaplan_meier <- analise_sobrevivencia
-
-#' @export
-km <- analise_sobrevivencia
-
 
 # ─────────────────────────────────────────────────────────────────────────────
 # MÉTODO PRINT KAPLAN-MEIER
@@ -273,18 +363,35 @@ km <- analise_sobrevivencia
 #' @export
 print.estatR_sobrevivencia <- function(x, ...) {
 
-  tit <- if (x$tem_grupo) {
-    sprintf("ANÁLISE DE SOBREVIVÊNCIA DE KAPLAN-MEIER (POR %s)", toupper(x$nomes$grupo))
+  met_nome <- if (x$metodo == "nelson-aalen") {
+    "NELSON-AALEN / FLEMING-HARRINGTON"
   } else {
-    "ANÁLISE DE SOBREVIVÊNCIA DE KAPLAN-MEIER (CURVA GLOBAL)"
+    "KAPLAN-MEIER"
+  }
+
+  tit <- if (x$tem_grupo && isTRUE(x$tem_estrato)) {
+    sprintf("ANÁLISE DE SOBREVIVÊNCIA DE %s (POR %s | ESTRATIFICADO POR %s)",
+            met_nome, toupper(x$nomes$grupo), toupper(x$nomes$estrato))
+  } else if (x$tem_grupo) {
+    sprintf("ANÁLISE DE SOBREVIVÊNCIA DE %s (POR %s)", met_nome, toupper(x$nomes$grupo))
+  } else if (isTRUE(x$tem_estrato)) {
+    sprintf("ANÁLISE DE SOBREVIVÊNCIA DE %s (POR ESTRATO: %s)", met_nome, toupper(x$nomes$estrato))
+  } else {
+    sprintf("ANÁLISE DE SOBREVIVÊNCIA DE %s (CURVA GLOBAL)", met_nome)
   }
   .print_titulo(tit)
 
   cat(sprintf("  Variável de Tempo:   %s\n", x$nomes$tempo))
   cat(sprintf("  Variável de Evento:  %s\n", x$nomes$evento))
+  cat(sprintf("  Método de Estimação: %s\n",
+              if (x$metodo == "nelson-aalen") "Nelson-Aalen (H(t)) e Fleming-Harrington (S(t))"
+              else "Kaplan-Meier (Produto-Limite)"))
   if (x$tem_grupo) {
     cat(sprintf("  Fator de Grupo:      %s (%d categorias)\n",
                 x$nomes$grupo, nrow(x$tabela)))
+  }
+  if (isTRUE(x$tem_estrato)) {
+    cat(sprintf("  Fator de Estrato:    %s\n", x$nomes$estrato))
   }
   cat(sprintf("  Total de Casos:      %d  (Eventos: %d | Censuras: %d - %.1f%%)\n\n",
               x$n_total, x$n_eventos, x$n_censurados,
@@ -321,11 +428,17 @@ print.estatR_sobrevivencia <- function(x, ...) {
   cat("  ────────────────────────────────────────────────────────────────────────────── \n")
   cat("  * NE: Não Estimado (a probabilidade de sobrevivência não atingiu 50% no período).\n\n")
 
-  # 2. TESTE DE LOG-RANK (SE HOUVER GRUPOS)
+  # 2. TESTE DE LOG-RANK (SE HOUVER GRUPOS OU ESTRATOS)
   if (!is.null(x$teste_logrank)) {
-    .print_topico("COMPARAÇÃO ENTRE GRUPOS (TESTE DE LOG-RANK)")
     lr <- x$teste_logrank
     pv_str <- if (lr$p_valor < 0.001) "< 0,001 ***" else sprintf("%.3f", lr$p_valor)
+
+    topico_lr <- if (isTRUE(lr$estratificado)) {
+      sprintf("COMPARAÇÃO ENTRE GRUPOS (LOG-RANK ESTRATIFICADO POR %s)", toupper(x$nomes$estrato))
+    } else {
+      "COMPARAÇÃO ENTRE GRUPOS (TESTE DE LOG-RANK)"
+    }
+    .print_topico(topico_lr)
 
     cat("  ────────────────────────────────────────────────────────────── \n")
     cat("  Grupo               Observado      Esperado    (O - E)²/E\n")
@@ -349,7 +462,6 @@ print.estatR_sobrevivencia <- function(x, ...) {
                   x$nomes$grupo, lr$gl, .fmt_num(lr$estatistica, 2),
                   if (lr$p_valor < 0.001) "< 0,001" else paste0("= ", .fmt_num(lr$p_valor, 3))))
 
-      # Identifica o grupo de melhor prognostico
       meds <- stats::setNames(x$tabela$Mediana, x$tabela$Grupo)
       meds_validas <- meds[!is.na(meds)]
       if (length(meds_validas) > 0) {
@@ -379,20 +491,27 @@ print.estatR_sobrevivencia <- function(x, ...) {
 
 
 # ─────────────────────────────────────────────────────────────────────────────
-# GRÁFICO DE SOBREVIVÊNCIA
+# GRÁFICO DE SOBREVIVÊNCIA E FUNÇÕES DE RISCO
 # ─────────────────────────────────────────────────────────────────────────────
 
-#' @title Gráfico de Curva de Sobrevivência de Kaplan-Meier
-#' @description Gera gráfico da curva de sobrevivência em degraus com marcas de
-#'   censura, intervalo de confiança sombreado e tabela de indivíduos em risco (*Risk Table*).
-#' @param modelo Objeto retornado por \code{analise_sobrevivencia()} ou \code{kaplan_meier()}.
-#' @param tabela_risco Lógico. Se \code{TRUE} (padrão), inclui a tabela de indivíduos em risco.
-#' @param conf_int Lógico. Se \code{TRUE} (padrão), inclui a faixa de confiança sombreada.
+#' @title Gráfico de Curva de Sobrevivência e Funções de Risco
+#' @description Gera visualizações para análise de sobrevivência em degraus ou curvas suavizadas,
+#'   incluindo curva de sobrevivência S(t), risco acumulado H(t) (Nelson-Aalen), taxa de risco
+#'   instantâneo h(t) (hazard rate) e densidade de falhas f(t).
+#' @param modelo Objeto retornado por \code{analise_sobrevivencia()}.
+#' @param tipo Tipo de função a visualizar: \code{"sobrevivencia"} (padrão, curva S(t) com Risk Table),
+#'   \code{"risco_acumulado"} (H(t) de Nelson-Aalen), \code{"risco_instantaneo"} (taxa h(t) com tendência)
+#'   ou \code{"densidade"} (f(t) de probabilidade de falha).
+#' @param tabela_risco Lógico. Se \code{TRUE} (padrão) e \code{tipo = "sobrevivencia"}, inclui a tabela de indivíduos em risco.
+#' @param conf_int Lógico. Se \code{TRUE} (padrão), inclui a faixa de confiança sombreada quando aplicável.
 #' @param ... Argumentos adicionais (não utilizados).
 #' @return Objeto \code{ggplot} ou composição de gráficos.
 #' @export
-#' @aliases plot_sobrevivencia
-grafico_sobrevivencia <- function(modelo, tabela_risco = TRUE, conf_int = TRUE, ...) {
+grafico_sobrevivencia <- function(modelo,
+                                  tipo         = c("sobrevivencia", "risco_acumulado", "risco_instantaneo", "densidade"),
+                                  tabela_risco = TRUE,
+                                  conf_int     = TRUE,
+                                  ...) {
   if (!inherits(modelo, "estatR_sobrevivencia")) {
     stop("O argumento 'modelo' deve ser um objeto retornado por analise_sobrevivencia().", call. = FALSE)
   }
@@ -402,58 +521,18 @@ grafico_sobrevivencia <- function(modelo, tabela_risco = TRUE, conf_int = TRUE, 
     return(invisible(NULL))
   }
 
-  fit <- modelo$fit_km
-  tem_grupo <- modelo$tem_grupo
+  tipo <- match.arg(tipo)
+  tem_grupo <- (modelo$tem_grupo || modelo$tem_estrato) && length(unique(modelo$curva$grupo)) > 1
 
-  # Extrai dados da curva do fit
-  sf <- summary(fit, censored = TRUE)
-
-  if (tem_grupo) {
-    # Nomes dos estratos limpos
-    raw_strata <- as.character(sf$strata)
-    strata_clean <- gsub("^.*=", "", raw_strata)
-    df_plot <- data.frame(
-      time   = sf$time,
-      surv   = sf$surv,
-      lower  = sf$lower,
-      upper  = sf$upper,
-      n.risk = sf$n.risk,
-      n.event= sf$n.event,
-      n.censor = sf$n.censor,
-      grupo  = strata_clean,
-      stringsAsFactors = FALSE
-    )
-    # Adiciona ponto inicial t=0 para cada grupo
-    grps <- unique(df_plot$grupo)
-    p0_list <- lapply(grps, function(g) {
-      data.frame(time = 0, surv = 1, lower = 1, upper = 1,
-                 n.risk = max(df_plot$n.risk[df_plot$grupo == g]),
-                 n.event = 0, n.censor = 0, grupo = g, stringsAsFactors = FALSE)
-    })
-    df_plot <- rbind(do.call(rbind, p0_list), df_plot)
-    df_plot <- df_plot[order(df_plot$grupo, df_plot$time), ]
-  } else {
-    df_plot <- data.frame(
-      time   = c(0, sf$time),
-      surv   = c(1, sf$surv),
-      lower  = c(1, sf$lower),
-      upper  = c(1, sf$upper),
-      n.risk = c(max(sf$n.risk), sf$n.risk),
-      n.event= c(0, sf$n.event),
-      n.censor = c(0, sf$n.censor),
-      grupo  = "Global",
-      stringsAsFactors = FALSE
-    )
-  }
-
-  # Paleta e Tema
   pal <- if (exists(".paleta_estatR", mode = "function")) {
     .paleta_estatR()
   } else {
     c("#2166AC", "#D6604D", "#4DAC26", "#B2182B", "#762A83", "#E08214")
   }
-  n_grps <- length(unique(df_plot$grupo))
-  cores  <- pal[seq_len(n_grps)]
+
+  df_curva <- modelo$curva
+  n_grps   <- length(unique(df_curva$grupo))
+  cores    <- pal[seq_len(n_grps)]
 
   tema_fn <- if (exists("tema_estatR", mode = "function")) {
     tema_estatR(estilo = 2, grade = "dupla")
@@ -463,136 +542,246 @@ grafico_sobrevivencia <- function(modelo, tabela_risco = TRUE, conf_int = TRUE, 
     ggplot2::theme_minimal()
   }
 
-  # Subtitulo com teste de log-rank se disponivel
+  # Subtítulo com teste de log-rank se disponível
   sub_txt <- if (!is.null(modelo$teste_logrank)) {
     lr <- modelo$teste_logrank
     pv <- if (lr$p_valor < 0.001) "p < 0,001" else sprintf("p = %s", .fmt_num(lr$p_valor, 3))
-    sprintf("Teste de Log-Rank: Chi2(%d) = %s, %s", lr$gl, .fmt_num(lr$estatistica, 2), pv)
+    prefixo <- if (isTRUE(lr$estratificado)) "Log-Rank Estratificado" else "Teste de Log-Rank"
+    sprintf("%s: Chi2(%d) = %s, %s", prefixo, lr$gl, .fmt_num(lr$estatistica, 2), pv)
   } else {
     sprintf("Total de indivíduos: %d | Eventos: %d | Censuras: %d",
             modelo$n_total, modelo$n_eventos, modelo$n_censurados)
   }
 
-  # Gráfico principal da curva
-  if (tem_grupo) {
-    p_curva <- ggplot2::ggplot(df_plot, ggplot2::aes(x = time, y = surv, color = grupo, fill = grupo))
-  } else {
-    p_curva <- ggplot2::ggplot(df_plot, ggplot2::aes(x = time, y = surv))
-  }
-
-  # Faixa de confianca
-  if (isTRUE(conf_int)) {
-    if (tem_grupo) {
-      p_curva <- p_curva +
-        ggplot2::geom_ribbon(ggplot2::aes(ymin = lower, ymax = upper),
-                             alpha = 0.15, linetype = 0)
-    } else {
-      p_curva <- p_curva +
-        ggplot2::geom_ribbon(ggplot2::aes(ymin = lower, ymax = upper),
-                             fill = "#2166AC", alpha = 0.18, linetype = 0)
-    }
-  }
-
-  # Degrau da curva
-  if (tem_grupo) {
-    p_curva <- p_curva +
-      ggplot2::geom_step(linewidth = 0.9) +
-      ggplot2::scale_color_manual(values = cores) +
-      ggplot2::scale_fill_manual(values = cores)
-  } else {
-    p_curva <- p_curva +
-      ggplot2::geom_step(color = "#2166AC", linewidth = 0.95)
-  }
-
-  # Marcas de censura (+)
-  df_cens <- df_plot[df_plot$n.censor > 0, ]
-  if (nrow(df_cens) > 0) {
-    if (tem_grupo) {
-      p_curva <- p_curva +
-        ggplot2::geom_point(data = df_cens, ggplot2::aes(x = time, y = surv, color = grupo),
-                            shape = 3, size = 2.5, stroke = 1.1, show.legend = FALSE)
-    } else {
-      p_curva <- p_curva +
-        ggplot2::geom_point(data = df_cens, ggplot2::aes(x = time, y = surv),
-                            color = "#2166AC", shape = 3, size = 2.5, stroke = 1.1)
-    }
-  }
-
-  p_curva <- p_curva +
-    ggplot2::scale_y_continuous(labels = function(x) paste0(round(x * 100), "%"),
-                                limits = c(0, 1.02), breaks = seq(0, 1, 0.2)) +
-    ggplot2::labs(
-      title    = "Curva de Sobrevivência de Kaplan-Meier",
-      subtitle = sub_txt,
-      x        = sprintf("Tempo (%s)", modelo$nomes$tempo),
-      y        = "Probabilidade de Sobrevivência",
-      color    = modelo$nomes$grupo,
-      fill     = modelo$nomes$grupo
-    ) +
-    tema_fn
-
-  if (!isTRUE(tabela_risco) || !requireNamespace("patchwork", quietly = TRUE)) {
-    return(p_curva)
-  }
-
-  # ── TABELA DE RISCO (NUMBER AT RISK) ──────────────────────────────────────
-  max_t <- max(df_plot$time, na.rm = TRUE)
-  tempos_quebras <- pretty(c(0, max_t), n = 5)
-  tempos_quebras <- tempos_quebras[tempos_quebras <= max_t]
-
-  # Calcula individuos em risco em cada tempo de quebra
-  grps_lista <- if (tem_grupo) unique(df_plot$grupo) else "Global"
-  linhas_risco <- list()
-
-  for (g in grps_lista) {
-    sub_fit <- if (tem_grupo) df_plot[df_plot$grupo == g, ] else df_plot
-    for (t_pt in tempos_quebras) {
-      # Pega o ultimo n.risk registrado em tempo <= t_pt
-      sub_t <- sub_fit[sub_fit$time <= t_pt, ]
-      n_r <- if (nrow(sub_t) > 0) sub_t$n.risk[nrow(sub_t)] - sub_t$n.event[nrow(sub_t)] - sub_t$n.censor[nrow(sub_t)] else max(sub_fit$n.risk)
-      if (t_pt == 0) n_r <- max(sub_fit$n.risk)
-      linhas_risco[[length(linhas_risco) + 1]] <- data.frame(
-        tempo = t_pt,
-        grupo = g,
-        em_risco = max(0, n_r),
-        stringsAsFactors = FALSE
+  # =========================================================================
+  # CASO 1: CURVA DE SOBREVIVÊNCIA S(t)
+  # =========================================================================
+  if (tipo == "sobrevivencia") {
+    grps <- unique(df_curva$grupo)
+    p0_list <- lapply(grps, function(g) {
+      sub_g <- df_curva[df_curva$grupo == g, ]
+      data.frame(
+        tempo = 0, em_risco = max(sub_g$em_risco), eventos = 0, censuras = 0,
+        sobrevivencia = 1, ic_inf = 1, ic_sup = 1, cumhaz = 0,
+        taxa_risco = 0, densidade = 0, risco_acumulado = 0,
+        grupo = g, stringsAsFactors = FALSE
       )
+    })
+    df_plot <- rbind(do.call(rbind, p0_list), df_curva)
+    df_plot <- df_plot[order(df_plot$grupo, df_plot$tempo), ]
+
+    if (tem_grupo) {
+      p_curva <- ggplot2::ggplot(df_plot, ggplot2::aes(x = tempo, y = sobrevivencia, color = grupo, fill = grupo))
+    } else {
+      p_curva <- ggplot2::ggplot(df_plot, ggplot2::aes(x = tempo, y = sobrevivencia))
     }
+
+    if (isTRUE(conf_int)) {
+      if (tem_grupo) {
+        p_curva <- p_curva + ggplot2::geom_ribbon(ggplot2::aes(ymin = ic_inf, ymax = ic_sup), alpha = 0.15, linetype = 0)
+      } else {
+        p_curva <- p_curva + ggplot2::geom_ribbon(ggplot2::aes(ymin = ic_inf, ymax = ic_sup), fill = "#2166AC", alpha = 0.18, linetype = 0)
+      }
+    }
+
+    if (tem_grupo) {
+      p_curva <- p_curva +
+        ggplot2::geom_step(linewidth = 0.9) +
+        ggplot2::scale_color_manual(values = cores) +
+        ggplot2::scale_fill_manual(values = cores)
+    } else {
+      p_curva <- p_curva +
+        ggplot2::geom_step(color = "#2166AC", linewidth = 0.95)
+    }
+
+    df_cens <- df_plot[df_plot$censuras > 0, ]
+    if (nrow(df_cens) > 0) {
+      if (tem_grupo) {
+        p_curva <- p_curva +
+          ggplot2::geom_point(data = df_cens, ggplot2::aes(x = tempo, y = sobrevivencia, color = grupo),
+                              shape = 3, size = 2.5, stroke = 1.1, show.legend = FALSE)
+      } else {
+        p_curva <- p_curva +
+          ggplot2::geom_point(data = df_cens, ggplot2::aes(x = tempo, y = sobrevivencia),
+                              color = "#2166AC", shape = 3, size = 2.5, stroke = 1.1)
+      }
+    }
+
+    met_label <- if (modelo$metodo == "nelson-aalen") "Nelson-Aalen / Fleming-Harrington" else "Kaplan-Meier"
+    p_curva <- p_curva +
+      ggplot2::scale_y_continuous(labels = function(x) paste0(round(x * 100), "%"),
+                                  limits = c(0, 1.02), breaks = seq(0, 1, 0.2)) +
+      ggplot2::labs(
+        title    = sprintf("Curva de Sobrevivência (%s)", met_label),
+        subtitle = sub_txt,
+        x        = sprintf("Tempo (%s)", modelo$nomes$tempo),
+        y        = "Probabilidade de Sobrevivência S(t)",
+        color    = if (modelo$tem_grupo) modelo$nomes$grupo else "Grupo",
+        fill     = if (modelo$tem_grupo) modelo$nomes$grupo else "Grupo"
+      ) +
+      tema_fn
+
+    if (!isTRUE(tabela_risco) || !requireNamespace("patchwork", quietly = TRUE)) {
+      return(p_curva)
+    }
+
+    # Tabela de indivíduos em risco (Risk Table)
+    max_t <- max(df_plot$tempo, na.rm = TRUE)
+    tempos_quebras <- pretty(c(0, max_t), n = 5)
+    tempos_quebras <- tempos_quebras[tempos_quebras <= max_t]
+
+    grps_lista <- if (tem_grupo) unique(df_plot$grupo) else "Global"
+    linhas_risco <- list()
+    for (g in grps_lista) {
+      sub_fit <- if (tem_grupo) df_plot[df_plot$grupo == g, ] else df_plot
+      for (t_pt in tempos_quebras) {
+        sub_t <- sub_fit[sub_fit$tempo <= t_pt, ]
+        n_r <- if (nrow(sub_t) > 0) sub_t$em_risco[nrow(sub_t)] - sub_t$eventos[nrow(sub_t)] - sub_t$censuras[nrow(sub_t)] else max(sub_fit$em_risco)
+        if (t_pt == 0) n_r <- max(sub_fit$em_risco)
+        linhas_risco[[length(linhas_risco) + 1]] <- data.frame(
+          tempo = t_pt, grupo = g, em_risco = max(0, n_r), stringsAsFactors = FALSE
+        )
+      }
+    }
+    df_risco <- do.call(rbind, linhas_risco)
+
+    p_risco <- ggplot2::ggplot(df_risco, ggplot2::aes(x = tempo, y = grupo, label = em_risco)) +
+      ggplot2::geom_text(size = 3.3, fontface = "bold", color = "gray20") +
+      ggplot2::scale_x_continuous(limits = ggplot2::layer_scales(p_curva)$x$range$range, breaks = tempos_quebras) +
+      ggplot2::labs(x = sprintf("Tempo (%s)", modelo$nomes$tempo), y = "") +
+      tema_fn +
+      ggplot2::theme(
+        panel.grid.major = ggplot2::element_blank(),
+        panel.grid.minor = ggplot2::element_blank(),
+        axis.text.y      = ggplot2::element_text(face = "bold", color = "gray20"),
+        axis.ticks.y     = ggplot2::element_blank(),
+        plot.margin      = ggplot2::margin(t = 0, r = 10, b = 10, l = 10)
+      )
+
+    p_curva_sem_x <- p_curva +
+      ggplot2::theme(
+        axis.title.x = ggplot2::element_blank(),
+        axis.text.x  = ggplot2::element_blank(),
+        axis.ticks.x = ggplot2::element_blank(),
+        plot.margin  = ggplot2::margin(t = 10, r = 10, b = 0, l = 10)
+      )
+
+    return(patchwork::wrap_plots(p_curva_sem_x, p_risco, ncol = 1, heights = c(3.8, 1)))
   }
-  df_risco <- do.call(rbind, linhas_risco)
 
-  p_risco <- ggplot2::ggplot(df_risco, ggplot2::aes(x = tempo, y = grupo, label = em_risco)) +
-    ggplot2::geom_text(size = 3.3, fontface = "bold", color = "gray20") +
-    ggplot2::scale_x_continuous(limits = ggplot2::layer_scales(p_curva)$x$range$range,
-                                breaks = tempos_quebras) +
-    ggplot2::labs(
-      x = sprintf("Tempo (%s)", modelo$nomes$tempo),
-      y = ""
-    ) +
-    tema_fn +
-    ggplot2::theme(
-      panel.grid.major = ggplot2::element_blank(),
-      panel.grid.minor = ggplot2::element_blank(),
-      axis.text.y      = ggplot2::element_text(face = "bold", color = "gray20"),
-      axis.ticks.y     = ggplot2::element_blank(),
-      plot.margin      = ggplot2::margin(t = 0, r = 10, b = 10, l = 10)
-    )
+  # =========================================================================
+  # CASO 2: RISCO ACUMULADO H(t)
+  # =========================================================================
+  if (tipo == "risco_acumulado") {
+    grps <- unique(df_curva$grupo)
+    p0_list <- lapply(grps, function(g) {
+      sub_g <- df_curva[df_curva$grupo == g, ]
+      data.frame(
+        tempo = 0, em_risco = max(sub_g$em_risco), eventos = 0, censuras = 0,
+        sobrevivencia = 1, ic_inf = 1, ic_sup = 1, cumhaz = 0,
+        taxa_risco = 0, densidade = 0, risco_acumulado = 0,
+        grupo = g, stringsAsFactors = FALSE
+      )
+    })
+    df_plot <- rbind(do.call(rbind, p0_list), df_curva)
+    df_plot <- df_plot[order(df_plot$grupo, df_plot$tempo), ]
 
-  # Remove eixo X do grafico superior para composicao perfeita
-  p_curva_sem_x <- p_curva +
-    ggplot2::theme(
-      axis.title.x = ggplot2::element_blank(),
-      axis.text.x  = ggplot2::element_blank(),
-      axis.ticks.x = ggplot2::element_blank(),
-      plot.margin  = ggplot2::margin(t = 10, r = 10, b = 0, l = 10)
-    )
+    if (tem_grupo) {
+      p <- ggplot2::ggplot(df_plot, ggplot2::aes(x = tempo, y = risco_acumulado, color = grupo)) +
+        ggplot2::geom_step(linewidth = 0.95) +
+        ggplot2::scale_color_manual(values = cores)
+    } else {
+      p <- ggplot2::ggplot(df_plot, ggplot2::aes(x = tempo, y = risco_acumulado)) +
+        ggplot2::geom_step(color = "#2166AC", linewidth = 1)
+    }
 
-  painel_final <- patchwork::wrap_plots(p_curva_sem_x, p_risco, ncol = 1, heights = c(3.8, 1))
-  painel_final
+    df_ev <- df_plot[df_plot$eventos > 0, ]
+    if (nrow(df_ev) > 0) {
+      if (tem_grupo) {
+        p <- p + ggplot2::geom_point(data = df_ev, ggplot2::aes(x = tempo, y = risco_acumulado, color = grupo),
+                                     size = 2, shape = 16, alpha = 0.8)
+      } else {
+        p <- p + ggplot2::geom_point(data = df_ev, ggplot2::aes(x = tempo, y = risco_acumulado),
+                                     color = "#2166AC", size = 2, shape = 16, alpha = 0.8)
+      }
+    }
+
+    p <- p +
+      ggplot2::labs(
+        title    = "Curva de Risco Acumulado H(t) (Nelson-Aalen)",
+        subtitle = sub_txt,
+        x        = sprintf("Tempo (%s)", modelo$nomes$tempo),
+        y        = "Risco Acumulado H(t) = -log S(t)",
+        color    = if (modelo$tem_grupo) modelo$nomes$grupo else "Grupo"
+      ) +
+      tema_fn
+
+    return(p)
+  }
+
+  # =========================================================================
+  # CASO 3: TAXA DE RISCO INSTANTÂNEO h(t)
+  # =========================================================================
+  if (tipo == "risco_instantaneo") {
+    df_ev <- df_curva[df_curva$eventos > 0, ]
+    if (nrow(df_ev) == 0) df_ev <- df_curva
+
+    if (tem_grupo) {
+      p <- ggplot2::ggplot(df_ev, ggplot2::aes(x = tempo, y = taxa_risco, color = grupo)) +
+        ggplot2::geom_point(alpha = 0.6, size = 2.2) +
+        ggplot2::geom_smooth(method = "loess", se = FALSE, span = 0.75, linewidth = 1) +
+        ggplot2::scale_color_manual(values = cores)
+    } else {
+      p <- ggplot2::ggplot(df_ev, ggplot2::aes(x = tempo, y = taxa_risco)) +
+        ggplot2::geom_point(color = "#2166AC", alpha = 0.6, size = 2.2) +
+        ggplot2::geom_smooth(method = "loess", color = "#D6604D", se = FALSE, span = 0.75, linewidth = 1)
+    }
+
+    p <- p +
+      ggplot2::labs(
+        title    = "Taxa de Risco Instantâneo h(t) (Hazard Rate)",
+        subtitle = "Pontos empíricos com curva de tendência suavizada (LOESS)",
+        x        = sprintf("Tempo (%s)", modelo$nomes$tempo),
+        y        = "Taxa de Risco Instantâneo h(t)",
+        color    = if (modelo$tem_grupo) modelo$nomes$grupo else "Grupo"
+      ) +
+      tema_fn
+
+    return(p)
+  }
+
+  # =========================================================================
+  # CASO 4: FUNÇÃO DE DENSIDADE DE FALHAS f(t)
+  # =========================================================================
+  if (tipo == "densidade") {
+    df_ev <- df_curva[df_curva$eventos > 0, ]
+    if (nrow(df_ev) == 0) df_ev <- df_curva
+
+    if (tem_grupo) {
+      p <- ggplot2::ggplot(df_ev, ggplot2::aes(x = tempo, y = densidade, color = grupo)) +
+        ggplot2::geom_line(linewidth = 0.75, linetype = "dotted", alpha = 0.6) +
+        ggplot2::geom_smooth(method = "loess", se = FALSE, span = 0.75, linewidth = 1) +
+        ggplot2::scale_color_manual(values = cores)
+    } else {
+      p <- ggplot2::ggplot(df_ev, ggplot2::aes(x = tempo, y = densidade)) +
+        ggplot2::geom_line(color = "gray50", linewidth = 0.75, linetype = "dotted", alpha = 0.6) +
+        ggplot2::geom_smooth(method = "loess", color = "#4DAC26", se = FALSE, span = 0.75, linewidth = 1)
+    }
+
+    p <- p +
+      ggplot2::labs(
+        title    = "Função de Densidade de Falhas f(t)",
+        subtitle = "Taxa de mortalidade/falha incondicional por intervalo de tempo",
+        x        = sprintf("Tempo (%s)", modelo$nomes$tempo),
+        y        = "Densidade f(t) = dF(t)/dt",
+        color    = if (modelo$tem_grupo) modelo$nomes$grupo else "Grupo"
+      ) +
+      tema_fn
+
+    return(p)
+  }
 }
 
-#' @export
-plot_sobrevivencia <- grafico_sobrevivencia
 
 
 # ─────────────────────────────────────────────────────────────────────────────
@@ -616,7 +805,6 @@ plot_sobrevivencia <- grafico_sobrevivencia
 #' @return Objeto da classe \code{"estatR_cox"} contendo estimativas, Hazard Ratios,
 #'   diagnóstico de resíduos e modelo ajustado.
 #' @export
-#' @aliases cox
 regressao_cox <- function(formula,
                           dados,
                           confianca   = 0.95,
@@ -726,9 +914,6 @@ regressao_cox <- function(formula,
   resultado
 }
 
-#' @export
-cox <- regressao_cox
-
 
 # ─────────────────────────────────────────────────────────────────────────────
 # MÉTODO PRINT COX
@@ -826,7 +1011,6 @@ print.estatR_cox <- function(x, ...) {
 #' @param ... Argumentos adicionais (não utilizados).
 #' @return Objeto \code{ggplot}.
 #' @export
-#' @aliases plot_cox
 grafico_cox <- function(modelo, escala_log = TRUE, ...) {
   if (!inherits(modelo, "estatR_cox")) {
     stop("O argumento 'modelo' deve ser um objeto retornado por regressao_cox().", call. = FALSE)
@@ -877,9 +1061,6 @@ grafico_cox <- function(modelo, escala_log = TRUE, ...) {
 
   p
 }
-
-#' @export
-plot_cox <- grafico_cox
 
 
 # ─────────────────────────────────────────────────────────────────────────────

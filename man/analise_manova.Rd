@@ -2,12 +2,9 @@
 % Please edit documentation in R/multivariada.R
 \name{analise_manova}
 \alias{analise_manova}
-\alias{manova_estatR}
 \title{Análise de Variância Multivariada (MANOVA)}
 \usage{
 analise_manova(dados = NULL, variaveis = NULL, grupo = NULL, grafico = TRUE)
-
-manova_estatR(dados = NULL, variaveis = NULL, grupo = NULL, grafico = TRUE)
 }
 \arguments{
 \item{dados}{Data frame contendo os dados.}

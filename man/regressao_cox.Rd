@@ -2,7 +2,6 @@
 % Please edit documentation in R/sobrevivencia.R
 \name{regressao_cox}
 \alias{regressao_cox}
-\alias{cox}
 \title{Regressão de Cox (Modelo de Riscos Proporcionais)}
 \usage{
 regressao_cox(

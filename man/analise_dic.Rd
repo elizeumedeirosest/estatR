@@ -2,7 +2,6 @@
 % Please edit documentation in R/experimentos.R
 \name{analise_dic}
 \alias{analise_dic}
-\alias{dic}
 \title{Análise de Delineamento Inteiramente Casualizado (DIC)}
 \usage{
 analise_dic(

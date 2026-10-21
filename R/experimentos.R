@@ -198,7 +198,6 @@
 #' @return Objeto da classe \code{"estatR_dic"} contendo os quadros da ANOVA, parâmetros
 #'   experimentais, resultados das comparações múltiplas ou regressão polinomial e gráficos.
 #' @export
-#' @aliases dic
 analise_dic <- function(resposta,
                         tratamento,
                         dados       = NULL,
@@ -857,9 +856,6 @@ analise_dic <- function(resposta,
   resultado
 }
 
-#' @export
-dic <- analise_dic
-
 
 # ─────────────────────────────────────────────────────────────────────────────
 # MÉTODOS DE IMPRESSÃO
@@ -1144,7 +1140,6 @@ grafico_medias <- function(modelo, cor_barras = "#008080") {
 #' @param cor_ns Cor para os intervalos que cruzam o zero (padrão \code{"gray40"}).
 #' @return Objeto \code{ggplot}.
 #' @export
-#' @aliases grafico_comparacoes
 grafico_ic <- function(modelo, cor_sig = "#0099FF", cor_ns = "gray40") {
   if (!inherits(modelo, c("estatR_dic", "estatR_dbc", "estatR_dql"))) {
     stop("O argumento 'modelo' deve ser um objeto retornado por analise_dic(), analise_dbc() ou analise_dql().", call. = FALSE)
@@ -1183,9 +1178,6 @@ grafico_ic <- function(modelo, cor_sig = "#0099FF", cor_ns = "gray40") {
   p <- p + ggplot2::theme(legend.position = "bottom")
   p
 }
-
-#' @export
-grafico_comparacoes <- grafico_ic
 
 #' @title Gráfico da Regressão Polinomial
 #' @description Gera gráfico de dispersão com os pontos observados, médias e curva ajustada do modelo
@@ -1246,7 +1238,6 @@ grafico_regressao <- function(modelo) {
 #' @param ... Argumentos adicionais passados para as funções gráficas individuais.
 #' @return Objeto \code{ggplot} ou composição de gráficos.
 #' @export
-#' @aliases plot_dic
 grafico_dic <- function(modelo, ...) {
   if (!inherits(modelo, "estatR_dic")) {
     stop("O argumento 'modelo' deve ser um objeto retornado por analise_dic().", call. = FALSE)
@@ -1271,9 +1262,6 @@ grafico_dic <- function(modelo, ...) {
     return(p_ic)
   }
 }
-
-#' @export
-plot_dic <- grafico_dic
 
 
 # ─────────────────────────────────────────────────────────────────────────────
@@ -1305,7 +1293,6 @@ plot_dic <- grafico_dic
 #' @return Objeto da classe \code{"estatR_dbc"} contendo os quadros da ANOVA, parâmetros
 #'   experimentais, eficiência da blocagem, resultados das comparações múltiplas e gráficos.
 #' @export
-#' @aliases dbc
 analise_dbc <- function(resposta,
                         tratamento,
                         bloco,
@@ -1997,9 +1984,6 @@ analise_dbc <- function(resposta,
   resultado
 }
 
-#' @export
-dbc <- analise_dbc
-
 
 # ─────────────────────────────────────────────────────────────────────────────
 # MÉTODO DE IMPRESSÃO DBC
@@ -2222,7 +2206,6 @@ print.estatR_dbc <- function(x, ...) {
 #' @param ... Argumentos adicionais passados para as funções gráficas individuais.
 #' @return Objeto \code{ggplot} ou composição de gráficos.
 #' @export
-#' @aliases plot_dbc
 grafico_dbc <- function(modelo, ...) {
   if (!inherits(modelo, "estatR_dbc")) {
     stop("O argumento 'modelo' deve ser um objeto retornado por analise_dbc().", call. = FALSE)
@@ -2246,9 +2229,6 @@ grafico_dbc <- function(modelo, ...) {
     return(p_ic)
   }
 }
-
-#' @export
-plot_dbc <- grafico_dbc
 
 
 # ─────────────────────────────────────────────────────────────────────────────
@@ -2281,7 +2261,6 @@ plot_dbc <- grafico_dbc
 #' @return Objeto da classe \code{"estatR_dql"} contendo os quadros da ANOVA, parâmetros
 #'   experimentais, eficiências relativas, resultados das comparações múltiplas e gráficos.
 #' @export
-#' @aliases dql
 analise_dql <- function(resposta,
                         tratamento,
                         linha,
@@ -2956,9 +2935,6 @@ analise_dql <- function(resposta,
   resultado
 }
 
-#' @export
-dql <- analise_dql
-
 
 # ─────────────────────────────────────────────────────────────────────────────
 # MÉTODO DE IMPRESSÃO DQL
@@ -3190,7 +3166,6 @@ print.estatR_dql <- function(x, ...) {
 #' @param ... Argumentos adicionais passados para as funções gráficas individuais.
 #' @return Objeto \code{ggplot} ou composição de gráficos.
 #' @export
-#' @aliases plot_dql
 grafico_dql <- function(modelo, ...) {
   if (!inherits(modelo, "estatR_dql")) {
     stop("O argumento 'modelo' deve ser um objeto retornado por analise_dql().", call. = FALSE)
@@ -3215,5 +3190,3 @@ grafico_dql <- function(modelo, ...) {
   }
 }
 
-#' @export
-plot_dql <- grafico_dql

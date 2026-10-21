@@ -1165,13 +1165,9 @@ analise_fatorial <- function(dados,
   invisible(res)
 }
 
-#' @rdname analise_fatorial
-#' @export
-afe <- analise_fatorial
-
 #' @title Gráfico de Cargas Fatoriais (Loadings Plot)
 #' @description Gera gráfico de barras das cargas fatoriais para cada fator retido.
-#' @param modelo Objeto retornado pela função \code{analise_fatorial()} ou \code{afe()}.
+#' @param modelo Objeto retornado pela função \code{analise_fatorial()}.
 #' @param corte Numérico. Linha de referência tracejada para cargas salientes (padrão: 0.30).
 #' @export
 cargasplot_fatorial <- function(modelo, corte = 0.30) {
@@ -2587,10 +2583,6 @@ analise_manova <- function(dados = NULL, variaveis = NULL, grupo = NULL, grafico
   invisible(resultado)
 }
 
-#' @rdname analise_manova
-#' @export
-manova_estatR <- analise_manova
-
 #' @title Gráfico de Perfis Multivariados da MANOVA
 #' @description Plota os perfis médios padronizados (escores Z) de cada grupo
 #' ao longo das variáveis resposta analisadas na MANOVA.
@@ -3172,10 +3164,6 @@ analise_discriminante <- function(dados = NULL, variaveis = NULL, grupo = NULL,
   invisible(resultado)
 }
 
-#' @rdname analise_discriminante
-#' @export
-discriminante <- analise_discriminante
-
 #' @title Gráfico da Análise Discriminante (Biplot / Dispersão)
 #' @description Plota a projeção das observações no espaço discriminante.
 #' Para 3 ou mais grupos (2+ funções discriminantes), gera um Biplot 2D (LD1 x LD2) com elipses
@@ -3285,6 +3273,3 @@ biplot_lda <- function(modelo, elipses = TRUE) {
   p
 }
 
-#' @rdname biplot_lda
-#' @export
-plot_discriminante <- biplot_lda

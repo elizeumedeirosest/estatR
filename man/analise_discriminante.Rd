@@ -2,19 +2,9 @@
 % Please edit documentation in R/multivariada.R
 \name{analise_discriminante}
 \alias{analise_discriminante}
-\alias{discriminante}
 \title{Análise Discriminante (LDA / QDA)}
 \usage{
 analise_discriminante(
-  dados = NULL,
-  variaveis = NULL,
-  grupo = NULL,
-  metodo = c("lda", "qda"),
-  validacao_cruzada = TRUE,
-  grafico = TRUE
-)
-
-discriminante(
   dados = NULL,
   variaveis = NULL,
   grupo = NULL,

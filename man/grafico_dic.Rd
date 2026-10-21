@@ -2,7 +2,6 @@
 % Please edit documentation in R/experimentos.R
 \name{grafico_dic}
 \alias{grafico_dic}
-\alias{plot_dic}
 \title{Painel Gráfico Completo do DIC}
 \usage{
 grafico_dic(modelo, ...)

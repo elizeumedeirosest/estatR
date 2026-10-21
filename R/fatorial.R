@@ -450,12 +450,6 @@ analise_fatorial_duplo <- function(resposta,
   resultado
 }
 
-#' @export
-fatorial <- analise_fatorial_duplo
-
-#' @export
-fat <- analise_fatorial_duplo
-
 
 # ─────────────────────────────────────────────────────────────────────────────
 # MÉTODO PRINT
@@ -717,7 +711,6 @@ print.estatR_fatorial <- function(x, ...) {
 #' @param ... Argumentos adicionais (não utilizados).
 #' @return Objeto \code{ggplot}.
 #' @export
-#' @aliases plot_fatorial
 grafico_fatorial <- function(modelo, ...) {
   if (!inherits(modelo, "estatR_fatorial")) {
     stop("O argumento 'modelo' deve ser um objeto retornado por analise_fatorial().", call. = FALSE)
@@ -825,29 +818,6 @@ grafico_fatorial <- function(modelo, ...) {
   g
 }
 
-#' @export
-plot_fatorial <- grafico_fatorial
-
-
-# ─────────────────────────────────────────────────────────────────────────────
-# PAINEL GRÁFICO FATORIAL
-# ─────────────────────────────────────────────────────────────────────────────
-
-#' @title Painel Gráfico Completo do Fatorial
-#' @description Exibe o gráfico de perfil de interação do esquema fatorial duplo.
-#' @param modelo Objeto retornado por \code{analise_fatorial_duplo()}.
-#' @param ... Argumentos adicionais passados para as funções gráficas.
-#' @return Objeto \code{ggplot}.
-#' @export
-grafico_fat <- function(modelo, ...) {
-  if (!inherits(modelo, "estatR_fatorial")) {
-    stop("O argumento 'modelo' deve ser um objeto retornado por analise_fatorial_duplo().", call. = FALSE)
-  }
-  grafico_fatorial(modelo, ...)
-}
-
-#' @export
-plot_fat <- grafico_fat
 
 
 

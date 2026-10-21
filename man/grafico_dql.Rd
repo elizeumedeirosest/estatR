@@ -2,7 +2,6 @@
 % Please edit documentation in R/experimentos.R
 \name{grafico_dql}
 \alias{grafico_dql}
-\alias{plot_dql}
 \title{Painel Gráfico Completo do DQL}
 \usage{
 grafico_dql(modelo, ...)

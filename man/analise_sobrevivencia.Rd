@@ -2,15 +2,15 @@
 % Please edit documentation in R/sobrevivencia.R
 \name{analise_sobrevivencia}
 \alias{analise_sobrevivencia}
-\alias{kaplan_meier}
-\alias{km}
-\title{Análise de Sobrevivência com Estimador de Kaplan-Meier}
+\title{Análise de Sobrevivência (Kaplan-Meier e Nelson-Aalen)}
 \usage{
 analise_sobrevivencia(
   tempo,
   evento,
   grupo = NULL,
+  estrato = NULL,
   dados = NULL,
+  metodo = c("kaplan-meier", "nelson-aalen"),
   confianca = 0.95,
   tabela_risco = TRUE,
   grafico = TRUE
@@ -25,21 +25,30 @@ Aceita variáveis numéricas (0/1 ou 1/2), lógicas ou fatores.}
 \item{grupo}{Variável categórica opcional que define os grupos de comparação.
 Se omitida (\code{NULL}), calcula a curva de sobrevivência global.}
 
+\item{estrato}{Variável categórica opcional que define estratos de controle
+(gera o teste de Log-Rank estratificado para controlar variáveis de confusão).}
+
 \item{dados}{Data frame opcional contendo as variáveis.}
+
+\item{metodo}{Método de estimação: \code{"kaplan-meier"} (padrão, produto-limite)
+ou \code{"nelson-aalen"} (risco acumulado de Nelson-Aalen e sobrevivência de Fleming-Harrington).}
 
 \item{confianca}{Nível de confiança para os intervalos (padrão \code{0.95}).}
 
 \item{tabela_risco}{Lógico. Se \code{TRUE} (padrão), inclui a tabela de indivíduos
-em risco (\emph{Risk Table}) no gráfico.}
+em risco (\emph{Risk Table}) no gráfico de sobrevivência.}
 
 \item{grafico}{Lógico. Se \code{TRUE} (padrão), exibe o gráfico de sobrevivência.}
 }
 \value{
-Objeto da classe \code{"estatR_sobrevivencia"} contendo o ajuste de
-Kaplan-Meier, resumo dos grupos, teste de Log-Rank e gráfico.
+Objeto da classe \code{"estatR_sobrevivencia"} contendo o ajuste,
+resumo dos grupos, tabela pontual com S(t), H(t), h(t) e f(t), teste de Log-Rank e gráfico.
 }
 \description{
-Ajusta e apresenta curvas de sobrevivência não-paramétricas pelo
-método de Kaplan-Meier, com cálculo de medianas de sobrevivência, intervalos
-de confiança, taxas de censura e teste de Log-Rank para comparação de grupos.
+Ajusta e apresenta curvas de sobrevivência não-paramétricas pelos
+métodos de Kaplan-Meier e Nelson-Aalen / Fleming-Harrington, com cálculo de
+medianas de sobrevivência, intervalos de confiança, taxas de censura,
+tabela pontual completa com estimativas de S(t), risco acumulado H(t), taxa
+de risco instantâneo h(t) e densidade f(t), além de teste de Log-Rank
+(simples ou estratificado) para comparação de grupos.
 }

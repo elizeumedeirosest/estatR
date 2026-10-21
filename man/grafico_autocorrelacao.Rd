@@ -2,17 +2,9 @@
 % Please edit documentation in R/series_temporais.R
 \name{grafico_autocorrelacao}
 \alias{grafico_autocorrelacao}
-\alias{grafico_acf}
 \title{Gráfico de Autocorrelação (FAC e FACP)}
 \usage{
 grafico_autocorrelacao(
-  serie,
-  defasagens = 24,
-  posicao = c("empilhado", "lado_a_lado"),
-  teste_ruido = TRUE
-)
-
-grafico_acf(
   serie,
   defasagens = 24,
   posicao = c("empilhado", "lado_a_lado"),

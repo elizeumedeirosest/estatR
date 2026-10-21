@@ -2,7 +2,6 @@
 % Please edit documentation in R/experimentos.R
 \name{analise_dql}
 \alias{analise_dql}
-\alias{dql}
 \title{Análise de Delineamento em Quadrado Latino (DQL)}
 \usage{
 analise_dql(

@@ -2,7 +2,6 @@
 % Please edit documentation in R/fatorial.R
 \name{grafico_fatorial}
 \alias{grafico_fatorial}
-\alias{plot_fatorial}
 \title{Gráfico de Perfil de Interação — Esquema Fatorial}
 \usage{
 grafico_fatorial(modelo, ...)

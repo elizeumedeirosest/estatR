@@ -2,21 +2,9 @@
 % Please edit documentation in R/mlg.R
 \name{regressao_mlg}
 \alias{regressao_mlg}
-\alias{mlg}
 \title{Regressão por Modelos Lineares Generalizados (MLG / GLM)}
 \usage{
 regressao_mlg(
-  dados,
-  formula,
-  familia = c("binomial", "poisson", "quasipoisson", "gama", "gaussian",
-    "binomial_negativa", "beta"),
-  ligacao = NULL,
-  teste = c("wald", "lrt", "ambos"),
-  referencia = NULL,
-  grafico = FALSE
-)
-
-mlg(
   dados,
   formula,
   familia = c("binomial", "poisson", "quasipoisson", "gama", "gaussian",
