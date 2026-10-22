@@ -177,14 +177,14 @@ gerar_amostra(n = 1000, distribuicao = "exponencial", taxa = 0.5)
 <summary><strong> Modelagem e Regressão</strong></summary>
 <br>
 
-**Modelos Lineares Generalizados (MLG / GLM Flexível)**
+**Modelos Lineares Generalizados (MLG / GLM)**
 
 ```r
-# Função unificada com dados em primeiro argumento (compatível com pipe |>)
+# Função
 # Suporta: "binomial", "poisson", "quasipoisson", "gama", "gaussian", "binomial_negativa", "beta"
 mod_mlg <- regressao_mlg(mtcars, mpg ~ wt + hp, familia = "gaussian", teste = "ambos")
 
-# Gráfico de Coeficientes estilo Forest Plot (nativo em ggplot2 com tema estatR e grade dupla):
+# Gráfico de Coeficientes estilo Forest Plot
 grafico_coeficientes(mod_mlg)
 ```
 
@@ -192,20 +192,20 @@ grafico_coeficientes(mod_mlg)
 
 ```r
 # Regressão simples e múltipla
-modelo  <- regressao_linear(mpg ~ wt, dados = mtcars)
+modelo1  <- regressao_linear(mpg ~ wt, dados = mtcars)
 modelo2 <- regressao_linear(mpg ~ wt + hp, dados = mtcars)
 
 # Predição
-predicao(modelo,  data.frame(wt = c(2.5, 3.0)))
+predicao(modelo1,  data.frame(wt = c(2.5, 3.0)))
 predicao(modelo2, data.frame(wt = 2.5, hp = 110), intervalo = "predicao")
 
 # Métricas e diagnóstico de resíduos polimórfico
-metricas(modelo)
-analise_residual(modelo)
-grafico_coeficientes(modelo2)
+metricas(modelo1)
+analise_residual(modelo1)
+grafico_coeficientes(modelo1)
 
 # Diagnóstico de Alavancagem e Pontos Influentes (Cook, Leverage, DFFITS e reajuste comparativo)
-pontos_influentes(modelo)
+pontos_influentes(modelo1)
 pontos_influentes(modelo2)
 
 # Diagnóstico de Multicolinearidade (VIF para numéricas, GVIF para fatores e Número de Condição)
@@ -393,7 +393,7 @@ dendrograma(modelo_hc)                   # Dendrograma colorido
 **Análise de Variância Multivariada (MANOVA)**
 
 ```r
-# Ajuste da MANOVA (sintaxe flexível: com ou sem aspas)
+# Ajuste da MANOVA
 modelo_manova <- analise_manova(c(Sepal.Length, Sepal.Width, Petal.Length), grupo = Species, dados = iris)
 
 # Acesso direto aos elementos do modelo
@@ -410,15 +410,8 @@ plot_manova(modelo_manova)
 **Análise Discriminante Linear (LDA)**
 
 ```r
-# Sintaxe 1 (sem aspas):
-modelo_lda <- analise_discriminante(c(Sepal.Length, Sepal.Width, Petal.Length, Petal.Width), grupo = Species, dados = iris)
-
-# Sintaxe 2 (com aspas):
+# Sintaxe
 modelo_lda <- analise_discriminante(variaveis = c("Sepal.Length", "Sepal.Width"), grupo = "Species", dados = iris)
-
-# Sintaxe 3 (omitindo variaveis — seleciona todas as preditoras numéricas):
-modelo_lda <- analise_discriminante(dados = iris, grupo = Species)
-# ou pelo alias: discriminante(...)
 
 # Acesso direto aos elementos do modelo
 modelo_lda$funcoes_autovalores   # Autovalores, variância explicada (%) e correlação canônica
@@ -431,7 +424,6 @@ modelo_lda$modelo_lda            # Objeto nativo MASS::lda
 
 # Biplot Discriminante com elipses e vetores direcionais (tema 2 com grade dupla)
 plot_discriminante(modelo_lda)
-# ou pelo alias: biplot_lda(modelo_lda, elipses = TRUE, vetores = TRUE)
 ```
 
 </details>
@@ -445,10 +437,7 @@ plot_discriminante(modelo_lda)
 **Delineamento Inteiramente Casualizado (DIC)**
 
 ```r
-# Sintaxe 1 (sem aspas):
-modelo_dic <- analise_dic(Produtividade, Adubo, dados = soja, teste = "tukey")
-
-# Sintaxe 2 (com aspas):
+# Sintaxe
 modelo_dic <- analise_dic("Produtividade", "Adubo", dados = soja, teste = "scott_knott")
 
 # Teste de Scheffé com contrastes em linguagem natural:
@@ -480,10 +469,7 @@ grafico_regressao(modelo_quanti) # Curva suave ajustada com pontos reais e dose 
 **Delineamento em Blocos Casualizados (DBC)**
 
 ```r
-# Sintaxe 1 (sem aspas):
-modelo_dbc <- analise_dbc(Produtividade, Tratamento, Bloco, dados = dados, teste = "tukey")
-
-# Sintaxe 2 (com aspas):
+# Sintaxe
 modelo_dbc <- analise_dbc("Produtividade", "Tratamento", "Bloco", dados = dados, teste = "scheffe",
                   contrastes = c("T1 vs c(T2, T3)", "c(T1, T2) vs c(T3, T4)"))
 
@@ -505,10 +491,7 @@ grafico_dbc(modelo_dbc)          # Painel automático de Médias + Intervalos de
 **Delineamento em Quadrado Latino (DQL)**
 
 ```r
-# Sintaxe 1 (sem aspas):
-modelo_dql <- analise_dql(Produtividade, Tratamento, Linha, Coluna, dados = dados, teste = "tukey")
-
-# Sintaxe 2 (com aspas):
+# Sintaxe
 modelo_dql <- analise_dql("Produtividade", "Tratamento", "Linha", "Coluna", dados = dados, teste = "scott_knott")
 
 # Teste de Scheffé com contrastes personalizados:
@@ -528,15 +511,11 @@ grafico_dql(modelo_dql)          # Painel com Gráfico de Médias + ICs das dife
 **Esquema Fatorial Duplo (A × B — DIC e DBC)**
 
 ```r
-# Sintaxe 1 (sem aspas):
-# Em DIC (sem bloco):
+# Sintaxe - DIC
 modelo_fat <- analise_fatorial_duplo(Produtividade, Cultivar, Adubacao, dados = dados, teste = "tukey")
 
-# Em DBC (com bloco informado):
+# Em DBC
 modelo_fat_dbc <- analise_fatorial_duplo(Produtividade, Cultivar, Adubacao, bloco = Bloco, dados = dados)
-
-# Sintaxe 2 (com aspas):
-modelo_fat <- analise_fatorial_duplo("Produtividade", "Cultivar", "Adubacao", dados = dados, teste = "scott_knott")
 
 # Desdobramento automático:
 # - Se a interação for significativa (p < 0.05): realiza o desdobramento dos fatores
@@ -770,7 +749,7 @@ analise_serie(dados, y = vendas, data = mes, frequencia = 12)
 **Estacionariedade**
 
 ```r
-# Testes ADF e KPSS com veredito [✓] / [!]
+# Testes ADF e KPSS com veredito
 teste_estacionariedade(AirPassengers)
 teste_estacionariedade(AirPassengers, diferencas = 1)
 ```
@@ -796,8 +775,7 @@ previsao_serie(AirPassengers, horizonte = 12, metodo = "holt_winters", tipo = "m
 ```r
 # RMSE, MAE, MAPE, sMAPE, MASE, UMBRAE, AIC, AICc, BIC
 metricas_serie(modelo_previsao)          # Objeto de previsão
-metricas(modelo_previsao)                # Polimórfico: detecta automaticamente série temporal
-metricas_serie(real = y_teste, previsto = y_hat, treino = y_treino)  # Vetores diretos
+metricas(modelo_previsao)           
 ```
 
 **Diagnóstico de Resíduos (Polimórfico)**
@@ -806,7 +784,6 @@ metricas_serie(real = y_teste, previsto = y_hat, treino = y_treino)  # Vetores d
 # Testes formais (Média Zero, Normalidade, Ljung-Box) + Painel com 4 gráficos
 analise_residual(modelo_previsao)             # Objeto de previsão estatR
 analise_residual(modelo_arima)                # Modelos ARIMA / SARIMA
-analise_residual_serie(modelo_previsao)       # Chamada direta específica
 ```
 
 **Seleção de Modelos (Out-of-Sample Ranking)**
