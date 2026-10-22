@@ -1,4 +1,4 @@
-﻿# ─────────────────────────────────────────────────────────────────────────────
+# ─────────────────────────────────────────────────────────────────────────────
 # MÓDULO: REGRESSÃO LOGÍSTICA (BINOMIAL · MULTINOMIAL · ORDINAL)
 # ─────────────────────────────────────────────────────────────────────────────
 
@@ -303,10 +303,11 @@ regressao_logistica <- function(formula, dados, ligacao = "logit",
     cat(you_sep, "\n")
     cat("  ", .pad_log("Critério", w_you["met"], "left"), .pad_log("Valor", w_you["val"], "right"), "\n", sep = "")
     cat(you_sep, "\n")
+    fmt_num2 <- function(x) formatC(x * 100, format = "f", digits = 2, decimal.mark = ",")
     you_row("Método",              "Youden (automático)")
     you_row("Limiar Ótimo",        sprintf("%.4f", youden_res$corte))
-    you_row("Sensibilidade",       .fmt_pct(youden_res$sensibilidade, 2))
-    you_row("Especificidade",      .fmt_pct(youden_res$especificidade, 2))
+    you_row("Sensibilidade (%)",   fmt_num2(youden_res$sensibilidade))
+    you_row("Especificidade (%)",  fmt_num2(youden_res$especificidade))
     you_row("Índice de Youden (J)", sprintf("%.4f", youden_res$J))
     cat(you_sep, "\n")
     cat("  * J = Sensibilidade + Especificidade − 1\n\n")
