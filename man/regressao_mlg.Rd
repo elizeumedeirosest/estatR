@@ -8,8 +8,9 @@ regressao_mlg(
   dados,
   formula,
   familia = c("binomial", "poisson", "quasipoisson", "gama", "gaussian",
-    "binomial_negativa", "beta"),
+    "binomial_negativa", "beta", "poisson_iz", "negbin_iz"),
   ligacao = NULL,
+  formula_iz = ~1,
   teste = c("wald", "lrt", "ambos"),
   referencia = NULL,
   grafico = FALSE
@@ -22,10 +23,13 @@ regressao_mlg(
 
 \item{familia}{Família da distribuição. Aceita string (ex: \code{"poisson"},
 \code{"binomial"}, \code{"gama"}, \code{"quasipoisson"}, \code{"gaussian"},
-\code{"binomial_negativa"}, \code{"beta"}) ou função de família do R
-(ex: \code{poisson()}, \code{binomial(link = "probit")}).}
+\code{"binomial_negativa"}, \code{"beta"}, \code{"poisson_iz"}, \code{"negbin_iz"})
+ou função de família do R (ex: \code{poisson()}, \code{binomial(link = "probit")}).}
 
 \item{ligacao}{Função de ligação (link). Se \code{NULL}, utiliza a ligação canônica da família.}
+
+\item{formula_iz}{Fórmula para a modelagem da inflação de zeros nos modelos inflados
+de zero (\code{"poisson_iz"} e \code{"negbin_iz"}). Padrão \code{~ 1} (somente intercepto).}
 
 \item{teste}{Teste de hipótese para a significância dos termos:
 \code{"wald"} (padrão, rápido), \code{"lrt"} (Razão de Verossimilhança via Deviance),
@@ -36,7 +40,7 @@ ou \code{"ambos"} (apresenta as duas estatísticas e p-valores lado a lado).}
 \item{grafico}{Lógico. Se \code{TRUE}, exibe o gráfico de diagnóstico ou efeito do modelo.}
 }
 \value{
-Objeto ajustado da classe correspondente (\code{glm}, \code{negbin} ou \code{betareg})
+Objeto ajustado da classe correspondente (\code{glm}, \code{negbin}, \code{betareg} ou \code{zeroinfl})
 com atributo adicional de diagnóstico do estatR.
 }
 \description{

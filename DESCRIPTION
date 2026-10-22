@@ -29,7 +29,8 @@ Imports:
     betareg,
     survival,
     forecast,
-    tseries
+    tseries,
+    pscl
 Suggests:
     ranger,
     xgboost,

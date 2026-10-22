@@ -9,7 +9,9 @@ metricas_logistica(modelo, corte_prob = 0.5)
 \arguments{
 \item{modelo}{Objeto \code{glm} (binomial) ou \code{multinom}/\code{polr} retornado por \code{regressao_logistica()}.}
 
-\item{corte_prob}{Ponto de corte para classificação binária. Padrão 0.5.}
+\item{corte_prob}{Ponto de corte para classificação binária. Padrão \code{0.5}.
+Use \code{"auto"} para selecionar automaticamente via Índice de Youden
+(maximiza Sensibilidade + Especificidade − 1).}
 }
 \value{
 Retorna invisivelmente um data frame com as métricas.

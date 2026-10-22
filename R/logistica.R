@@ -1,4 +1,4 @@
-# ─────────────────────────────────────────────────────────────────────────────
+﻿# ─────────────────────────────────────────────────────────────────────────────
 # MÓDULO: REGRESSÃO LOGÍSTICA (BINOMIAL · MULTINOMIAL · ORDINAL)
 # ─────────────────────────────────────────────────────────────────────────────
 
@@ -37,6 +37,22 @@
   tpr   <- cumsum(y_ord)     / sum(y_ord)
   fpr   <- cumsum(1 - y_ord) / sum(1 - y_ord)
   data.frame(FPR = c(0, fpr), TPR = c(0, tpr))
+}
+
+.youden_corte <- function(probs, Y_num) {
+  # Calcula ponto de corte ótimo pelo Índice de Youden: max(Sens + Espec - 1)
+  thresholds <- sort(unique(probs), decreasing = TRUE)
+  best_j <- -Inf; best_c <- 0.5
+  for (c in thresholds) {
+    pred <- as.integer(probs >= c)
+    vp <- sum(pred == 1 & Y_num == 1); fn <- sum(pred == 0 & Y_num == 1)
+    vn <- sum(pred == 0 & Y_num == 0); fp <- sum(pred == 1 & Y_num == 0)
+    sens <- if ((vp + fn) > 0) vp / (vp + fn) else 0
+    spec <- if ((vn + fp) > 0) vn / (vn + fp) else 0
+    j <- sens + spec - 1
+    if (j > best_j) { best_j <- j; best_c <- c; best_sens <- sens; best_spec <- spec }
+  }
+  list(corte = best_c, J = best_j, sensibilidade = best_sens, especificidade = best_spec)
 }
 
 .formata_p_local <- function(p) {
@@ -94,7 +110,9 @@
 #'   seleção automática por AIC. Ignorado para modelos multinomiais e ordinais.
 #' @param tipo Tipo para Y policotômico: \code{"nominal"} (padrão) ou \code{"ordinal"}.
 #'   Ignorado quando Y é binário.
-#' @param corte_prob Ponto de corte para classificação binária. Padrão 0.5.
+#' @param corte_prob Ponto de corte para classificação binária. Padrão \code{0.5}.
+#'   Use \code{"auto"} para selecionar automaticamente via Índice de Youden
+#'   (maximiza Sensibilidade + Especificidade − 1).
 #' @param grafico Se TRUE, exibe painel gráfico diagnóstico. Padrão TRUE.
 #' @return Retorna invisivelmente o modelo ajustado.
 #' @param referencia Categoria de referência para a variável resposta categórica (opcional).
@@ -174,6 +192,14 @@ regressao_logistica <- function(formula, dados, ligacao = "logit",
 
   probs     <- mod$fitted.values
   n_obs     <- length(Y_num)
+
+  # Resolver corte_prob "auto" -> Youden
+  youden_res <- NULL
+  if (identical(corte_prob, "auto")) {
+    youden_res <- .youden_corte(probs, Y_num)
+    corte_prob  <- youden_res$corte
+  }
+
   pred_cls  <- as.integer(probs >= corte_prob)
 
   dev_nula  <- mod$null.deviance
@@ -268,6 +294,23 @@ regressao_logistica <- function(formula, dados, ligacao = "logit",
   aj_row("Especificidade",     if (!is.na(especif)) .fmt_pct(especif, 1) else "-")
   aj_row("AUC (Curva ROC)",    sprintf("%.3f", auc_val))
   cat(aj_sep, "\n\n")
+  # Bloco Youden (só se "auto" foi usado)
+  if (!is.null(youden_res)) {
+    .print_topico("PONTO DE CORTE — ÍNDICE DE YOUDEN")
+    w_you <- c(met = 26, val = 30)
+    you_sep <- .sep_log(w_you["met"] + w_you["val"])
+    you_row <- function(m, v) cat("  ", .pad_log(m, w_you["met"], "left"), .pad_log(v, w_you["val"], "right"), "\n", sep = "")
+    cat(you_sep, "\n")
+    cat("  ", .pad_log("Critério", w_you["met"], "left"), .pad_log("Valor", w_you["val"], "right"), "\n", sep = "")
+    cat(you_sep, "\n")
+    you_row("Método",              "Youden (automático)")
+    you_row("Limiar Ótimo",        sprintf("%.4f", youden_res$corte))
+    you_row("Sensibilidade",       .fmt_pct(youden_res$sensibilidade, 2))
+    you_row("Especificidade",      .fmt_pct(youden_res$especificidade, 2))
+    you_row("Índice de Youden (J)", sprintf("%.4f", youden_res$J))
+    cat(you_sep, "\n")
+    cat("  * J = Sensibilidade + Especificidade − 1\n\n")
+  }
 
   .print_topico("TESTE DE ADEQUAÇÃO (Pressuposto)")
   w_hl <- c(teste = 30, est = 20, p = 16)
@@ -392,6 +435,19 @@ regressao_logistica <- function(formula, dados, ligacao = "logit",
       ggplot2::labs(title = "Curva ROC", subtitle = sprintf("AUC = %.3f", auc_val),
                     x = "Taxa de Falsos Positivos", y = "Taxa de Verdadeiros Positivos") +
       tema_painel
+    # Marcar ponto Youden na curva ROC
+    if (!is.null(youden_res)) {
+      # encontrar ponto mais próximo no df_roc
+      pt_idx <- which.min(abs(df_roc$FPR - (1 - youden_res$especificidade)))
+      df_youden <- df_roc[pt_idx, , drop = FALSE]
+      p1 <- p1 +
+        ggplot2::geom_point(data = df_youden, ggplot2::aes(x = FPR, y = TPR),
+                            color = "#2CA02C", size = 4, shape = 16) +
+        ggplot2::geom_vline(xintercept = df_youden$FPR, linetype = "dashed",
+                            color = "#2CA02C", linewidth = 0.8) +
+        ggplot2::labs(subtitle = sprintf("AUC = %.3f  |  Limiar Youden = %.3f",
+                                          auc_val, youden_res$corte))
+    }
     prob_breaks <- quantile(probs, probs = seq(0, 1, by = 0.1))
     prob_breaks[1] <- -Inf; prob_breaks[11] <- Inf
     grp    <- cut(probs, breaks = prob_breaks, labels = FALSE, include.lowest = TRUE)
@@ -806,7 +862,9 @@ regressao_logistica <- function(formula, dados, ligacao = "logit",
 #' @description Exibe as métricas de ajuste e performance de um modelo logístico
 #' ajustado por \code{regressao_logistica()}.
 #' @param modelo Objeto \code{glm} (binomial) ou \code{multinom}/\code{polr} retornado por \code{regressao_logistica()}.
-#' @param corte_prob Ponto de corte para classificação binária. Padrão 0.5.
+#' @param corte_prob Ponto de corte para classificação binária. Padrão \code{0.5}.
+#'   Use \code{"auto"} para selecionar automaticamente via Índice de Youden
+#'   (maximiza Sensibilidade + Especificidade − 1).
 #' @return Retorna invisivelmente um data frame com as métricas.
 #' @export
 metricas_logistica <- function(modelo, corte_prob = 0.5) {
@@ -820,6 +878,7 @@ metricas_logistica <- function(modelo, corte_prob = 0.5) {
 
   dev_nula  <- modelo$null.deviance
   dev_res   <- modelo$deviance
+  lrt_chi   <- dev_nula - dev_res
   pseudo_r2 <- 1 - dev_res / dev_nula
   r2_cs <- 1 - exp(-lrt_chi / n_obs)
   max_r2_cs <- 1 - exp(-dev_nula / n_obs)
@@ -831,6 +890,14 @@ metricas_logistica <- function(modelo, corte_prob = 0.5) {
   aicc_val  <- if (n_obs - K - 1 > 0) aic_val + (2 * K * (K + 1)) / (n_obs - K - 1) else Inf
 
   auc_val  <- .calc_auc_estatR(probs, Y_num)
+
+  # Resolver corte_prob "auto" -> Youden
+  youden_res_m <- NULL
+  if (identical(corte_prob, "auto")) {
+    youden_res_m <- .youden_corte(probs, Y_num)
+    corte_prob   <- youden_res_m$corte
+  }
+
   pred_cls <- as.integer(probs >= corte_prob)
   vp <- sum(pred_cls == 1 & Y_num == 1); vn <- sum(pred_cls == 0 & Y_num == 0)
   fp <- sum(pred_cls == 1 & Y_num == 0); fn <- sum(pred_cls == 0 & Y_num == 1)
@@ -868,7 +935,11 @@ metricas_logistica <- function(modelo, corte_prob = 0.5) {
   cat("  ", .pad_log("VPP (Precisão)", lw, "left"), .pad_log(if (!is.na(ppv))     .fmt_pct(ppv, 2)     else "-", vw, "right"), "\n", sep = "")
   cat("  ", .pad_log("VPN",            lw, "left"), .pad_log(if (!is.na(npv))     .fmt_pct(npv, 2)     else "-", vw, "right"), "\n", sep = "")
   cat(sep)
-  cat(sprintf("  * Corte de classificação: %.2f\n\n", corte_prob))
+  if (!is.null(youden_res_m)) {
+    cat(sprintf("  * Ponto de corte ótimo (Youden): %.4f (J = %.4f)\n\n", corte_prob, youden_res_m$J))
+  } else {
+    cat(sprintf("  * Corte de classificação: %.2f\n\n", corte_prob))
+  }
 
   .print_rodape()
   invisible(data.frame(

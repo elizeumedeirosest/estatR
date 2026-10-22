@@ -14,21 +14,24 @@
 #' @param formula Fórmula do modelo estatístico (ex: \code{y ~ x1 + x2}).
 #' @param familia Família da distribuição. Aceita string (ex: \code{"poisson"},
 #'   \code{"binomial"}, \code{"gama"}, \code{"quasipoisson"}, \code{"gaussian"},
-#'   \code{"binomial_negativa"}, \code{"beta"}) ou função de família do R
-#'   (ex: \code{poisson()}, \code{binomial(link = "probit")}).
+#'   \code{"binomial_negativa"}, \code{"beta"}, \code{"poisson_iz"}, \code{"negbin_iz"})
+#'   ou função de família do R (ex: \code{poisson()}, \code{binomial(link = "probit")}).
 #' @param ligacao Função de ligação (link). Se \code{NULL}, utiliza a ligação canônica da família.
+#' @param formula_iz Fórmula para a modelagem da inflação de zeros nos modelos inflados
+#'   de zero (\code{"poisson_iz"} e \code{"negbin_iz"}). Padrão \code{~ 1} (somente intercepto).
 #' @param teste Teste de hipótese para a significância dos termos:
 #'   \code{"wald"} (padrão, rápido), \code{"lrt"} (Razão de Verossimilhança via Deviance),
 #'   ou \code{"ambos"} (apresenta as duas estatísticas e p-valores lado a lado).
 #' @param referencia Categoria de referência caso a variável resposta seja categórica (opcional).
 #' @param grafico Lógico. Se \code{TRUE}, exibe o gráfico de diagnóstico ou efeito do modelo.
 #'
-#' @return Objeto ajustado da classe correspondente (\code{glm}, \code{negbin} ou \code{betareg})
+#' @return Objeto ajustado da classe correspondente (\code{glm}, \code{negbin}, \code{betareg} ou \code{zeroinfl})
 #'   com atributo adicional de diagnóstico do estatR.
 #' @export
 regressao_mlg <- function(dados, formula,
-                          familia = c("binomial", "poisson", "quasipoisson", "gama", "gaussian", "binomial_negativa", "beta"),
+                          familia = c("binomial", "poisson", "quasipoisson", "gama", "gaussian", "binomial_negativa", "beta", "poisson_iz", "negbin_iz"),
                           ligacao = NULL,
+                          formula_iz = ~ 1,
                           teste = c("wald", "lrt", "ambos"),
                           referencia = NULL,
                           grafico = FALSE) {
@@ -40,7 +43,7 @@ regressao_mlg <- function(dados, formula,
 
   # Trata familia se for string
   nome_fam <- if (is.character(familia)) {
-    match.arg(tolower(familia[1]), c("binomial", "poisson", "quasipoisson", "gama", "gamma", "gaussian", "gaussiana", "binomial_negativa", "beta"))
+    match.arg(tolower(familia[1]), c("binomial", "poisson", "quasipoisson", "gama", "gamma", "gaussian", "gaussiana", "binomial_negativa", "beta", "poisson_iz", "negbin_iz", "binomial_negativa_iz"))
   } else if (inherits(familia, "family")) {
     familia$family
   } else {
@@ -58,6 +61,17 @@ regressao_mlg <- function(dados, formula,
       stop(sprintf("A categoria de refer\u00eancia '%s' n\u00e3o existe na coluna '%s'.", referencia, y_name))
     }
     dados[[y_name]] <- stats::relevel(as.factor(dados[[y_name]]), ref = as.character(referencia))
+  }
+
+  # Despacho para modelos inflados de zero (ZIP e ZINB)
+  if (nome_fam == "poisson_iz") {
+    return(.regressao_poisson_iz(formula = formula, dados = dados,
+                                 formula_iz = formula_iz, grafico = grafico))
+  }
+
+  if (nome_fam %in% c("negbin_iz", "binomial_negativa_iz")) {
+    return(.regressao_negbin_iz(formula = formula, dados = dados,
+                                formula_iz = formula_iz, grafico = grafico))
   }
 
   # Despacho para famílias especializadas se ligacao for customizada ou específica

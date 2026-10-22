@@ -1,4 +1,4 @@
-#' @title Regressão Linear Simples e Múltipla
+﻿#' @title Regressão Linear Simples e Múltipla
 #' @description Ajusta um modelo de regressão linear e retorna uma saída formatada com
 #'   ANOVA, coeficientes (com IC 95% e VIF), ajuste do modelo e interpretação automática.
 #' @param formula Fórmula do modelo (ex: \code{y ~ x} ou \code{y ~ x1 + x2})
@@ -437,6 +437,14 @@ predicao <- function(modelo, novos_dados,
 #' @param modelo Objeto do tipo lm
 #' @export
 metricas <- function(modelo, corte_prob = 0.5) {
+  if (inherits(modelo, "zeroinfl") && !is.null(modelo$dist)) {
+    if (modelo$dist == "poisson" && exists(".metricas_poisson_iz", mode = "function")) {
+      return(.metricas_poisson_iz(modelo))
+    }
+    if (modelo$dist == "negbin" && exists(".metricas_negbin_iz", mode = "function")) {
+      return(.metricas_negbin_iz(modelo))
+    }
+  }
   if (inherits(modelo, c("estatR_cox", "coxph"))) return(metricas_cox(modelo))
   if (inherits(modelo, "betareg"))                return(metricas_beta(modelo))
   if (inherits(modelo, "negbin"))                 return(metricas_binomial_negativa(modelo))
@@ -525,6 +533,16 @@ metricas <- function(modelo, corte_prob = 0.5) {
 #' @return Retorna invisivelmente uma lista com os objetos dos testes estatísticos realizados.
 #' @export
 analise_residual <- function(modelo, grafico = TRUE) {
+  # Suporte a Modelos Inflados de Zero (zeroinfl: ZIP e ZINB)
+  if (inherits(modelo, "zeroinfl") && !is.null(modelo$dist)) {
+    if (modelo$dist == "poisson" && exists(".analise_residual_poisson_iz", mode = "function")) {
+      return(.analise_residual_poisson_iz(modelo, grafico = grafico))
+    }
+    if (modelo$dist == "negbin" && exists(".analise_residual_negbin_iz", mode = "function")) {
+      return(.analise_residual_negbin_iz(modelo, grafico = grafico))
+    }
+  }
+
   # 0. Suporte a Modelos de Séries Temporais (previsao_serie, forecast, Arima, ets, stlm)
   if (inherits(modelo, c("previsao_serie", "forecast", "Arima", "ets", "HoltWinters", "stlm"))) {
     if (exists("analise_residual_serie", mode = "function")) {
@@ -755,6 +773,16 @@ selecao_modelos <- function(formula, dados, comparar_modelos = c("estatistico", 
   }
   if (!is.data.frame(dados)) stop("O argumento 'dados' deve ser um data frame.")
 
+  dots <- list(...)
+  if ("familia" %in% names(dots)) {
+    if (dots$familia == "poisson_iz" && exists(".selecao_modelos_poisson_iz", mode = "function")) {
+      return(.selecao_modelos_poisson_iz(formula, dados, top = top))
+    }
+    if (dots$familia %in% c("negbin_iz", "binomial_negativa_iz") && exists(".selecao_modelos_negbin_iz", mode = "function")) {
+      return(.selecao_modelos_negbin_iz(formula, dados, top = top))
+    }
+  }
+
   # Se o usuário solicitou comparar com ou exclusivamente Aprendizado de Máquina
   if (identical(comparar_modelos, "aprend_maq") ||
       (is.character(comparar_modelos) && "aprend_maq" %in% comparar_modelos && length(comparar_modelos) > 1)) {
@@ -765,6 +793,7 @@ selecao_modelos <- function(formula, dados, comparar_modelos = c("estatistico", 
   }
 
   # Preparação de variáveis
+
   resp_dep <- deparse(formula[[2]])
   if (grepl("Surv\\(", resp_dep)) {
     return(selecao_modelos_cox(formula, dados, top = top))

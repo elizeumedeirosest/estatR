@@ -26,7 +26,9 @@ seleção automática por AIC. Ignorado para modelos multinomiais e ordinais.}
 \item{tipo}{Tipo para Y policotômico: \code{"nominal"} (padrão) ou \code{"ordinal"}.
 Ignorado quando Y é binário.}
 
-\item{corte_prob}{Ponto de corte para classificação binária. Padrão 0.5.}
+\item{corte_prob}{Ponto de corte para classificação binária. Padrão \code{0.5}.
+Use \code{"auto"} para selecionar automaticamente via Índice de Youden
+(maximiza Sensibilidade + Especificidade − 1).}
 
 \item{grafico}{Se TRUE, exibe painel gráfico diagnóstico. Padrão TRUE.}
 
