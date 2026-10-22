@@ -1,4 +1,4 @@
-#' @title Probabilidade da Distribuição Normal
+﻿#' @title Probabilidade da Distribuição Normal
 #' @description Calcula a probabilidade para uma distribuição Normal e gera o gráfico com a área sombreada.
 #' @param media Média teórica da distribuição.
 #' @param dp Desvio-padrão teórico.
@@ -196,19 +196,28 @@ gerar_amostra <- function(n, distribuicao = c("normal", "binomial", "poisson", "
   }
   
   emp_media <- mean(amostra)
-  emp_dp <- sd(amostra)
-  linha <- paste0("\n", strrep("\u2500", 54), "\n\n")
-  
+  emp_dp    <- sd(amostra)
+
   if (exists(".print_titulo")) .print_titulo(sprintf("GERAÇÃO DE DADOS — AMOSTRA %s", toupper(gsub("_", " ", distribuicao)))) else cat(sprintf("\nGERAÇÃO DE DADOS ALEATÓRIOS (%s)\n\n", tools::toTitleCase(gsub("_", "-", distribuicao))))
-  cat(sprintf("Tamanho da amostra (n): %d\n", n))
-#   cat(linha)
-  sep_tracos <- paste(rep("-", 54), collapse = "")
-  cat("  ", sep_tracos, "\n", sep = "")
-  cat(sprintf("  %-20s %15s %15s\n", "Estatística", "Amostra Gerada", "Valor Teórico"))
-  cat("  ", sep_tracos, "\n", sep = "")
-  cat(sprintf("  %-20s %15.2f %15.2f\n", "Média", emp_media, teo_media))
-  cat(sprintf("  %-20s %15.2f %15.2f\n", "Desvio Padrão", emp_dp, teo_dp))
-  cat("  ", sep_tracos, "\n\n", sep = "")
+  cat(sprintf("  Tamanho da amostra (n): %d\n\n", n))
+
+  w_est <- 22; w_amo <- 16; w_teo <- 15
+  sep_linha <- paste0("  ", strrep("\u2500", w_est + w_amo + w_teo))
+  pad <- function(s, w, align = "left") {
+    s <- as.character(s); sp <- w - nchar(s)
+    if (sp <= 0) return(s)
+    if (align == "right")  return(paste0(strrep(" ", sp), s))
+    if (align == "center") return(paste0(strrep(" ", floor(sp/2)), s, strrep(" ", ceiling(sp/2))))
+    paste0(s, strrep(" ", sp))
+  }
+  fmt_num <- function(x) formatC(x, format = "f", digits = 2, big.mark = ".", decimal.mark = ",")
+
+  cat(sep_linha, "\n")
+  cat("  ", pad("Estatística", w_est), pad("Amostra Gerada", w_amo, "center"), pad("Valor Teórico", w_teo, "center"), "\n", sep = "")
+  cat(sep_linha, "\n")
+  cat("  ", pad("Média",         w_est), pad(fmt_num(emp_media), w_amo, "center"), pad(fmt_num(teo_media), w_teo, "center"), "\n", sep = "")
+  cat("  ", pad("Desvio Padrão", w_est), pad(fmt_num(emp_dp),   w_amo, "center"), pad(fmt_num(teo_dp),   w_teo, "center"), "\n", sep = "")
+  cat(sep_linha, "\n\n")
   if (exists(".print_rodape", mode = "function")) .print_rodape() else cat("\n")
   if (grafico) {
     df <- data.frame(X = amostra)
