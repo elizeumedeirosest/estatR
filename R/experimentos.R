@@ -1186,6 +1186,42 @@ grafico_ic <- function(modelo, cor_sig = "#0099FF", cor_ns = "gray40") {
 #' @return Objeto \code{ggplot}.
 #' @export
 grafico_regressao <- function(modelo) {
+  # Suporte a modelos lm convencionais (regressao_linear)
+  if (inherits(modelo, "lm") && !inherits(modelo, c("estatR_dic", "estatR_dbc", "estatR_dql"))) {
+    mf <- stats::model.frame(modelo)
+    y_nm <- names(mf)[1]
+    x_nms <- names(mf)[-1]
+    if (length(x_nms) == 1) {
+      r2_val <- summary(modelo)$r.squared
+      p <- ggplot2::ggplot(mf, ggplot2::aes_string(x = x_nms[1], y = y_nm)) +
+        ggplot2::geom_point(color = "#3470a3", size = 2.5, alpha = 0.8) +
+        ggplot2::geom_smooth(method = "lm", formula = y ~ x, color = "#D90429", fill = "#85b4d4", alpha = 0.25, linewidth = 1) +
+        ggplot2::labs(
+          title    = sprintf("Regressão Linear: %s vs %s", y_nm, x_nms[1]),
+          subtitle = sprintf("R² = %.2f%%", r2_val * 100),
+          x        = x_nms[1],
+          y        = y_nm,
+          caption  = "estatR"
+        ) +
+        meu_tema(grade = "dupla")
+      return(p)
+    } else {
+      # Para modelos múltiplos, plota Ajustados vs Observados
+      df_mult <- data.frame(observado = mf[[1]], ajustado = stats::fitted(modelo))
+      p <- ggplot2::ggplot(df_mult, ggplot2::aes(x = ajustado, y = observado)) +
+        ggplot2::geom_point(color = "#3470a3", size = 2.5, alpha = 0.8) +
+        ggplot2::geom_abline(intercept = 0, slope = 1, color = "#D90429", linetype = "dashed", linewidth = 1) +
+        ggplot2::labs(
+          title    = "Valores Observados vs Ajustados",
+          subtitle = sprintf("R² = %.2f%%", summary(modelo)$r.squared * 100),
+          x        = "Valores Ajustados",
+          y        = "Valores Observados",
+          caption  = "estatR"
+        ) +
+        meu_tema(grade = "dupla")
+      return(p)
+    }
+  }
   if (!inherits(modelo, c("estatR_dic", "estatR_dbc", "estatR_dql")) || modelo$tipo != "quantitativo") {
     stop("O modelo deve ser um objeto quantitativo retornado por analise_dic(), analise_dbc() ou analise_dql().", call. = FALSE)
   }

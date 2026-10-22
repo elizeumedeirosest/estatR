@@ -141,11 +141,8 @@ descrever <- function(x, por = NULL, numericas = TRUE, categoricas = TRUE, decim
     }
   }
   
-  cat("  ", paste(rep("─", nchar(hdr)), collapse = ""), "\n", sep = "")
-  l_tot <- calc_linha(x_c, "Total")
-  cat("  ", paste(l_tot, collapse = " "), "\n", sep = "")
-  
   if (!dentro_df) {
+    cat("  ", paste(rep("─", nchar(hdr)), collapse = ""), "\n", sep = "")
     .print_rodape()
   } else {
     cat("\n")
@@ -263,6 +260,7 @@ descrever <- function(x, por = NULL, numericas = TRUE, categoricas = TRUE, decim
     .print_tabela_estatR(df_cat)
   }
   
+  .print_rodape()
   invisible(dados)
 }
 #' Função interna para descrever um único vetor numérico
@@ -337,8 +335,15 @@ descrever <- function(x, por = NULL, numericas = TRUE, categoricas = TRUE, decim
               .fmt_num(q_vals[5], decimais)))
   
   cat("▶ Forma da Distribuição\n")
-  cat(sprintf("  Assimetria: %s\n", .fmt_num(assim, decimais)))
-  cat(sprintf("  Curtose:    %s\n", .fmt_num(curt, decimais)))
+  str_assim <- .fmt_num(assim, decimais)
+  str_curt  <- .fmt_num(curt, decimais)
+  if (startsWith(str_assim, "-") && !startsWith(str_curt, "-")) {
+    str_curt <- paste0(" ", str_curt)
+  } else if (!startsWith(str_assim, "-") && startsWith(str_curt, "-")) {
+    str_assim <- paste0(" ", str_assim)
+  }
+  cat(sprintf("  Assimetria: %s\n", str_assim))
+  cat(sprintf("  Curtose:    %s\n", str_curt))
   
   .print_rodape()
   invisible(x)
@@ -775,6 +780,8 @@ quintis <- function(x, decimais = 2) {
   x_c <- x[!is.na(x)]
   probs <- seq(0.2, 0.8, by = 0.2)
   q_vals <- quantile(x_c, probs = probs)
+  min_val <- min(x_c)
+  max_val <- max(x_c)
   
   tit <- if (!is.null(var_nome) && nzchar(var_nome) && !identical(var_nome, "x")) {
     sprintf("QUINTIS (%s)", var_nome)
@@ -783,19 +790,23 @@ quintis <- function(x, decimais = 2) {
   }
   .print_titulo(tit)
   
-  w_col <- 8
-  nomes_col <- c("20%", "40%", "60%", "80%")
+  nomes_col <- c("Mín", "Q1 (20%)", "Q2 (40%)", "Q3 (60%)", "Q4 (80%)", "Máx")
+  todos_vals <- c(min_val, q_vals, max_val)
+  w_col <- 10
   col_titulos <- sapply(nomes_col, function(nm) .pad_string(nm, w_col, "center"), USE.NAMES = FALSE)
   hdr <- paste(col_titulos, collapse = " ")
   cat("  ", hdr, "\n", sep = "")
   cat("  ", paste(rep("─", nchar(hdr)), collapse = ""), "\n", sep = "")
   
-  col_valores <- sapply(q_vals, function(v) .pad_string(.fmt_num(v, decimais), w_col, "center"), USE.NAMES = FALSE)
+  col_valores <- sapply(todos_vals, function(v) .pad_string(.fmt_num(v, decimais), w_col, "center"), USE.NAMES = FALSE)
   cat("  ", paste(col_valores, collapse = " "), "\n", sep = "")
   
   .print_rodape()
-  invisible(q_vals)
+  res_ret <- c(min = min_val, q_vals, max = max_val)
+  names(res_ret) <- nomes_col
+  invisible(res_ret)
 }
+
 
 
 #' Decis da Distribuição
@@ -842,16 +853,15 @@ decis <- function(x, decimais = 2) {
 #' Interquartil (IQR): valores abaixo de Q1 - 1,5×IQR ou acima de Q3 + 1,5×IQR.
 #'
 #' @param x Um vetor numérico ou data.frame.
+#' @param fator_iqr Fator multiplicador do IQR (padrão 1.5).
 #' @param decimais Casas decimais para exibição dos limites e valores (padrão 2).
-#' @return Retorna invisivelmente um data.frame com as colunas: variavel,
-#'   n_outliers, pct_outliers, valores_abaixo, valores_acima.
+#' @return Retorna invisivelmente um data.frame com o resumo de outliers.
 #' @export
 outliers <- function(x, fator_iqr = 1.5, decimais = 2) {
   var_expr <- deparse(substitute(x))
   var_nome <- sub(".*\\$", "", var_expr)
-
-  # Calcula métricas de outliers para um vetor numérico
-  .calc_outliers <- function(vec, nome) {
+  
+  .calc_outliers <- function(vec, nome, manter_zero = FALSE) {
     vec_c  <- vec[!is.na(vec)]
     n      <- length(vec_c)
     if (n < 4) return(NULL)
@@ -863,17 +873,16 @@ outliers <- function(x, fator_iqr = 1.5, decimais = 2) {
     abaixo <- sort(vec_c[vec_c < li])
     acima  <- sort(vec_c[vec_c > ls])
     n_out  <- length(abaixo) + length(acima)
-    if (n_out == 0) return(NULL)
+    if (n_out == 0 && !manter_zero) return(NULL)
     list(nome = nome, n = n, li = li, ls = ls,
          abaixo = abaixo, acima = acima, n_out = n_out,
          pct_out = n_out / n)
   }
-
-  # Imprime a tabela resumo (uma linha por variável)
+  
   .print_resumo <- function(resultados, w_sep = 80) {
     w_var <- max(nchar("Variável"), max(sapply(resultados, function(r) nchar(r$nome)))) + 2
     w_n   <- 10; w_pct <- 13; w_li <- 22; w_ls <- 22
-
+    
     hdr <- paste0(
       "  ", .pad_string("Variável",    w_var, "left"),
       .pad_string("Outliers",          w_n,   "center"),
@@ -882,20 +891,20 @@ outliers <- function(x, fator_iqr = 1.5, decimais = 2) {
       .pad_string("Acima do LS",       w_ls,  "center")
     )
     sep <- paste(rep("─", nchar(hdr) - 2), collapse = "")
-
+    
     cat("  ", sep, "\n", sep = "")
     cat(hdr, "\n")
     cat("  ", sep, "\n", sep = "")
-
+    
     for (r in resultados) {
       cel_abaixo <- if (length(r$abaixo) > 0)
         sprintf("%d  (LI: %s)", length(r$abaixo), .fmt_num(r$li, decimais))
       else sprintf("—  (LI: %s)", .fmt_num(r$li, decimais))
-
+      
       cel_acima <- if (length(r$acima) > 0)
         sprintf("%d  (LS: %s)", length(r$acima), .fmt_num(r$ls, decimais))
       else sprintf("—  (LS: %s)", .fmt_num(r$ls, decimais))
-
+      
       linha <- paste0(
         "  ", .pad_string(r$nome,                   w_var, "left"),
         .pad_string(as.character(r$n_out),           w_n,   "center"),
@@ -910,8 +919,7 @@ outliers <- function(x, fator_iqr = 1.5, decimais = 2) {
     cat(sprintf("  * LI = Q1 − %s × IQR   |   LS = Q3 + %s × IQR\n",
                 fator_fmt, fator_fmt))
   }
-
-  # Imprime tabela de valores identificados (somente para variável única)
+  
   .print_valores <- function(r) {
     .print_topico("Valores Identificados")
     w_col <- 38
@@ -934,29 +942,24 @@ outliers <- function(x, fator_iqr = 1.5, decimais = 2) {
     }
     cat("  ", sep_v, "\n\n", sep = "")
   }
-
-  # ---- DATA FRAME -----------------------------------------------------------
+  
   if (is.data.frame(x)) {
     nums <- names(x)[sapply(x, is.numeric)]
     if (length(nums) == 0) stop("Nenhuma variável numérica encontrada no data.frame.")
-
+    
     nome_df <- sub(".*\\$", "", deparse(substitute(x)))
     .print_titulo(sprintf("OUTLIERS — %s", nome_df))
-
-    resultados <- Filter(Negate(is.null), lapply(nums, function(nm) .calc_outliers(x[[nm]], nm)))
-
+    
+    resultados <- Filter(Negate(is.null), lapply(nums, function(nm) .calc_outliers(x[[nm]], nm, manter_zero = TRUE)))
+    
     if (length(resultados) == 0) {
       cat("  Nenhum outlier detectado (método IQR, fator", fator_iqr, ").\n\n")
     } else {
       .print_topico("Resumo por Variável")
       .print_resumo(resultados)
-      if (length(resultados) < length(nums)) {
-        omitidas <- length(nums) - length(resultados)
-        cat(sprintf("  * %d variável(is) sem outliers não exibida(s).\n", omitidas))
-      }
       cat("\n")
     }
-
+    
     .print_rodape()
     invisible(do.call(rbind, lapply(resultados, function(r) {
       data.frame(variavel = r$nome, n_outliers = r$n_out,
@@ -964,12 +967,11 @@ outliers <- function(x, fator_iqr = 1.5, decimais = 2) {
                  li = r$li, ls = r$ls,
                  valores_abaixo = I(list(r$abaixo)), valores_acima = I(list(r$acima)))
     })))
-
-  # ---- VETOR ÚNICO ----------------------------------------------------------
+    
   } else if (is.numeric(x)) {
     .print_titulo(sprintf("OUTLIERS — %s", var_nome))
-
-    r <- .calc_outliers(x, var_nome)
+    
+    r <- .calc_outliers(x, var_nome, manter_zero = FALSE)
     if (is.null(r)) {
       cat("  Nenhum outlier detectado (método IQR, fator", fator_iqr, ").\n\n")
     } else {
@@ -978,7 +980,7 @@ outliers <- function(x, fator_iqr = 1.5, decimais = 2) {
       cat("\n")
       .print_valores(r)
     }
-
+    
     .print_rodape()
     if (!is.null(r)) {
       invisible(data.frame(variavel = r$nome, n_outliers = r$n_out,
@@ -988,7 +990,6 @@ outliers <- function(x, fator_iqr = 1.5, decimais = 2) {
     } else {
       invisible(NULL)
     }
-
   } else {
     stop("O argumento 'x' deve ser um vetor numérico ou um data.frame.")
   }
@@ -996,11 +997,11 @@ outliers <- function(x, fator_iqr = 1.5, decimais = 2) {
 
 
 
+
 #' Percentis da Distribuição
 #'
-#' Calcula e exibe os percentis de um vetor numérico. Por padrão exibe
-#' P5, P10, P25, P50, P75, P90 e P95, mas o usuário pode definir quais
-#' percentis quer calcular pelo parâmetro \code{p}.
+#' Calcula e exibe os percentis de um vetor numérico, incluindo os extremos Mín (P0) e Máx (P100).
+#' Por padrão exibe P5, P10, P25, P50, P75, P90 e P95, além do Mínimo e Máximo.
 #'
 #' @param x Vetor numérico.
 #' @param p Vetor numérico com os percentis desejados (entre 0 e 100). Padrão: c(5, 10, 25, 50, 75, 90, 95).
@@ -1010,39 +1011,44 @@ outliers <- function(x, fator_iqr = 1.5, decimais = 2) {
 percentis <- function(x, p = c(5, 10, 25, 50, 75, 90, 95), decimais = 2) {
   if (!is.numeric(x)) stop("O argumento 'x' deve ser numérico.")
   if (any(p < 0 | p > 100)) stop("Os valores de 'p' devem estar entre 0 e 100.")
-
+  
   var_expr <- deparse(substitute(x))
   var_nome <- sub(".*\\$", "", var_expr)
-
+  
   x_c    <- x[!is.na(x)]
   probs  <- p / 100
   p_vals <- quantile(x_c, probs = probs)
-  nomes  <- paste0("P", p)
-
+  min_val <- min(x_c)
+  max_val <- max(x_c)
+  
+  nomes_tabela <- c("Mín (0%)", paste0("P", p, " (", p, "%)"), "Máx (100%)")
+  vals_tabela  <- c(min_val, p_vals, max_val)
+  
   tit <- if (!is.null(var_nome) && nzchar(var_nome) && !identical(var_nome, "x")) {
     sprintf("PERCENTIS (%s)", var_nome)
   } else {
     "PERCENTIS"
   }
   .print_titulo(tit)
-
-  w_label <- max(nchar("Percentil"), max(nchar(nomes))) + 2
+  
+  w_label <- max(nchar("Percentil"), max(nchar(nomes_tabela))) + 2
   w_val   <- max(nchar("Valor"), 8) + 2
-
+  
   hdr <- paste(.pad_string("Percentil", w_label, "left"),
                .pad_string("Valor",     w_val,   "right"))
   sep <- paste(rep("─", nchar(hdr)), collapse = "")
   cat("  ", hdr, "\n", sep = "")
   cat("  ", sep, "\n", sep = "")
-
-  for (i in seq_along(p_vals)) {
-    linha <- paste(.pad_string(nomes[i],                   w_label, "left"),
-                   .pad_string(.fmt_num(p_vals[i], decimais), w_val, "right"))
+  
+  for (i in seq_along(vals_tabela)) {
+    linha <- paste(.pad_string(nomes_tabela[i],                      w_label, "left"),
+                   .pad_string(.fmt_num(vals_tabela[i], decimais), w_val,   "right"))
     cat("  ", linha, "\n", sep = "")
   }
   cat("  ", sep, "\n", sep = "")
-
+  
   .print_rodape()
-  names(p_vals) <- nomes
-  invisible(p_vals)
+  res_ret <- vals_tabela
+  names(res_ret) <- nomes_tabela
+  invisible(res_ret)
 }

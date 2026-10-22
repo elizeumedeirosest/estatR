@@ -9,11 +9,12 @@ outliers(x, fator_iqr = 1.5, decimais = 2)
 \arguments{
 \item{x}{Um vetor numérico ou data.frame.}
 
+\item{fator_iqr}{Fator multiplicador do IQR (padrão 1.5).}
+
 \item{decimais}{Casas decimais para exibição dos limites e valores (padrão 2).}
 }
 \value{
-Retorna invisivelmente um data.frame com as colunas: variavel,
-n_outliers, pct_outliers, valores_abaixo, valores_acima.
+Retorna invisivelmente um data.frame com o resumo de outliers.
 }
 \description{
 Detecta valores discrepantes (outliers) em um vetor numérico ou em todas as

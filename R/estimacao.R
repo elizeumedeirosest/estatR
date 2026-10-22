@@ -68,7 +68,7 @@ estimar_verossimilhanca <- function(x, distribuicao = c("normal", "poisson", "ex
 
   w_sep <- 67
 
-  .print_titulo("ESTIMAÇÃO POR M\u00c1XIMA VEROSSIMILHAN\u00c7A (EMV) %s")
+  .print_titulo("ESTIMAÇÃO POR M\u00c1XIMA VEROSSIMILHAN\u00c7A (EMV)")
   cat(sprintf("  Vari\u00e1vel: %s   |   N: %d   |   Distribui\u00e7\u00e3o: %s\n\n",
               var_nome, n, tools::toTitleCase(distribuicao)))
 
@@ -209,11 +209,12 @@ estimar_verossimilhanca <- function(x, distribuicao = c("normal", "poisson", "ex
                             color = "#D90429", size = 5, shape = 18) +
         ggplot2::annotate("text", x = emv_val, y = emv_ll,
                           label = sprintf(" \u03b8\u0302 = %s", .est_fmt(emv_val, 3)),
-                          hjust = -0.1, vjust = 0.5, size = 4.5,
+                          hjust = -0.1, vjust = -0.8, size = 4.5,
                           fontface = "bold", color = "#D90429") +
+        ggplot2::scale_y_continuous(expand = ggplot2::expansion(mult = c(0.05, 0.15))) +
         ggplot2::labs(title = titulo, subtitle = sub_txt,
                       x = xlab_plot, y = "log L(\u03b8)", caption = "estatR") +
-        meu_tema()
+        meu_tema(grade = "dupla")
 
       suppressMessages(print(p_plot))
       options(warn = old_w)
@@ -256,7 +257,7 @@ estimar_momentos <- function(x, distribuicao = c("normal", "poisson", "exponenci
 
   w_sep <- 67
 
-  .print_titulo("ESTIMAÇÃO PELO M\u00c9TODO DOS MOMENTOS %s")
+  .print_titulo("ESTIMAÇÃO PELO M\u00c9TODO DOS MOMENTOS")
   cat(sprintf("  Vari\u00e1vel: %s   |   N: %d   |   Distribui\u00e7\u00e3o: %s\n\n",
               var_nome, n, tools::toTitleCase(distribuicao)))
 
@@ -382,7 +383,7 @@ estimar_momentos <- function(x, distribuicao = c("normal", "poisson", "exponenci
             subtitle = sub_txt,
             x = var_nome, y = "Propor\u00e7\u00e3o", caption = "estatR"
           ) +
-          meu_tema()
+          meu_tema(grade = "dupla")
       } else {
         p_plot <- ggplot2::ggplot(df_obs, ggplot2::aes(x = x)) +
           ggplot2::geom_histogram(ggplot2::aes(y = ggplot2::after_stat(density)),
@@ -395,7 +396,7 @@ estimar_momentos <- function(x, distribuicao = c("normal", "poisson", "exponenci
             subtitle = sub_txt,
             x = var_nome, y = "Densidade", caption = "estatR"
           ) +
-          meu_tema()
+          meu_tema(grade = "dupla")
       }
 
       suppressMessages(print(p_plot))

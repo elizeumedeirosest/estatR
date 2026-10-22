@@ -624,7 +624,7 @@ screeplot_acp <- function(modelo, analise_paralela = TRUE) {
       x     = "Componente Principal",
       y     = "Autovalor"
     ) +
-    ggplot2::theme(legend.position = "bottom")
+    ggplot2::theme(legend.position = c(0.80, 0.80), legend.background = ggplot2::element_rect(fill = ggplot2::alpha("white", 0.7), color = NA))
 
   if (exists("tema_estatR", mode = "function")) {
     p <- p + tema_estatR(estilo = 2, grade = "dupla")
@@ -1283,7 +1283,7 @@ screeplot_fatorial <- function(modelo, analise_paralela = TRUE) {
       x     = "Fator",
       y     = "Autovalor"
     ) +
-    ggplot2::theme(legend.position = "bottom")
+    ggplot2::theme(legend.position = c(0.80, 0.80), legend.background = ggplot2::element_rect(fill = ggplot2::alpha("white", 0.7), color = NA))
 
   if (exists("tema_estatR", mode = "function")) {
     p <- p + tema_estatR(estilo = 2, grade = "dupla")

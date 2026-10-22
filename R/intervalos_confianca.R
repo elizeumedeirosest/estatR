@@ -87,7 +87,7 @@ ic_media <- function(x, confianca = 0.95, decimais = 3, grafico = TRUE) {
   lsup <- media + margem
   
   w_sep <- 67
-  .print_titulo("INTERVALO DE CONFIAN\u00c7A PARA A M\u00c9DIA %s")
+  .print_titulo("INTERVALO DE CONFIAN\u00c7A PARA A M\u00c9DIA")
   cat(sprintf("  Vari\u00e1vel: %s   |   N v\u00e1lido: %d   |   Confian\u00e7a: %.0f%%\n", var_nome, n, confianca * 100))
   cat("  Distribui\u00e7\u00e3o utilizada: t de Student (vari\u00e2ncia desconhecida)\n\n")
   
@@ -151,12 +151,12 @@ ic_proporcao <- function(x, n, confianca = 0.95, decimais = 3, grafico = TRUE) {
   lsup <- min(1, p_hat + margem)
   
   w_sep <- 67
-  .print_titulo("INTERVALO DE CONFIAN\u00c7A PARA A PROPOR\u00c7\u00c3O %s")
+  .print_titulo("INTERVALO DE CONFIAN\u00c7A PARA A PROPOR\u00c7\u00c3O")
   cat(sprintf("  Sucessos: %d   |   N total: %d   |   Confian\u00e7a: %.0f%%\n", x, n, confianca * 100))
   cat("  M\u00e9todo: Aproxima\u00e7\u00e3o Normal (Wald)\n\n")
   
   .print_topico("ESTIMATIVAS")
-  wc <- c(ep=22, err=15, margem=16, z=10)
+  wc <- c(ep=22, err=13, margem=16, z=10)
   hdr <- paste0(.ic_pad("Propor\u00e7\u00e3o Amostral", wc["ep"], "center"),
                 .ic_pad("Erro Padr\u00e3o", wc["err"], "center"),
                 .ic_pad("Margem de Erro", wc["margem"], "center"),
@@ -186,7 +186,7 @@ ic_proporcao <- function(x, n, confianca = 0.95, decimais = 3, grafico = TRUE) {
     tryCatch({
       .plot_ic(p_hat, linf, lsup, 
                sprintf("Intervalo de Confian\u00e7a (%.0f%%) para a Propor\u00e7\u00e3o", confianca * 100), 
-               sprintf("Estimativa: %s%% \u00b1 %s%%", .ic_fmt(p_hat*100, 1), .ic_fmt(margem*100, 1)), 
+               sprintf("Estimativa: %s%% u00b1 %s%% (N = %d)", .ic_fmt(p_hat*100, 1), .ic_fmt(margem*100, 1), n), 
                "Propor\u00e7\u00e3o")
     }, error = function(e) message("[Aviso] Falha ao plotar: ", e$message))
   }
@@ -227,7 +227,7 @@ ic_variancia <- function(x, confianca = 0.95, decimais = 3) {
   lsup_dp <- sqrt(lsup_v)
   
   w_sep <- 67
-  .print_titulo("INTERVALO DE CONFIAN\u00c7A PARA A VARI\u00c2NCIA %s")
+  .print_titulo("INTERVALO DE CONFIAN\u00c7A PARA A VARI\u00c2NCIA")
   cat(sprintf("  Vari\u00e1vel: %s   |   N v\u00e1lido: %d   |   Confian\u00e7a: %.0f%%\n", var_nome, n, confianca * 100))
   cat("  Distribui\u00e7\u00e3o utilizada: Qui-Quadrado (\u03c7\u00b2)\n\n")
   
@@ -304,7 +304,7 @@ ic_diferenca_medias <- function(x, grupo, variancia_igual = FALSE, confianca = 0
   tipo_txt <- if (variancia_igual) "Student (vari\u00e2ncias iguais)" else "Welch (vari\u00e2ncias n\u00e3o iguais)"
   
   w_sep <- 67
-  .print_titulo("IC PARA A DIFEREN\u00c7A DE M\u00c9DIAS %s")
+  .print_titulo("IC PARA A DIFEREN\u00c7A DE M\u00c9DIAS")
   cat(sprintf("  Vari\u00e1vel: %s   |   Grupos: %s vs %s\n", var_nome, niveis[1], niveis[2]))
   cat(sprintf("  M\u00e9todo: Teste t de %s\n\n", tipo_txt))
   
@@ -342,7 +342,7 @@ ic_diferenca_medias <- function(x, grupo, variancia_igual = FALSE, confianca = 0
     tryCatch({
       .plot_ic(dif, linf, lsup, 
                sprintf("Intervalo de Confian\u00e7a (%.0f%%) para a Diferen\u00e7a", confianca * 100), 
-               sprintf("%s - %s", niveis[1], niveis[2]), 
+               sprintf("Variável: %s (%s: %s - %s)", var_nome, grupo_nome, niveis[1], niveis[2]), 
                "\u0394 M\u00e9dia")
     }, error = function(e) message("[Aviso] Falha ao plotar: ", e$message))
   }

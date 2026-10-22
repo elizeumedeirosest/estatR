@@ -22,3 +22,4 @@ Avalia normalidade (Shapiro-Wilk ou Kolmogorov-Smirnov), ausência de viés (tes
 independência e ruído branco (teste de Ljung-Box em defasagens múltiplas) e
 gera um painel gráfico com 4 diagnósticos visuais.
 }
+\keyword{internal}

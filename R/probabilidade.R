@@ -202,12 +202,13 @@ gerar_amostra <- function(n, distribuicao = c("normal", "binomial", "poisson", "
   if (exists(".print_titulo")) .print_titulo(sprintf("GERAÇÃO DE DADOS — AMOSTRA %s", toupper(gsub("_", " ", distribuicao)))) else cat(sprintf("\nGERAÇÃO DE DADOS ALEATÓRIOS (%s)\n\n", tools::toTitleCase(gsub("_", "-", distribuicao))))
   cat(sprintf("Tamanho da amostra (n): %d\n", n))
 #   cat(linha)
-  cat(sprintf("%-20s %15s %15s\n", "Estatística", "Amostra Gerada", "Valor Teórico"))
-  cat(paste(rep("-", 54), collapse = ""), "\n")
-  cat(sprintf("%-20s %15.2f %15.2f\n", "Média", emp_media, teo_media))
-  cat(sprintf("%-20s %15.2f %15.2f\n", "Desvio Padrão", emp_dp, teo_dp))
-#   cat(linha)
-  
+  sep_tracos <- paste(rep("-", 54), collapse = "")
+  cat("  ", sep_tracos, "\n", sep = "")
+  cat(sprintf("  %-20s %15s %15s\n", "Estatística", "Amostra Gerada", "Valor Teórico"))
+  cat("  ", sep_tracos, "\n", sep = "")
+  cat(sprintf("  %-20s %15.2f %15.2f\n", "Média", emp_media, teo_media))
+  cat(sprintf("  %-20s %15.2f %15.2f\n", "Desvio Padrão", emp_dp, teo_dp))
+  cat("  ", sep_tracos, "\n\n", sep = "")
   if (exists(".print_rodape", mode = "function")) .print_rodape() else cat("\n")
   if (grafico) {
     df <- data.frame(X = amostra)
@@ -235,8 +236,8 @@ gerar_amostra <- function(n, distribuicao = c("normal", "binomial", "poisson", "
       texto_sub <- "Barras (Amostra) vs Curva (Teórica)"
     }
     p <- p + ggplot2::labs(title = tit_graf, subtitle = texto_sub, y = if(distribuicao %in% c("binomial", "poisson")) "Proporção" else "Densidade", caption = "estatR")
-    if (exists("tema_estatR", mode = "function")) { p <- p + tema_estatR(estilo = 2) }
-    else if (requireNamespace("estatR", quietly = TRUE)) { fn <- get("tema_estatR", envir = asNamespace("estatR")); p <- p + fn(estilo = 2) }
+    if (exists("tema_estatR", mode = "function")) { p <- p + tema_estatR(estilo = 1, grade = "dupla") }
+    else if (requireNamespace("estatR", quietly = TRUE)) { fn <- get("tema_estatR", envir = asNamespace("estatR")); p <- p + fn(estilo = 1, grade = "dupla") }
     else { p <- p + ggplot2::theme_minimal() }
     suppressMessages(print(p))
   }
@@ -416,7 +417,6 @@ prob_exponencial <- function(taxa = 1, q1 = NULL, q2 = NULL,
 
   if (exists(".print_rodape", mode = "function")) .print_rodape()
 
-  if (exists(".print_rodape", mode = "function")) .print_rodape() else cat("\n")
   if (grafico) {
     df_curve <- data.frame(x = seq(0, x_max * 1.05, length.out = 500))
     df_curve$y <- dexp(df_curve$x, rate = taxa)
@@ -440,7 +440,7 @@ prob_exponencial <- function(taxa = 1, q1 = NULL, q2 = NULL,
       )
 
     if (exists("tema_estatR", mode = "function")) {
-      p <- p + tema_estatR(estilo = 2)
+      p <- p + tema_estatR(estilo = 1, grade = "dupla")
     } else {
       p <- p + ggplot2::theme_minimal()
     }

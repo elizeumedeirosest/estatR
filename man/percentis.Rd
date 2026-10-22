@@ -17,7 +17,6 @@ percentis(x, p = c(5, 10, 25, 50, 75, 90, 95), decimais = 2)
 Retorna invisivelmente um vetor nomeado com os valores dos percentis.
 }
 \description{
-Calcula e exibe os percentis de um vetor numérico. Por padrão exibe
-P5, P10, P25, P50, P75, P90 e P95, mas o usuário pode definir quais
-percentis quer calcular pelo parâmetro \code{p}.
+Calcula e exibe os percentis de um vetor numérico, incluindo os extremos Mín (P0) e Máx (P100).
+Por padrão exibe P5, P10, P25, P50, P75, P90 e P95, além do Mínimo e Máximo.
 }

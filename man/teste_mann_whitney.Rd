@@ -9,7 +9,8 @@ teste_mann_whitney(
   grupo,
   hipotese = c("bilateral", "maior", "menor"),
   confianca = 0.95,
-  decimais = 2
+  decimais = 2,
+  grafico = TRUE
 )
 }
 \arguments{

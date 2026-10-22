@@ -261,38 +261,30 @@ regressao_linear <- function(formula, dados, grafico = TRUE, ...) {
   # ── 10. Gráfico (regressão simples) ───────────────────────────────────────
   if (grafico && length(x_names) == 1) {
     tryCatch({
-      if (exists("grafico_de_dispersao") && exists("meu_tema")) {
-        intercepto <- coefs[1, 1]
-        inclinacao <- coefs[2, 1]
-        sinal      <- if (inclinacao >= 0) "+" else "-"
-        equacao_texto <- sprintf("%s = %.2f %s %.2f * %s\nR\u00b2 = %.1f%%",
-                                 y_name, intercepto, sinal, abs(inclinacao), x_names[1], r2 * 100)
-
-        if (inclinacao < 0) {
-          pos_x <- Inf;  pos_y <- Inf; anc_h <- 1.1;  anc_v <- 1.5
-        } else {
-          pos_x <- -Inf; pos_y <- Inf; anc_h <- -0.1; anc_v <- 1.5
-        }
-
-        chamada_grafico <- bquote(
-          grafico_de_dispersao(data = dados, x = .(as.name(x_names[1])), y = .(as.name(y_name)),
-                               reta = TRUE, ic = TRUE, outlier = TRUE,
-                               deteccao_outliers = "residuos", paleta = 1)
-        )
-
-        old_w <- getOption("warn"); options(warn = -1)
-        p_plot <- ggplot2::ggplot() + eval(chamada_grafico) +
-          ggplot2::annotate("text", x = pos_x, y = pos_y, label = equacao_texto,
-                            hjust = anc_h, vjust = anc_v, size = 6.5,
-                            fontface = "bold", color = "#333333") +
-          ggplot2::labs(title = sprintf("Regress\u00e3o Linear: %s vs %s", y_name, x_names[1]),
-                        caption = "estatR") +
-          meu_tema(grade = "dupla")
-        suppressMessages(print(p_plot))
-        options(warn = old_w)
-      }
+      intercepto <- coefs[1, 1]
+      inclinacao <- coefs[2, 1]
+      sinal      <- if (inclinacao >= 0) "+" else "-"
+      equacao_texto <- sprintf("%s = %.2f %s %.2f * %s | R² = %.1f%%",
+                               y_name, intercepto, sinal, abs(inclinacao), x_names[1], r2 * 100)
+      df_p <- dados[, c(x_names[1], y_name)]
+      names(df_p) <- c("x", "y")
+      df_p <- df_p[!is.na(df_p$x) & !is.na(df_p$y), ]
+      old_w <- getOption("warn"); options(warn = -1)
+      p_plot <- ggplot2::ggplot(df_p, ggplot2::aes(x = x, y = y)) +
+        ggplot2::geom_point(color = "#3470a3", size = 2.8, alpha = 0.8) +
+        ggplot2::geom_smooth(method = "lm", formula = y ~ x, color = "#D90429", fill = "#85b4d4", alpha = 0.25, linewidth = 1) +
+        ggplot2::labs(
+          title    = sprintf("Regressão Linear: %s vs %s", y_name, x_names[1]),
+          subtitle = equacao_texto,
+          x        = x_names[1],
+          y        = y_name,
+          caption  = "estatR"
+        ) +
+        meu_tema(grade = "dupla")
+      suppressMessages(print(p_plot))
+      options(warn = old_w)
     }, error = function(e) {
-      message("\n[Aviso] N\u00e3o foi poss\u00edvel gerar o gr\u00e1fico: ", e$message)
+      message("\n[Aviso] Não foi possível gerar o gráfico: ", e$message)
     })
   }
 
@@ -407,44 +399,32 @@ predicao <- function(modelo, novos_dados,
     }
   }
   cat(sep_hdr, "\n\n")
+  .print_rodape()
 
   # ── Gráfico (regressão simples + intervalo) ───────────────────────────────
   if (grafico && length(x_names) == 1 && intervalo != "nenhum") {
     tryCatch({
-      if (exists("grafico_de_dispersao") && exists("meu_tema")) {
-        dados_orig <- modelo$model
-
-        chamada_grafico <- bquote(
-          grafico_de_dispersao(data = dados_orig,
-                               x = .(as.name(x_names[1])),
-                               y = .(as.name(y_name)),
-                               reta = TRUE, ic = TRUE,
-                               nivel_ic = .(nivel), paleta = 1)
-        )
-
-        old_w <- getOption("warn"); options(warn = -1)
-        p_plot <- ggplot2::ggplot() + eval(chamada_grafico) +
-          ggplot2::geom_point(
-            data = df_final,
-            ggplot2::aes(x = .data[[x_names[1]]], y = Previsao),
-            color = "#D90429", size = 4.5, shape = 19
-          ) +
-          ggplot2::geom_errorbar(
-            data = df_final,
-            ggplot2::aes(x = .data[[x_names[1]]], ymin = LI, ymax = LS),
-            color = "#D90429", width = 0.2, linewidth = 1
-          ) +
-          ggplot2::labs(
-            title    = sprintf("Predi\u00e7\u00e3o: %s vs %s", y_name, x_names[1]),
-            subtitle = sprintf("Intervalo de %s (%.0f%%)", nome_int, nivel * 100),
-            caption  = "estatR"
-          ) +
-          meu_tema(grade = "dupla")
-        suppressMessages(print(p_plot))
-        options(warn = old_w)
-      }
+      dados_orig <- stats::model.frame(modelo)
+      old_w <- getOption("warn"); options(warn = -1)
+      p_plot <- ggplot2::ggplot(dados_orig, ggplot2::aes(x = .data[[x_names[1]]], y = .data[[y_name]])) +
+        ggplot2::geom_point(color = "#3470a3", size = 2.5, alpha = 0.6) +
+        ggplot2::geom_smooth(method = "lm", formula = y ~ x, color = "#2B5C8F", fill = "#85b4d4", alpha = 0.25, linewidth = 0.9) +
+        ggplot2::geom_errorbar(data = df_final, ggplot2::aes(x = .data[[x_names[1]]], ymin = LI, ymax = LS),
+                              color = "#D90429", width = 0.15, linewidth = 1, inherit.aes = FALSE) +
+        ggplot2::geom_point(data = df_final, ggplot2::aes(x = .data[[x_names[1]]], y = Previsao),
+                            color = "#D90429", size = 4.5, shape = 19, inherit.aes = FALSE) +
+        ggplot2::labs(
+          title    = sprintf("Predição: %s vs %s", y_name, x_names[1]),
+          subtitle = sprintf("Pontos em vermelho: valores preditos com intervalo de %s (%.0f%%)", nome_int, nivel * 100),
+          x        = x_names[1],
+          y        = y_name,
+          caption  = "estatR"
+        ) +
+        meu_tema(grade = "dupla")
+      suppressMessages(print(p_plot))
+      options(warn = old_w)
     }, error = function(e) {
-      message("\n[Aviso] N\u00e3o foi poss\u00edvel gerar o gr\u00e1fico: ", e$message)
+      message("\n[Aviso] Não foi possível gerar o gráfico: ", e$message)
     })
   }
 
@@ -475,41 +455,53 @@ metricas <- function(modelo, corte_prob = 0.5) {
   r2     <- resumo$r.squared
   r2_adj <- resumo$adj.r.squared
 
-  res <- modelo$residuals
-  n   <- length(res)
-  k   <- length(modelo$coefficients)
+  y_obs  <- stats::model.response(stats::model.frame(modelo))
+  y_hat  <- stats::fitted(modelo)
+  res    <- stats::residuals(modelo)
+  n      <- length(res)
+  k      <- length(stats::coef(modelo))
 
   rmse     <- sqrt(mean(res^2))
   mae      <- mean(abs(res))
-  aic_val  <- AIC(modelo)
-  bic_val  <- BIC(modelo)
+  mape     <- if (!is.null(y_obs) && all(y_obs != 0)) mean(abs(res / y_obs)) * 100 else NA
+  smape    <- if (!is.null(y_obs)) mean(2 * abs(res) / (abs(y_obs) + abs(y_hat))) * 100 else NA
+  aic_val  <- stats::AIC(modelo)
+  bic_val  <- stats::BIC(modelo)
   aicc_val <- aic_val + (2 * k * (k + 1)) / (n - k - 1)
 
-  lw   <- 20
-  vw   <- 10
-  linha <- paste0(strrep("\u2500", lw + vw + 1), "\n")
+  lw    <- 22
+  vw    <- 20
+  sep_m <- paste0("  ", strrep("─", lw + vw + 2), "\n")
 
-  f3 <- function(x) formatC(x, format = "f", digits = 3, decimal.mark = ",")
+  f4 <- function(x) formatC(x, format = "f", digits = 4, decimal.mark = ",")
   f2 <- function(x) formatC(x, format = "f", digits = 2, decimal.mark = ",")
 
   .print_titulo("MÉTRICAS E CRITÉRIOS DE SELEÇÃO")
 
-  cat(sprintf("  %-*s %*s\n", lw, "M\u00e9trica", vw, "Valor"))
-  cat("  ", linha, sep = "")
-  cat(sprintf("  %-*s %*s\n", lw, "R\u00b2",           vw, f3(r2)))
-  cat(sprintf("  %-*s %*s\n", lw, "R\u00b2 ajustado",  vw, f3(r2_adj)))
-  cat(sprintf("  %-*s %*s\n", lw, "RMSE",           vw, f3(rmse)))
-  cat(sprintf("  %-*s %*s\n", lw, "MAE",            vw, f3(mae)))
-  cat(sprintf("  %-*s %*s\n", lw, "AIC",            vw, f2(aic_val)))
-  cat(sprintf("  %-*s %*s\n", lw, "AICc",           vw, f2(aicc_val)))
-  cat(sprintf("  %-*s %*s\n", lw, "BIC",            vw, f2(bic_val)))
+  cat(sprintf("  %-*s %*s\n", lw, "Métrica", vw, "Valor"))
+  cat(sep_m)
+  cat(sprintf("  %-*s %*s\n", lw, "R²",            vw, sprintf("%s  (%.2f%%)", f4(r2), r2 * 100)))
+  cat(sprintf("  %-*s %*s\n", lw, "R² ajustado",   vw, sprintf("%s  (%.2f%%)", f4(r2_adj), r2_adj * 100)))
+  cat(sprintf("  %-*s %*s\n", lw, "RMSE",          vw, f4(rmse)))
+  cat(sprintf("  %-*s %*s\n", lw, "MAE",           vw, f4(mae)))
+  if (!is.na(mape)) {
+    cat(sprintf("  %-*s %*s\n", lw, "MAPE",         vw, sprintf("%.2f%%", mape)))
+  }
+  if (!is.na(smape)) {
+    cat(sprintf("  %-*s %*s\n", lw, "sMAPE",        vw, sprintf("%.2f%%", smape)))
+  }
+  cat(sprintf("  %-*s %*s\n", lw, "AIC",           vw, f2(aic_val)))
+  cat(sprintf("  %-*s %*s\n", lw, "AICc",          vw, f2(aicc_val)))
+  cat(sprintf("  %-*s %*s\n", lw, "BIC",           vw, f2(bic_val)))
+  cat(sep_m, "\n", sep = "")
   .print_rodape()
 
   invisible(data.frame(
-    Metrica = c("R2", "R2_ajustado", "RMSE", "MAE", "AIC", "AICc", "BIC"),
-    Valor   = c(r2, r2_adj, rmse, mae, aic_val, aicc_val, bic_val)
+    Metrica = c("R2", "R2_ajustado", "RMSE", "MAE", "MAPE", "sMAPE", "AIC", "AICc", "BIC"),
+    Valor   = c(r2, r2_adj, rmse, mae, mape, smape, aic_val, aicc_val, bic_val)
   ))
 }
+
 
 
 #' @title Análise Residual
@@ -749,10 +741,18 @@ analise_residual <- function(modelo, grafico = TRUE) {
 #' @param top Número máximo de modelos a serem exibidos no ranking (padrão: 5).
 #' @return Retorna invisivelmente um data frame com o ranking completo.
 #' @export
-selecao_modelos <- function(formula,
-                            dados,
-                            comparar_modelos = c("estatistico", "aprend_maq"),
-                            top = 5) {
+selecao_modelos <- function(formula, dados, comparar_modelos = c("estatistico", "aprend_maq"), top = 5, ...) {
+  # Polimorfismo: suporte direto a Séries Temporais (objeto 'ts' ou vetor numérico sem 'dados')
+  if (stats::is.ts(formula) || (missing(dados) && is.numeric(formula))) {
+    if (exists('selecao_modelos_serie', mode = 'function')) {
+      dots <- list(...)
+      h_val <- if ('h' %in% names(dots)) dots$h else 12
+      fam_val <- if ('familia' %in% names(dots)) dots$familia else 'todas'
+      top_val <- if ('top' %in% names(dots)) dots$top else 5
+      ord_val <- if ('ordenar_por' %in% names(dots)) dots$ordenar_por else 'sMAPE'
+      return(selecao_modelos_serie(serie = formula, h = h_val, familia = fam_val, top = top_val, ordenar_por = ord_val))
+    }
+  }
   if (!is.data.frame(dados)) stop("O argumento 'dados' deve ser um data frame.")
 
   # Se o usuário solicitou comparar com ou exclusivamente Aprendizado de Máquina
@@ -1347,26 +1347,24 @@ multicolinearidade <- function(modelo, grafico = FALSE) {
 
   df_print <- if (tem_fator_mult) {
     data.frame(
-      "Preditor"       = tabela_vif$Termo,
-      "gl"             = tabela_vif$gl,
-      "GVIF"           = sapply(tabela_vif$VIF_GVIF, function(v) if (is.infinite(v)) "Inf" else .fmt_num(v, 2)),
-      "GVIF^(1/(2*gl))"= sapply(tabela_vif$GVIF_Ajust, function(v) if (is.infinite(v)) "Inf" else .fmt_num(v, 3)),
-      "VIF Equivalente"= sapply(tabela_vif$VIF_Equiv, function(v) if (is.infinite(v)) "Inf" else .fmt_num(v, 2)),
-      "Toler\u00e2ncia"= sapply(tabela_vif$Tolerancia, .fmt_num, decimais = 3),
-      "Diagn\u00f3stico" = tabela_vif$Diagnostico,
+      'Preditor'        = tabela_vif$Termo,
+      'gl'              = tabela_vif$gl,
+      'GVIF'            = sapply(tabela_vif$VIF_GVIF, function(v) if (is.infinite(v)) 'Inf' else .fmt_num(v, 2)),
+      'GVIF^(1/(2*gl))' = sapply(tabela_vif$GVIF_Ajust, function(v) if (is.infinite(v)) 'Inf' else .fmt_num(v, 3)),
+      'VIF Equivalente' = sapply(tabela_vif$VIF_Equiv, function(v) if (is.infinite(v)) 'Inf' else .fmt_num(v, 2)),
+      'Tolerância'      = sapply(tabela_vif$Tolerancia, .fmt_num, decimais = 3),
       stringsAsFactors = FALSE, check.names = FALSE
     )
   } else {
     data.frame(
-      "Preditor"       = tabela_vif$Termo,
-      "VIF"            = sapply(tabela_vif$VIF_GVIF, function(v) if (is.infinite(v)) "Inf" else .fmt_num(v, 2)),
-      "Toler\u00e2ncia"= sapply(tabela_vif$Tolerancia, .fmt_num, decimais = 3),
-      "Diagn\u00f3stico" = tabela_vif$Diagnostico,
+      'Preditor'   = tabela_vif$Termo,
+      'VIF'        = sapply(tabela_vif$VIF_GVIF, function(v) if (is.infinite(v)) 'Inf' else .fmt_num(v, 2)),
+      'Tolerância' = sapply(tabela_vif$Tolerancia, .fmt_num, decimais = 3),
       stringsAsFactors = FALSE, check.names = FALSE
     )
   }
 
-  align_vec <- if (tem_fator_mult) c("left", "center", "center", "center", "center", "center", "center") else c("left", "center", "center", "center")
+  align_vec <- if (tem_fator_mult) c('left', 'center', 'center', 'center', 'center', 'center') else c('left', 'center', 'center')
   .print_tabela_estatR(df_print, align = align_vec)
 
   cat("  * Crit\u00e9rios: VIF < 5 (Ideal) | 5 a 10 (Moderado / Alerta) | >= 10 (Severo / Cr\u00edtico).\n")

@@ -24,11 +24,14 @@
   }
 
   # Avalia nome de y
-  y_col <- tryCatch({
-    y_sub <- substitute(y)
-    if (is.symbol(y_sub) || is.character(y_sub)) as.character(y_sub) else NULL
-  }, error = function(e) NULL)
-
+  y_col <- if (is.character(y) && length(y) == 1) {
+    y
+  } else {
+    tryCatch({
+      y_sub <- substitute(y)
+      if (is.symbol(y_sub) || is.character(y_sub)) as.character(y_sub) else NULL
+    }, error = function(e) NULL)
+  }
   if (is.null(y_col) || !y_col %in% names(dados)) {
     # Tenta como string direta se y foi passado como caractere
     if (is.character(y) && length(y) == 1 && y %in% names(dados)) {
@@ -217,12 +220,12 @@ analise_serie <- function(dados, y = NULL, data = NULL, frequencia = 12,
       )
 
       p1 <- ggplot2::ggplot(data.frame(Tempo = tempos, Valor = as.numeric(ts_serie)), ggplot2::aes(x = Tempo, y = Valor)) +
-        ggplot2::geom_line(color = "#377EB8", linewidth = 0.85) +
+        ggplot2::geom_line(color = "#3470a3", linewidth = 0.85) +
         ggplot2::labs(title = "S\u00e9rie Original", x = NULL, y = "Valor") +
         tema_estatR(estilo = 2, grade = "dupla")
 
       p2 <- ggplot2::ggplot(data.frame(Tempo = tempos, Valor = as.numeric(decomposicao$trend)), ggplot2::aes(x = Tempo, y = Valor)) +
-        ggplot2::geom_line(color = "#E31A1C", linewidth = 0.85, na.rm = TRUE) +
+        ggplot2::geom_line(color = "#0072CE", linewidth = 0.85, na.rm = TRUE) +
         ggplot2::labs(title = "Tend\u00eancia", x = NULL, y = "Tend\u00eancia") +
         tema_estatR(estilo = 2, grade = "dupla")
 
@@ -240,7 +243,7 @@ analise_serie <- function(dados, y = NULL, data = NULL, frequencia = 12,
       p_final <- patchwork::wrap_plots(p1, p2, p3, p4, ncol = 1)
     } else {
       p_final <- ggplot2::ggplot(data.frame(Tempo = tempos, Valor = as.numeric(ts_serie)), ggplot2::aes(x = Tempo, y = Valor)) +
-        ggplot2::geom_line(color = "#377EB8", linewidth = 0.9) +
+        ggplot2::geom_line(color = "#3470a3", linewidth = 0.9) +
         ggplot2::labs(title = "S\u00e9rie Temporal", x = "Tempo", y = "Valor") +
         tema_estatR(estilo = 2, grade = "dupla")
     }
@@ -351,7 +354,7 @@ teste_estacionariedade <- function(serie, frequencia = NULL, diferencas = 0) {
   .print_topico("INTERPRETA\u00c7\u00c3O")
 
   cor_ok   <- "\033[1;32m"
-  cor_erro <- "\033[1;31m"
+  cor_erro <- "033[91m"
   cor_warn <- "\033[1;33m"
   reset    <- "\033[0m"
 
@@ -427,10 +430,10 @@ grafico_autocorrelacao <- function(serie, defasagens = 24,
   .plot_acf_panel <- function(df, titulo) {
     ggplot2::ggplot(df, ggplot2::aes(x = Lag, y = Valor)) +
       ggplot2::geom_hline(yintercept = 0, color = "black", linewidth = 0.5) +
-      ggplot2::geom_hline(yintercept = c(-ic_val, ic_val), linetype = "dashed", color = "#E31A1C", linewidth = 0.6) +
+      ggplot2::geom_hline(yintercept = c(-ic_val, ic_val), linetype = "dashed", color = "#0072CE", linewidth = 0.6) +
       ggplot2::geom_segment(ggplot2::aes(x = Lag, xend = Lag, y = 0, yend = Valor),
-                           color = "#377EB8", linewidth = 0.8) +
-      ggplot2::geom_point(color = "#377EB8", size = 2) +
+                           color = "#3470a3", linewidth = 0.8) +
+      ggplot2::geom_point(color = "#3470a3", size = 2) +
       ggplot2::scale_x_continuous(breaks = scales::pretty_breaks(n = 8)) +
       ggplot2::scale_y_continuous(limits = c(min(-ic_val * 1.2, min(df$Valor, na.rm = TRUE) * 1.1),
                                              max(ic_val * 1.2, max(df$Valor, na.rm = TRUE) * 1.1))) +
@@ -475,7 +478,7 @@ grafico_autocorrelacao <- function(serie, defasagens = 24,
 
     .print_topico("INTERPRETA\u00c7\u00c3O")
     cor_ok   <- "\033[1;32m"
-    cor_erro <- "\033[1;31m"
+    cor_erro <- "033[91m"
     reset    <- "\033[0m"
 
     if (p_box >= 0.05) {
@@ -795,9 +798,9 @@ previsao_serie <- function(serie, horizonte = 12, frequencia = 12,
                          color = "gray25", linewidth = 0.8) +
       # Linha de previsão pontual
       ggplot2::geom_line(data = df_fut_con, ggplot2::aes(x = Tempo, y = Media),
-                         color = "#377EB8", linewidth = 1.05) +
+                         color = "#3470a3", linewidth = 1.05) +
       ggplot2::geom_point(data = df_fut, ggplot2::aes(x = Tempo, y = Media),
-                          color = "#377EB8", size = 1.8) +
+                          color = "#3470a3", size = 1.8) +
       ggplot2::labs(
         title = paste("Previs\u00e3o da S\u00e9rie Temporal -", nome_metodo),
         subtitle = sprintf("Horizonte: %d per\u00edodos | Faixas de Confian\u00e7a: 80%% e %.0f%%", horizonte, confianca * 100),
@@ -1111,7 +1114,7 @@ selecao_modelos_serie <- function(serie, h = 12, frequencia = 12,
 #' @param grafico Lógico. Se \code{TRUE} (padrão), exibe o painel gráfico de diagnóstico.
 #'
 #' @return Retorna invisivelmente uma lista com os objetos dos testes estatísticos e resíduos.
-#' @export
+#' @keywords internal
 analise_residual_serie <- function(modelo, grafico = TRUE) {
 
   # Extração dos resíduos conforme a classe do objeto
@@ -1195,15 +1198,10 @@ analise_residual_serie <- function(modelo, grafico = TRUE) {
   }
 
   df_tab <- data.frame(
-    Pressuposto = c("M\u00e9dia Zero (Sem vi\u00e9s)", nome_norm, sprintf("Ru\u00eddo Branco (Ljung-Box, lag %d)", lag_box)),
-    "Estat\u00edstica" = c(sprintf("t = %.3f", stat_t), txt_stat_norm, sprintf("Q = %.2f", stat_box)),
-    "p-valor"   = c(fmt_p(p_t), fmt_p(p_norm), fmt_p(p_box)),
-    "Diagn\u00f3stico" = c(
-      if (p_t >= 0.05) "Sem Vi\u00e9s" else "Vi\u00e9s Detectado",
-      if (p_norm >= 0.05) "Normal" else "N\u00e3o Normal",
-      if (p_box >= 0.05) "Ru\u00eddo Branco" else "Autocorrelacionado"
-    ),
-    stringsAsFactors = FALSE, check.names = FALSE
+    Pressuposto       = c("Média Zero (Sem viés)", nome_norm, sprintf("Ruído Branco (Ljung-Box, lag %d)", lag_box)),
+    "Estatística"    = c(sprintf("t = %.3f", stat_t), txt_stat_norm, sprintf("Q = %.2f", stat_box)),
+    "p-valor"        = c(fmt_p(p_t), fmt_p(p_norm), fmt_p(p_box)),
+    stringsAsFactors  = FALSE, check.names = FALSE
   )
 
   # ── Saída no Console ───────────────────────────────────────────────────────
@@ -1217,7 +1215,7 @@ analise_residual_serie <- function(modelo, grafico = TRUE) {
   .print_topico("RESULTADOS DOS TESTES DE DIAGN\u00d3STICO")
 
   if (exists(".print_tabela_estatR", mode = "function")) {
-    .print_tabela_estatR(df_tab, align = c("left", "center", "center", "center"))
+    .print_tabela_estatR(df_tab, align = c("left", "center", "center"))
   } else {
     print(df_tab, row.names = FALSE)
   }
@@ -1226,7 +1224,7 @@ analise_residual_serie <- function(modelo, grafico = TRUE) {
   .print_topico("INTERPRETA\u00c7\u00c3O")
 
   cor_ok   <- "\033[1;32m"
-  cor_erro <- "\033[1;31m"
+  cor_erro <- "033[91m"
   reset    <- "\033[0m"
 
   # Interpretação da Média Zero
@@ -1270,9 +1268,9 @@ analise_residual_serie <- function(modelo, grafico = TRUE) {
     p1 <- ggplot2::ggplot(df_res_plot, ggplot2::aes(x = Index, y = Res)) +
       ggplot2::geom_hline(yintercept = 0, color = "black", linewidth = 0.5) +
       ggplot2::geom_hline(yintercept = c(-2 * stats::sd(res), 2 * stats::sd(res)),
-                          linetype = "dashed", color = "#E31A1C", linewidth = 0.5) +
-      ggplot2::geom_line(color = "#377EB8", linewidth = 0.75) +
-      ggplot2::geom_point(color = "#377EB8", size = 1.3) +
+                          linetype = "dashed", color = "#0072CE", linewidth = 0.5) +
+      ggplot2::geom_line(color = "#3470a3", linewidth = 0.75) +
+      ggplot2::geom_point(color = "#3470a3", size = 1.3) +
       ggplot2::labs(title = "Res\u00edduos ao Longo do Tempo", x = "\u00cdndice Temporal", y = "Res\u00edduo") +
       tema_estatR(estilo = 2, grade = "dupla")
 
@@ -1283,14 +1281,14 @@ analise_residual_serie <- function(modelo, grafico = TRUE) {
                               fill = "gray85", color = "gray40") +
       ggplot2::stat_function(fun = stats::dnorm,
                              args = list(mean = mean(res), sd = stats::sd(res)),
-                             color = "#E31A1C", linewidth = 0.85) +
+                             color = "#0072CE", linewidth = 0.85) +
       ggplot2::labs(title = "Histograma & Densidade Normal", x = "Res\u00edduo", y = "Densidade") +
       tema_estatR(estilo = 2, grade = "dupla")
 
     # 3. QQ-Plot Normal
     p3 <- ggplot2::ggplot(df_res_plot, ggplot2::aes(sample = Res)) +
-      ggplot2::stat_qq(color = "#377EB8", size = 1.5, alpha = 0.8) +
-      ggplot2::stat_qq_line(color = "#E31A1C", linewidth = 0.75, linetype = "dashed") +
+      ggplot2::stat_qq(color = "#3470a3", size = 1.5, alpha = 0.8) +
+      ggplot2::stat_qq_line(color = "#0072CE", linewidth = 0.75, linetype = "dashed") +
       ggplot2::labs(title = "QQ-Plot Normal dos Res\u00edduos", x = "Quantis Te\u00f3ricos", y = "Quantis Amostrais") +
       tema_estatR(estilo = 2, grade = "dupla")
 
@@ -1305,10 +1303,10 @@ analise_residual_serie <- function(modelo, grafico = TRUE) {
 
     p4 <- ggplot2::ggplot(df_acf_res, ggplot2::aes(x = Lag, y = Valor)) +
       ggplot2::geom_hline(yintercept = 0, color = "black", linewidth = 0.5) +
-      ggplot2::geom_hline(yintercept = c(-ic_bart, ic_bart), linetype = "dashed", color = "#E31A1C", linewidth = 0.6) +
+      ggplot2::geom_hline(yintercept = c(-ic_bart, ic_bart), linetype = "dashed", color = "#0072CE", linewidth = 0.6) +
       ggplot2::geom_segment(ggplot2::aes(x = Lag, xend = Lag, y = 0, yend = Valor),
-                            color = "#377EB8", linewidth = 0.75) +
-      ggplot2::geom_point(color = "#377EB8", size = 1.6) +
+                            color = "#3470a3", linewidth = 0.75) +
+      ggplot2::geom_point(color = "#3470a3", size = 1.6) +
       ggplot2::labs(title = "FAC dos Res\u00edduos (Ru\u00eddo Branco)", x = "Defasagem (Lag)", y = "Autocorrela\u00e7\u00e3o") +
       tema_estatR(estilo = 2, grade = "dupla")
 
@@ -1540,9 +1538,9 @@ previsao_serie_aprend_maq <- function(serie,
         ggplot2::geom_line(data = df_hist, ggplot2::aes(x = Tempo, y = Valor),
                            color = "#333333", linewidth = 0.8) +
         ggplot2::geom_line(data = df_proj, ggplot2::aes(x = Tempo, y = Valor),
-                           color = "#E31A1C", linewidth = 1) +
+                           color = "#0072CE", linewidth = 1) +
         ggplot2::geom_point(data = df_proj, ggplot2::aes(x = Tempo, y = Valor),
-                            color = "#E31A1C", size = 2) +
+                            color = "#0072CE", size = 2) +
         ggplot2::labs(
           title    = sprintf("Previs\u00e3o da S\u00e9rie Temporal (%s)", toupper(algoritmo)),
           subtitle = "Faixas sombreadas indicam intervalos de confian\u00e7a de 80% e 95%",

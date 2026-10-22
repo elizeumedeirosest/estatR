@@ -151,7 +151,7 @@ bootstrap <- function(x = NULL,
     .print_topico("ESTIMATIVAS E INTERVALOS BOOTSTRAP")
     df_print <- data.frame(
       "Parâmetro"    = tabela_final$Parâmetro,
-      "Original"     = sapply(tabela_final$Original, .fmt_num, decimais = 3),
+      "Observada"     = sapply(tabela_final$Original, .fmt_num, decimais = 3),
       "Média Boot"   = sapply(tabela_final$Bootstrap, .fmt_num, decimais = 3),
       "Viés"         = sapply(tabela_final$Viés, .fmt_num, decimais = 4),
       "Erro Padrão"  = sapply(tabela_final$Erro_Padrao, .fmt_num, decimais = 4),
@@ -274,7 +274,7 @@ bootstrap <- function(x = NULL,
 
   .print_topico("RESULTADOS DA REAMOSTRAGEM")
   df_saida <- data.frame(
-    "Métrica" = c("Estimativa Original", "Média Bootstrap", "Viés Estimado", "Erro Padrão Bootstrap", "IC Limite Inferior", "IC Limite Superior"),
+    "Métrica" = c("Estimativa Observada", "Média Bootstrap", "Viés Estimado", "Erro Padrão Bootstrap", "IC Limite Inferior", "IC Limite Superior"),
     "Valor"   = c(.fmt_num(est_original, 4), .fmt_num(est_boot, 4), .fmt_num(vies, 4), .fmt_num(ep_boot, 4), .fmt_num(linf, 4), .fmt_num(lsup, 4)),
     stringsAsFactors = FALSE, check.names = FALSE
   )
@@ -305,6 +305,8 @@ bootstrap <- function(x = NULL,
                                 bins = min(50, ceiling(sqrt(repeticoes))),
                                 fill = "#888888", color = "white", alpha = 0.8) +
         ggplot2::geom_density(color = "#2B5C8F", linewidth = 1.0) +
+        ggplot2::geom_vline(xintercept = est_boot, color = "#E67E22",
+                            linetype = "solid", linewidth = 1.0) +
         ggplot2::geom_vline(xintercept = est_original, color = "#D90429",
                             linetype = "dashed", linewidth = 1.0) +
         ggplot2::geom_vline(xintercept = c(linf, lsup), color = "#2B5C8F",
@@ -372,7 +374,7 @@ simular_tcl <- function(x, n_amostra = 30, repeticoes = 1000, semente = NULL) {
   st <- shapiro.test(sample(medias, min(length(medias), 5000)))
 
   w_sep <- 67
-  .print_titulo("TEOREMA CENTRAL DO LIMITE — SIMULA\u00c7\u00c3O %s")
+  .print_titulo("TEOREMA CENTRAL DO LIMITE — SIMULA\u00c7\u00c3O")
   cat(sprintf("  Popula\u00e7\u00e3o: %s   |   N pop: %d   |   Repeti\u00e7\u00f5es: %d\n", var_nome, n, repeticoes))
   cat(sprintf("  Tamanho de cada amostra (n): %d\n\n", n_amostra))
 
@@ -418,7 +420,7 @@ simular_tcl <- function(x, n_amostra = 30, repeticoes = 1000, semente = NULL) {
         ggplot2::geom_density(color = "#D90429", linewidth = 0.9) +
         ggplot2::labs(title = sprintf("Popula\u00e7\u00e3o Original\n(%s)", var_nome),
                       x = var_nome, y = "Densidade") +
-        meu_tema()
+        meu_tema(grade = "dupla")
 
       x_med_seq <- seq(min(medias), max(medias), length.out = 300)
       df_norm   <- data.frame(x = x_med_seq, y = dnorm(x_med_seq, mean = mu_boot, sd = ep_teo))
@@ -432,7 +434,7 @@ simular_tcl <- function(x, n_amostra = 30, repeticoes = 1000, semente = NULL) {
         ggplot2::labs(title = sprintf("Distribui\u00e7\u00e3o das M\u00e9dias\n(%d amostras, n = %d)", repeticoes, n_amostra),
                       x = sprintf("M\u00e9dia de %s", var_nome), y = "Densidade",
                       caption = "estatR") +
-        meu_tema()
+        meu_tema(grade = "dupla")
 
       if (requireNamespace("patchwork", quietly = TRUE)) {
         print(p1 | p2)
@@ -480,7 +482,7 @@ monte_carlo <- function(experimento, repeticoes = 10000, confianca = 0.95,
   p_acum <- cumsum(resultados) / seq_along(resultados)
 
   w_sep <- 67
-  .print_titulo("SIMULA\u00c7\u00c3O DE MONTE CARLO %s")
+  .print_titulo("SIMULA\u00c7\u00c3O DE MONTE CARLO")
   cat(sprintf("  Repeti\u00e7\u00f5es: %d   |   Confian\u00e7a: %.0f%%\n\n", repeticoes, confianca * 100))
 
   .print_topico("RESULTADOS")
@@ -493,7 +495,7 @@ monte_carlo <- function(experimento, repeticoes = 10000, confianca = 0.95,
       .sim_pad(sprintf("%s%%", .sim_fmt(p_hat * 100, 2)), wc["val"], "center"), "\n", sep = "")
   cat("  ", .sim_pad("Erro Padr\u00e3o",        wc["met"], "left"), .sim_pad(.sim_fmt(ep, 5),     wc["val"], "center"), "\n", sep = "")
   cat("  ", .sim_pad("Margem de Erro",      wc["met"], "left"), .sim_pad(.sim_fmt(margem, 5), wc["val"], "center"), "\n", sep = "")
-  cat("  ", .sim_pad("Sucessos Observados", wc["met"], "left"), .sim_pad(sum(resultados),   wc["val"], "center"), "\n", sep = "")
+  cat("  ", .sim_pad("Sucessos Observados", wc["met"], "left"), .sim_pad(formatC(sum(resultados), format = "d", big.mark = ".", decimal.mark = ","), wc["val"], "center"), "\n", sep = "")
   cat(.sim_sep(nchar(hdr)), "\n\n")
 
   .print_topico(sprintf("INTERVALO DE CONFIANÇA (%.0f%% — Wald)", confianca * 100))
@@ -527,7 +529,7 @@ monte_carlo <- function(experimento, repeticoes = 10000, confianca = 0.95,
                           label = sprintf("  p\u0302 = %s%%", .sim_fmt(p_hat * 100, 2)),
                           hjust = 1, vjust = -0.5, size = 4.5,
                           fontface = "bold", color = "#D90429") +
-        ggplot2::scale_x_continuous(labels = scales::comma_format(big.mark = ".", decimal.mark = ",")) +
+        ggplot2::scale_x_continuous(labels = scales::comma_format(big.mark = ".", decimal.mark = ",", decimal.mark = ",")) +
         ggplot2::labs(
           title    = "Converg\u00eancia da Simula\u00e7\u00e3o de Monte Carlo",
           subtitle = sprintf("Probabilidade estabilizando em %s%%  |  IC %.0f%%: [%s%% ; %s%%]",
@@ -537,7 +539,7 @@ monte_carlo <- function(experimento, repeticoes = 10000, confianca = 0.95,
           y = "Probabilidade Acumulada (%)",
           caption = "estatR"
         ) +
-        meu_tema()
+        meu_tema(grade = "dupla")
 
       suppressMessages(print(p_plot))
       options(warn = old_w)

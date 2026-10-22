@@ -25,9 +25,18 @@ distribuicao <- function(tipo = c("normal", "binomial", "poisson", "exponencial"
                          media = 0, dp = 1, n = 10, p = 0.5, lambda = 1, taxa = 1,
                          min = 0, max = 1, gl = 10, gl1 = 5, gl2 = 10,
                          forma = 2, escala = 1,
-                         grafico = TRUE, simulacao = FALSE, semente = 42) {
+                         grafico = TRUE, simulacao = FALSE, semente = 42, ...) {
 
   tipo <- match.arg(tipo)
+  dots <- list(...)
+  if ('df' %in% names(dots)) gl <- dots$df
+  if ('df1' %in% names(dots)) gl1 <- dots$df1
+  if ('df2' %in% names(dots)) gl2 <- dots$df2
+  if ('shape' %in% names(dots)) forma <- dots$shape
+  if ('scale' %in% names(dots)) escala <- dots$scale
+  if ('rate' %in% names(dots)) taxa <- dots$rate
+  if ('size' %in% names(dots)) n <- dots$size
+  if ('prob' %in% names(dots)) p <- dots$prob
 
   # ── Helpers internos ──────────────────────────────────────────────────────
   .pad <- function(s, w, align = "left") {
@@ -219,14 +228,15 @@ distribuicao <- function(tipo = c("normal", "binomial", "poisson", "exponencial"
   }
 
   .tema <- function(gg) {
-    if (exists("tema_estatR", mode = "function")) {
-      gg + tema_estatR(estilo = 2)
-    } else if (requireNamespace("estatR", quietly = TRUE)) {
-      fn <- get("tema_estatR", envir = asNamespace("estatR"))
-      gg + fn(estilo = 2)
+    t_base <- if (exists('tema_estatR', mode = 'function')) {
+      tema_estatR(estilo = 2, grade = 'dupla')
+    } else if (requireNamespace('estatR', quietly = TRUE)) {
+      fn <- get('tema_estatR', envir = asNamespace('estatR'))
+      fn(estilo = 2, grade = 'dupla')
     } else {
-      gg + ggplot2::theme_minimal()
+      ggplot2::theme_minimal()
     }
+    gg + t_base + ggplot2::theme(plot.title = ggplot2::element_text(face = 'bold', size = 13))
   }
 
   # ── Modo Simulacao ────────────────────────────────────────────────────────
@@ -267,7 +277,7 @@ distribuicao <- function(tipo = c("normal", "binomial", "poisson", "exponencial"
       dp_plt <- if (eh_n) dp else teo_dp
       if (is.nan(dp_plt) || is.infinite(dp_plt)) dp_plt <- 2 # fallback grafico
       
-      x_seq <- seq(media_plt - 4*dp_plt, media_plt + 4*dp_plt, length.out = 800)
+      x_seq <- seq(media_plt - 4.2*dp_plt, media_plt + 4.2*dp_plt, length.out = 800)
       df_c <- data.frame(x = x_seq, y = if(eh_n) dnorm(x_seq, media, dp) else dt(x_seq, gl))
       
       .poly_region <- function(a, b) {
@@ -291,6 +301,8 @@ distribuicao <- function(tipo = c("normal", "binomial", "poisson", "exponencial"
           ggplot2::annotate("text", x = media + 1.5*dp, y = max(df_c$y) * 0.12, label = "13,59%", size = 4.5, color = "#4A3000", fontface = "bold") +
           ggplot2::annotate("text", x = media - 2.5*dp, y = max(df_c$y) * 0.03, label = "2,14%", size = 4, color = "#4A3000") +
           ggplot2::annotate("text", x = media + 2.5*dp, y = max(df_c$y) * 0.03, label = "2,14%", size = 4, color = "#4A3000") +
+          ggplot2::geom_vline(xintercept = media, color = '#8B6914', linetype = 'dashed', linewidth = 0.8) +
+          ggplot2::coord_cartesian(clip = 'off') +
           ggplot2::labs(title = sprintf("Distribuição Normal  \u2014  \u03bc = %g, \u03c3 = %g", media, dp), subtitle = "Regra Empírica: 68% \u2014 95% \u2014 99,7%", x = "x", y = "f(x)")
       } else {
         p <- p + ggplot2::labs(title = sprintf("Distribuição t de Student  \u2014  gl = %g", gl), subtitle = "Formato de sino, caudas mais pesadas que a Normal", x = "x", y = "f(x)")

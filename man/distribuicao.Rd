@@ -22,7 +22,8 @@ distribuicao(
   escala = 1,
   grafico = TRUE,
   simulacao = FALSE,
-  semente = 42
+  semente = 42,
+  ...
 )
 }
 \arguments{

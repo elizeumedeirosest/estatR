@@ -8,7 +8,8 @@ selecao_modelos(
   formula,
   dados,
   comparar_modelos = c("estatistico", "aprend_maq"),
-  top = 5
+  top = 5,
+  ...
 )
 }
 \arguments{
