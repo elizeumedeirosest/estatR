@@ -49,7 +49,7 @@ distribuicao <- function(tipo = c("normal", "binomial", "poisson", "exponencial"
     paste0(strrep(" ", floor(pad/2)), s, strrep(" ", ceiling(pad/2)))
   }
   .f2 <- function(x) formatC(x, format = "f", digits = 2, decimal.mark = ",")
-  .f3 <- function(x) formatC(x, format = "f", digits = 4, decimal.mark = ",")
+  .f3 <- function(x) { if (is.na(x) || is.nan(x)) return("—"); if (is.infinite(x)) return("Inf"); if (abs(x) >= 10) formatC(x, format="f", digits=2, decimal.mark=",") else if (abs(x) >= 1) formatC(x, format="f", digits=3, decimal.mark=",") else formatC(x, format="f", digits=4, decimal.mark=",") }
 
   # ── Calculos por tipo ─────────────────────────────────────────────────────
   tem_regra <- FALSE
@@ -227,12 +227,14 @@ distribuicao <- function(tipo = c("normal", "binomial", "poisson", "exponencial"
     )
   }
 
-  .tema <- function(gg) {
-    t_base <- if (exists('tema_estatR', mode = 'function')) {
-      tema_estatR(estilo = 2, grade = 'dupla')
+  .tema <- function(gg, estilo = 1) {
+    t_base <- if (exists("meu_tema", mode = "function")) {
+      meu_tema(estilo = 1, grade = "dupla")
+    } else if (exists("tema_estatR", mode = "function")) {
+      tema_estatR(estilo = 1, grade = "dupla")
     } else if (requireNamespace('estatR', quietly = TRUE)) {
       fn <- get('tema_estatR', envir = asNamespace('estatR'))
-      fn(estilo = 2, grade = 'dupla')
+      fn(estilo = estilo, grade = 'dupla')
     } else {
       ggplot2::theme_minimal()
     }
@@ -299,29 +301,29 @@ distribuicao <- function(tipo = c("normal", "binomial", "poisson", "exponencial"
           ggplot2::annotate("text", x = media + 0.5*dp, y = max(df_c$y) * 0.35, label = "34,13%", size = 5.5, color = "white", fontface = "bold") +
           ggplot2::annotate("text", x = media - 1.5*dp, y = max(df_c$y) * 0.12, label = "13,59%", size = 4.5, color = "#4A3000", fontface = "bold") +
           ggplot2::annotate("text", x = media + 1.5*dp, y = max(df_c$y) * 0.12, label = "13,59%", size = 4.5, color = "#4A3000", fontface = "bold") +
-          ggplot2::annotate("text", x = media - 2.5*dp, y = max(df_c$y) * 0.03, label = "2,14%", size = 4, color = "#4A3000") +
-          ggplot2::annotate("text", x = media + 2.5*dp, y = max(df_c$y) * 0.03, label = "2,14%", size = 4, color = "#4A3000") +
+          ggplot2::annotate("text", x = media - 2.5*dp, y = max(df_c$y) * 0.02, label = "2,14%", size = 3.8, color = "#4A3000", vjust = 1.5) +
+          ggplot2::annotate("text", x = media + 2.5*dp, y = max(df_c$y) * 0.02, label = "2,14%", size = 3.8, color = "#4A3000", vjust = 1.5) +
           ggplot2::geom_vline(xintercept = media, color = '#8B6914', linetype = 'dashed', linewidth = 0.8) +
           ggplot2::coord_cartesian(clip = 'off') +
-          ggplot2::labs(title = sprintf("Distribuição Normal  \u2014  \u03bc = %g, \u03c3 = %g", media, dp), subtitle = "Regra Empírica: 68% \u2014 95% \u2014 99,7%", x = "x", y = "f(x)")
+          ggplot2::labs(title = sprintf("Distribuição Normal  —  N(μ = %g, σ = %g)", media, dp), subtitle = "Regra Empírica: 68% — 95% — 99,7%", x = "x", y = "f(x)")
       } else {
-        p <- p + ggplot2::labs(title = sprintf("Distribuição t de Student  \u2014  gl = %g", gl), subtitle = "Formato de sino, caudas mais pesadas que a Normal", x = "x", y = "f(x)")
+        p <- p + ggplot2::labs(title = sprintf("Distribui\u00e7\u00e3o t de Student  \u2014  t(\u03bd = %g)", gl), subtitle = sprintf("Formato de sino, caudas mais pesadas que a Normal  |  gl = %g", gl), x = "x", y = "f(x)")
       }
       p <- .tema(p)
       
     } else if (tipo %in% c("exponencial", "qui_quadrado", "f", "gama")) {
       if (tipo == "exponencial") {
         x_max <- qexp(0.999, taxa); f_den <- function(x) dexp(x, taxa); med_x <- 1/taxa
-        tit <- sprintf("Distribuição Exponencial  \u2014  \u03bb = %g", taxa)
+        tit <- sprintf("Distribui\u00e7\u00e3o Exponencial  \u2014  Exp(\u03bb = %g)", taxa)
       } else if (tipo == "qui_quadrado") {
         x_max <- qchisq(0.999, gl); f_den <- function(x) dchisq(x, gl); med_x <- gl
-        tit <- sprintf("Distribuição Qui-Quadrado  \u2014  gl = %g", gl)
+        tit <- sprintf("Distribui\u00e7\u00e3o Qui-Quadrado  \u2014  \u03c7\u00b2(k = %g)", gl)
       } else if (tipo == "f") {
         x_max <- qf(0.95, gl1, gl2); f_den <- function(x) df(x, gl1, gl2); med_x <- teo_media
-        tit <- sprintf("Distribuição F  \u2014  gl1 = %g, gl2 = %g", gl1, gl2)
+        tit <- sprintf("Distribuição F de Snedecor  —  F(gl1 = %g, gl2 = %g)", gl1, gl2)
       } else {
         x_max <- qgamma(0.999, shape = forma, scale = escala); f_den <- function(x) dgamma(x, shape=forma, scale=escala); med_x <- teo_media
-        tit <- sprintf("Distribuição Gama  \u2014  forma = %g, escala = %g", forma, escala)
+        tit <- sprintf("Distribui\u00e7\u00e3o Gama  \u2014  Gama(\u03b1 = %g, \u03b8 = %g)", forma, escala)
       }
       
       x_seq <- seq(0.001, x_max * 1.05, length.out = 500)
@@ -349,10 +351,10 @@ distribuicao <- function(tipo = c("normal", "binomial", "poisson", "exponencial"
     } else if (tipo %in% c("binomial", "poisson")) {
       if (tipo == "binomial") {
         xs <- 0:n; ys <- dbinom(xs, n, p); med_d <- n * p
-        tit <- sprintf("Distribuição Binomial  \u2014  n = %d, p = %g", n, p)
+        tit <- sprintf("Distribuição Binomial  —  Bin(n = %d, p = %g)", n, p)
       } else {
         xs <- 0:qpois(0.999, lambda); ys <- dpois(xs, lambda); med_d <- lambda
-        tit <- sprintf("Distribuição Poisson  \u2014  \u03bb = %g", lambda)
+        tit <- sprintf("Distribuição Poisson  —  Poisson(λ = %g)", lambda)
       }
       df_d <- data.frame(x = xs, y = ys)
       p <- ggplot2::ggplot(df_d, ggplot2::aes(x = factor(x), y = y)) +

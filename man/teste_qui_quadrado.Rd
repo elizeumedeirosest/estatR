@@ -4,7 +4,14 @@
 \alias{teste_qui_quadrado}
 \title{Teste Qui-Quadrado de Independência}
 \usage{
-teste_qui_quadrado(dados, var_x, var_y, confianca = 0.95, decimais = 2)
+teste_qui_quadrado(
+  dados,
+  var_x,
+  var_y,
+  confianca = 0.95,
+  decimais = 2,
+  grafico = TRUE
+)
 }
 \arguments{
 \item{dados}{Data frame com os dados.}

@@ -245,8 +245,8 @@ acp <- function(dados,
     cat("  ",
         .pad(paste0("PC", i), w_var["comp"], "left"),
         .pad(.fmt_f(autovalores_obs[i], 2), w_var["auto"], "center"),
-        .pad(paste0(.fmt_f(var_expl_pct[i], 2), "%"), w_var["expl"], "center"),
-        .pad(paste0(.fmt_f(var_acum_pct[i], 2), "%"), w_var["acum"], "center"),
+        .pad(.fmt_f(var_expl_pct[i], 2), w_var["expl"], "center"),
+        .pad(.fmt_f(var_acum_pct[i], 2), w_var["acum"], "center"),
         "\n", sep = "")
   }
   cat(sep_var, "\n\n")
@@ -302,7 +302,7 @@ acp <- function(dados,
           .pad(paste0("PC", i), w_ap["comp"], "left"),
           .pad(.fmt_f(autovalores_obs[i], 2), w_ap["obs"], "center"),
           .pad(.fmt_f(ap_p95[i], 2), w_ap["sim"], "center"),
-          .pad(paste0(.fmt_f(var_acum_pct[i], 2), "%"), w_ap["acum"], "center"),
+          .pad(.fmt_f(var_acum_pct[i], 2), w_ap["acum"], "center"),
           "\n", sep = "")
     }
     cat(sep_ap, "\n")
@@ -624,7 +624,8 @@ screeplot_acp <- function(modelo, analise_paralela = TRUE) {
       x     = "Componente Principal",
       y     = "Autovalor"
     ) +
-    ggplot2::theme(legend.position = c(0.80, 0.80), legend.background = ggplot2::element_rect(fill = ggplot2::alpha("white", 0.7), color = NA))
+    meu_tema(grade = "dupla") +
+    ggplot2::theme(legend.position = c(0.85, 0.85), legend.background = ggplot2::element_rect(fill = ggplot2::alpha("white", 0.7), color = "gray80"))
 
   if (exists("tema_estatR", mode = "function")) {
     p <- p + tema_estatR(estilo = 2, grade = "dupla")
@@ -1283,7 +1284,8 @@ screeplot_fatorial <- function(modelo, analise_paralela = TRUE) {
       x     = "Fator",
       y     = "Autovalor"
     ) +
-    ggplot2::theme(legend.position = c(0.80, 0.80), legend.background = ggplot2::element_rect(fill = ggplot2::alpha("white", 0.7), color = NA))
+    meu_tema(grade = "dupla") +
+    ggplot2::theme(legend.position = c(0.85, 0.85), legend.background = ggplot2::element_rect(fill = ggplot2::alpha("white", 0.7), color = "gray80"))
 
   if (exists("tema_estatR", mode = "function")) {
     p <- p + tema_estatR(estilo = 2, grade = "dupla")

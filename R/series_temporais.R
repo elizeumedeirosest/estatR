@@ -138,7 +138,6 @@ analise_serie <- function(dados, y = NULL, data = NULL, frequencia = 12,
     ss <- as.numeric(stats::na.omit(decomposicao$seasonal))
     rr <- as.numeric(stats::na.omit(decomposicao$random))
 
-    # Variâncias para forças de Granger & Hyndman
     var_r <- stats::var(rr, na.rm = TRUE)
     var_tr <- stats::var(decomposicao$trend + decomposicao$random, na.rm = TRUE)
     var_sr <- stats::var(decomposicao$seasonal + decomposicao$random, na.rm = TRUE)
@@ -148,26 +147,26 @@ analise_serie <- function(dados, y = NULL, data = NULL, frequencia = 12,
   }
 
   # ── Saída no Console ───────────────────────────────────────────────────────
-  .print_titulo("DIAGN\u00d3STICO E DECOMPOSI\u00c7\u00c3O DE S\u00c9RIE TEMPORAL")
+  .print_titulo("DIAGNÓSTICO E DECOMPOSIÇÃO DE SÉRIE TEMPORAL")
 
   inicio_txt <- paste(stats::start(ts_serie), collapse = ".")
   fim_txt    <- paste(stats::end(ts_serie), collapse = ".")
 
-  cat(sprintf("  Observa\u00e7\u00f5es:  %d\n", n_obs))
-  cat(sprintf("  Frequ\u00eancia:   %d (%s)\n", freq_efetiva,
+  cat(sprintf("  Observações:  %d\n", n_obs))
+  cat(sprintf("  Frequência:   %d (%s)\n", freq_efetiva,
               if (freq_efetiva == 12) "Mensal" else if (freq_efetiva == 4) "Trimestral" else if (freq_efetiva == 7) "Semanal" else "Customizada"))
-  cat(sprintf("  Per\u00edodo:      %s a %s\n", inicio_txt, fim_txt))
-  cat(sprintf("  Modelo:       Decomposi\u00e7\u00e3o %s\n\n", if (tipo == "aditiva") "Aditiva (Y = T + S + R)" else "Multiplicativa (Y = T \u00d7 S \u00d7 R)"))
+  cat(sprintf("  Período:      %s a %s\n", inicio_txt, fim_txt))
+  cat(sprintf("  Modelo:       Decomposição %s\n\n", if (tipo == "aditiva") "Aditiva (Y = T + S + R)" else "Multiplicativa (Y = T × S × R)"))
 
-  .print_topico("ESTAT\u00cdSTICAS DESCRITIVAS")
+  .print_topico("ESTATÍSTICAS DESCRITIVAS")
 
   df_desc <- data.frame(
-    "M\u00e9trica" = c("M\u00e9dia", "Mediana", "Desvio Padr\u00e3o", "CV (%)", "M\u00ednimo", "M\u00e1ximo", "Assimetria", "Curtose"),
+    "Métrica" = c("Média", "Mediana", "Desvio Padrão", "CV (%)", "Mínimo", "Máximo", "Assimetria", "Curtose"),
     Valor   = c(
       .fmt_num(media_val, 2),
       .fmt_num(mediana_val, 2),
       .fmt_num(dp_val, 2),
-      paste0(.fmt_num(cv_val, 1), "%"),
+      .fmt_num(cv_val, 1),
       .fmt_num(min_val, 2),
       .fmt_num(max_val, 2),
       if (is.na(assimetria_val)) "-" else .fmt_num(assimetria_val, 2),
@@ -184,11 +183,11 @@ analise_serie <- function(dados, y = NULL, data = NULL, frequencia = 12,
   cat("\n")
 
   if (!is.null(decomposicao)) {
-    .print_topico("FOR\u00c7A DOS COMPONENTES (HYNDMAN)")
+    .print_topico("FORÇA DOS COMPONENTES (HYNDMAN)")
     df_decomp_tab <- data.frame(
-      Componente = c("For\u00e7a da Tend\u00eancia (Ft)", "For\u00e7a da Sazonalidade (Fs)"),
+      Componente = c("Força da Tendência (Ft)", "Força da Sazonalidade (Fs)"),
       Valor      = c(.fmt_num(forca_tendencia, 3), .fmt_num(forca_sazonal, 3)),
-      "Avalia\u00e7\u00e3o"  = c(
+      "Avaliação"  = c(
         if (forca_tendencia > 0.6) "Forte" else if (forca_tendencia > 0.3) "Moderada" else "Fraca",
         if (forca_sazonal > 0.6) "Forte" else if (forca_sazonal > 0.3) "Moderada" else "Fraca"
       ),
@@ -201,7 +200,7 @@ analise_serie <- function(dados, y = NULL, data = NULL, frequencia = 12,
       print(df_decomp_tab, row.names = FALSE)
     }
   } else {
-    cat("  * Observa\u00e7\u00e3o: S\u00e9rie com menos de 2 ciclos completos para c\u00e1lculo formal da decomposi\u00e7\u00e3o.\n")
+    cat("  * Observação: Série com menos de 2 ciclos completos para cálculo formal da decomposição.\n")
   }
 
   .print_rodape()
@@ -215,37 +214,22 @@ analise_serie <- function(dados, y = NULL, data = NULL, frequencia = 12,
       df_plot <- data.frame(
         Tempo       = rep(tempos, 4),
         Valor       = c(as.numeric(ts_serie), as.numeric(decomposicao$trend), as.numeric(decomposicao$seasonal), as.numeric(decomposicao$random)),
-        Componente  = factor(rep(c("1. S\u00e9rie Original", "2. Tend\u00eancia", "3. Sazonalidade", "4. Ru\u00eddo (Aleat\u00f3rio)"), each = n_obs),
-                             levels = c("1. S\u00e9rie Original", "2. Tend\u00eancia", "3. Sazonalidade", "4. Ru\u00eddo (Aleat\u00f3rio)"))
+        Componente  = factor(rep(c("1. Série Original", "2. Tendência", "3. Sazonalidade", "4. Ruído / Aleatório"), each = n_obs),
+                             levels = c("1. Série Original", "2. Tendência", "3. Sazonalidade", "4. Ruído / Aleatório"))
       )
 
-      p1 <- ggplot2::ggplot(data.frame(Tempo = tempos, Valor = as.numeric(ts_serie)), ggplot2::aes(x = Tempo, y = Valor)) +
-        ggplot2::geom_line(color = "#3470a3", linewidth = 0.85) +
-        ggplot2::labs(title = "S\u00e9rie Original", x = NULL, y = "Valor") +
-        tema_estatR(estilo = 2, grade = "dupla")
-
-      p2 <- ggplot2::ggplot(data.frame(Tempo = tempos, Valor = as.numeric(decomposicao$trend)), ggplot2::aes(x = Tempo, y = Valor)) +
+      p_final <- ggplot2::ggplot(df_plot, ggplot2::aes(x = Tempo, y = Valor)) +
         ggplot2::geom_line(color = "#0072CE", linewidth = 0.85, na.rm = TRUE) +
-        ggplot2::labs(title = "Tend\u00eancia", x = NULL, y = "Tend\u00eancia") +
-        tema_estatR(estilo = 2, grade = "dupla")
-
-      p3 <- ggplot2::ggplot(data.frame(Tempo = tempos, Valor = as.numeric(decomposicao$seasonal)), ggplot2::aes(x = Tempo, y = Valor)) +
-        ggplot2::geom_line(color = "seagreen4", linewidth = 0.85) +
-        ggplot2::labs(title = "Sazonalidade", x = NULL, y = "Sazonal") +
-        tema_estatR(estilo = 2, grade = "dupla")
-
-      p4 <- ggplot2::ggplot(data.frame(Tempo = tempos, Valor = as.numeric(decomposicao$random)), ggplot2::aes(x = Tempo, y = Valor)) +
-        ggplot2::geom_hline(yintercept = if (tipo == "aditiva") 0 else 1, linetype = "dashed", color = "gray50") +
-        ggplot2::geom_line(color = "gray30", linewidth = 0.75, na.rm = TRUE) +
-        ggplot2::labs(title = "Ru\u00eddo / Aleat\u00f3rio", x = "Tempo", y = "Res\u00edduo") +
-        tema_estatR(estilo = 2, grade = "dupla")
-
-      p_final <- patchwork::wrap_plots(p1, p2, p3, p4, ncol = 1)
+        ggplot2::facet_wrap(ggplot2::vars(Componente), ncol = 1, scales = "free_y", strip.position = "top") +
+        ggplot2::labs(title = sprintf("Decomposição da Série Temporal (%s)", tools::toTitleCase(tipo)),
+                      subtitle = "Componentes: Original, Tendência, Sazonalidade e Ruído",
+                      x = "Tempo", y = NULL, caption = "estatR") +
+        meu_tema(grade = "dupla")
     } else {
       p_final <- ggplot2::ggplot(data.frame(Tempo = tempos, Valor = as.numeric(ts_serie)), ggplot2::aes(x = Tempo, y = Valor)) +
         ggplot2::geom_line(color = "#3470a3", linewidth = 0.9) +
-        ggplot2::labs(title = "S\u00e9rie Temporal", x = "Tempo", y = "Valor") +
-        tema_estatR(estilo = 2, grade = "dupla")
+        ggplot2::labs(title = "Série Temporal", x = "Tempo", y = "Valor", caption = "estatR") +
+        meu_tema(grade = "dupla")
     }
 
     print(p_final)
@@ -354,7 +338,7 @@ teste_estacionariedade <- function(serie, frequencia = NULL, diferencas = 0) {
   .print_topico("INTERPRETA\u00c7\u00c3O")
 
   cor_ok   <- "\033[1;32m"
-  cor_erro <- "033[91m"
+  cor_erro <- "\033[1;31m"
   cor_warn <- "\033[1;33m"
   reset    <- "\033[0m"
 
@@ -430,7 +414,8 @@ grafico_autocorrelacao <- function(serie, defasagens = 24,
   .plot_acf_panel <- function(df, titulo) {
     ggplot2::ggplot(df, ggplot2::aes(x = Lag, y = Valor)) +
       ggplot2::geom_hline(yintercept = 0, color = "black", linewidth = 0.5) +
-      ggplot2::geom_hline(yintercept = c(-ic_val, ic_val), linetype = "dashed", color = "#0072CE", linewidth = 0.6) +
+      ggplot2::annotate("rect", xmin = -Inf, xmax = Inf, ymin = -ic_val, ymax = ic_val, fill = "#0072CE", alpha = 0.15) +
+      ggplot2::geom_hline(yintercept = c(-ic_val, ic_val), color = "#0072CE", linewidth = 0.6) +
       ggplot2::geom_segment(ggplot2::aes(x = Lag, xend = Lag, y = 0, yend = Valor),
                            color = "#3470a3", linewidth = 0.8) +
       ggplot2::geom_point(color = "#3470a3", size = 2) +
@@ -478,7 +463,7 @@ grafico_autocorrelacao <- function(serie, defasagens = 24,
 
     .print_topico("INTERPRETA\u00c7\u00c3O")
     cor_ok   <- "\033[1;32m"
-    cor_erro <- "033[91m"
+  cor_erro <- "\033[1;31m"
     reset    <- "\033[0m"
 
     if (p_box >= 0.05) {
@@ -1066,7 +1051,7 @@ selecao_modelos_serie <- function(serie, h = 12, frequencia = 12,
     Modelo      = df_top$Modelo,
     "Fam\u00edlia"     = df_top$Familia,
     RMSE        = sapply(df_top$RMSE, .fmt_num, decimais = 2),
-    "sMAPE (%)" = sapply(df_top$sMAPE, function(v) paste0(.fmt_num(v, 1), "%")),
+    "sMAPE (%)" = sapply(df_top$sMAPE, .fmt_num, decimais = 1),
     UMBRAE      = sapply(df_top$UMBRAE, .fmt_num, decimais = 3),
     AICc        = sapply(df_top$AICc, function(v) if (is.na(v)) "-" else .fmt_num(v, 1)),
     BIC         = sapply(df_top$BIC, function(v) if (is.na(v)) "-" else .fmt_num(v, 1)),
@@ -1224,7 +1209,7 @@ analise_residual_serie <- function(modelo, grafico = TRUE) {
   .print_topico("INTERPRETA\u00c7\u00c3O")
 
   cor_ok   <- "\033[1;32m"
-  cor_erro <- "033[91m"
+  cor_erro <- "\033[1;31m"
   reset    <- "\033[0m"
 
   # Interpretação da Média Zero
@@ -1303,7 +1288,8 @@ analise_residual_serie <- function(modelo, grafico = TRUE) {
 
     p4 <- ggplot2::ggplot(df_acf_res, ggplot2::aes(x = Lag, y = Valor)) +
       ggplot2::geom_hline(yintercept = 0, color = "black", linewidth = 0.5) +
-      ggplot2::geom_hline(yintercept = c(-ic_bart, ic_bart), linetype = "dashed", color = "#0072CE", linewidth = 0.6) +
+      ggplot2::annotate("rect", xmin = -Inf, xmax = Inf, ymin = -ic_bart, ymax = ic_bart, fill = "#0072CE", alpha = 0.15) +
+      ggplot2::geom_hline(yintercept = c(-ic_bart, ic_bart), color = "#0072CE", linewidth = 0.6) +
       ggplot2::geom_segment(ggplot2::aes(x = Lag, xend = Lag, y = 0, yend = Valor),
                             color = "#3470a3", linewidth = 0.75) +
       ggplot2::geom_point(color = "#3470a3", size = 1.6) +

@@ -1,4 +1,4 @@
-﻿#' @title Regressão Linear Simples e Múltipla
+#' @title Regressão Linear Simples e Múltipla
 #' @description Ajusta um modelo de regressão linear e retorna uma saída formatada com
 #'   ANOVA, coeficientes (com IC 95% e VIF), ajuste do modelo e interpretação automática.
 #' @param formula Fórmula do modelo (ex: \code{y ~ x} ou \code{y ~ x1 + x2})
@@ -208,8 +208,8 @@ regressao_linear <- function(formula, dados, grafico = TRUE, ...) {
             asterisk(p_global))
   else "NA"
 
-  aj_row("R\u00b2 (Explica\u00e7\u00e3o):", paste0(formatC(r2     * 100, format="f", digits=2, decimal.mark=","), "%"))
-  aj_row("R\u00b2 ajustado:",  paste0(formatC(r2_adj * 100, format="f", digits=2, decimal.mark=","), "%"))
+  aj_row("R\u00b2 (%):", formatC(r2     * 100, format="f", digits=2, decimal.mark=","))
+  aj_row("R\u00b2 ajustado (%):", formatC(r2_adj * 100, format="f", digits=2, decimal.mark=","))
   aj_row("RMSE:",           sprintf("%.2f", rmse))
   aj_row("F-estat\u00edstica:",   f_txt)
   cat(sep_line(w_ajuste), "\n\n")
@@ -264,18 +264,34 @@ regressao_linear <- function(formula, dados, grafico = TRUE, ...) {
       intercepto <- coefs[1, 1]
       inclinacao <- coefs[2, 1]
       sinal      <- if (inclinacao >= 0) "+" else "-"
-      equacao_texto <- sprintf("%s = %.2f %s %.2f * %s | R² = %.1f%%",
+      equacao_texto <- sprintf("%s = %.2f %s %.2f × %s   |   R² = %.1f%%",
                                y_name, intercepto, sinal, abs(inclinacao), x_names[1], r2 * 100)
       df_p <- dados[, c(x_names[1], y_name)]
       names(df_p) <- c("x", "y")
       df_p <- df_p[!is.na(df_p$x) & !is.na(df_p$y), ]
+
+      # Posicionamento inteligente para evitar sobreposição com pontos:
+      x_rng <- range(df_p$x, na.rm = TRUE)
+      y_rng <- range(df_p$y, na.rm = TRUE)
+      if (inclinacao >= 0) {
+        ann_x <- x_rng[1] + 0.05 * diff(x_rng)
+        ann_hjust <- 0
+      } else {
+        ann_x <- x_rng[2] - 0.05 * diff(x_rng)
+        ann_hjust <- 1
+      }
+      ann_y <- y_rng[2] - 0.05 * diff(y_rng)
+
       old_w <- getOption("warn"); options(warn = -1)
       p_plot <- ggplot2::ggplot(df_p, ggplot2::aes(x = x, y = y)) +
         ggplot2::geom_point(color = "#3470a3", size = 2.8, alpha = 0.8) +
         ggplot2::geom_smooth(method = "lm", formula = y ~ x, color = "#D90429", fill = "#85b4d4", alpha = 0.25, linewidth = 1) +
+        ggplot2::annotate("text", x = ann_x, y = ann_y, label = equacao_texto,
+                          hjust = ann_hjust, vjust = 1, size = 3.8,
+                          color = "#222222", fontface = "italic") +
         ggplot2::labs(
           title    = sprintf("Regressão Linear: %s vs %s", y_name, x_names[1]),
-          subtitle = equacao_texto,
+          subtitle = sprintf("Modelo estimado com %d observações", nrow(df_p)),
           x        = x_names[1],
           y        = y_name,
           caption  = "estatR"
@@ -488,15 +504,15 @@ metricas <- function(modelo, corte_prob = 0.5) {
 
   cat(sprintf("  %-*s %*s\n", lw, "Métrica", vw, "Valor"))
   cat(sep_m)
-  cat(sprintf("  %-*s %*s\n", lw, "R²",            vw, sprintf("%s  (%.2f%%)", f4(r2), r2 * 100)))
-  cat(sprintf("  %-*s %*s\n", lw, "R² ajustado",   vw, sprintf("%s  (%.2f%%)", f4(r2_adj), r2_adj * 100)))
+  cat(sprintf("  %-*s %*s\n", lw, "R² (%)",            vw, f2(r2 * 100)))
+  cat(sprintf("  %-*s %*s\n", lw, "R² ajustado (%)",   vw, f2(r2_adj * 100)))
   cat(sprintf("  %-*s %*s\n", lw, "RMSE",          vw, f4(rmse)))
   cat(sprintf("  %-*s %*s\n", lw, "MAE",           vw, f4(mae)))
   if (!is.na(mape)) {
-    cat(sprintf("  %-*s %*s\n", lw, "MAPE",         vw, sprintf("%.2f%%", mape)))
+    cat(sprintf("  %-*s %*s\n", lw, "MAPE (%)",         vw, f2(mape)))
   }
   if (!is.na(smape)) {
-    cat(sprintf("  %-*s %*s\n", lw, "sMAPE",        vw, sprintf("%.2f%%", smape)))
+    cat(sprintf("  %-*s %*s\n", lw, "sMAPE (%)",        vw, f2(smape)))
   }
   cat(sprintf("  %-*s %*s\n", lw, "AIC",           vw, f2(aic_val)))
   cat(sprintf("  %-*s %*s\n", lw, "AICc",          vw, f2(aicc_val)))

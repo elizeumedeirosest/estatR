@@ -4,7 +4,7 @@
 \alias{ic_variancia}
 \title{Intervalo de Confiança para a Variância}
 \usage{
-ic_variancia(x, confianca = 0.95, decimais = 3)
+ic_variancia(x, confianca = 0.95, decimais = 3, grafico = TRUE)
 }
 \arguments{
 \item{x}{Vetor numérico.}
@@ -12,6 +12,8 @@ ic_variancia(x, confianca = 0.95, decimais = 3)
 \item{confianca}{Nível de confiança desejado (padrão 0.95).}
 
 \item{decimais}{Casas decimais para exibição (padrão 3).}
+
+\item{grafico}{Lógico. Se TRUE, plota o intervalo do desvio padrão.}
 }
 \value{
 Retorna invisivelmente um data frame com os resultados.

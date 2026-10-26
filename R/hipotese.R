@@ -1,4 +1,4 @@
-# ─────────────────────────────────────────────────────────────────────────────
+﻿# ─────────────────────────────────────────────────────────────────────────────
 # MÓDULO: TESTES DE HIPÓTESE
 # ─────────────────────────────────────────────────────────────────────────────
 
@@ -39,15 +39,19 @@
 }
 
 .th_hipotese_labels <- function(hipotese, param = "\u03bc", ref = NULL, g1 = NULL, g2 = NULL) {
-  suf <- switch(hipotese,
-    bilateral = paste0(param, if (!is.null(ref)) paste0(" \u2260 ", ref) else paste0("_", g1, " \u2260 \u03bc_", g2)),
-    maior     = paste0(param, if (!is.null(ref)) paste0(" > ", ref)  else paste0("_", g1, " > \u03bc_", g2)),
-    menor     = paste0(param, if (!is.null(ref)) paste0(" < ", ref)  else paste0("_", g1, " < \u03bc_", g2))
+  op_h1 <- switch(hipotese,
+    bilateral = "\u2260",
+    maior     = ">",
+    menor     = "<"
   )
-  list(
-    h0 = paste0("H\u2080: ", param, if (!is.null(ref)) paste0(" = ", ref) else paste0("_", g1, " = \u03bc_", g2)),
-    h1 = paste0("H\u2081: ", suf, " (", hipotese, ")")
-  )
+  if (!is.null(ref)) {
+    h0_str <- sprintf("H0: %s = %s", param, ref)
+    h1_str <- sprintf("H1: %s %s %s (%s)", param, op_h1, ref, hipotese)
+  } else {
+    h0_str <- sprintf("H0: %s(%s) = %s(%s)", param, g1, param, g2)
+    h1_str <- sprintf("H1: %s(%s) %s %s(%s) (%s)", param, g1, op_h1, param, g2, hipotese)
+  }
+  list(h0 = h0_str, h1 = h1_str)
 }
 
 
@@ -90,7 +94,7 @@ teste_t_uma_amostra <- function(x, mu, hipotese = c("bilateral", "maior", "menor
   w_sep  <- 70
 
   .print_titulo("TESTE T PARA UMA AMOSTRA")
-  cat(sprintf("  Vari\u00e1vel: %s   |   \u03bc\u2080: %s\n\n", var_nome, mu))
+  cat(sprintf("  Vari\u00e1vel: %s   |   μ0: %s\n\n", var_nome, mu))
   cat(sprintf("  %s\n", lbs$h0))
   cat(sprintf("  %s\n\n", lbs$h1))
 
@@ -129,14 +133,14 @@ teste_t_uma_amostra <- function(x, mu, hipotese = c("bilateral", "maior", "menor
   # Interpretação
   .print_topico("INTERPRETA\u00c7\u00c3O")
   if (p_val < (1 - confianca)) {
-    cat(sprintf("  H\u00e1 evid\u00eancias suficientes para rejeitar H\u2080 (%s).\n",
+    cat(sprintf("  H\u00e1 evid\u00eancias suficientes para rejeitar H0 (%s).\n",
                 .th_fmt_p_interp(p_val)))
     cat(sprintf("  A m\u00e9dia de %s (%s) \u00e9 estatisticamente diferente\n",
                 var_nome, media_str))
     cat(sprintf("  de %s ao n\u00edvel de %.0f%% de signific\u00e2ncia.\n",
                 mu, (1 - confianca) * 100))
   } else {
-    cat(sprintf("  N\u00e3o h\u00e1 evid\u00eancias suficientes para rejeitar H\u2080 (%s).\n",
+    cat(sprintf("  N\u00e3o h\u00e1 evid\u00eancias suficientes para rejeitar H0 (%s).\n",
                 .th_fmt_p_interp(p_val)))
     cat(sprintf("  A m\u00e9dia de %s (%s) n\u00e3o difere significativamente\n",
                 var_nome, media_str))
@@ -330,7 +334,7 @@ teste_t_duas_amostras <- function(x, grupo, hipotese = c("bilateral", "maior", "
   alpha <- 1 - confianca
   .print_topico("INTERPRETA\u00c7\u00c3O")
   if (p_val < alpha) {
-    cat(sprintf("  H\u00e1 evid\u00eancias suficientes para rejeitar H\u2080 (%s).\n",
+    cat(sprintf("  H\u00e1 evid\u00eancias suficientes para rejeitar H0 (%s).\n",
                 .th_fmt_p_interp(p_val)))
     cat(sprintf("  A m\u00e9dia de %s difere significativamente entre os grupos\n", var_nome))
     cat(sprintf("  %s (m\u00e9dia = %s) e %s (m\u00e9dia = %s),\n",
@@ -338,7 +342,7 @@ teste_t_duas_amostras <- function(x, grupo, hipotese = c("bilateral", "maior", "
                 g2, formatC(mean(vals2), format="f", digits=decimais, decimal.mark=",")))
     cat(sprintf("  ao n\u00edvel de %.0f%% de signific\u00e2ncia.\n", alpha * 100))
   } else {
-    cat(sprintf("  N\u00e3o h\u00e1 evid\u00eancias suficientes para rejeitar H\u2080 (%s).\n",
+    cat(sprintf("  N\u00e3o h\u00e1 evid\u00eancias suficientes para rejeitar H0 (%s).\n",
                 .th_fmt_p_interp(p_val)))
     cat(sprintf("  A m\u00e9dia de %s n\u00e3o difere significativamente entre os grupos\n", var_nome))
     cat(sprintf("  %s (m\u00e9dia = %s) e %s (m\u00e9dia = %s),\n",
@@ -367,22 +371,28 @@ teste_t_duas_amostras <- function(x, grupo, hipotese = c("bilateral", "maior", "
         y_text <- max_y + amp * 0.12
 
         old_w <- getOption("warn"); options(warn = -1)
+        med1 <- mean(vals1); med2 <- mean(vals2)
+        cor1 <- if (med1 >= med2) "#0072CE" else "#DDDDDD"
+        cor2 <- if (med2 > med1) "#0072CE" else "#DDDDDD"
+        cores_box <- setNames(c(cor1, cor2), c(g1, g2))
+
         p_plot <- ggplot2::ggplot(df_plot, ggplot2::aes(x = grupo, y = y, fill = grupo)) +
-          ggplot2::geom_boxplot(width = 0.5, alpha = 0.85, outlier.color = "red3", outlier.shape = 19) +
-          ggplot2::stat_summary(fun = mean, geom = "point", shape = 18, size = 3.5, color = "#1B4F72") +
+          ggplot2::stat_boxplot(geom = "errorbar", width = 0.25, linewidth = 0.6) +
+          ggplot2::geom_boxplot(width = 0.5, alpha = 0.85, color = "black", outlier.color = "red3", outlier.shape = 19) +
+          ggplot2::stat_summary(fun = mean, geom = "point", shape = 21, size = 3.2, fill = "black", color = "black") +
           ggplot2::annotate("segment", x = 1, xend = 2, y = y_bar, yend = y_bar, color = "black", linewidth = 0.5) +
           ggplot2::annotate("segment", x = 1, xend = 1, y = y_tick, yend = y_bar, color = "black", linewidth = 0.5) +
           ggplot2::annotate("segment", x = 2, xend = 2, y = y_tick, yend = y_bar, color = "black", linewidth = 0.5) +
           ggplot2::annotate("text", x = 1.5, y = y_text, label = p_sub, size = 4.2, fontface = "bold") +
           ggplot2::scale_y_continuous(expand = ggplot2::expansion(mult = c(0.05, 0.18))) +
-          ggplot2::scale_fill_manual(values = c("#3470a3", "#85b4d4")) +
+          ggplot2::scale_fill_manual(values = cores_box) +
           ggplot2::labs(
             title    = sprintf("Comparação: %s por %s", var_nome, grupo_nome),
             x        = grupo_nome,
             y        = var_nome,
             caption  = "estatR"
           ) +
-          meu_tema(grade = "dupla") +
+          meu_tema(estilo = 2, grade = "dupla") +
           ggplot2::theme(legend.position = "none")
 
         suppressMessages(print(p_plot))
@@ -431,15 +441,15 @@ teste_t_pareado <- function(x, y, hipotese = c("bilateral", "maior", "menor"),
   dif_c   <- dif[!is.na(dif)]
   media_dif <- mean(dif_c)
 
-  lbs   <- .th_hipotese_labels(hipotese, param = "\u03bc\u1d30", ref = "0")
+  lbs   <- .th_hipotese_labels(hipotese, param = "μD", ref = "0")
   w_sep <- 70
 
   .print_titulo("TESTE T PAREADO")
   cat(sprintf("  Par: %s (antes) vs %s (depois)   |   N pares: %d\n\n",
               x_nome, y_nome, length(dif_c)))
 
-  cat(sprintf("  H\u2080: \u03bc\u1d30 = 0  (a diferen\u00e7a m\u00e9dia \u00e9 zero)\n"))
-  cat(sprintf("  H\u2081: \u03bc\u1d30 %s 0  (%s)\n\n",
+  cat(sprintf("  H0: μD = 0  (a diferen\u00e7a m\u00e9dia \u00e9 zero)\n"))
+  cat(sprintf("  H1: μD %s 0  (%s)\n\n",
               switch(hipotese, bilateral = "\u2260", maior = ">", menor = "<"), hipotese))
 
   # Tabela descritiva
@@ -494,14 +504,14 @@ teste_t_pareado <- function(x, y, hipotese = c("bilateral", "maior", "menor"),
   alpha <- 1 - confianca
   .print_topico("INTERPRETA\u00c7\u00c3O")
   if (p_val < alpha) {
-    cat(sprintf("  H\u00e1 evid\u00eancias suficientes para rejeitar H\u2080 (%s).\n",
+    cat(sprintf("  H\u00e1 evid\u00eancias suficientes para rejeitar H0 (%s).\n",
                 .th_fmt_p_interp(p_val)))
     cat(sprintf("  A diferen\u00e7a m\u00e9dia entre %s e %s (%s) \u00e9\n",
                 x_nome, y_nome, formatC(media_dif, format="f", digits=decimais, decimal.mark=",")))
     cat(sprintf("  estatisticamente diferente de zero ao n\u00edvel de %.0f%% de signific\u00e2ncia.\n",
                 alpha * 100))
   } else {
-    cat(sprintf("  N\u00e3o h\u00e1 evid\u00eancias suficientes para rejeitar H\u2080 (%s).\n",
+    cat(sprintf("  N\u00e3o h\u00e1 evid\u00eancias suficientes para rejeitar H0 (%s).\n",
                 .th_fmt_p_interp(p_val)))
     cat(sprintf("  A diferen\u00e7a m\u00e9dia entre %s e %s (%s) n\u00e3o difere\n",
                 x_nome, y_nome, formatC(media_dif, format="f", digits=decimais, decimal.mark=",")))
@@ -582,11 +592,11 @@ teste_proporcao <- function(x, n, p0, hipotese = c("bilateral", "maior", "menor"
   w_sep  <- 70
 
   .print_titulo("TESTE DE PROPOR\u00c7\u00c3O (Z)")
-  cat(sprintf("  Sucessos: %d de %d   |   p\u2080: %.1f%%\n\n", x, n, p0 * 100))
+  cat(sprintf("  Sucessos: %d de %d   |   p0: %.1f%%\n\n", x, n, p0 * 100))
 
-  h0_txt <- sprintf("H\u2080: p = %.2f", p0)
+  h0_txt <- sprintf("H0: p = %.2f", p0)
   h1_op  <- switch(hipotese, bilateral = "\u2260", maior = ">", menor = "<")
-  h1_txt <- sprintf("H\u2081: p %s %.2f (%s)", h1_op, p0, hipotese)
+  h1_txt <- sprintf("H1: p %s %.2f (%s)", h1_op, p0, hipotese)
   cat(sprintf("  %s\n  %s\n\n", h0_txt, h1_txt))
 
   # Tabela de resultados
@@ -617,13 +627,13 @@ teste_proporcao <- function(x, n, p0, hipotese = c("bilateral", "maior", "menor"
   alpha <- 1 - confianca
   .print_topico("INTERPRETA\u00c7\u00c3O")
   if (p_val < alpha) {
-    cat(sprintf("  H\u00e1 evid\u00eancias suficientes para rejeitar H\u2080 (%s).\n",
+    cat(sprintf("  H\u00e1 evid\u00eancias suficientes para rejeitar H0 (%s).\n",
                 .th_fmt_p_interp(p_val)))
     cat(sprintf("  A propor\u00e7\u00e3o observada (%s%%) difere significativamente\n",
                 formatC(p_hat*100, format="f", digits=1, decimal.mark=",")))
     cat(sprintf("  de %.1f%% ao n\u00edvel de %.0f%% de signific\u00e2ncia.\n", p0*100, alpha*100))
   } else {
-    cat(sprintf("  N\u00e3o h\u00e1 evid\u00eancias suficientes para rejeitar H\u2080 (%s).\n",
+    cat(sprintf("  N\u00e3o h\u00e1 evid\u00eancias suficientes para rejeitar H0 (%s).\n",
                 .th_fmt_p_interp(p_val)))
     cat(sprintf("  A propor\u00e7\u00e3o observada (%s%%) n\u00e3o difere significativamente\n",
                 formatC(p_hat*100, format="f", digits=1, decimal.mark=",")))
@@ -727,10 +737,10 @@ teste_wilcoxon <- function(x, y = NULL, mu = 0, hipotese = c("bilateral", "maior
   cat(sprintf("  Tipo: %s\n", tipo))
   cat(sprintf("  Nota: Alternativa n\u00e3o-param\u00e9trica ao teste t. Testa a mediana.\n\n"))
 
-  h0_txt <- if (pareado) "H\u2080: a mediana das diferenças = 0" else sprintf("H\u2080: mediana = %s", mu)
+  h0_txt <- if (pareado) "H0: a mediana das diferenças = 0" else sprintf("H0: mediana = %s", mu)
   h1_op  <- switch(hipotese, bilateral = "\u2260", maior = ">", menor = "<")
-  h1_txt <- if (pareado) sprintf("H\u2081: mediana das diferenças %s 0 (%s)", h1_op, hipotese) else
-                         sprintf("H\u2081: mediana %s %s (%s)", h1_op, mu, hipotese)
+  h1_txt <- if (pareado) sprintf("H1: mediana das diferenças %s 0 (%s)", h1_op, hipotese) else
+                         sprintf("H1: mediana %s %s (%s)", h1_op, mu, hipotese)
   cat(sprintf("  %s\n  %s\n\n", h0_txt, h1_txt))
 
   ic_str <- sprintf("[%s; %s]",
@@ -755,12 +765,12 @@ teste_wilcoxon <- function(x, y = NULL, mu = 0, hipotese = c("bilateral", "maior
   alpha <- 1 - confianca
   .print_topico("INTERPRETA\u00c7\u00c3O")
   if (p_val < alpha) {
-    cat(sprintf("  H\u00e1 evid\u00eancias suficientes para rejeitar H\u2080 (%s).\n",
+    cat(sprintf("  H\u00e1 evid\u00eancias suficientes para rejeitar H0 (%s).\n",
                 .th_fmt_p_interp(p_val)))
     if (pareado) cat("  A mediana das diferenças difere significativamente de zero.\n")
     else cat(sprintf("  A mediana de %s difere significativamente de %s.\n", x_nome, mu))
   } else {
-    cat(sprintf("  N\u00e3o h\u00e1 evid\u00eancias suficientes para rejeitar H\u2080 (%s).\n",
+    cat(sprintf("  N\u00e3o h\u00e1 evid\u00eancias suficientes para rejeitar H0 (%s).\n",
                 .th_fmt_p_interp(p_val)))
     if (pareado) cat("  A mediana das diferenças n\u00e3o difere significativamente de zero.\n")
     else cat(sprintf("  A mediana de %s n\u00e3o difere significativamente de %s.\n", x_nome, mu))
@@ -777,19 +787,24 @@ teste_wilcoxon <- function(x, y = NULL, mu = 0, hipotese = c("bilateral", "maior
           x_limpo <- x[!is.na(x)]
           df_w <- data.frame(val = x_limpo)
           med_amostra <- median(x_limpo)
+          dens_res <- density(x_limpo)
+          max_d <- max(dens_res$y, na.rm = TRUE)
+          y_txt1 <- max_d * 0.90
+          y_txt2 <- max_d * 0.78
+
           p_plot <- ggplot2::ggplot(df_w, ggplot2::aes(x = val)) +
-            ggplot2::geom_histogram(ggplot2::aes(y = ggplot2::after_stat(density)), bins = 15, fill = "#85b4d4", color = "white", alpha = 0.8) +
-            ggplot2::geom_density(color = "#1B4F72", linewidth = 1) +
-            ggplot2::geom_vline(xintercept = med_amostra, color = "#1B4F72", linetype = "solid", linewidth = 1) +
+            ggplot2::geom_histogram(ggplot2::aes(y = ggplot2::after_stat(density)), bins = 15, fill = "#DDDDDD", color = "black", alpha = 0.85) +
+            ggplot2::geom_density(color = "#0072CE", linewidth = 1.1) +
+            ggplot2::geom_vline(xintercept = med_amostra, color = "#0072CE", linetype = "solid", linewidth = 1) +
             ggplot2::geom_vline(xintercept = mu, color = "red3", linetype = "dashed", linewidth = 1) +
-            ggplot2::annotate("text", x = med_amostra, y = 0, label = sprintf(" Mediana: %s", formatC(med_amostra, format="f", digits=decimais, decimal.mark=",")), hjust = -0.1, vjust = -1, color = "#1B4F72", fontface = "bold") +
-            ggplot2::annotate("text", x = mu, y = 0, label = sprintf(" \u03bc\u2080: %s", mu), hjust = 1.1, vjust = -1, color = "red3", fontface = "bold") +
+            ggplot2::annotate("text", x = med_amostra, y = y_txt1, label = sprintf("Mediana: %s", formatC(med_amostra, format="f", digits=decimais, decimal.mark=",")), hjust = -0.1, color = "#0072CE", fontface = "bold", size = 3.8) +
+            ggplot2::annotate("text", x = mu, y = y_txt2, label = sprintf("Referência: %s", mu), hjust = 1.1, color = "red3", fontface = "bold", size = 3.8) +
             ggplot2::labs(
               title = sprintf("Teste de Wilcoxon: %s", x_nome),
               subtitle = p_sub,
               x = x_nome, y = "Densidade", caption = "estatR"
             ) +
-            meu_tema(grade = "dupla")
+            meu_tema(estilo = 1, grade = "dupla")
           suppressMessages(print(p_plot))
         } else {
           dif_w <- (x - y)[!is.na(x - y)]
@@ -858,8 +873,8 @@ teste_mann_whitney <- function(x, grupo, hipotese = c("bilateral", "maior", "men
   cat("  Nota: Alternativa n\u00e3o-param\u00e9trica ao teste t para grupos independentes.\n\n")
 
   h1_op  <- switch(hipotese, bilateral = "\u2260", maior = ">", menor = "<")
-  cat(sprintf("  H\u2080: distribui\u00e7\u00e3o de %s = distribui\u00e7\u00e3o de %s\n", g1, g2))
-  cat(sprintf("  H\u2081: distribui\u00e7\u00e3o de %s %s distribui\u00e7\u00e3o de %s (%s)\n\n", g1, h1_op, g2, hipotese))
+  cat(sprintf("  H0: distribui\u00e7\u00e3o de %s = distribui\u00e7\u00e3o de %s\n", g1, g2))
+  cat(sprintf("  H1: distribui\u00e7\u00e3o de %s %s distribui\u00e7\u00e3o de %s (%s)\n\n", g1, h1_op, g2, hipotese))
 
   # Descritiva
   wg <- c(grp=14, n=8, med=14, mediana=14)
@@ -903,12 +918,12 @@ teste_mann_whitney <- function(x, grupo, hipotese = c("bilateral", "maior", "men
   alpha <- 1 - confianca
   .print_topico("INTERPRETA\u00c7\u00c3O")
   if (p_val < alpha) {
-    cat(sprintf("  H\u00e1 evid\u00eancias suficientes para rejeitar H\u2080 (%s).\n",
+    cat(sprintf("  H\u00e1 evid\u00eancias suficientes para rejeitar H0 (%s).\n",
                 .th_fmt_p_interp(p_val)))
     cat(sprintf("  As distribui\u00e7\u00f5es de %s e %s diferem significativamente\n", g1, g2))
     cat(sprintf("  ao n\u00edvel de %.0f%% de signific\u00e2ncia.\n", alpha * 100))
   } else {
-    cat(sprintf("  N\u00e3o h\u00e1 evid\u00eancias suficientes para rejeitar H\u2080 (%s).\n",
+    cat(sprintf("  N\u00e3o h\u00e1 evid\u00eancias suficientes para rejeitar H0 (%s).\n",
                 .th_fmt_p_interp(p_val)))
     cat(sprintf("  N\u00e3o h\u00e1 diferen\u00e7a significativa entre as distribui\u00e7\u00f5es\n"))
     cat(sprintf("  de %s e %s ao n\u00edvel de %.0f%% de signific\u00e2ncia.\n", g1, g2, alpha * 100))
@@ -917,7 +932,7 @@ teste_mann_whitney <- function(x, grupo, hipotese = c("bilateral", "maior", "men
   if (grafico) {
     tryCatch({
       if (exists("meu_tema")) {
-        p_sub <- sprintf("H\u2081: %s %s %s (%s) | p %s %s%s", g1, h1_op, g2, hipotese,
+        p_sub <- sprintf("H1: %s %s %s (%s) | p %s %s%s", g1, h1_op, g2, hipotese,
                          ifelse(p_val < 0.001, "<", "="),
                          .th_fmt_p(p_val),
                          ifelse(nchar(p_ast) > 0, paste0(" ", p_ast), ""))
@@ -931,9 +946,15 @@ teste_mann_whitney <- function(x, grupo, hipotese = c("bilateral", "maior", "men
         y_text <- max_y + amp * 0.12
 
         old_w <- getOption("warn"); options(warn = -1)
+        med1 <- median(vals1); med2 <- median(vals2)
+        cor1 <- if (med1 >= med2) "#0072CE" else "#DDDDDD"
+        cor2 <- if (med2 > med1) "#0072CE" else "#DDDDDD"
+        cores_box <- setNames(c(cor1, cor2), c(g1, g2))
+
         p_plot <- ggplot2::ggplot(df_plot, ggplot2::aes(x = grupo, y = y, fill = grupo)) +
-          ggplot2::geom_boxplot(width = 0.5, alpha = 0.85, outlier.color = "red3", outlier.shape = 19) +
-          ggplot2::stat_summary(fun = median, geom = "point", shape = 18, size = 3.5, color = "#1B4F72") +
+          ggplot2::stat_boxplot(geom = "errorbar", width = 0.25, linewidth = 0.6) +
+          ggplot2::geom_boxplot(width = 0.5, alpha = 0.85, color = "black", outlier.color = "red3", outlier.shape = 19) +
+          ggplot2::stat_summary(fun = median, geom = "point", shape = 21, size = 3.2, fill = "black", color = "black") +
           ggplot2::annotate("segment", x = 1, xend = 2, y = y_bar, yend = y_bar, color = "black", linewidth = 0.5) +
           ggplot2::annotate("segment", x = 1, xend = 1, y = y_tick, yend = y_bar, color = "black", linewidth = 0.5) +
           ggplot2::annotate("segment", x = 2, xend = 2, y = y_tick, yend = y_bar, color = "black", linewidth = 0.5) +
@@ -969,7 +990,7 @@ teste_mann_whitney <- function(x, grupo, hipotese = c("bilateral", "maior", "men
 #' @param decimais Casas decimais para exibição (padrão \code{2}).
 #' @return Retorna invisivelmente o objeto do teste (\code{htest}).
 #' @export
-teste_qui_quadrado <- function(dados, var_x, var_y, confianca = 0.95, decimais = 2) {
+teste_qui_quadrado <- function(dados, var_x, var_y, confianca = 0.95, decimais = 2, grafico = TRUE) {
   vx_sub  <- substitute(var_x)
   vy_sub  <- substitute(var_y)
   vx_nome <- as.character(vx_sub)
@@ -987,7 +1008,8 @@ teste_qui_quadrado <- function(dados, var_x, var_y, confianca = 0.95, decimais =
   if (!vy_nome %in% names(dados)) stop(sprintf("Coluna '%s' n\u00e3o encontrada.", vy_nome))
 
   tab   <- table(dados[[vx_nome]], dados[[vy_nome]])
-  res   <- chisq.test(tab, correct = FALSE)
+  res   <- suppressWarnings(chisq.test(tab, correct = FALSE))
+  tem_esperado_baixo <- any(res$expected < 5)
   chi2  <- res$statistic
   gl    <- res$parameter
   p_val <- res$p.value
@@ -996,8 +1018,8 @@ teste_qui_quadrado <- function(dados, var_x, var_y, confianca = 0.95, decimais =
 
   .print_titulo("TESTE QUI-QUADRADO DE INDEPEND\u00caNCIA")
   cat(sprintf("  Vari\u00e1veis: %s  \u00d7  %s\n\n", vx_nome, vy_nome))
-  cat(sprintf("  H\u2080: %s e %s s\u00e3o independentes\n", vx_nome, vy_nome))
-  cat(sprintf("  H\u2081: %s e %s n\u00e3o s\u00e3o independentes\n\n", vx_nome, vy_nome))
+  cat(sprintf("  H0: %s e %s s\u00e3o independentes\n", vx_nome, vy_nome))
+  cat(sprintf("  H1: %s e %s n\u00e3o s\u00e3o independentes\n\n", vx_nome, vy_nome))
 
   # Tabela de contingência
   cat("  Tabela de Conting\u00eancia (frequências observadas):\n\n")
@@ -1023,18 +1045,34 @@ teste_qui_quadrado <- function(dados, var_x, var_y, confianca = 0.95, decimais =
   alpha <- 1 - confianca
   .print_topico("INTERPRETA\u00c7\u00c3O")
   if (p_val < alpha) {
-    cat(sprintf("  H\u00e1 evid\u00eancias suficientes para rejeitar H\u2080 (%s).\n",
+    cat(sprintf("  H\u00e1 evid\u00eancias suficientes para rejeitar H0 (%s).\n",
                 .th_fmt_p_interp(p_val)))
     cat(sprintf("  Existe associa\u00e7\u00e3o estatisticamente significativa entre\n"))
     cat(sprintf("  %s e %s ao n\u00edvel de %.0f%% de signific\u00e2ncia.\n",
                 vx_nome, vy_nome, alpha * 100))
   } else {
-    cat(sprintf("  N\u00e3o h\u00e1 evid\u00eancias suficientes para rejeitar H\u2080 (%s).\n",
+    cat(sprintf("  N\u00e3o h\u00e1 evid\u00eancias suficientes para rejeitar H0 (%s).\n",
                 .th_fmt_p_interp(p_val)))
     cat(sprintf("  N\u00e3o h\u00e1 associa\u00e7\u00e3o significativa entre %s e %s\n", vx_nome, vy_nome))
     cat(sprintf("  ao n\u00edvel de %.0f%% de signific\u00e2ncia.\n", alpha * 100))
   }
   .print_rodape()
+  if (grafico && exists("meu_tema")) {
+    tryCatch({
+      df_qui <- as.data.frame(tab)
+      colnames(df_qui) <- c("X", "Y", "Freq")
+      p_qui <- ggplot2::ggplot(df_qui, ggplot2::aes(x = X, y = Freq, fill = Y)) +
+        ggplot2::geom_col(position = "fill", color = "black", width = 0.55) +
+        ggplot2::scale_y_continuous(labels = scales::percent, expand = ggplot2::expansion(mult = c(0, 0.05))) +
+        ggplot2::labs(
+          title = sprintf("Associação: %s x %s", vx_nome, vy_nome),
+          subtitle = sprintf("Qui-Quadrado = %.3f | p-valor %s", chi2, if (p_val < 0.001) "< 0,001" else paste0("= ", formatC(p_val, format="f", digits=3, decimal.mark=","))),
+          x = vx_nome, y = "Proporção", fill = vy_nome, caption = "estatR"
+        ) +
+        meu_tema(estilo = 1, grade = "dupla")
+      print(p_qui)
+    }, error = function(e) NULL)
+  }
   invisible(res)
 }
 
@@ -1049,7 +1087,7 @@ teste_qui_quadrado <- function(dados, var_x, var_y, confianca = 0.95, decimais =
 #' @param decimais Casas decimais para exibição (padrão \code{2}).
 #' @return Retorna invisivelmente uma lista com a estatística F e p-valor.
 #' @export
-teste_levene <- function(x, grupo, confianca = 0.95, decimais = 2) {
+teste_levene <- function(x, grupo, confianca = 0.95, decimais = 2, grafico = TRUE) {
   grupo_sub  <- substitute(grupo)
   grupo_nome <- sub(".*\\$", "", deparse(grupo_sub))
   x_expr     <- deparse(substitute(x))
@@ -1070,8 +1108,8 @@ teste_levene <- function(x, grupo, confianca = 0.95, decimais = 2) {
 
   .print_titulo("TESTE DE LEVENE (HOMOGENEIDADE DE VARI\u00c2NCIAS)")
   cat(sprintf("  Vari\u00e1vel: %s   |   Grupos: %s\n\n", x_nome, grupo_nome))
-  cat("  H\u2080: as vari\u00e2ncias s\u00e3o iguais entre os grupos\n")
-  cat("  H\u2081: pelo menos uma vari\u00e2ncia difere\n\n")
+  cat("  H0: as vari\u00e2ncias s\u00e3o iguais entre os grupos\n")
+  cat("  H1: pelo menos uma vari\u00e2ncia difere\n\n")
 
   # Variâncias por grupo
   for (niv in niveis) {
@@ -1098,16 +1136,39 @@ teste_levene <- function(x, grupo, confianca = 0.95, decimais = 2) {
   alpha <- 1 - confianca
   .print_topico("INTERPRETA\u00c7\u00c3O")
   if (p_val < alpha) {
-    cat(sprintf("  H\u00e1 evid\u00eancias para rejeitar H\u2080 (%s).\n",
+    cat(sprintf("  H\u00e1 evid\u00eancias para rejeitar H0 (%s).\n",
                 .th_fmt_p_interp(p_val)))
     cat("  As vari\u00e2ncias dos grupos s\u00e3o significativamente diferentes.\n")
     cat("  Recomenda-se usar o teste t de Welch (variancia_igual = FALSE).\n")
   } else {
-    cat(sprintf("  N\u00e3o h\u00e1 evid\u00eancias para rejeitar H\u2080 (%s).\n",
+    cat(sprintf("  N\u00e3o h\u00e1 evid\u00eancias para rejeitar H0 (%s).\n",
                 .th_fmt_p_interp(p_val)))
     cat("  As vari\u00e2ncias dos grupos s\u00e3o homog\u00eaneas.\n")
     cat("  O teste t de Student (variancia_igual = TRUE) pode ser utilizado.\n")
   }
   .print_rodape()
+  if (grafico && exists("meu_tema")) {
+    tryCatch({
+      df_lev <- data.frame(grupo = grupo_vec, z = z)
+      df_lev <- df_lev[!is.na(df_lev$grupo) & !is.na(df_lev$z), ]
+      max_z_grp <- tapply(df_lev$z, df_lev$grupo, median, na.rm = TRUE)
+      maior_grp <- names(which.max(max_z_grp))
+      cores_lev <- setNames(ifelse(levels(grupo_vec) == maior_grp, "#0072CE", "#DDDDDD"), levels(grupo_vec))
+
+      p_lev <- ggplot2::ggplot(df_lev, ggplot2::aes(x = grupo, y = z, fill = grupo)) +
+        ggplot2::stat_boxplot(geom = "errorbar", width = 0.25, linewidth = 0.6) +
+        ggplot2::geom_boxplot(width = 0.5, alpha = 0.85, color = "black", outlier.color = "red3") +
+        ggplot2::stat_summary(fun = mean, geom = "point", shape = 21, size = 3, fill = "black", color = "black") +
+        ggplot2::scale_fill_manual(values = cores_lev) +
+        ggplot2::labs(
+          title = "Teste de Levene: Desvios da Mediana por Grupo",
+          subtitle = sprintf("F = %.3f | p-valor %s", f_stat, if (p_val < 0.001) "< 0,001" else paste0("= ", formatC(p_val, format="f", digits=3, decimal.mark=","))),
+          x = grupo_nome, y = "|y - Mediana|", caption = "estatR"
+        ) +
+        meu_tema(estilo = 2, grade = "dupla") +
+        ggplot2::theme(legend.position = "none")
+      print(p_lev)
+    }, error = function(e) NULL)
+  }
   invisible(list(F = f_stat, p.value = p_val))
 }

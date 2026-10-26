@@ -1,4 +1,4 @@
-﻿#' @title Probabilidade da Distribuição Normal
+#' @title Probabilidade da Distribuição Normal
 #' @description Calcula a probabilidade para uma distribuição Normal e gera o gráfico com a área sombreada.
 #' @param media Média teórica da distribuição.
 #' @param dp Desvio-padrão teórico.
@@ -48,20 +48,18 @@ prob_normal <- function(media = 0, dp = 1, q1 = NULL, q2 = NULL, tipo = c("menor
   
   # Saída Console
   if (exists(".print_titulo")) .print_titulo("CÁLCULO DE PROBABILIDADE — DISTRIBUIÇÃO NORMAL") else cat("\nCÁLCULO DE PROBABILIDADE (Distribuição Normal)\n\n")
-  cat(sprintf("Média (\u03bc):          %g\n", media))
-  cat(sprintf("Desvio Padrão (\u03c3):  %g\n", dp))
-#   cat(linha)
+  if (exists(".print_topico")) .print_topico("PARÂMETROS") else cat("PARÂMETROS\n\n")
+  cat(sprintf("  Média (μ):          %g\n", media))
+  cat(sprintf("  Desvio Padrão (σ):  %g\n\n", dp))
   if (exists(".print_topico")) .print_topico("RESULTADO") else cat("RESULTADO\n\n")
-  
   if (tipo == "entre") {
-    cat(sprintf("Quantis (X):       %g e %g\n", q1, q2))
-    cat(sprintf("Escores (Z):       %.2f e %.2f\n", z1, z2))
+    cat(sprintf("  Quantis (X):       %g e %g\n", q1, q2))
+    cat(sprintf("  Escores (Z):       %.2f e %.2f\n", z1, z2))
   } else {
-    cat(sprintf("Quantil (X):       %g\n", q1))
-    cat(sprintf("Escore (Z):        %.2f\n", z1))
+    cat(sprintf("  Quantil (X):       %g\n", q1))
+    cat(sprintf("  Escore (Z):        %.2f\n", z1))
   }
-  
-  cat(sprintf("Probabilidade:     %.2f%%\n", prob * 100))
+  cat(sprintf("  Probabilidade:     %.2f%%\n\n", prob * 100))
 #   cat(linha)
   
   # Gráfico
@@ -261,45 +259,59 @@ gerar_amostra <- function(n, distribuicao = c("normal", "binomial", "poisson", "
 #' @param tipo "exato" (P(X=q)), "menor" (P(X<=q)), "maior" (P(X>=q)).
 #' @param grafico Lógico. Se TRUE, gera o gráfico.
 #' @export
-prob_binomial <- function(ensaios, prob, q, tipo = c("exato", "menor", "maior"), grafico = TRUE) {
+prob_binomial <- function(ensaios, prob, q1 = NULL, q2 = NULL, q = NULL, tipo = c("exato", "menor", "maior", "entre"), grafico = TRUE) {
   tipo <- match.arg(tipo)
-  if (q < 0 || q > ensaios) stop("'q' deve estar entre 0 e o número de ensaios.")
-  
-  if (tipo == "exato") {
-    res <- dbinom(q, ensaios, prob)
-    tit <- sprintf("P(X = %d)", q)
-    destaque <- q
-  } else if (tipo == "menor") {
-    res <- pbinom(q, ensaios, prob)
-    tit <- sprintf("P(X \u2264 %d)", q)
-    destaque <- 0:q
+  if (is.null(q1) && !is.null(q)) q1 <- q
+  if (is.null(q1)) stop("Você precisa informar o valor de 'q1' (ou 'q').")
+
+  if (tipo == "entre") {
+    if (is.null(q2)) stop("Para o tipo 'entre', você precisa informar 'q1' e 'q2'.")
+    if (q1 > q2) { tmp <- q1; q1 <- q2; q2 <- tmp }
+    if (q1 < 0 || q2 > ensaios) stop("'q1' e 'q2' devem estar entre 0 e o número de ensaios.")
+    res <- sum(dbinom(q1:q2, ensaios, prob))
+    tit <- sprintf("P(%d ≤ X ≤ %d)", q1, q2)
+    destaque <- q1:q2
+    label_txt <- "Valores (q1 ≤ X ≤ q2):"
+    val_txt   <- sprintf("%d a %d", q1, q2)
   } else {
-    res <- 1 - pbinom(q - 1, ensaios, prob)
-    tit <- sprintf("P(X \u2265 %d)", q)
-    destaque <- q:ensaios
+    q <- q1
+    if (q < 0 || q > ensaios) stop("'q' deve estar entre 0 e o número de ensaios.")
+    if (tipo == "exato") {
+      res <- dbinom(q, ensaios, prob)
+      tit <- sprintf("P(X = %d)", q)
+      destaque <- q
+      label_txt <- "Valor (X = x):"
+    } else if (tipo == "menor") {
+      res <- pbinom(q, ensaios, prob)
+      tit <- sprintf("P(X ≤ %d)", q)
+      destaque <- 0:q
+      label_txt <- "Valores (X ≤ x):"
+    } else {
+      res <- 1 - pbinom(q - 1, ensaios, prob)
+      tit <- sprintf("P(X ≥ %d)", q)
+      destaque <- q:ensaios
+      label_txt <- "Valores (X ≥ x):"
+    }
+    val_txt <- as.character(q)
   }
-  
-  linha <- paste0("\n", strrep("\u2500", 54), "\n\n")
+
   if (exists(".print_titulo")) .print_titulo("CÁLCULO DE PROBABILIDADE — DISTRIBUIÇÃO BINOMIAL") else cat("\nCÁLCULO DE PROBABILIDADE (Distribuição Binomial)\n\n")
-  cat(sprintf("Ensaios (n):           %d\n", ensaios))
-  cat(sprintf("Probabilidade (p):     %g\n", prob))
-#   cat(linha)
-  cat(sprintf("%-22s %d\n", ifelse(tipo=="exato", "Valor (X = x):", ifelse(tipo=="menor", "Valores (X \u2264 x):", "Valores (X \u2265 x):")), q))
-  cat(sprintf("%-22s %.2f%%\n", "Probabilidade:", res * 100))
-#   cat(linha)
-  
+  cat(sprintf("  Ensaios (n):           %d\n", ensaios))
+  cat(sprintf("  Probabilidade (p):     %g\n\n", prob))
+  if (exists(".print_topico")) .print_topico("RESULTADO") else cat("RESULTADO\n\n")
+  cat(sprintf("  %-22s %s\n", label_txt, val_txt))
+  cat(sprintf("  %-22s %.2f%%\n\n", "Probabilidade:", res * 100))
   if (exists(".print_rodape", mode = "function")) .print_rodape() else cat("\n")
+
   if (grafico) {
     df <- data.frame(x = 0:ensaios)
     df$y <- dbinom(df$x, ensaios, prob)
     df$cor <- ifelse(df$x %in% destaque, "dodgerblue1", "#DDDDDD")
-    
     p <- ggplot2::ggplot(df, ggplot2::aes(x = as.factor(x), y = y, fill = cor)) +
       ggplot2::geom_col(color = "black", alpha = 0.8) +
       ggplot2::scale_fill_identity() +
       ggplot2::labs(title = tit, subtitle = sprintf("Probabilidade: %.2f%%", res * 100),
                     x = "Número de Sucessos (X)", y = "Probabilidade", caption = "estatR")
-    
     if (exists("meu_tema")) p <- p + meu_tema(estilo = 1) else p <- p + ggplot2::theme_minimal()
     suppressMessages(print(p))
   }
@@ -333,10 +345,11 @@ prob_poisson <- function(lambda, q, tipo = c("exato", "menor", "maior"), grafico
   
   linha <- paste0("\n", strrep("\u2500", 54), "\n\n")
   if (exists(".print_titulo")) .print_titulo("CÁLCULO DE PROBABILIDADE — DISTRIBUIÇÃO POISSON") else cat("\nCÁLCULO DE PROBABILIDADE (Distribuição Poisson)\n\n")
-  cat(sprintf("Taxa (\u03bb):               %g\n", lambda))
-#   cat(linha)
-  cat(sprintf("%-22s %d\n", ifelse(tipo=="exato", "Valor (X = x):", ifelse(tipo=="menor", "Valores (X \u2264 x):", "Valores (X \u2265 x):")), q))
-  cat(sprintf("%-22s %.2f%%\n", "Probabilidade:", res * 100))
+  if (exists(".print_topico")) .print_topico("PARÂMETROS") else cat("PARÂMETROS\n\n")
+  cat(sprintf("  Taxa (λ):               %g\n\n", lambda))
+  if (exists(".print_topico")) .print_topico("RESULTADO") else cat("RESULTADO\n\n")
+  cat(sprintf("  %-22s %d\n", ifelse(tipo=="exato", "Valor (X = x):", ifelse(tipo=="menor", "Valores (X ≤ x):", "Valores (X ≥ x):")), q))
+  cat(sprintf("  %-22s %.2f%%\n\n", "Probabilidade:", res * 100))
 #   cat(linha)
   
   if (exists(".print_rodape", mode = "function")) .print_rodape() else cat("\n")
@@ -411,6 +424,7 @@ prob_exponencial <- function(taxa = 1, q1 = NULL, q2 = NULL,
     cat("\n\u2500\u2500 PROBABILIDADE \u2014 EXPONENCIAL \u2500\u2500\n")
   }
 
+  if (exists(".print_topico", mode = "function")) .print_topico("PARÂMETROS") else cat("PARÂMETROS\n\n")
   cat(sprintf("  Taxa (\u03bb):            %g\n", taxa))
   cat(sprintf("  M\u00e9dia (1/\u03bb):        %g\n", media))
   cat(sprintf("  Desvio Padr\u00e3o:      %g\n\n", dp))

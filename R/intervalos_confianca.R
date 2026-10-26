@@ -24,8 +24,6 @@
   
   df_plot <- data.frame(x = est, y = 1, linf = linf, lsup = lsup)
   
-  amp <- lsup - linf
-  
   old_w <- getOption("warn"); options(warn = -1)
   p <- ggplot2::ggplot(df_plot) +
     ggplot2::geom_segment(ggplot2::aes(x = linf, xend = lsup, y = 1, yend = 1),
@@ -45,7 +43,7 @@
     ggplot2::scale_y_continuous(limits = c(0.7, 1.3)) +
     ggplot2::scale_x_continuous(expand = ggplot2::expansion(mult = c(0.1, 0.1))) +
     ggplot2::labs(title = titulo, subtitle = subtitulo, x = x_label, y = NULL, caption = "estatR") +
-    meu_tema(grade = "dupla") +
+    meu_tema(estilo = 1, grade = "dupla") +
     ggplot2::theme(axis.text.y = ggplot2::element_blank(),
                    axis.ticks.y = ggplot2::element_blank(),
                    axis.title.y = ggplot2::element_blank())
@@ -65,14 +63,14 @@
 #' @return Retorna invisivelmente um data frame com os resultados.
 #' @export
 ic_media <- function(x, confianca = 0.95, decimais = 3, grafico = TRUE) {
-  if (!is.numeric(x)) stop("'x' deve ser num\u00e9rico.")
+  if (!is.numeric(x)) stop("'x' deve ser numérico.")
   x_expr <- deparse(substitute(x))
   var_nome <- sub(".*\\$", "", x_expr)
   if (identical(var_nome, "x")) var_nome <- "x"
   
   x_c <- x[!is.na(x)]
   n   <- length(x_c)
-  if (n < 2) stop("A amostra deve ter pelo menos 2 observa\u00e7\u00f5es v\u00e1lidas.")
+  if (n < 2) stop("A amostra deve ter pelo menos 2 observações válidas.")
   
   media <- mean(x_c)
   dp    <- sd(x_c)
@@ -86,15 +84,14 @@ ic_media <- function(x, confianca = 0.95, decimais = 3, grafico = TRUE) {
   linf <- media - margem
   lsup <- media + margem
   
-  w_sep <- 67
-  .print_titulo("INTERVALO DE CONFIAN\u00c7A PARA A M\u00c9DIA")
-  cat(sprintf("  Vari\u00e1vel: %s   |   N v\u00e1lido: %d   |   Confian\u00e7a: %.0f%%\n", var_nome, n, confianca * 100))
-  cat("  Distribui\u00e7\u00e3o utilizada: t de Student (vari\u00e2ncia desconhecida)\n\n")
+  .print_titulo("INTERVALO DE CONFIANÇA PARA A MÉDIA")
+  cat(sprintf("  Variável: %s   |   N válido: %d   |   Confiança: %.0f%%\n", var_nome, n, confianca * 100))
+  cat("  Distribuição utilizada: t de Student (variância desconhecida)\n\n")
   
   .print_topico("ESTIMATIVAS")
   wc <- c(ep=20, err=15, margem=16, gl=12)
   hdr <- paste0(.ic_pad("Estimativa Pontual", wc["ep"], "center"),
-                .ic_pad("Erro Padr\u00e3o", wc["err"], "center"),
+                .ic_pad("Erro Padrão", wc["err"], "center"),
                 .ic_pad("Margem de Erro", wc["margem"], "center"),
                 .ic_pad("Graus Lib.", wc["gl"], "center"))
   cat(.ic_sep(nchar(hdr)), "\n")
@@ -113,15 +110,19 @@ ic_media <- function(x, confianca = 0.95, decimais = 3, grafico = TRUE) {
   cat(.ic_sep(nchar(hdr)), "\n\n")
   
   .print_topico("INTERPRETAÇÃO")
-  cat(sprintf("  Com %.0f%% de confian\u00e7a, estima-se que a verdadeira m\u00e9dia\n", confianca * 100))
-  cat(sprintf("  populacional de '%s' est\u00e1 entre %s e %s.\n", var_nome, .ic_fmt(linf, decimais), .ic_fmt(lsup, decimais)))
+  cat(sprintf("  Com %.0f%% de confiança, estima-se que a verdadeira média\n", confianca * 100))
+  cat(sprintf("  populacional de '%s' está entre %s e %s.\n\n", var_nome, .ic_fmt(linf, decimais), .ic_fmt(lsup, decimais)))
+  cat(sprintf("  Segundo a interpretação frequentista, podemos dizer que se repetirmos\n"))
+  cat(sprintf("  o experimento diversas vezes, %.0f%% dos intervalos de confiança\n", confianca * 100))
+  cat(sprintf("  construídos a partir dessas amostras irão conter o valor verdadeiro\n"))
+  cat(sprintf("  do parâmetro populacional.\n"))
   .print_rodape()
   
   if (grafico) {
     tryCatch({
       .plot_ic(media, linf, lsup, 
-               sprintf("Intervalo de Confian\u00e7a (%.0f%%) para a M\u00e9dia", confianca * 100), 
-               sprintf("Vari\u00e1vel: %s", var_nome), var_nome)
+               sprintf("Intervalo de Confiança (%.0f%%) para a Média", confianca * 100), 
+               sprintf("Variável: %s", var_nome), var_nome)
     }, error = function(e) message("[Aviso] Falha ao plotar: ", e$message))
   }
   
@@ -136,10 +137,12 @@ ic_media <- function(x, confianca = 0.95, decimais = 3, grafico = TRUE) {
 #' @param confianca Nível de confiança desejado (padrão 0.95).
 #' @param decimais Casas decimais para exibição (padrão 3).
 #' @param grafico Lógico. Se TRUE, plota o intervalo com a estimativa pontual.
+#' @param variavel Nome descritivo da variável para exibição (opcional).
 #' @return Retorna invisivelmente um data frame com os resultados.
 #' @export
-ic_proporcao <- function(x, n, confianca = 0.95, decimais = 3, grafico = TRUE) {
-  if (x > n) stop("O n\u00famero de sucessos (x) n\u00e3o pode ser maior que o tamanho da amostra (n).")
+ic_proporcao <- function(x, n, confianca = 0.95, decimais = 3, grafico = TRUE, variavel = NULL) {
+  if (x > n) stop("O número de sucessos (x) não pode ser maior que o tamanho da amostra (n).")
+  var_label <- if (!is.null(variavel)) as.character(variavel) else "Proporção Amostral"
   
   p_hat <- x / n
   ep    <- sqrt(p_hat * (1 - p_hat) / n)
@@ -150,15 +153,14 @@ ic_proporcao <- function(x, n, confianca = 0.95, decimais = 3, grafico = TRUE) {
   linf <- max(0, p_hat - margem)
   lsup <- min(1, p_hat + margem)
   
-  w_sep <- 67
-  .print_titulo("INTERVALO DE CONFIAN\u00c7A PARA A PROPOR\u00c7\u00c3O")
-  cat(sprintf("  Sucessos: %d   |   N total: %d   |   Confian\u00e7a: %.0f%%\n", x, n, confianca * 100))
-  cat("  M\u00e9todo: Aproxima\u00e7\u00e3o Normal (Wald)\n\n")
+  .print_titulo("INTERVALO DE CONFIANÇA PARA A PROPORÇÃO")
+  cat(sprintf("  Sucessos: %d   |   N total: %d   |   Confiança: %.0f%%\n", x, n, confianca * 100))
+  cat("  Método: Aproximação Normal (Wald)\n\n")
   
   .print_topico("ESTIMATIVAS")
-  wc <- c(ep=22, err=13, margem=16, z=10)
-  hdr <- paste0(.ic_pad("Propor\u00e7\u00e3o Amostral", wc["ep"], "center"),
-                .ic_pad("Erro Padr\u00e3o", wc["err"], "center"),
+  wc <- c(ep = 24, err = 16, margem = 20, z = 12)
+  hdr <- paste0(.ic_pad("Proporção Amostral", wc["ep"], "center"),
+                .ic_pad("Erro Padrão", wc["err"], "center"),
                 .ic_pad("Margem de Erro", wc["margem"], "center"),
                 .ic_pad("Valor Z", wc["z"], "center"))
   cat(.ic_sep(nchar(hdr)), "\n")
@@ -178,16 +180,20 @@ ic_proporcao <- function(x, n, confianca = 0.95, decimais = 3, grafico = TRUE) {
   cat(.ic_sep(nchar(hdr)), "\n\n")
   
   .print_topico("INTERPRETAÇÃO")
-  cat(sprintf("  Com %.0f%% de confian\u00e7a, estima-se que a verdadeira propor\u00e7\u00e3o\n", confianca * 100))
-  cat(sprintf("  populacional est\u00e1 entre %s%% e %s%%.\n", .ic_fmt(linf*100, 1), .ic_fmt(lsup*100, 1)))
+  cat(sprintf("  Com %.0f%% de confiança, estima-se que a verdadeira proporção\n", confianca * 100))
+  cat(sprintf("  populacional está entre %s%% e %s%%.\n\n", .ic_fmt(linf*100, 1), .ic_fmt(lsup*100, 1)))
+  cat(sprintf("  Segundo a interpretação frequentista, podemos dizer que se repetirmos\n"))
+  cat(sprintf("  o experimento diversas vezes, %.0f%% dos intervalos de confiança\n", confianca * 100))
+  cat(sprintf("  construídos a partir dessas amostras irão conter o valor verdadeiro\n"))
+  cat(sprintf("  do parâmetro populacional.\n"))
   .print_rodape()
   
   if (grafico) {
     tryCatch({
       .plot_ic(p_hat, linf, lsup, 
-               sprintf("Intervalo de Confian\u00e7a (%.0f%%) para a Propor\u00e7\u00e3o", confianca * 100), 
-               sprintf("Estimativa: %s%% u00b1 %s%% (N = %d)", .ic_fmt(p_hat*100, 1), .ic_fmt(margem*100, 1), n), 
-               "Propor\u00e7\u00e3o")
+               sprintf("Intervalo de Confiança (%.0f%%) para a Proporção", confianca * 100), 
+               sprintf("Variável: %s (x = %d, n = %d)", var_label, x, n), 
+               "Proporção")
     }, error = function(e) message("[Aviso] Falha ao plotar: ", e$message))
   }
   
@@ -200,17 +206,18 @@ ic_proporcao <- function(x, n, confianca = 0.95, decimais = 3, grafico = TRUE) {
 #' @param x Vetor numérico.
 #' @param confianca Nível de confiança desejado (padrão 0.95).
 #' @param decimais Casas decimais para exibição (padrão 3).
+#' @param grafico Lógico. Se TRUE, plota o intervalo do desvio padrão.
 #' @return Retorna invisivelmente um data frame com os resultados.
 #' @export
-ic_variancia <- function(x, confianca = 0.95, decimais = 3) {
-  if (!is.numeric(x)) stop("'x' deve ser num\u00e9rico.")
+ic_variancia <- function(x, confianca = 0.95, decimais = 3, grafico = TRUE) {
+  if (!is.numeric(x)) stop("'x' deve ser numérico.")
   x_expr <- deparse(substitute(x))
   var_nome <- sub(".*\\$", "", x_expr)
   if (identical(var_nome, "x")) var_nome <- "x"
   
   x_c <- x[!is.na(x)]
   n   <- length(x_c)
-  if (n < 2) stop("A amostra deve ter pelo menos 2 observa\u00e7\u00f5es v\u00e1lidas.")
+  if (n < 2) stop("A amostra deve ter pelo menos 2 observações válidas.")
   
   v  <- var(x_c)
   dp <- sd(x_c)
@@ -226,37 +233,48 @@ ic_variancia <- function(x, confianca = 0.95, decimais = 3) {
   linf_dp <- sqrt(linf_v)
   lsup_dp <- sqrt(lsup_v)
   
-  w_sep <- 67
-  .print_titulo("INTERVALO DE CONFIAN\u00c7A PARA A VARI\u00c2NCIA")
-  cat(sprintf("  Vari\u00e1vel: %s   |   N v\u00e1lido: %d   |   Confian\u00e7a: %.0f%%\n", var_nome, n, confianca * 100))
-  cat("  Distribui\u00e7\u00e3o utilizada: Qui-Quadrado (\u03c7\u00b2)\n\n")
+  .print_titulo("INTERVALO DE CONFIANÇA PARA A VARIÂNCIA")
+  cat(sprintf("  Variável: %s   |   N válido: %d   |   Confiança: %.0f%%\n", var_nome, n, confianca * 100))
+  cat("  Distribuição utilizada: Qui-Quadrado (χ²)\n\n")
   
   .print_topico("ESTIMATIVAS PONTUAIS")
   wc <- c(met=20, est=20)
-  hdr <- paste0(.ic_pad("M\u00e9trica", wc["met"], "center"), .ic_pad("Valor", wc["est"], "center"))
+  hdr <- paste0(.ic_pad("Métrica", wc["met"], "center"), .ic_pad("Valor", wc["est"], "center"))
   cat(.ic_sep(nchar(hdr)), "\n")
   cat("  ", hdr, "\n", sep = "")
   cat(.ic_sep(nchar(hdr)), "\n")
-  cat("  ", .ic_pad("Vari\u00e2ncia", wc["met"], "center"), .ic_pad(.ic_fmt(v, decimais), wc["est"], "center"), "\n", sep = "")
-  cat("  ", .ic_pad("Desvio Padr\u00e3o", wc["met"], "center"), .ic_pad(.ic_fmt(dp, decimais), wc["est"], "center"), "\n", sep = "")
+  cat("  ", .ic_pad("Variância", wc["met"], "center"), .ic_pad(.ic_fmt(v, decimais), wc["est"], "center"), "\n", sep = "")
+  cat("  ", .ic_pad("Desvio Padrão", wc["met"], "center"), .ic_pad(.ic_fmt(dp, decimais), wc["est"], "center"), "\n", sep = "")
   cat(.ic_sep(nchar(hdr)), "\n\n")
   
   .print_topico(sprintf("INTERVALOS DE CONFIANÇA (%.0f%%)", confianca * 100))
   w_ic <- c(met=20, int=30)
-  hdr_ic <- paste0(.ic_pad("Par\u00e2metro", w_ic["met"], "center"), .ic_pad("Intervalo [ LI ; LS ]", w_ic["int"], "center"))
+  hdr_ic <- paste0(.ic_pad("Parâmetro", w_ic["met"], "center"), .ic_pad("Intervalo [ LI ; LS ]", w_ic["int"], "center"))
   cat(.ic_sep(nchar(hdr_ic)), "\n")
   cat("  ", hdr_ic, "\n", sep = "")
   cat(.ic_sep(nchar(hdr_ic)), "\n")
-  cat("  ", .ic_pad("Vari\u00e2ncia (\u03c3\u00b2)", w_ic["met"], "center"), 
+  cat("  ", .ic_pad("Variância (σ²)", w_ic["met"], "center"), 
       .ic_pad(sprintf("[ %s ; %s ]", .ic_fmt(linf_v, decimais), .ic_fmt(lsup_v, decimais)), w_ic["int"], "center"), "\n", sep = "")
-  cat("  ", .ic_pad("Desvio Padr\u00e3o (\u03c3)", w_ic["met"], "center"), 
+  cat("  ", .ic_pad("Desvio Padrão (σ)", w_ic["met"], "center"), 
       .ic_pad(sprintf("[ %s ; %s ]", .ic_fmt(linf_dp, decimais), .ic_fmt(lsup_dp, decimais)), w_ic["int"], "center"), "\n", sep = "")
   cat(.ic_sep(nchar(hdr_ic)), "\n\n")
   
   .print_topico("INTERPRETAÇÃO")
-  cat(sprintf("  Com %.0f%% de confian\u00e7a, estima-se que a variabilidade da\n", confianca * 100))
-  cat(sprintf("  popula\u00e7\u00e3o, medida pelo desvio padr\u00e3o, est\u00e1 entre %s e %s.\n", .ic_fmt(linf_dp, decimais), .ic_fmt(lsup_dp, decimais)))
+  cat(sprintf("  Com %.0f%% de confiança, estima-se que a variabilidade da\n", confianca * 100))
+  cat(sprintf("  população, medida pelo desvio padrão, está entre %s e %s.\n\n", .ic_fmt(linf_dp, decimais), .ic_fmt(lsup_dp, decimais)))
+  cat(sprintf("  Segundo a interpretação frequentista, podemos dizer que se repetirmos\n"))
+  cat(sprintf("  o experimento diversas vezes, %.0f%% dos intervalos de confiança\n", confianca * 100))
+  cat(sprintf("  construídos a partir dessas amostras irão conter o valor verdadeiro\n"))
+  cat(sprintf("  do parâmetro populacional.\n"))
   .print_rodape()
+  
+  if (grafico) {
+    tryCatch({
+      .plot_ic(dp, linf_dp, lsup_dp, 
+               sprintf("Intervalo de Confiança (%.0f%%) para o Desvio Padrão", confianca * 100), 
+               sprintf("Variável: %s", var_nome), "Desvio Padrão")
+    }, error = function(e) message("[Aviso] Falha ao plotar: ", e$message))
+  }
   
   invisible(data.frame(variancia = v, desvio_padrao = dp, li_var = linf_v, ls_var = lsup_v, li_dp = linf_dp, ls_dp = lsup_dp))
 }
@@ -290,7 +308,7 @@ ic_diferenca_medias <- function(x, grupo, variancia_igual = FALSE, confianca = 0
   
   grupo_vec <- as.factor(grupo_vec)
   niveis    <- levels(grupo_vec)
-  if (length(niveis) != 2) stop("O agrupamento deve conter exatamente 2 n\u00edveis.")
+  if (length(niveis) != 2) stop("O agrupamento deve conter exatamente 2 níveis.")
   
   res <- t.test(x_vec ~ grupo_vec, var.equal = variancia_igual, conf.level = confianca)
   
@@ -301,16 +319,15 @@ ic_diferenca_medias <- function(x, grupo, variancia_igual = FALSE, confianca = 0
   lsup   <- res$conf.int[2]
   gl     <- res$parameter
   
-  tipo_txt <- if (variancia_igual) "Student (vari\u00e2ncias iguais)" else "Welch (vari\u00e2ncias n\u00e3o iguais)"
+  tipo_txt <- if (variancia_igual) "Student (variâncias iguais)" else "Welch (variâncias não iguais)"
   
-  w_sep <- 67
-  .print_titulo("IC PARA A DIFEREN\u00c7A DE M\u00c9DIAS")
-  cat(sprintf("  Vari\u00e1vel: %s   |   Grupos: %s vs %s\n", var_nome, niveis[1], niveis[2]))
-  cat(sprintf("  M\u00e9todo: Teste t de %s\n\n", tipo_txt))
+  .print_titulo("IC PARA A DIFERENÇA DE MÉDIAS")
+  cat(sprintf("  Variável: %s   |   Grupos: %s vs %s\n", var_nome, niveis[1], niveis[2]))
+  cat(sprintf("  Método: Teste t de %s\n\n", tipo_txt))
   
   .print_topico("ESTIMATIVAS PONTUAIS")
   wc <- c(grp=15, med=15)
-  hdr_g <- paste0(.ic_pad("Grupo", wc["grp"], "center"), .ic_pad("M\u00e9dia", wc["med"], "center"))
+  hdr_g <- paste0(.ic_pad("Grupo", wc["grp"], "center"), .ic_pad("Média", wc["med"], "center"))
   cat(.ic_sep(nchar(hdr_g)), "\n")
   cat("  ", hdr_g, "\n", sep = "")
   cat(.ic_sep(nchar(hdr_g)), "\n")
@@ -318,9 +335,9 @@ ic_diferenca_medias <- function(x, grupo, variancia_igual = FALSE, confianca = 0
   cat("  ", .ic_pad(niveis[2], wc["grp"], "center"), .ic_pad(.ic_fmt(media2, decimais), wc["med"], "center"), "\n", sep = "")
   cat(.ic_sep(nchar(hdr_g)), "\n\n")
   
-  .print_topico(sprintf("INTERVALO DE CONFIAN\u00c7A PARA A DIFEREN\u00c7A (%.0f%%)\n", confianca * 100))
+  .print_topico(sprintf("INTERVALO DE CONFIANÇA PARA A DIFERENÇA (%.0f%%)\n", confianca * 100))
   w_ic <- c(dif=18, int=30)
-  hdr_ic <- paste0(.ic_pad("Diferen\u00e7a (\u0394)", w_ic["dif"], "center"), .ic_pad("Intervalo [ LI ; LS ]", w_ic["int"], "center"))
+  hdr_ic <- paste0(.ic_pad("Diferença (Δ)", w_ic["dif"], "center"), .ic_pad("Intervalo [ LI ; LS ]", w_ic["int"], "center"))
   cat(.ic_sep(nchar(hdr_ic)), "\n")
   cat("  ", hdr_ic, "\n", sep = "")
   cat(.ic_sep(nchar(hdr_ic)), "\n")
@@ -330,20 +347,24 @@ ic_diferenca_medias <- function(x, grupo, variancia_igual = FALSE, confianca = 0
   
   .print_topico("INTERPRETAÇÃO")
   if (linf * lsup > 0) {
-    cat(sprintf("  Como o intervalo n\u00e3o cont\u00e9m o zero, h\u00e1 diferen\u00e7a significativa\n"))
-    cat(sprintf("  entre as m\u00e9dias dos grupos (ao n\u00edvel de %.0f%% de confian\u00e7a).\n", confianca*100))
+    cat(sprintf("  Como o intervalo não contém o zero, há diferença significativa\n"))
+    cat(sprintf("  entre as médias dos grupos (ao nível de %.0f%% de confiança).\n\n", confianca*100))
   } else {
-    cat(sprintf("  Como o intervalo cont\u00e9m o zero, a diferen\u00e7a entre as m\u00e9dias\n"))
-    cat(sprintf("  n\u00e3o \u00e9 estatisticamente significativa (ao n\u00edvel de %.0f%% de confian\u00e7a).\n", confianca*100))
+    cat(sprintf("  Como o intervalo contém o zero, a diferença entre as médias\n"))
+    cat(sprintf("  não é estatisticamente significativa (ao nível de %.0f%% de confiança).\n\n", confianca*100))
   }
+  cat(sprintf("  Segundo a interpretação frequentista, podemos dizer que se repetirmos\n"))
+  cat(sprintf("  o experimento diversas vezes, %.0f%% dos intervalos de confiança\n", confianca * 100))
+  cat(sprintf("  construídos a partir dessas amostras irão conter o valor verdadeiro\n"))
+  cat(sprintf("  do parâmetro populacional.\n"))
   .print_rodape()
   
   if (grafico) {
     tryCatch({
       .plot_ic(dif, linf, lsup, 
-               sprintf("Intervalo de Confian\u00e7a (%.0f%%) para a Diferen\u00e7a", confianca * 100), 
-               sprintf("Variável: %s (%s: %s - %s)", var_nome, grupo_nome, niveis[1], niveis[2]), 
-               "\u0394 M\u00e9dia")
+               sprintf("Intervalo de Confiança (%.0f%%) para a Diferença", confianca * 100), 
+               sprintf("Variável: %s (%s vs %s)", var_nome, niveis[1], niveis[2]), 
+               "Δ Média")
     }, error = function(e) message("[Aviso] Falha ao plotar: ", e$message))
   }
   

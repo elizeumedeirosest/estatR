@@ -1,4 +1,4 @@
-#' @title Resumo Estatistico de Variaveis ou Banco de Dados
+﻿#' @title Resumo Estatistico de Variaveis ou Banco de Dados
 #' @description Gera um resumo estatistico completo.
 #' @param x Um data frame ou vetor.
 #' @param por Variavel categorica para agrupar o resumo.
@@ -253,7 +253,7 @@ descrever <- function(x, por = NULL, numericas = TRUE, categoricas = TRUE, decim
         col,
         as.character(niveis_n),
         moda,
-        sprintf("%.1f%%", freq_pct)
+        formatC(freq_pct, format = "f", digits = 1, decimal.mark = ",")
       )
     }
     
@@ -387,8 +387,8 @@ descrever <- function(x, por = NULL, numericas = TRUE, categoricas = TRUE, decim
     col_valores <- c(
       .pad_string(cat_name, w_cat_ind["cat"], "left"),
       .pad_string(as.character(df_freq$Frequencia[i]), w_cat_ind["n"], "center"),
-      .pad_string(.fmt_pct(df_freq$Relativa[i], 1), w_cat_ind["rel"], "center"),
-      .pad_string(.fmt_pct(df_freq$Acumulada[i], 1), w_cat_ind["acum"], "center")
+      .pad_string(.fmt_num(df_freq$Relativa[i] * 100, 1), w_cat_ind["rel"], "center"),
+      .pad_string(.fmt_num(df_freq$Acumulada[i] * 100, 1), w_cat_ind["acum"], "center")
     )
     cat("  ", paste(col_valores, collapse = " "), "\n", sep = "")
   }
@@ -398,7 +398,7 @@ descrever <- function(x, por = NULL, numericas = TRUE, categoricas = TRUE, decim
   col_total <- c(
     .pad_string("Total", w_cat_ind["cat"], "left"),
     .pad_string(as.character(n_obs), w_cat_ind["n"], "center"),
-    .pad_string(.fmt_pct(1, 1), w_cat_ind["rel"], "center"),
+    .pad_string("100,0", w_cat_ind["rel"], "center"),
     .pad_string("-", w_cat_ind["acum"], "center")
   )
   cat("  ", paste(col_total, collapse = " "), "\n", sep = "")
@@ -461,7 +461,8 @@ tabela_contingencia <- function(dados, var_x = NULL, var_y = NULL, proporcao = c
   .print_titulo(tit)
   
   w_lin <- max(14, max(nchar(categorias_x)), nchar(x_nome), nchar("Total")) + 2
-  w_col <- max(12, max(nchar(categorias_y)), nchar("Total")) + 2
+  largura_conteudo_col <- if (proporcao == "nenhuma") 10 else 16
+  w_col <- max(largura_conteudo_col, max(nchar(categorias_y)), nchar("Total")) + 2
   
   # Rótulo da variável de coluna (eixo Y) centralizado acima das categorias
   largura_cols_y <- length(categorias_y) * (w_col + 1) - 1
@@ -659,7 +660,7 @@ med_dispersao <- function(x, decimais = 2) {
     .pad_string(.fmt_num(dp, decimais), w["dp"], "center"),
     .pad_string(.fmt_num(var_val, decimais), w["var"], "center"),
     .pad_string(.fmt_num(amp, decimais), w["amp"], "center"),
-    .pad_string(paste0(.fmt_num(cv, decimais), "%"), w["cv"], "center")
+    .pad_string(.fmt_num(cv, decimais), w["cv"], "center")
   )
   cat("  ", paste(col_valores, collapse = " "), "\n", sep = "")
   

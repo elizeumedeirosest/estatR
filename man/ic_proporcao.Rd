@@ -4,7 +4,14 @@
 \alias{ic_proporcao}
 \title{Intervalo de Confiança para a Proporção}
 \usage{
-ic_proporcao(x, n, confianca = 0.95, decimais = 3, grafico = TRUE)
+ic_proporcao(
+  x,
+  n,
+  confianca = 0.95,
+  decimais = 3,
+  grafico = TRUE,
+  variavel = NULL
+)
 }
 \arguments{
 \item{x}{Número de sucessos.}
@@ -16,6 +23,8 @@ ic_proporcao(x, n, confianca = 0.95, decimais = 3, grafico = TRUE)
 \item{decimais}{Casas decimais para exibição (padrão 3).}
 
 \item{grafico}{Lógico. Se TRUE, plota o intervalo com a estimativa pontual.}
+
+\item{variavel}{Nome descritivo da variável para exibição (opcional).}
 }
 \value{
 Retorna invisivelmente um data frame com os resultados.

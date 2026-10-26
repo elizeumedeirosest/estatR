@@ -283,7 +283,7 @@ bootstrap <- function(x = NULL,
   vies_txt <- if (abs(vies) < 0.001 * pmax(1e-10, abs(est_original))) "praticamente nulo" else
               if (vies > 0) "positivo (tendência à superestimação)" else "negativo (tendência à subestimação)"
 
-  cat(sprintf("  * O viés da reamostragem é %s (%s).\n", vies_txt, .fmt_num(vies, 4)))
+  .print_topico("INTERPRETAÇÃO")
   cat(sprintf("  * Com %.0f%% de confiança, a estatística verdadeira estimada situa-se em [%s ; %s].\n\n",
               confianca * 100, .fmt_num(linf, 4), .fmt_num(lsup, 4)))
 
@@ -303,7 +303,7 @@ bootstrap <- function(x = NULL,
       p_plot <- ggplot2::ggplot(df_boot_g, ggplot2::aes(x = vals)) +
         ggplot2::geom_histogram(ggplot2::aes(y = ggplot2::after_stat(density)),
                                 bins = min(50, ceiling(sqrt(repeticoes))),
-                                fill = "#888888", color = "white", alpha = 0.8) +
+                                fill = "#DDDDDD", color = "black", alpha = 0.9) +
         ggplot2::geom_density(color = "#2B5C8F", linewidth = 1.0) +
         ggplot2::geom_vline(xintercept = est_boot, color = "#E67E22",
                             linetype = "solid", linewidth = 1.0) +
@@ -416,7 +416,7 @@ simular_tcl <- function(x, n_amostra = 30, repeticoes = 1000, semente = NULL) {
       p1 <- ggplot2::ggplot(df_pop, ggplot2::aes(x = x)) +
         ggplot2::geom_histogram(ggplot2::aes(y = ggplot2::after_stat(density)),
                                 bins = min(30, ceiling(sqrt(n))),
-                                fill = "#888888", color = "white", alpha = 0.8) +
+                                fill = "#DDDDDD", color = "black", alpha = 0.9) +
         ggplot2::geom_density(color = "#D90429", linewidth = 0.9) +
         ggplot2::labs(title = sprintf("Popula\u00e7\u00e3o Original\n(%s)", var_nome),
                       x = var_nome, y = "Densidade") +
@@ -428,7 +428,7 @@ simular_tcl <- function(x, n_amostra = 30, repeticoes = 1000, semente = NULL) {
       p2 <- ggplot2::ggplot(df_med, ggplot2::aes(x = x)) +
         ggplot2::geom_histogram(ggplot2::aes(y = ggplot2::after_stat(density)),
                                 bins = min(50, ceiling(sqrt(repeticoes))),
-                                fill = "#555555", color = "white", alpha = 0.8) +
+                                fill = "#AAAAAA", color = "black", alpha = 0.85) +
         ggplot2::geom_line(data = df_norm, ggplot2::aes(x = x, y = y),
                            color = "#D90429", linewidth = 1.1) +
         ggplot2::labs(title = sprintf("Distribui\u00e7\u00e3o das M\u00e9dias\n(%d amostras, n = %d)", repeticoes, n_amostra),
@@ -529,7 +529,7 @@ monte_carlo <- function(experimento, repeticoes = 10000, confianca = 0.95,
                           label = sprintf("  p\u0302 = %s%%", .sim_fmt(p_hat * 100, 2)),
                           hjust = 1, vjust = -0.5, size = 4.5,
                           fontface = "bold", color = "#D90429") +
-        ggplot2::scale_x_continuous(labels = scales::comma_format(big.mark = ".", decimal.mark = ",", decimal.mark = ",")) +
+        ggplot2::scale_x_continuous(labels = scales::comma_format(big.mark = ".", decimal.mark = ",")) +
         ggplot2::labs(
           title    = "Converg\u00eancia da Simula\u00e7\u00e3o de Monte Carlo",
           subtitle = sprintf("Probabilidade estabilizando em %s%%  |  IC %.0f%%: [%s%% ; %s%%]",

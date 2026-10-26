@@ -158,7 +158,7 @@ estimar_verossimilhanca <- function(x, distribuicao = c("normal", "poisson", "ex
         emv_val   <- mu_hat
         emv_ll    <- ll_max
         titulo    <- sprintf("Curva de Log-Verossimilhan\u00e7a — %s", tools::toTitleCase(distribuicao))
-        sub_txt   <- sprintf("EMV: \u03bc\u0302 = %s  (com \u03c3 = %s fixado)", .est_fmt(mu_hat, 3), .est_fmt(sigma_fix, 3))
+        sub_txt   <- bquote(hat(mu) == .(.est_fmt(mu_hat, 3)) ~ (sigma == .(.est_fmt(sigma_fix, 3)) ~ "fixado"))
 
       } else if (distribuicao == "poisson") {
         lam_hat   <- params_emv$lambda
@@ -169,7 +169,7 @@ estimar_verossimilhanca <- function(x, distribuicao = c("normal", "poisson", "ex
         emv_val   <- lam_hat
         emv_ll    <- ll_max
         titulo    <- "Curva de Log-Verossimilhan\u00e7a — Poisson"
-        sub_txt   <- sprintf("EMV: \u03bb\u0302 = %s", .est_fmt(lam_hat, 3))
+        sub_txt   <- bquote(hat(lambda) == .(.est_fmt(lam_hat, 3)))
 
       } else if (distribuicao == "exponencial") {
         taxa_hat  <- params_emv$taxa
@@ -180,7 +180,7 @@ estimar_verossimilhanca <- function(x, distribuicao = c("normal", "poisson", "ex
         emv_val   <- taxa_hat
         emv_ll    <- ll_max
         titulo    <- "Curva de Log-Verossimilhan\u00e7a — Exponencial"
-        sub_txt   <- sprintf("EMV: \u03bb\u0302 = %s  (\u03bc\u0302 = %s)", .est_fmt(taxa_hat, 3), .est_fmt(1/taxa_hat, 3))
+        sub_txt   <- bquote(hat(lambda) == .(.est_fmt(taxa_hat, 3)) ~ (hat(mu) == .(.est_fmt(1/taxa_hat, 3))))
 
       } else { # gamma — perfil em relação ao shape
         shape_hat <- params_emv$shape
@@ -192,7 +192,7 @@ estimar_verossimilhanca <- function(x, distribuicao = c("normal", "poisson", "ex
         emv_val   <- shape_hat
         emv_ll    <- ll_max
         titulo    <- "Curva de Log-Verossimilhan\u00e7a — Gamma"
-        sub_txt   <- sprintf("EMV: \u03b1\u0302 = %s  (com \u03b2 = %s fixado)", .est_fmt(shape_hat, 3), .est_fmt(rate_hat, 3))
+        sub_txt   <- bquote(hat(alpha) == .(.est_fmt(shape_hat, 3)) ~ (beta == .(.est_fmt(rate_hat, 3)) ~ "fixado"))
         xlab_plot <- "\u03b1"
       }
 
@@ -208,9 +208,9 @@ estimar_verossimilhanca <- function(x, distribuicao = c("normal", "poisson", "ex
                             ggplot2::aes(x = x, y = y),
                             color = "#D90429", size = 5, shape = 18) +
         ggplot2::annotate("text", x = emv_val, y = emv_ll,
-                          label = sprintf(" \u03b8\u0302 = %s", .est_fmt(emv_val, 3)),
+                          label = sprintf("hat(theta) == %s", gsub(",", ".", .est_fmt(emv_val, 3))),
                           hjust = -0.1, vjust = -0.8, size = 4.5,
-                          fontface = "bold", color = "#D90429") +
+                          fontface = "bold", color = "#D90429", parse = TRUE) +
         ggplot2::scale_y_continuous(expand = ggplot2::expansion(mult = c(0.05, 0.15))) +
         ggplot2::labs(title = titulo, subtitle = sub_txt,
                       x = xlab_plot, y = "log L(\u03b8)", caption = "estatR") +
@@ -348,19 +348,19 @@ estimar_momentos <- function(x, distribuicao = c("normal", "poisson", "exponenci
 
       if (distribuicao == "normal") {
         df_teo <- data.frame(x = x_seq, y = dnorm(x_seq, mean = params_mm$mu, sd = params_mm$sigma))
-        sub_txt <- sprintf("\u03bc\u0302 = %s,  \u03c3\u0302 = %s", .est_fmt(params_mm$mu, 3), .est_fmt(params_mm$sigma, 3))
+        sub_txt <- bquote(hat(mu) == .(.est_fmt(params_mm$mu, 3)) ~ "," ~ hat(sigma) == .(.est_fmt(params_mm$sigma, 3)))
       } else if (distribuicao == "poisson") {
         x_int   <- seq(floor(x_min), ceiling(x_max))
         df_teo  <- data.frame(x = x_int, y = dpois(x_int, lambda = params_mm$lambda))
-        sub_txt <- sprintf("\u03bb\u0302 = %s", .est_fmt(params_mm$lambda, 3))
+        sub_txt <- bquote(hat(lambda) == .(.est_fmt(params_mm$lambda, 3)))
       } else if (distribuicao == "exponencial") {
         x_seq_e <- seq(0, x_max * 1.2, length.out = 300)
         df_teo  <- data.frame(x = x_seq_e, y = dexp(x_seq_e, rate = params_mm$taxa))
-        sub_txt <- sprintf("\u03bb\u0302 = %s  (\u03bc\u0302 = %s)", .est_fmt(params_mm$taxa, 3), .est_fmt(1/params_mm$taxa, 3))
+        sub_txt <- bquote(hat(lambda) == .(.est_fmt(params_mm$taxa, 3)) ~ (hat(mu) == .(.est_fmt(1/params_mm$taxa, 3))))
       } else { # gamma
         x_seq_g <- seq(0.001, x_max * 1.2, length.out = 300)
         df_teo  <- data.frame(x = x_seq_g, y = dgamma(x_seq_g, shape = params_mm$shape, rate = params_mm$rate))
-        sub_txt <- sprintf("\u03b1\u0302 = %s,  \u03b2\u0302 = %s", .est_fmt(params_mm$shape, 3), .est_fmt(params_mm$rate, 3))
+        sub_txt <- bquote(hat(alpha) == .(.est_fmt(params_mm$shape, 3)) ~ "," ~ hat(beta) == .(.est_fmt(params_mm$rate, 3)))
       }
 
       old_w <- getOption("warn"); options(warn = -1)
@@ -373,7 +373,7 @@ estimar_momentos <- function(x, distribuicao = c("normal", "poisson", "exponenci
 
         p_plot <- ggplot2::ggplot() +
           ggplot2::geom_col(data = df_freq, ggplot2::aes(x = x_c, y = prop),
-                            fill = "#888888", color = "white", alpha = 0.7, width = 0.6) +
+                            fill = "#DDDDDD", color = "black", alpha = 0.7, width = 0.6) +
           ggplot2::geom_point(data = df_teo, ggplot2::aes(x = x, y = y),
                               color = "#D90429", size = 3) +
           ggplot2::geom_line(data = df_teo, ggplot2::aes(x = x, y = y),
@@ -388,7 +388,7 @@ estimar_momentos <- function(x, distribuicao = c("normal", "poisson", "exponenci
         p_plot <- ggplot2::ggplot(df_obs, ggplot2::aes(x = x)) +
           ggplot2::geom_histogram(ggplot2::aes(y = ggplot2::after_stat(density)),
                                   bins = min(30, ceiling(sqrt(n))),
-                                  fill = "#888888", color = "white", alpha = 0.7) +
+                                  fill = "#DDDDDD", color = "black", alpha = 0.9) +
           ggplot2::geom_line(data = df_teo, ggplot2::aes(x = x, y = y),
                              color = "#D90429", linewidth = 1.2) +
           ggplot2::labs(

@@ -7,8 +7,10 @@
 prob_binomial(
   ensaios,
   prob,
-  q,
-  tipo = c("exato", "menor", "maior"),
+  q1 = NULL,
+  q2 = NULL,
+  q = NULL,
+  tipo = c("exato", "menor", "maior", "entre"),
   grafico = TRUE
 )
 }
