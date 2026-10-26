@@ -1,0 +1,117 @@
+project:
+  type: website
+  output-dir: docs
+
+website:
+  title: "estatR"
+  site-url: "https://elizeumedeirosest.github.io/estatR"
+  description: "Camada estatística moderna, didática e de alto padrão editorial para R"
+  favicon: "man/figures/logo.svg"
+  
+  navbar:
+    logo: "man/figures/logo.svg"
+    title: "estatR"
+    search: true
+    collapse-below: lg
+    left:
+      - text: "Início"
+        href: index.qmd
+      - text: "Guia Rápido"
+        href: guia_rapido.qmd
+      - text: "Módulos"
+        menu:
+          - text: "Diagnóstico e Descritiva"
+            href: modulos/descritiva.qmd
+          - text: "Inferência e Testes"
+            href: modulos/inferencia.qmd
+          - text: "Intervalos de Confiança"
+            href: modulos/intervalos.qmd
+          - text: "Probabilidade e Simulação"
+            href: modulos/probabilidade.qmd
+          - text: "Modelos Lineares e Regressão"
+            href: modulos/regressao.qmd
+          - text: "Modelos Lineares Generalizados (MLG)"
+            href: modulos/mlg.qmd
+          - text: "Séries Temporais"
+            href: modulos/series_temporais.qmd
+          - text: "Análise Multivariada"
+            href: modulos/multivariada.qmd
+          - text: "Planejamento Experimental"
+            href: modulos/experimentos.qmd
+          - text: "Machine Learning e Sobrevivência"
+            href: modulos/aprendizado_maquina.qmd
+          - text: "Amostragem Probabilística"
+            href: modulos/amostragem.qmd
+      - text: "Referência (120+ Funções)"
+        href: referencia.qmd
+    right:
+      - icon: github
+        href: "https://github.com/elizeumedeirosest/estatR"
+        aria-label: GitHub
+
+  sidebar:
+    - id: modulos-sidebar
+      style: "docked"
+      title: "Módulos do Pacote"
+      contents:
+        - text: "Guia de Instalação"
+          href: guia_rapido.qmd
+        - section: "Análise Exploratória"
+          contents:
+            - text: "Diagnóstico e Descritiva"
+              href: modulos/descritiva.qmd
+            - text: "Amostragem Probabilística"
+              href: modulos/amostragem.qmd
+        - section: "Inferência Estatística"
+          contents:
+            - text: "Testes de Hipótese"
+              href: modulos/inferencia.qmd
+            - text: "Intervalos de Confiança"
+              href: modulos/intervalos.qmd
+            - text: "Probabilidade e Simulação"
+              href: modulos/probabilidade.qmd
+        - section: "Modelagem Estatística"
+          contents:
+            - text: "Regressão Linear Clássica"
+              href: modulos/regressao.qmd
+            - text: "Modelos Generalizados (MLG)"
+              href: modulos/mlg.qmd
+            - text: "Séries Temporais"
+              href: modulos/series_temporais.qmd
+        - section: "Métodos Avançados"
+          contents:
+            - text: "Análise Multivariada"
+              href: modulos/multivariada.qmd
+            - text: "Delineamentos Experimentais"
+              href: modulos/experimentos.qmd
+            - text: "Machine Learning & Sobrevivência"
+              href: modulos/aprendizado_maquina.qmd
+        - text: "Catálogo Completo de Funções"
+          href: referencia.qmd
+
+  page-footer:
+    left: "© 2026 estatR • Camada Estatística de Alto Padrão para R"
+    right:
+      - icon: github
+        href: "https://github.com/elizeumedeirosest/estatR"
+      - text: "Desenvolvido por Elizeu Medeiros"
+
+format:
+  html:
+    theme:
+      light: cosmo
+      dark: darkly
+    css: styles.css
+    toc: true
+    toc-depth: 3
+    toc-title: "Nesta Página"
+    smooth-scroll: true
+    code-copy: true
+    code-overflow: wrap
+    code-link: false
+    fig-align: center
+
+execute:
+  eval: false
+  warning: false
+  message: false

@@ -1,0 +1,82 @@
+---
+title: "Probabilidade, Distribuições e Simulação"
+subtitle: "Painéis didáticos, probabilidades exatas e métodos computacionais de Monte Carlo"
+---
+
+## Visão Geral do Módulo
+
+O módulo de probabilidade e distribuições do **estatR** foi concebido para transformar fórmulas abstratas em intuição visual. Ele permite explorar distribuições contínuas e discretas, calcular probabilidades exatas de cauda ou entre limites, e realizar experimentos computacionais modernos.
+
+---
+
+## Painel Didático de Distribuições
+
+### `distribuicao()`
+Apresenta uma visão completa da distribuição solicitada: densidade/massa teórica, momentos teóricos (média, variância, assimetria e curtose), quantis principais e visualização gráfica com parâmetros explícitos no título (ex: $\mathcal{N}(\mu, \sigma)$):
+
+```r
+# Distribuição Normal com realce das áreas de 1, 2 e 3 desvios
+distribuicao("normal", media = 100, dp = 15)
+
+# Distribuição t de Student com graus de liberdade
+distribuicao("t", gl = 5)
+
+# Distribuição Qui-Quadrado
+distribuicao("qui_quadrado", gl = 3)
+
+# Distribuição F de Snedecor
+distribuicao("f", gl1 = 2, gl2 = 15)
+
+# Distribuição Poisson
+distribuicao("poisson", lambda = 3)
+
+# Distribuição Exponencial com simulação da Lei dos Grandes Números
+distribuicao("exponencial", taxa = 0.5, simulacao = TRUE)
+```
+
+---
+
+## Cálculo de Probabilidades Específicas
+
+Cálculo com saídas estruturadas em cabeçalho, parâmetros e probabilidade associada:
+
+```r
+# Probabilidade Normal: P(85 <= X <= 115)
+prob_normal(media = 100, dp = 15, q1 = 85, q2 = 115, tipo = "entre")
+
+# Probabilidade Binomial: P(5 <= X <= 6) em 10 ensaios
+prob_binomial(ensaios = 10, prob = 0.5, q1 = 5, q2 = 6, tipo = "entre")
+
+# Probabilidade Poisson: P(X <= 2) com lambda = 2
+prob_poisson(lambda = 2, q = 2, tipo = "menor")
+
+# Probabilidade Exponencial: P(X > 2)
+prob_exponencial(taxa = 0.5, q1 = 2, tipo = "maior")
+```
+
+---
+
+## Estimação & Simulação Computacional
+
+### Máxima Verossimilhança & Método dos Momentos
+Plota a curva de log-verossimilhança e ajusta curvas teóricas com bordas pretas padronizadas nos histogramas:
+
+```r
+# Máxima Verossimilhança
+estimar_verossimilhanca(mtcars$mpg, distribuicao = "normal")
+
+# Método dos Momentos
+estimar_momentos(mtcars$wt, distribuicao = "gamma")
+```
+
+### Bootstrap & Teorema Central do Limite (TCL)
+```r
+# Bootstrap não-paramétrico com 5.000 replicações
+bootstrap(mtcars$mpg, estatistica = "media", repeticoes = 5000)
+
+# Simulação didática do TCL (comparação amostra vs distribuição das médias)
+simular_tcl(mtcars$mpg, n_amostra = 30, repeticoes = 1000)
+
+# Experimentos de Monte Carlo
+monte_carlo(experimento = function() mean(rnorm(30)) > 0.3, repeticoes = 10000)
+```

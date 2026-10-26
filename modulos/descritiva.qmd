@@ -1,0 +1,111 @@
+---
+title: "Diagnóstico e Estatística Descritiva"
+subtitle: "Exploração de dados, detecção de outliers e síntese estatística polimórfica"
+---
+
+## Visão Geral do Módulo
+
+O módulo de diagnóstico e estatística descritiva do **estatR** foi projetado para eliminar o atrito inicial na exploração de qualquer conjunto de dados. Ele reúne desde a checagem de tipos e valores ausentes até resumos numéricos completos e tabelas de contingência bidimensionais.
+
+---
+
+## Diagnóstico de Dados
+
+### `diagnostico()`
+Produz um diagnóstico global com número de linhas, colunas, presença de valores faltantes (`NA`) e classificação das variáveis.
+
+```r
+# Diagnóstico global de um data frame
+diagnostico(iris)
+
+# Diagnóstico de uma variável específica
+diagnostico(iris$Sepal.Length)
+```
+
+### `estrutura()` & `valores_ausentes()`
+Funções focadas na integridade do banco:
+
+```r
+# Inspeção de tipos e classes de colunas
+estrutura(iris)
+
+# Mapa e contagem de valores ausentes (com gráfico opcional)
+valores_ausentes(airquality, grafico = TRUE)
+```
+
+### `outliers()`
+Identifica valores discrepantes com base no critério de Tukey (distância interquartílica, $1{,}5 \times IIQ$) ou escore Z:
+
+```r
+outliers(mtcars$mpg, metodo = "iqr")
+```
+
+---
+
+## Estatística Descritiva
+
+### `descrever()`
+Função polimórfica universal do **estatR**:
+* Para **vetores numéricos**: calcula média, desvio padrão, mediana, IIQ, mínimo e máximo.
+* Para **fatores / strings**: gera tabela de frequências absolutas e percentuais com alinhamento rigoroso.
+* Para **data frames**: sintetiza todas as variáveis da tabela de forma compacta.
+* Com argumento `por`: calcula as métricas numéricas estratificadas por uma variável de grupo.
+
+```r
+# Numérica simples
+descrever(mtcars$mpg)
+
+# Categórica simples
+descrever(mtcars$cyl)
+
+# Estratificada por grupo
+descrever(iris$Sepal.Length, por = iris$Species)
+```
+
+### `tabela_contingencia()`
+Cruzamento bivariado de duas variáveis categóricas, com suporte a frequências conjuntas e proporções por linha, coluna ou total:
+
+```r
+# Frequências absolutas
+tabela_contingencia(mtcars, cyl, am)
+
+# Proporções por linha centralizadas
+tabela_contingencia(mtcars, cyl, am, proporcao = "linha")
+```
+
+---
+
+## Separatrizes Amostrais
+
+Funções dedicadas para cálculo intuitivo de pontos de corte e medidas de posição:
+
+```r
+# Quartis (Q1, Q2, Q3) e IIQ
+quartis(mtcars$mpg)
+
+# Quintis (20%, 40%, 60%, 80%)
+quintis(mtcars$mpg)
+
+# Decis (D1 a D9)
+decis(mtcars$mpg)
+
+# Percentis específicos
+percentis(mtcars$mpg, p = c(0.01, 0.05, 0.95, 0.99))
+```
+
+---
+
+## Medidas Específicas
+
+Quando você precisa apenas de um bloco específico de estatísticas:
+
+```r
+# Tendência Central: média, mediana e moda
+med_tend_central(mtcars$mpg)
+
+# Dispersão: variância, desvio padrão, erro padrão, CV (%) e amplitude
+med_dispersao(mtcars$mpg)
+
+# Forma: assimetria (skewness) e curtose teóricas
+med_forma(mtcars$mpg)
+```

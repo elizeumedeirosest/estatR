@@ -1,0 +1,87 @@
+---
+title: "Inferência e Testes de Hipótese"
+subtitle: "Testes paramétricos e não-paramétricos com saídas didáticas e gráficos editoriais"
+---
+
+## Visão Geral do Módulo
+
+O módulo de inferência estatística do **estatR** traduz os testes de hipótese clássicos em saídas ricas no console, explicitando a hipótese nula ($H_0$), hipótese alternativa ($H_1$), estatística de teste, graus de liberdade, p-valor e conclusão didática imediata.
+
+---
+
+## Testes Paramétricos
+
+### Teste T para Uma Amostra
+Compara a média amostral com um valor de referência populacional ($\mu_0$):
+
+```r
+teste_t_uma_amostra(mtcars$mpg, mu = 20, grafico = TRUE)
+```
+
+### Teste T para Duas Amostras Independentes
+Avalia se as médias de dois grupos diferem significativamente, executando automaticamente a verificação de homocedasticidade (teste de Welch por padrão):
+
+```r
+teste_t_duas_amostras(mpg ~ am, dados = mtcars, grafico = TRUE)
+```
+*O gráfico exibe o boxplot editorial com ponto de média em preto, realce da caixa maior e intervalo de confiança.*
+
+### Teste T Pareado
+Para amostras dependentes (ex: medidas de antes e depois):
+
+```r
+teste_t_pareado(dados$antes, dados$depois, grafico = TRUE)
+```
+
+### Teste de Proporção
+Teste binomial exato ou assintótico para proporções amostrais:
+
+```r
+teste_proporcao(x = 87, n = 300, p0 = 0.25)
+```
+
+---
+
+## Testes Não-Paramétricos e Categóricos
+
+### Teste de Wilcoxon & Mann-Whitney
+Alternativas não-paramétricas para comparação de medianas quando o pressuposto de normalidade não é atendido:
+
+```r
+# Uma amostra / pareado (Wilcoxon Signed-Rank)
+teste_wilcoxon(mtcars$mpg, mu = 20, grafico = TRUE)
+
+# Duas amostras independentes (Mann-Whitney U)
+teste_mann_whitney(mpg ~ am, dados = mtcars, grafico = TRUE)
+```
+
+### Kruskal-Wallis & Friedman
+Alternativas não-paramétricas para comparação de 3 ou mais grupos:
+
+```r
+# Grupos independentes (Kruskal-Wallis com post-hoc de Dunn)
+teste_kruskal(Sepal.Length ~ Species, dados = iris)
+
+# Medidas repetidas / blocos (Friedman)
+teste_friedman(y ~ grupo | bloco, dados = dados_repetidos)
+```
+
+### Qui-Quadrado de Independência & Homogeneidade
+Testa a associação entre variáveis categóricas com tabela de contingência, resíduos padronizados e teste de homogeneidade de variâncias de Levene:
+
+```r
+# Teste Qui-Quadrado de Independência
+teste_qui_quadrado(mtcars, cyl, am)
+
+# Teste de Homocedasticidade de Levene
+teste_levene(mtcars$mpg, mtcars$am)
+```
+
+### Concordância Contínua e Categórica
+```r
+# Concordância de Cohen / Fleiss (Kappa)
+concordancia_kappa(avaliador1, avaliador2)
+
+# Gráfico de Concordância de Bland-Altman
+grafico_bland_altman(dados, metodo1 = "termometro_A", metodo2 = "termometro_B")
+```

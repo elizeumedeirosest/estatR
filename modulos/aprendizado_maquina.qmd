@@ -1,0 +1,45 @@
+---
+title: "Aprendizado de Máquina e Sobrevivência"
+subtitle: "Classificação supervisionada, modelos de Cox e curvas de Kaplan-Meier"
+---
+
+## Visão Geral do Módulo
+
+O módulo integra algoritmos de classificação supervisionada (árvores de decisão, florestas aleatórias, gradient boosting) com a análise clássica de dados de sobrevivência e tempo até o evento.
+
+---
+
+## Aprendizado de Máquina
+
+### Classificação Supervisionada
+Treinamento, predição e matriz de confusão com métricas completas de sensibilidade, especificidade, precisão e escore F1:
+
+```r
+# Ajuste do classificador
+modelo_ml <- classificacao_aprend_maq(Species ~ ., dados = iris, algoritmo = "random_forest")
+
+# Previsão e métricas em dados de teste
+predicoes <- previsao_aprend_maq(modelo_ml, novos_dados = dados_teste)
+metricas_aprend_maq(modelo_ml)
+```
+
+---
+
+## Análise de Sobrevivência
+
+### Curvas de Kaplan-Meier
+Estimação não-paramétrica da função de sobrevivência com intervalos de confiança e teste de log-rank:
+
+```r
+res_sob <- analise_sobrevivencia(tempo = dados$tempo, status = dados$evento, grupo = dados$tratamento)
+grafico_sobrevivencia(res_sob)
+```
+
+### Regressão de Riscos Proporcionais de Cox
+Modelagem semi-paramétrica de fatores de risco com verificação de pressupostos de proporcionalidade:
+
+```r
+mod_cox <- regressao_cox(tempo = dados$tempo, status = dados$evento, formula = ~ idade + sexo + grupo, dados = dados)
+metricas_cox(mod_cox)
+grafico_cox(mod_cox)
+```

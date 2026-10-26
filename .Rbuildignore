@@ -1,5 +1,12 @@
-^.*\.Rproj$
+﻿^.*\.Rproj$
 ^\.Rproj\.user$
 ^_pkgdown\.yml$
-^docs$
 ^pkgdown$
+^_quarto\.yml$
+^index\.qmd$
+^guia_rapido\.qmd$
+^referencia\.qmd$
+^styles\.css$
+^modulos$
+^assets$
+^docs$
