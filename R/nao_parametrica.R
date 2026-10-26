@@ -7,7 +7,7 @@
 
 #' @title Teste de Kruskal-Wallis com Comparações Múltiplas (Dunn)
 #' @description Alternativa não-paramétrica à ANOVA a um fator para comparar a
-#'   distribuição de $k \ge 2$ grupos independentes. Caso haja significância estatística,
+#'   distribuição de \eqn{k \ge 2}{k >= 2} grupos independentes. Caso haja significância estatística,
 #'   executa automaticamente o teste post-hoc de Dunn com ajuste de p-valor
 #'   (Holm, Bonferroni ou FDR) e gera gráfico de boxplot padronizado.
 #'
@@ -15,7 +15,7 @@
 #' @param formula Fórmula no formato \code{y ~ grupo}.
 #' @param y Variável numérica resposta (símbolo ou string), se fórmula não fornecida.
 #' @param grupo Variável categórica / fator de agrupamento, se fórmula não fornecida.
-#' @param post_hoc Método de comparações múltiplas caso $p < 0,05$: \code{"dunn"} (padrão),
+#' @param post_hoc Método de comparações múltiplas caso \eqn{p < 0{,}05}{p < 0.05}: \code{"dunn"} (padrão),
 #'   \code{"bonferroni"} ou \code{"nenhum"}.
 #' @param ajuste_p Método de correção para múltiplos testes: \code{"holm"} (padrão),
 #'   \code{"bonferroni"} ou \code{"fdr"}.
@@ -221,7 +221,7 @@ teste_kruskal <- function(dados, formula = NULL, y = NULL, grupo = NULL,
 
 #' @title Teste de Friedman para Medidas Repetidas / Blocos
 #' @description Alternativa não-paramétrica à ANOVA de medidas repetidas ou blocos casualizados (DBC).
-#'   Avalia se as distribuições diferem entre $k \ge 3$ condições ou períodos pareados.
+#'   Avalia se as distribuições diferem entre \eqn{k \ge 3}{k >= 3} condições ou períodos pareados.
 #'   Caso significativo, executa comparações pareadas com ajuste de p-valor.
 #'
 #' @param dados Data frame contendo os dados.
@@ -229,7 +229,7 @@ teste_kruskal <- function(dados, formula = NULL, y = NULL, grupo = NULL,
 #' @param y Variável numérica resposta, se fórmula não fornecida.
 #' @param grupo Fator de grupos / tratamentos / tempos, se fórmula não fornecida.
 #' @param bloco Fator de identificação do sujeito / bloco, se fórmula não fornecida.
-#' @param post_hoc Lógico. Se \code{TRUE} (padrão), executa comparações pareadas caso $p < 0,05$.
+#' @param post_hoc Lógico. Se \code{TRUE} (padrão), executa comparações pareadas caso \eqn{p < 0{,}05}{p < 0.05}.
 #' @param ajuste_p Método de ajuste de p-valor: \code{"holm"} (padrão), \code{"bonferroni"} ou \code{"fdr"}.
 #' @param confianca Nível de confiança (padrão: 0.95).
 #' @param grafico Lógico. Se \code{TRUE} (padrão), gera gráfico de perfil temporal / tratamentos.
@@ -668,7 +668,7 @@ concordancia_kappa <- function(dados, avaliador1 = NULL, avaliador2 = NULL,
 #' @title Gráfico e Diagnóstico de Bland-Altman
 #' @description Avalia a concordância entre dois métodos contínuos de medição
 #'   (ex: dois instrumentos, ensaio laboratorial vs teste rápido).
-#'   Estima o viés médio ($\bar{d}$), limites de concordância de 95% ($\bar{d} \pm 1,96 \cdot DP$),
+#'   Estima o viés médio (\eqn{\bar{d}}{\code{d_barra}}), limites de concordância de 95\% (\eqn{\bar{d} \pm 1{,}96 \cdot DP}{\code{d_barra +- 1.96*DP}}),
 #'   intervalos de confiança dos parâmetros e gera gráfico no padrão visual do estatR.
 #'
 #' @param dados Data frame contendo as medições.

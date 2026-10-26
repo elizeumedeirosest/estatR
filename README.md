@@ -1,7 +1,32 @@
-# estatR <img src="man/figures/logo.png" align="right" height="120" alt="" />
+<div align="center">
 
-> **Uma camada estatística intuitiva e didática para o R.**  
-> Saídas em português, formatação limpa e gráficos prontos para uso.
+<img src="man/figures/logo.svg" alt="estatR Logo" width="150" height="150" />
+
+# estatR
+
+### Estatística com Elegância, Precisão e Produtividade em R
+
+[![Documentação Oficial](https://img.shields.io/badge/docs-oficial-0071e3?style=for-the-badge&logo=google-chrome&logoColor=white)](https://elizeumedeirosest.github.io/estatR) 
+[![Licença MIT](https://img.shields.io/badge/licença-MIT-10b981?style=for-the-badge)](LICENSE) 
+[![R >= 4.0](https://img.shields.io/badge/R-%3E%3D_4.0-38bdf8?style=for-the-badge&logo=R&logoColor=white)](https://cran.r-project.org/) 
+[![Funções](https://img.shields.io/badge/funções-120+-818cf8?style=for-the-badge)](https://elizeumedeirosest.github.io/estatR/reference/index.html)
+
+<p align="center">
+  <b>Uma camada estatística moderna, didática e unificada para o ecossistema R.</b><br>
+  Saídas estruturadas em português, formatação ANSI de alto padrão, tabelas prontas para publicação e gráficos editoriais em um único pacote.
+</p>
+
+[**Explorar Documentação Interativa →**](https://elizeumedeirosest.github.io/estatR) &nbsp;•&nbsp; [**Referência de Funções**](https://elizeumedeirosest.github.io/estatR/reference/index.html) &nbsp;•&nbsp; [**Instalação Rápida**](#instalação)
+
+</div>
+
+---
+
+### ✨ Pilares de Design do estatR
+
+| 🎨 Padrão Editorial Automático | ⚡ Sintaxe Fluida & Polimórfica | 📋 Saídas Estruturadas & ANSI | 🔬 Rigor Matemático Completo |
+| :--- | :--- | :--- | :--- |
+| Gráficos com paleta corporativa e tema dual grid (`grade = 'dupla'`). Prontos para teses, artigos e relatórios corporativos sem necessidade de formatação manual. | Funções inteligentes que detectam o tipo de entrada (`descrever()`, `metricas()`, `analise_residual()`) e entregam diagnósticos sob medida. | Cabeçalhos visualmente estilizados no console, alinhamento rigoroso de colunas, casas decimais padronizadas e notas interpretativas explicativas. | Do diagnóstico preliminar à modelagem linear generalizada (GLM/Youden), séries temporais com machine learning, sobrevivência e multivariada. |
 
 ---
 

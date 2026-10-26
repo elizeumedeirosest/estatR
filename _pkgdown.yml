@@ -1,0 +1,252 @@
+url: https://elizeumedeirosest.github.io/estatR
+
+template:
+  bootstrap: 5
+  bslib:
+    bg: "#ffffff"
+    fg: "#0f172a"
+    primary: "#0066cc"
+    secondary: "#475569"
+    success: "#10b981"
+    info: "#0ea5e9"
+    warning: "#f59e0b"
+    danger: "#ef4444"
+    base_font: {google: "Inter"}
+    heading_font: {google: "Inter"}
+    code_font: {google: "JetBrains Mono"}
+
+navbar:
+  structure:
+    left: [intro, reference, modules, articles, news]
+    right: [search, github]
+  components:
+    intro:
+      text: Início
+      href: index.html
+    reference:
+      text: Referência
+      href: reference/index.html
+    modules:
+      text: Módulos
+      menu:
+        - text: "📊 Diagnóstico e Descritiva"
+          href: reference/index.html#diagnostico-e-exploracao-de-dados
+        - text: "🎯 Testes de Hipótese"
+          href: reference/index.html#inferencia-parametrica-e-testes-t
+        - text: "📐 Intervalos de Confiança"
+          href: reference/index.html#intervalos-de-confianca
+        - text: "🎲 Probabilidade e Simulação"
+          href: reference/index.html#distribuicoes-teoricas-e-probabilidades
+        - text: "📈 Modelagem e Regressão Linear"
+          href: reference/index.html#modelos-lineares-e-diagnostico-residual
+        - text: "⚡ Modelos Lineares Generalizados (MLG)"
+          href: reference/index.html#modelos-lineares-generalizados-mlg-glm
+        - text: "⏱️ Séries Temporais"
+          href: reference/index.html#series-temporais
+        - text: "🌐 Análise Multivariada"
+          href: reference/index.html#analise-multivariada-e-agrupamento
+        - text: "🧪 Delineamentos Experimentais"
+          href: reference/index.html#planejamento-de-experimentos
+        - text: "🤖 Aprendizado de Máquina & Sobrevivência"
+          href: reference/index.html#aprendizado-de-maquina-e-sobrevivencia
+        - text: "👥 Amostragem Probabilística"
+          href: reference/index.html#amostragem-probabilistica
+    github:
+      icon: fab fa-github fa-lg
+      href: https://github.com/elizeumedeirosest/estatR
+      aria-label: GitHub
+
+reference:
+  - title: "📦 Visão Geral do Pacote"
+    desc: "Apresentação geral da camada estatística, módulos e convenções de uso."
+    contents:
+      - estatR
+
+  - title: "📊 Diagnóstico e Exploração de Dados"
+    desc: "Inspeção estrutural rápida, detecção de tipos, valores ausentes e outliers."
+    contents:
+      - diagnostico
+      - estrutura
+      - valores_ausentes
+      - outliers
+
+  - title: "📋 Estatística Descritiva e Tabelas"
+    desc: "Síntese numérica e frequencial polimórfica para variáveis numéricas e categóricas."
+    contents:
+      - descrever
+      - tabela_contingencia
+      - med_tend_central
+      - med_dispersao
+      - med_forma
+
+  - title: "📏 Separatrizes Amostrais"
+    desc: "Cálculo detalhado e intuitivo de quantis, quartis, quintis, decis e percentis."
+    contents:
+      - quartis
+      - quintis
+      - decis
+      - percentis
+
+  - title: "🔗 Correlação e Associação"
+    desc: "Testes bivariados e matrizes de correlação com formatação editorial."
+    contents:
+      - teste_correlacao
+      - matriz_correlacao
+
+  - title: "🎯 Inferência Paramétrica e Testes T"
+    desc: "Comparações de médias com saídas ANSI, hipóteses explícitas e visualização gráfica."
+    contents:
+      - teste_t_uma_amostra
+      - teste_t_duas_amostras
+      - teste_t_pareado
+      - teste_proporcao
+
+  - title: "🛡️ Inferência Não-Paramétrica e Testes Categóricos"
+    desc: "Testes robustos para dados sem pressuposto de normalidade e tabelas de contingência."
+    contents:
+      - teste_wilcoxon
+      - teste_mann_whitney
+      - teste_kruskal
+      - teste_friedman
+      - teste_qui_quadrado
+      - teste_levene
+      - concordancia_kappa
+      - grafico_bland_altman
+
+  - title: "📐 Intervalos de Confiança"
+    desc: "Estimação intervalar clássica e frequentista com representação visual em régua."
+    contents:
+      - ic_media
+      - ic_proporcao
+      - ic_variancia
+      - ic_diferenca_medias
+
+  - title: "🎲 Distribuições Teóricas e Probabilidades"
+    desc: "Painéis didáticos de distribuições teóricas e cálculo de probabilidades exatas."
+    contents:
+      - distribuicao
+      - prob_normal
+      - prob_binomial
+      - prob_poisson
+      - prob_exponencial
+      - gerar_amostra
+
+  - title: "🔄 Estimação e Simulação Computacional"
+    desc: "Máxima verossimilhança, método dos momentos, bootstrap e simulação de Monte Carlo / TCL."
+    contents:
+      - estimar_verossimilhanca
+      - estimar_momentos
+      - bootstrap
+      - simular_tcl
+      - monte_carlo
+
+  - title: "📈 Modelos Lineares e Diagnóstico Residual"
+    desc: "Ajuste de regressão linear, seleção de variáveis, diagnóstico residual e predição."
+    contents:
+      - regressao_linear
+      - analise_residual
+      - metricas
+      - selecao_modelos
+      - predicao
+      - multicolinearidade
+      - pontos_influentes
+      - grafico_coeficientes
+      - dividir_dados
+
+  - title: "⚡ Modelos Lineares Generalizados (MLG / GLM)"
+    desc: "Modelagem para respostas binárias, contagens e proporções com cutoff ótimo (Youden) e diagnóstico residual."
+    contents:
+      - regressao_mlg
+      - regressao_logistica
+      - metricas_logistica
+      - selecao_modelos_logistica
+      - regressao_poisson
+      - metricas_poisson
+      - selecao_modelos_poisson
+      - regressao_binomial_negativa
+      - metricas_binomial_negativa
+      - selecao_modelos_binomial_negativa
+      - regressao_gama
+      - metricas_gama
+      - selecao_modelos_gama
+      - regressao_beta
+      - metricas_beta
+      - selecao_modelos_beta
+
+  - title: "⏱️ Séries Temporais"
+    desc: "Decomposição, testes de raiz unitária, modelos ARIMA, previsões e aprendizado de máquina temporal."
+    contents:
+      - analise_serie
+      - teste_estacionariedade
+      - previsao_serie
+      - previsao_serie_aprend_maq
+      - metricas_serie
+      - selecao_modelos_serie
+      - grafico_autocorrelacao
+
+  - title: "🌐 Análise Multivariada e Agrupamento"
+    desc: "Componentes Principais (PCA), Análise Fatorial, K-means, Cluster Hierárquico, LDA e MANOVA."
+    contents:
+      - acp
+      - biplot_acp
+      - screeplot_acp
+      - analise_fatorial
+      - biplot_fatorial
+      - cargasplot_fatorial
+      - screeplot_fatorial
+      - cluster_kmeans
+      - cotovelo_plot
+      - cluster_hierarquico
+      - dendrograma
+      - plot_clusters
+      - analise_discriminante
+      - biplot_lda
+      - analise_manova
+      - plot_manova
+
+  - title: "🧪 Planejamento de Experimentos"
+    desc: "Análise de variância para DIC, DBC, DQL, Fatorial, Parcela Subdividida e testes de médias."
+    contents:
+      - analise_dic
+      - grafico_dic
+      - analise_dbc
+      - grafico_dbc
+      - analise_dql
+      - grafico_dql
+      - analise_fatorial_duplo
+      - grafico_fatorial
+      - analise_fatorial_adicional
+      - analise_parcela_subdividida
+      - grafico_medias
+      - grafico_ic
+      - grafico_regressao
+
+  - title: "🤖 Aprendizado de Máquina e Sobrevivência"
+    desc: "Classificação supervisionada, modelos de riscos proporcionais de Cox e curvas de Kaplan-Meier."
+    contents:
+      - classificacao_aprend_maq
+      - previsao_aprend_maq
+      - analise_residual_aprend_maq
+      - metricas_aprend_maq
+      - analise_sobrevivencia
+      - grafico_sobrevivencia
+      - regressao_cox
+      - metricas_cox
+      - selecao_modelos_cox
+      - grafico_cox
+
+  - title: "👥 Amostragem Probabilística"
+    desc: "Planos amostrais probabilísticos e dimensionamento de amostras."
+    contents:
+      - amostra_aleatoria
+      - amostra_estratificada
+      - amostra_sistematica
+      - amostra_conglomerados
+      - tamanho_amostra
+
+  - title: "🎨 Visualização e Gráficos Auxiliares"
+    desc: "Tema dual grid padrão editorial, paletas corporativas e gráficos auxiliares."
+    contents:
+      - tema_estatR
+      - paleta_estatR
+      - grafico_boxplot

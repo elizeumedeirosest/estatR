@@ -24,7 +24,7 @@ teste_kruskal(
 
 \item{grupo}{Variável categórica / fator de agrupamento, se fórmula não fornecida.}
 
-\item{post_hoc}{Método de comparações múltiplas caso $p < 0,05$: \code{"dunn"} (padrão),
+\item{post_hoc}{Método de comparações múltiplas caso \eqn{p < 0{,}05}{p < 0.05}: \code{"dunn"} (padrão),
 \code{"bonferroni"} ou \code{"nenhum"}.}
 
 \item{ajuste_p}{Método de correção para múltiplos testes: \code{"holm"} (padrão),
@@ -39,7 +39,7 @@ Objeto invisível com estatísticas globais e comparações múltiplas.
 }
 \description{
 Alternativa não-paramétrica à ANOVA a um fator para comparar a
-distribuição de $k \ge 2$ grupos independentes. Caso haja significância estatística,
+distribuição de \eqn{k \ge 2}{k >= 2} grupos independentes. Caso haja significância estatística,
 executa automaticamente o teste post-hoc de Dunn com ajuste de p-valor
 (Holm, Bonferroni ou FDR) e gera gráfico de boxplot padronizado.
 }

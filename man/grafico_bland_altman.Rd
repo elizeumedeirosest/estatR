@@ -23,6 +23,6 @@ Retorna invisivelmente uma lista com parâmetros calculados e o gráfico ggplot.
 \description{
 Avalia a concordância entre dois métodos contínuos de medição
 (ex: dois instrumentos, ensaio laboratorial vs teste rápido).
-Estima o viés médio ($\bar{d}$), limites de concordância de 95\% ($\bar{d} \pm 1,96 \cdot DP$),
+Estima o viés médio (\eqn{\bar{d}}{\code{d_barra}}), limites de concordância de 95\\% (\eqn{\bar{d} \pm 1{,}96 \cdot DP}{\code{d_barra +- 1.96*DP}}),
 intervalos de confiança dos parâmetros e gera gráfico no padrão visual do estatR.
 }

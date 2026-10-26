@@ -27,7 +27,7 @@ teste_friedman(
 
 \item{bloco}{Fator de identificação do sujeito / bloco, se fórmula não fornecida.}
 
-\item{post_hoc}{Lógico. Se \code{TRUE} (padrão), executa comparações pareadas caso $p < 0,05$.}
+\item{post_hoc}{Lógico. Se \code{TRUE} (padrão), executa comparações pareadas caso \eqn{p < 0{,}05}{p < 0.05}.}
 
 \item{ajuste_p}{Método de ajuste de p-valor: \code{"holm"} (padrão), \code{"bonferroni"} ou \code{"fdr"}.}
 
@@ -40,6 +40,6 @@ Objeto invisível com o teste global e comparações pareadas.
 }
 \description{
 Alternativa não-paramétrica à ANOVA de medidas repetidas ou blocos casualizados (DBC).
-Avalia se as distribuições diferem entre $k \ge 3$ condições ou períodos pareados.
+Avalia se as distribuições diferem entre \eqn{k \ge 3}{k >= 3} condições ou períodos pareados.
 Caso significativo, executa comparações pareadas com ajuste de p-valor.
 }
