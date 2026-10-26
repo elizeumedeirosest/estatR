@@ -6,7 +6,8 @@ website:
   title: "estatR"
   site-url: "https://elizeumedeirosest.github.io/estatR"
   description: "Camada estatística moderna, didática e de alto padrão editorial para R"
-  favicon: "man/figures/logo.svg"
+  favicon: "man/figures/favicon.svg"
+  search: false
 
   navbar:
     title: "estatR"
@@ -46,8 +47,7 @@ website:
         aria-label: GitHub
 
   page-footer:
-    left: "© 2026 estatR"
-    right: "Desenvolvido por Elizeu Medeiros"
+    center: "© 2026 estatR &nbsp;·&nbsp; Desenvolvido por Elizeu Medeiros"
 
 format:
   html:

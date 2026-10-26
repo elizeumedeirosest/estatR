@@ -15,21 +15,50 @@ O **estatR** é uma camada estatística moderna para R, desenvolvida para unific
 
 A estatística aplicada no R, em sua forma nativa, exige o domínio de dezenas de pacotes com interfaces distintas. O estatR resolve isso: uma função, um resultado, uma linguagem. As saídas são formatadas automaticamente em português, com alinhamento preciso de colunas, casas decimais padronizadas e notas interpretativas embutidas — prontas para teses, artigos e relatórios corporativos.
 
-## Módulos
+## Módulos do Pacote
 
-O pacote é organizado em **11 módulos especializados**, cada um cobrindo um domínio da análise estatística:
+Os 11 módulos do estatR estão organizados em 4 grandes áreas estatísticas:
 
-- **Diagnóstico e Descritiva** — inspeção estrutural imediata
-- **Testes de Hipótese** — paramétricos e não-paramétricos
-- **Intervalos de Confiança** — com interpretação frequentista
-- **Probabilidade e Simulação** — distribuições teóricas, Monte Carlo, bootstrap
-- **Modelos Lineares e Regressão** — com diagnóstico residual rigoroso
-- **Modelos Generalizados (MLG)** — Logística, Poisson, Gama, Beta e Youden
-- **Séries Temporais** — ARIMA, STL e previsão com machine learning
-- **Análise Multivariada** — PCA, clustering, discriminante e MANOVA
-- **Delineamentos Experimentais** — DIC, DBC, fatoriais e testes de médias
-- **Machine Learning e Sobrevivência** — Kaplan-Meier e modelos preditivos
-- **Amostragem Probabilística** — AAS, estratificada, sistemática e conglomerados
+```{=html}
+<div class="areas-grid">
+
+  <div class="area-col">
+    <div class="area-header"><i class="bi bi-clipboard2-data"></i> Exploratória &amp; Amostragem</div>
+    <ul class="area-list">
+      <li><a href="modulos/descritiva.html">Diagnóstico e Descritiva</a></li>
+      <li><a href="modulos/amostragem.html">Amostragem Probabilística</a></li>
+    </ul>
+  </div>
+
+  <div class="area-col">
+    <div class="area-header"><i class="bi bi-bullseye"></i> Inferência &amp; Probabilidade</div>
+    <ul class="area-list">
+      <li><a href="modulos/inferencia.html">Testes de Hipótese</a></li>
+      <li><a href="modulos/intervalos.html">Intervalos de Confiança</a></li>
+      <li><a href="modulos/probabilidade.html">Probabilidade e Simulação</a></li>
+    </ul>
+  </div>
+
+  <div class="area-col">
+    <div class="area-header"><i class="bi bi-graph-up"></i> Modelagem &amp; Séries Temporais</div>
+    <ul class="area-list">
+      <li><a href="modulos/regressao.html">Modelos Lineares e Regressão</a></li>
+      <li><a href="modulos/mlg.html">Modelos Generalizados (MLG)</a></li>
+      <li><a href="modulos/series_temporais.html">Séries Temporais</a></li>
+    </ul>
+  </div>
+
+  <div class="area-col">
+    <div class="area-header"><i class="bi bi-cpu"></i> Multivariada &amp; Avançado</div>
+    <ul class="area-list">
+      <li><a href="modulos/multivariada.html">Análise Multivariada</a></li>
+      <li><a href="modulos/experimentos.html">Delineamentos Experimentais</a></li>
+      <li><a href="modulos/aprendizado_maquina.html">Machine Learning e Sobrevivência</a></li>
+    </ul>
+  </div>
+
+</div>
+```
 
 ## Código aberto
 

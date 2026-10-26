@@ -30,12 +30,8 @@ ul.task-list li input[type="checkbox"] {
 
 
 <script src="site_libs/quarto-nav/quarto-nav.js"></script>
+<link href="./man/figures/favicon.svg" rel="icon" type="image/svg+xml">
 <script src="site_libs/clipboard/clipboard.min.js"></script>
-<script src="site_libs/quarto-search/autocomplete.umd.js"></script>
-<script src="site_libs/quarto-search/fuse.min.js"></script>
-<script src="site_libs/quarto-search/quarto-search.js"></script>
-<meta name="quarto:offset" content="./">
-<link href="./man/figures/logo.svg" rel="icon" type="image/svg+xml">
 <script src="site_libs/quarto-html/quarto.js" type="module"></script>
 <script src="site_libs/quarto-html/tabsets/tabsets.js" type="module"></script>
 <script src="site_libs/quarto-html/popper.min.js"></script>
@@ -47,18 +43,6 @@ ul.task-list li input[type="checkbox"] {
 <link href="site_libs/bootstrap/bootstrap-icons.css" rel="stylesheet">
 <link href="site_libs/bootstrap/bootstrap-574f58f4068bb8f43535e6e9c10c5508.min.css" rel="stylesheet" append-hash="true" id="quarto-bootstrap" data-mode="light">
 <script id="quarto-search-options" type="application/json">{
-  "location": "navbar",
-  "copy-button": false,
-  "collapse-after": 3,
-  "panel-placement": "end",
-  "type": "overlay",
-  "limit": 50,
-  "keyboard-shortcut": [
-    "f",
-    "/",
-    "s"
-  ],
-  "show-item-context": false,
   "language": {
     "search-no-results-text": "No results",
     "search-matching-documents-text": "matching documents",
@@ -90,7 +74,6 @@ ul.task-list li input[type="checkbox"] {
     <span class="navbar-title">estatR</span>
     </a>
   </div>
-            <div id="quarto-search" class="" title="Search"></div>
           <button class="navbar-toggler" type="button" data-bs-toggle="collapse" data-bs-target="#navbarCollapse" aria-controls="navbarCollapse" role="menu" aria-expanded="false" aria-label="Toggle navigation" onclick="if (window.quartoToggleHeadroom) { window.quartoToggleHeadroom(); }">
   <span class="navbar-toggler-icon"></span>
 </button>
@@ -205,22 +188,47 @@ ul.task-list li input[type="checkbox"] {
 <h2 class="anchored" data-anchor-id="propósito">Propósito</h2>
 <p>A estatística aplicada no R, em sua forma nativa, exige o domínio de dezenas de pacotes com interfaces distintas. O estatR resolve isso: uma função, um resultado, uma linguagem. As saídas são formatadas automaticamente em português, com alinhamento preciso de colunas, casas decimais padronizadas e notas interpretativas embutidas — prontas para teses, artigos e relatórios corporativos.</p>
 </section>
-<section id="módulos" class="level2">
-<h2 class="anchored" data-anchor-id="módulos">Módulos</h2>
-<p>O pacote é organizado em <strong>11 módulos especializados</strong>, cada um cobrindo um domínio da análise estatística:</p>
-<ul>
-<li><strong>Diagnóstico e Descritiva</strong> — inspeção estrutural imediata</li>
-<li><strong>Testes de Hipótese</strong> — paramétricos e não-paramétricos</li>
-<li><strong>Intervalos de Confiança</strong> — com interpretação frequentista</li>
-<li><strong>Probabilidade e Simulação</strong> — distribuições teóricas, Monte Carlo, bootstrap</li>
-<li><strong>Modelos Lineares e Regressão</strong> — com diagnóstico residual rigoroso</li>
-<li><strong>Modelos Generalizados (MLG)</strong> — Logística, Poisson, Gama, Beta e Youden</li>
-<li><strong>Séries Temporais</strong> — ARIMA, STL e previsão com machine learning</li>
-<li><strong>Análise Multivariada</strong> — PCA, clustering, discriminante e MANOVA</li>
-<li><strong>Delineamentos Experimentais</strong> — DIC, DBC, fatoriais e testes de médias</li>
-<li><strong>Machine Learning e Sobrevivência</strong> — Kaplan-Meier e modelos preditivos</li>
-<li><strong>Amostragem Probabilística</strong> — AAS, estratificada, sistemática e conglomerados</li>
-</ul>
+<section id="módulos-do-pacote" class="level2">
+<h2 class="anchored" data-anchor-id="módulos-do-pacote">Módulos do Pacote</h2>
+<p>Os 11 módulos do estatR estão organizados em 4 grandes áreas estatísticas:</p>
+<div class="areas-grid">
+
+  <div class="area-col">
+    <div class="area-header"><i class="bi bi-clipboard2-data"></i> Exploratória &amp; Amostragem</div>
+    <ul class="area-list">
+      <li><a href="modulos/descritiva.html">Diagnóstico e Descritiva</a></li>
+      <li><a href="modulos/amostragem.html">Amostragem Probabilística</a></li>
+    </ul>
+  </div>
+
+  <div class="area-col">
+    <div class="area-header"><i class="bi bi-bullseye"></i> Inferência &amp; Probabilidade</div>
+    <ul class="area-list">
+      <li><a href="modulos/inferencia.html">Testes de Hipótese</a></li>
+      <li><a href="modulos/intervalos.html">Intervalos de Confiança</a></li>
+      <li><a href="modulos/probabilidade.html">Probabilidade e Simulação</a></li>
+    </ul>
+  </div>
+
+  <div class="area-col">
+    <div class="area-header"><i class="bi bi-graph-up"></i> Modelagem &amp; Séries Temporais</div>
+    <ul class="area-list">
+      <li><a href="modulos/regressao.html">Modelos Lineares e Regressão</a></li>
+      <li><a href="modulos/mlg.html">Modelos Generalizados (MLG)</a></li>
+      <li><a href="modulos/series_temporais.html">Séries Temporais</a></li>
+    </ul>
+  </div>
+
+  <div class="area-col">
+    <div class="area-header"><i class="bi bi-cpu"></i> Multivariada &amp; Avançado</div>
+    <ul class="area-list">
+      <li><a href="modulos/multivariada.html">Análise Multivariada</a></li>
+      <li><a href="modulos/experimentos.html">Delineamentos Experimentais</a></li>
+      <li><a href="modulos/aprendizado_maquina.html">Machine Learning e Sobrevivência</a></li>
+    </ul>
+  </div>
+
+</div>
 </section>
 <section id="código-aberto" class="level2">
 <h2 class="anchored" data-anchor-id="código-aberto">Código aberto</h2>
@@ -635,14 +643,14 @@ ul.task-list li input[type="checkbox"] {
 <footer class="footer">
   <div class="nav-footer">
     <div class="nav-footer-left">
-<p>© 2026 estatR</p>
-</div>   
+      &nbsp;
+    </div>   
     <div class="nav-footer-center">
+<p>© 2026 estatR &nbsp;·&nbsp; Desenvolvido por Elizeu Medeiros</p>
+</div>
+    <div class="nav-footer-right">
       &nbsp;
     </div>
-    <div class="nav-footer-right">
-<p>Desenvolvido por Elizeu Medeiros</p>
-</div>
   </div>
 </footer>
 
