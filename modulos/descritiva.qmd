@@ -3,16 +3,10 @@ title: "Diagnóstico e Estatística Descritiva"
 subtitle: "Exploração de dados, detecção de outliers e síntese estatística polimórfica"
 ---
 
-## Visão Geral do Módulo
-
-O módulo de diagnóstico e estatística descritiva do **estatR** foi projetado para eliminar o atrito inicial na exploração de qualquer conjunto de dados. Ele reúne desde a checagem de tipos e valores ausentes até resumos numéricos completos e tabelas de contingência bidimensionais.
-
----
-
 ## Diagnóstico de Dados
 
 ### `diagnostico()`
-Produz um diagnóstico global com número de linhas, colunas, presença de valores faltantes (`NA`) e classificação das variáveis.
+Produz um diagnóstico global com número de linhas, colunas, presença de `NA` e classificação das variáveis.
 
 ```r
 # Diagnóstico global de um data frame
@@ -34,7 +28,7 @@ valores_ausentes(airquality, grafico = TRUE)
 ```
 
 ### `outliers()`
-Identifica valores discrepantes com base no critério de Tukey (distância interquartílica, $1{,}5 \times IIQ$) ou escore Z:
+Identifica valores discrepantes com base no critério de Tukey ($1{,}5 \times IIQ$) ou escore Z:
 
 ```r
 outliers(mtcars$mpg, metodo = "iqr")
@@ -45,11 +39,7 @@ outliers(mtcars$mpg, metodo = "iqr")
 ## Estatística Descritiva
 
 ### `descrever()`
-Função polimórfica universal do **estatR**:
-* Para **vetores numéricos**: calcula média, desvio padrão, mediana, IIQ, mínimo e máximo.
-* Para **fatores / strings**: gera tabela de frequências absolutas e percentuais com alinhamento rigoroso.
-* Para **data frames**: sintetiza todas as variáveis da tabela de forma compacta.
-* Com argumento `por`: calcula as métricas numéricas estratificadas por uma variável de grupo.
+Função polimórfica universal: resume vetores numéricos (média, DP, mediana, IIQ), fatores (frequências), data frames completos ou métricas estratificadas por grupo (`por`).
 
 ```r
 # Numérica simples
@@ -63,7 +53,7 @@ descrever(iris$Sepal.Length, por = iris$Species)
 ```
 
 ### `tabela_contingencia()`
-Cruzamento bivariado de duas variáveis categóricas, com suporte a frequências conjuntas e proporções por linha, coluna ou total:
+Cruzamento bivariado com suporte a frequências conjuntas e proporções por linha, coluna ou total:
 
 ```r
 # Frequências absolutas

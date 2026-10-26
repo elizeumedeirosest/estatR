@@ -3,21 +3,14 @@ title: "Modelos Lineares Generalizados (MLG)"
 subtitle: "Regressão logística, Poisson, Binomial Negativa, Gama e Beta com cutoff de Youden"
 ---
 
-## Visão Geral do Módulo
-
-O módulo de MLG do **estatR** abrange as principais famílias exponenciais de dispersão, incorporando recursos avançados como detecção de superdispersão, inflação de zeros (*Zero-inflated* e *Hurdle*), modelos de probabilidade com ponto de corte ótimo baseado no **Índice de Youden** ($J = \text{Sensibilidade} + \text{Especificidade} - 1$) e análise residual em 4 gráficos.
-
----
-
 ## Modelos para Variáveis Binárias
 
 ### Regressão Logística & Cutoff Ótimo
-Ajusta modelos logísticos binários e calcula automaticamente o ponto de corte ideal:
 
 ```r
 modelo_log <- regressao_logistica(am ~ mpg + hp, dados = mtcars)
 
-# Métricas com matriz de confusão, AUC-ROC e cutoff ótimo de Youden
+# Matriz de confusão, AUC-ROC e cutoff ótimo de Youden
 metricas_logistica(modelo_log, ponto_corte = "youden")
 ```
 
@@ -26,29 +19,28 @@ metricas_logistica(modelo_log, ponto_corte = "youden")
 ## Modelos para Dados de Contagem
 
 ### Poisson & Binomial Negativa
-Para dados de contagens discretas, com checagem automática de superdispersão:
 
 ```r
-# Regressão de Poisson
+# Poisson
 mod_pois <- regressao_poisson(num_visitas ~ idade + renda, dados = dados_saude)
 
-# Regressão Binomial Negativa (para contagens superdispersas)
+# Binomial Negativa (para contagens superdispersas)
 mod_nb <- regressao_binomial_negativa(num_visitas ~ idade + renda, dados = dados_saude)
 ```
 
 ---
 
-## Modelos para Dados Contínuos Positivos e Taxas
+## Modelos para Dados Contínuos e Taxas
 
 ### Regressão Gama
-Ideal para respostas estritamente positivas e assimétricas à direita (ex: custos, tempo de reação, consumo):
+Para respostas estritamente positivas e assimétricas (custos, tempo de reação):
 
 ```r
 mod_gama <- regressao_gama(custo ~ idade + tratamento, dados = dados_hospital)
 ```
 
 ### Regressão Beta
-Para respostas contínuas limitadas no intervalo aberto $(0, 1)$ (ex: taxas, índices, proporções contínuas):
+Para respostas no intervalo aberto $(0, 1)$ (taxas, índices, proporções contínuas):
 
 ```r
 mod_beta <- regressao_beta(taxa_conclusao ~ investimento + regiao, dados = dados_escolas)
@@ -57,8 +49,6 @@ mod_beta <- regressao_beta(taxa_conclusao ~ investimento + regiao, dados = dados
 ---
 
 ## Diagnóstico Residual em MLG
-
-Assim como nos modelos lineares clássicos, todos os modelos generalizados contam com análise residual especializada em 4 gráficos:
 
 ```r
 analise_residual(modelo_log, grade = "dupla")

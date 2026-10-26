@@ -65,7 +65,6 @@ pre > code.sourceCode > span > a:first-child::before { text-decoration: underlin
 
 
 <script src="../site_libs/quarto-nav/quarto-nav.js"></script>
-<script src="../site_libs/quarto-nav/headroom.min.js"></script>
 <script src="../site_libs/clipboard/clipboard.min.js"></script>
 <script src="../site_libs/quarto-search/autocomplete.umd.js"></script>
 <script src="../site_libs/quarto-search/fuse.min.js"></script>
@@ -78,14 +77,10 @@ pre > code.sourceCode > span > a:first-child::before { text-decoration: underlin
 <script src="../site_libs/quarto-html/tippy.umd.min.js"></script>
 <script src="../site_libs/quarto-html/anchor.min.js"></script>
 <link href="../site_libs/quarto-html/tippy.css" rel="stylesheet">
-<link href="../site_libs/quarto-html/quarto-syntax-highlighting-64a204ab8560d761af7679ceaba22944.css" rel="stylesheet" class="quarto-color-scheme" id="quarto-text-highlighting-styles">
-<link href="../site_libs/quarto-html/quarto-syntax-highlighting-dark-b85bc7c33db8c58e0ec93c3465666fed.css" rel="stylesheet" class="quarto-color-scheme quarto-color-alternate" id="quarto-text-highlighting-styles">
-<link href="../site_libs/quarto-html/quarto-syntax-highlighting-64a204ab8560d761af7679ceaba22944.css" rel="stylesheet" class="quarto-color-scheme-extra" id="quarto-text-highlighting-styles">
+<link href="../site_libs/quarto-html/quarto-syntax-highlighting-64a204ab8560d761af7679ceaba22944.css" rel="stylesheet" id="quarto-text-highlighting-styles">
 <script src="../site_libs/bootstrap/bootstrap.min.js"></script>
 <link href="../site_libs/bootstrap/bootstrap-icons.css" rel="stylesheet">
-<link href="../site_libs/bootstrap/bootstrap-711d5f0cb2eecbce4b54be160a5a7e6e.min.css" rel="stylesheet" append-hash="true" class="quarto-color-scheme" id="quarto-bootstrap" data-mode="light">
-<link href="../site_libs/bootstrap/bootstrap-dark-4275d7de9d7afaebafdd53a5eb10d6d4.min.css" rel="stylesheet" append-hash="true" class="quarto-color-scheme quarto-color-alternate" id="quarto-bootstrap" data-mode="dark">
-<link href="../site_libs/bootstrap/bootstrap-711d5f0cb2eecbce4b54be160a5a7e6e.min.css" rel="stylesheet" append-hash="true" class="quarto-color-scheme-extra" id="quarto-bootstrap" data-mode="light">
+<link href="../site_libs/bootstrap/bootstrap-574f58f4068bb8f43535e6e9c10c5508.min.css" rel="stylesheet" append-hash="true" id="quarto-bootstrap" data-mode="light">
 <script id="quarto-search-options" type="application/json">{
   "location": "navbar",
   "copy-button": false,
@@ -148,179 +143,13 @@ window.Quarto = {
 <link rel="stylesheet" href="../styles.css">
 </head>
 
-<body class="nav-sidebar docked nav-fixed quarto-light"><script id="quarto-html-before-body" type="application/javascript">
-    const toggleBodyColorMode = (bsSheetEl) => {
-      const mode = bsSheetEl.getAttribute("data-mode");
-      const bodyEl = window.document.querySelector("body");
-      if (mode === "dark") {
-        bodyEl.classList.add("quarto-dark");
-        bodyEl.classList.remove("quarto-light");
-      } else {
-        bodyEl.classList.add("quarto-light");
-        bodyEl.classList.remove("quarto-dark");
-      }
-    }
-    const toggleBodyColorPrimary = () => {
-      const bsSheetEl = window.document.querySelector("link#quarto-bootstrap:not([rel=disabled-stylesheet])");
-      if (bsSheetEl) {
-        toggleBodyColorMode(bsSheetEl);
-      }
-    }
-    const setColorSchemeToggle = (alternate) => {
-      const toggles = window.document.querySelectorAll('.quarto-color-scheme-toggle');
-      for (let i=0; i < toggles.length; i++) {
-        const toggle = toggles[i];
-        if (toggle) {
-          if (alternate) {
-            toggle.classList.add("alternate");
-          } else {
-            toggle.classList.remove("alternate");
-          }
-        }
-      }
-    };
-    const toggleColorMode = (alternate) => {
-      // Switch the stylesheets
-      const primaryStylesheets = window.document.querySelectorAll('link.quarto-color-scheme:not(.quarto-color-alternate)');
-      const alternateStylesheets = window.document.querySelectorAll('link.quarto-color-scheme.quarto-color-alternate');
-      manageTransitions('#quarto-margin-sidebar .nav-link', false);
-      if (alternate) {
-        // note: dark is layered on light, we don't disable primary!
-        enableStylesheet(alternateStylesheets);
-        for (const sheetNode of alternateStylesheets) {
-          if (sheetNode.id === "quarto-bootstrap") {
-            toggleBodyColorMode(sheetNode);
-          }
-        }
-      } else {
-        disableStylesheet(alternateStylesheets);
-        enableStylesheet(primaryStylesheets)
-        toggleBodyColorPrimary();
-      }
-      manageTransitions('#quarto-margin-sidebar .nav-link', true);
-      // Switch the toggles
-      setColorSchemeToggle(alternate)
-      // Hack to workaround the fact that safari doesn't
-      // properly recolor the scrollbar when toggling (#1455)
-      if (navigator.userAgent.indexOf('Safari') > 0 && navigator.userAgent.indexOf('Chrome') == -1) {
-        manageTransitions("body", false);
-        window.scrollTo(0, 1);
-        setTimeout(() => {
-          window.scrollTo(0, 0);
-          manageTransitions("body", true);
-        }, 40);
-      }
-    }
-    const disableStylesheet = (stylesheets) => {
-      for (let i=0; i < stylesheets.length; i++) {
-        const stylesheet = stylesheets[i];
-        stylesheet.rel = 'disabled-stylesheet';
-      }
-    }
-    const enableStylesheet = (stylesheets) => {
-      for (let i=0; i < stylesheets.length; i++) {
-        const stylesheet = stylesheets[i];
-        if(stylesheet.rel !== 'stylesheet') { // for Chrome, which will still FOUC without this check
-          stylesheet.rel = 'stylesheet';
-        }
-      }
-    }
-    const manageTransitions = (selector, allowTransitions) => {
-      const els = window.document.querySelectorAll(selector);
-      for (let i=0; i < els.length; i++) {
-        const el = els[i];
-        if (allowTransitions) {
-          el.classList.remove('notransition');
-        } else {
-          el.classList.add('notransition');
-        }
-      }
-    }
-    const isFileUrl = () => {
-      return window.location.protocol === 'file:';
-    }
-    const hasAlternateSentinel = () => {
-      let styleSentinel = getColorSchemeSentinel();
-      if (styleSentinel !== null) {
-        return styleSentinel === "alternate";
-      } else {
-        return false;
-      }
-    }
-    const setStyleSentinel = (alternate) => {
-      const value = alternate ? "alternate" : "default";
-      if (!isFileUrl()) {
-        window.localStorage.setItem("quarto-color-scheme", value);
-      } else {
-        localAlternateSentinel = value;
-      }
-    }
-    const getColorSchemeSentinel = () => {
-      if (!isFileUrl()) {
-        const storageValue = window.localStorage.getItem("quarto-color-scheme");
-        return storageValue != null ? storageValue : localAlternateSentinel;
-      } else {
-        return localAlternateSentinel;
-      }
-    }
-    const toggleGiscusIfUsed = (isAlternate, darkModeDefault) => {
-      const baseTheme = document.querySelector('#giscus-base-theme')?.value ?? 'light';
-      const alternateTheme = document.querySelector('#giscus-alt-theme')?.value ?? 'dark';
-      let newTheme = '';
-      if(authorPrefersDark) {
-        newTheme = isAlternate ? baseTheme : alternateTheme;
-      } else {
-        newTheme = isAlternate ? alternateTheme : baseTheme;
-      }
-      const changeGiscusTheme = () => {
-        // From: https://github.com/giscus/giscus/issues/336
-        const sendMessage = (message) => {
-          const iframe = document.querySelector('iframe.giscus-frame');
-          if (!iframe) return;
-          iframe.contentWindow.postMessage({ giscus: message }, 'https://giscus.app');
-        }
-        sendMessage({
-          setConfig: {
-            theme: newTheme
-          }
-        });
-      }
-      const isGiscussLoaded = window.document.querySelector('iframe.giscus-frame') !== null;
-      if (isGiscussLoaded) {
-        changeGiscusTheme();
-      }
-    };
-    const authorPrefersDark = false;
-    const darkModeDefault = authorPrefersDark;
-      document.querySelector('link#quarto-text-highlighting-styles.quarto-color-scheme-extra').rel = 'disabled-stylesheet';
-      document.querySelector('link#quarto-bootstrap.quarto-color-scheme-extra').rel = 'disabled-stylesheet';
-    let localAlternateSentinel = darkModeDefault ? 'alternate' : 'default';
-    // Dark / light mode switch
-    window.quartoToggleColorScheme = () => {
-      // Read the current dark / light value
-      let toAlternate = !hasAlternateSentinel();
-      toggleColorMode(toAlternate);
-      setStyleSentinel(toAlternate);
-      toggleGiscusIfUsed(toAlternate, darkModeDefault);
-      window.dispatchEvent(new Event('resize'));
-    };
-    // Switch to dark mode if need be
-    if (hasAlternateSentinel()) {
-      toggleColorMode(true);
-    } else {
-      toggleColorMode(false);
-    }
-  </script>
+<body class="nav-fixed fullcontent quarto-light">
 
 <div id="quarto-search-results"></div>
   <header id="quarto-header" class="headroom fixed-top">
     <nav class="navbar navbar-expand-lg " data-bs-theme="dark">
       <div class="navbar-container container-fluid">
       <div class="navbar-brand-container mx-auto">
-    <a href="../index.html" class="navbar-brand navbar-brand-logo">
-    <img src="../man/figures/logo.svg" alt="" class="navbar-logo light-content">
-    <img src="../man/figures/logo.svg" alt="" class="navbar-logo dark-content">
-    </a>
     <a class="navbar-brand" href="../index.html">
     <span class="navbar-title">estatR</span>
     </a>
@@ -336,8 +165,8 @@ window.Quarto = {
 <span class="menu-text">Início</span></a>
   </li>  
   <li class="nav-item">
-    <a class="nav-link active" href="../guia_rapido.html" aria-current="page"> 
-<span class="menu-text">Guia Rápido</span></a>
+    <a class="nav-link" href="../sobre.html"> 
+<span class="menu-text">Sobre o estatR</span></a>
   </li>  
   <li class="nav-item dropdown ">
     <a class="nav-link dropdown-toggle" href="#" id="nav-menu-módulos" role="link" data-bs-toggle="dropdown" aria-expanded="false">
@@ -350,7 +179,7 @@ window.Quarto = {
   </li>  
         <li>
     <a class="dropdown-item" href="../modulos/inferencia.html">
- <span class="dropdown-text">Inferência e Testes</span></a>
+ <span class="dropdown-text">Testes de Hipótese</span></a>
   </li>  
         <li>
     <a class="dropdown-item" href="../modulos/intervalos.html">
@@ -366,7 +195,7 @@ window.Quarto = {
   </li>  
         <li>
     <a class="dropdown-item" href="../modulos/mlg.html">
- <span class="dropdown-text">Modelos Lineares Generalizados (MLG)</span></a>
+ <span class="dropdown-text">Modelos Generalizados (MLG)</span></a>
   </li>  
         <li>
     <a class="dropdown-item" href="../modulos/series_temporais.html">
@@ -378,7 +207,7 @@ window.Quarto = {
   </li>  
         <li>
     <a class="dropdown-item" href="../modulos/experimentos.html">
- <span class="dropdown-text">Planejamento Experimental</span></a>
+ <span class="dropdown-text">Delineamentos Experimentais</span></a>
   </li>  
         <li>
     <a class="dropdown-item" href="../modulos/aprendizado_maquina.html">
@@ -390,10 +219,6 @@ window.Quarto = {
   </li>  
     </ul>
   </li>
-  <li class="nav-item">
-    <a class="nav-link" href="../referencia.html"> 
-<span class="menu-text">Referência (120+ Funções)</span></a>
-  </li>  
 </ul>
             <ul class="navbar-nav navbar-nav-scroll ms-auto">
   <li class="nav-item compact">
@@ -404,176 +229,19 @@ window.Quarto = {
 </ul>
           </div> <!-- /navcollapse -->
             <div class="quarto-navbar-tools">
-  <a href="" class="quarto-color-scheme-toggle quarto-navigation-tool  px-1" onclick="window.quartoToggleColorScheme(); return false;" title="Toggle dark mode"><i class="bi"></i></a>
 </div>
       </div> <!-- /container-fluid -->
     </nav>
-  <nav class="quarto-secondary-nav">
-    <div class="container-fluid d-flex">
-      <button type="button" class="quarto-btn-toggle btn" data-bs-toggle="collapse" role="button" data-bs-target=".quarto-sidebar-collapse-item" aria-controls="quarto-sidebar" aria-expanded="false" aria-label="Toggle sidebar navigation" onclick="if (window.quartoToggleHeadroom) { window.quartoToggleHeadroom(); }">
-        <i class="bi bi-layout-text-sidebar-reverse"></i>
-      </button>
-        <nav class="quarto-page-breadcrumbs" aria-label="breadcrumb"><ol class="breadcrumb"><li class="breadcrumb-item"><a href="../modulos/inferencia.html">Inferência Estatística</a></li><li class="breadcrumb-item"><a href="../modulos/intervalos.html">Intervalos de Confiança</a></li></ol></nav>
-        <a class="flex-grow-1" role="navigation" data-bs-toggle="collapse" data-bs-target=".quarto-sidebar-collapse-item" aria-controls="quarto-sidebar" aria-expanded="false" aria-label="Toggle sidebar navigation" onclick="if (window.quartoToggleHeadroom) { window.quartoToggleHeadroom(); }">      
-        </a>
-    </div>
-  </nav>
 </header>
 <!-- content -->
 <div id="quarto-content" class="quarto-container page-columns page-rows-contents page-layout-article page-navbar">
 <!-- sidebar -->
-  <nav id="quarto-sidebar" class="sidebar collapse collapse-horizontal quarto-sidebar-collapse-item sidebar-navigation docked overflow-auto">
-    <div class="sidebar-menu-container"> 
-    <ul class="list-unstyled mt-1">
-        <li class="sidebar-item">
-  <div class="sidebar-item-container"> 
-  <a href="../guia_rapido.html" class="sidebar-item-text sidebar-link">
- <span class="menu-text">Guia de Instalação</span></a>
-  </div>
-</li>
-        <li class="sidebar-item sidebar-item-section">
-      <div class="sidebar-item-container"> 
-            <a class="sidebar-item-text sidebar-link text-start" data-bs-toggle="collapse" data-bs-target="#quarto-sidebar-section-1" role="navigation" aria-expanded="true">
- <span class="menu-text">Análise Exploratória</span></a>
-          <a class="sidebar-item-toggle text-start" data-bs-toggle="collapse" data-bs-target="#quarto-sidebar-section-1" role="navigation" aria-expanded="true" aria-label="Toggle section">
-            <i class="bi bi-chevron-right ms-2"></i>
-          </a> 
-      </div>
-      <ul id="quarto-sidebar-section-1" class="collapse list-unstyled sidebar-section depth1 show">  
-          <li class="sidebar-item">
-  <div class="sidebar-item-container"> 
-  <a href="../modulos/descritiva.html" class="sidebar-item-text sidebar-link">
- <span class="menu-text">Diagnóstico e Descritiva</span></a>
-  </div>
-</li>
-          <li class="sidebar-item">
-  <div class="sidebar-item-container"> 
-  <a href="../modulos/amostragem.html" class="sidebar-item-text sidebar-link">
- <span class="menu-text">Amostragem Probabilística</span></a>
-  </div>
-</li>
-      </ul>
-  </li>
-        <li class="sidebar-item sidebar-item-section">
-      <div class="sidebar-item-container"> 
-            <a class="sidebar-item-text sidebar-link text-start" data-bs-toggle="collapse" data-bs-target="#quarto-sidebar-section-2" role="navigation" aria-expanded="true">
- <span class="menu-text">Inferência Estatística</span></a>
-          <a class="sidebar-item-toggle text-start" data-bs-toggle="collapse" data-bs-target="#quarto-sidebar-section-2" role="navigation" aria-expanded="true" aria-label="Toggle section">
-            <i class="bi bi-chevron-right ms-2"></i>
-          </a> 
-      </div>
-      <ul id="quarto-sidebar-section-2" class="collapse list-unstyled sidebar-section depth1 show">  
-          <li class="sidebar-item">
-  <div class="sidebar-item-container"> 
-  <a href="../modulos/inferencia.html" class="sidebar-item-text sidebar-link">
- <span class="menu-text">Testes de Hipótese</span></a>
-  </div>
-</li>
-          <li class="sidebar-item">
-  <div class="sidebar-item-container"> 
-  <a href="../modulos/intervalos.html" class="sidebar-item-text sidebar-link active">
- <span class="menu-text">Intervalos de Confiança</span></a>
-  </div>
-</li>
-          <li class="sidebar-item">
-  <div class="sidebar-item-container"> 
-  <a href="../modulos/probabilidade.html" class="sidebar-item-text sidebar-link">
- <span class="menu-text">Probabilidade e Simulação</span></a>
-  </div>
-</li>
-      </ul>
-  </li>
-        <li class="sidebar-item sidebar-item-section">
-      <div class="sidebar-item-container"> 
-            <a class="sidebar-item-text sidebar-link text-start" data-bs-toggle="collapse" data-bs-target="#quarto-sidebar-section-3" role="navigation" aria-expanded="true">
- <span class="menu-text">Modelagem Estatística</span></a>
-          <a class="sidebar-item-toggle text-start" data-bs-toggle="collapse" data-bs-target="#quarto-sidebar-section-3" role="navigation" aria-expanded="true" aria-label="Toggle section">
-            <i class="bi bi-chevron-right ms-2"></i>
-          </a> 
-      </div>
-      <ul id="quarto-sidebar-section-3" class="collapse list-unstyled sidebar-section depth1 show">  
-          <li class="sidebar-item">
-  <div class="sidebar-item-container"> 
-  <a href="../modulos/regressao.html" class="sidebar-item-text sidebar-link">
- <span class="menu-text">Regressão Linear Clássica</span></a>
-  </div>
-</li>
-          <li class="sidebar-item">
-  <div class="sidebar-item-container"> 
-  <a href="../modulos/mlg.html" class="sidebar-item-text sidebar-link">
- <span class="menu-text">Modelos Generalizados (MLG)</span></a>
-  </div>
-</li>
-          <li class="sidebar-item">
-  <div class="sidebar-item-container"> 
-  <a href="../modulos/series_temporais.html" class="sidebar-item-text sidebar-link">
- <span class="menu-text">Séries Temporais</span></a>
-  </div>
-</li>
-      </ul>
-  </li>
-        <li class="sidebar-item sidebar-item-section">
-      <div class="sidebar-item-container"> 
-            <a class="sidebar-item-text sidebar-link text-start" data-bs-toggle="collapse" data-bs-target="#quarto-sidebar-section-4" role="navigation" aria-expanded="true">
- <span class="menu-text">Métodos Avançados</span></a>
-          <a class="sidebar-item-toggle text-start" data-bs-toggle="collapse" data-bs-target="#quarto-sidebar-section-4" role="navigation" aria-expanded="true" aria-label="Toggle section">
-            <i class="bi bi-chevron-right ms-2"></i>
-          </a> 
-      </div>
-      <ul id="quarto-sidebar-section-4" class="collapse list-unstyled sidebar-section depth1 show">  
-          <li class="sidebar-item">
-  <div class="sidebar-item-container"> 
-  <a href="../modulos/multivariada.html" class="sidebar-item-text sidebar-link">
- <span class="menu-text">Análise Multivariada</span></a>
-  </div>
-</li>
-          <li class="sidebar-item">
-  <div class="sidebar-item-container"> 
-  <a href="../modulos/experimentos.html" class="sidebar-item-text sidebar-link">
- <span class="menu-text">Delineamentos Experimentais</span></a>
-  </div>
-</li>
-          <li class="sidebar-item">
-  <div class="sidebar-item-container"> 
-  <a href="../modulos/aprendizado_maquina.html" class="sidebar-item-text sidebar-link">
- <span class="menu-text">Machine Learning &amp; Sobrevivência</span></a>
-  </div>
-</li>
-      </ul>
-  </li>
-        <li class="sidebar-item">
-  <div class="sidebar-item-container"> 
-  <a href="../referencia.html" class="sidebar-item-text sidebar-link">
- <span class="menu-text">Catálogo Completo de Funções</span></a>
-  </div>
-</li>
-    </ul>
-    </div>
-</nav>
-<div id="quarto-sidebar-glass" class="quarto-sidebar-collapse-item" data-bs-toggle="collapse" data-bs-target=".quarto-sidebar-collapse-item"></div>
 <!-- margin-sidebar -->
-    <div id="quarto-margin-sidebar" class="sidebar margin-sidebar">
-        <nav id="TOC" role="doc-toc" class="toc-active">
-    <h2 id="toc-title">Nesta Página</h2>
-   
-  <ul>
-  <li><a href="#visão-geral-do-módulo" id="toc-visão-geral-do-módulo" class="nav-link active" data-scroll-target="#visão-geral-do-módulo">Visão Geral do Módulo</a></li>
-  <li><a href="#funções-disponíveis" id="toc-funções-disponíveis" class="nav-link" data-scroll-target="#funções-disponíveis">Funções Disponíveis</a>
-  <ul class="collapse">
-  <li><a href="#intervalo-de-confiança-para-a-média" id="toc-intervalo-de-confiança-para-a-média" class="nav-link" data-scroll-target="#intervalo-de-confiança-para-a-média">Intervalo de Confiança para a Média</a></li>
-  <li><a href="#intervalo-de-confiança-para-proporções" id="toc-intervalo-de-confiança-para-proporções" class="nav-link" data-scroll-target="#intervalo-de-confiança-para-proporções">Intervalo de Confiança para Proporções</a></li>
-  <li><a href="#intervalo-de-confiança-para-a-variância" id="toc-intervalo-de-confiança-para-a-variância" class="nav-link" data-scroll-target="#intervalo-de-confiança-para-a-variância">Intervalo de Confiança para a Variância</a></li>
-  <li><a href="#intervalo-para-diferença-entre-duas-médias" id="toc-intervalo-para-diferença-entre-duas-médias" class="nav-link" data-scroll-target="#intervalo-para-diferença-entre-duas-médias">Intervalo para Diferença entre Duas Médias</a></li>
-  </ul></li>
-  <li><a href="#representação-visual" id="toc-representação-visual" class="nav-link" data-scroll-target="#representação-visual">Representação Visual</a></li>
-  </ul>
-</nav>
-    </div>
+    
 <!-- main -->
 <main class="content" id="quarto-document-content">
 
-
-<header id="title-block-header" class="quarto-title-block default"><nav class="quarto-page-breadcrumbs quarto-title-breadcrumbs d-none d-lg-block" aria-label="breadcrumb"><ol class="breadcrumb"><li class="breadcrumb-item"><a href="../modulos/inferencia.html">Inferência Estatística</a></li><li class="breadcrumb-item"><a href="../modulos/intervalos.html">Intervalos de Confiança</a></li></ol></nav>
+<header id="title-block-header" class="quarto-title-block default">
 <div class="quarto-title">
 <h1 class="title">Intervalos de Confiança</h1>
 <p class="subtitle lead">Estimação intervalar clássica e frequentista com representação gráfica em régua</p>
@@ -593,43 +261,38 @@ window.Quarto = {
 </header>
 
 
-<section id="visão-geral-do-módulo" class="level2">
-<h2 class="anchored" data-anchor-id="visão-geral-do-módulo">Visão Geral do Módulo</h2>
-<p>O módulo de intervalos de confiança do <strong>estatR</strong> une a precisão analítica à clareza pedagógica. Cada função exibe no console a estimativa pontual, erro padrão, margem de erro, limites inferior e superior, acompanhados de dois parágrafos interpretativos: 1. <strong>Interpretação Amostral:</strong> O intervalo calculado para a amostra corrente. 2. <strong>Interpretação Frequentista:</strong> A definição formal de longo prazo baseada em repetições infinitas do experimento sob o mesmo nível de confiança.</p>
-<hr>
-</section>
 <section id="funções-disponíveis" class="level2">
 <h2 class="anchored" data-anchor-id="funções-disponíveis">Funções Disponíveis</h2>
-<section id="intervalo-de-confiança-para-a-média" class="level3">
-<h3 class="anchored" data-anchor-id="intervalo-de-confiança-para-a-média">Intervalo de Confiança para a Média</h3>
-<p>Calcula o intervalo de confiança baseado na distribuição t de Student (ou normal para grandes amostras):</p>
-<div class="code-copy-outer-scaffold"><div class="sourceCode" id="cb1"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb1-1"><a href="#cb1-1" aria-hidden="true" tabindex="-1"></a><span class="co"># Intervalo padrão de 95%</span></span>
+<section id="intervalo-para-a-média" class="level3">
+<h3 class="anchored" data-anchor-id="intervalo-para-a-média">Intervalo para a Média</h3>
+<p>Baseado na distribuição t de Student (ou normal para grandes amostras):</p>
+<div class="code-copy-outer-scaffold"><div class="sourceCode" id="cb1"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb1-1"><a href="#cb1-1" aria-hidden="true" tabindex="-1"></a><span class="co"># IC de 95%</span></span>
 <span id="cb1-2"><a href="#cb1-2" aria-hidden="true" tabindex="-1"></a><span class="fu">ic_media</span>(mtcars<span class="sc">$</span>mpg)</span>
 <span id="cb1-3"><a href="#cb1-3" aria-hidden="true" tabindex="-1"></a></span>
-<span id="cb1-4"><a href="#cb1-4" aria-hidden="true" tabindex="-1"></a><span class="co"># Intervalo com 99% de confiança</span></span>
+<span id="cb1-4"><a href="#cb1-4" aria-hidden="true" tabindex="-1"></a><span class="co"># IC de 99%</span></span>
 <span id="cb1-5"><a href="#cb1-5" aria-hidden="true" tabindex="-1"></a><span class="fu">ic_media</span>(mtcars<span class="sc">$</span>mpg, <span class="at">confianca =</span> <span class="fl">0.99</span>)</span></code></pre></div><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></div>
 </section>
-<section id="intervalo-de-confiança-para-proporções" class="level3">
-<h3 class="anchored" data-anchor-id="intervalo-de-confiança-para-proporções">Intervalo de Confiança para Proporções</h3>
-<p>Calcula o intervalo para uma proporção binomial (método de Wilson ou Wald com correção de continuidade):</p>
+<section id="intervalo-para-proporções" class="level3">
+<h3 class="anchored" data-anchor-id="intervalo-para-proporções">Intervalo para Proporções</h3>
+<p>Método de Wilson ou Wald com correção de continuidade:</p>
 <div class="code-copy-outer-scaffold"><div class="sourceCode" id="cb2"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb2-1"><a href="#cb2-1" aria-hidden="true" tabindex="-1"></a><span class="co"># 87 sucessos em 300 tentativas</span></span>
 <span id="cb2-2"><a href="#cb2-2" aria-hidden="true" tabindex="-1"></a><span class="fu">ic_proporcao</span>(<span class="at">x =</span> <span class="dv">87</span>, <span class="at">n =</span> <span class="dv">300</span>, <span class="at">confianca =</span> <span class="fl">0.95</span>)</span></code></pre></div><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></div>
 </section>
-<section id="intervalo-de-confiança-para-a-variância" class="level3">
-<h3 class="anchored" data-anchor-id="intervalo-de-confiança-para-a-variância">Intervalo de Confiança para a Variância</h3>
-<p>Baseado na distribuição qui-quadrado (<span class="math inline">\(\chi^2\)</span>), fornecendo tanto o intervalo para a variância (<span class="math inline">\(\sigma^2\)</span>) quanto para o desvio padrão (<span class="math inline">\(\sigma\)</span>):</p>
+<section id="intervalo-para-a-variância" class="level3">
+<h3 class="anchored" data-anchor-id="intervalo-para-a-variância">Intervalo para a Variância</h3>
+<p>Baseado na distribuição <span class="math inline">\(\chi^2\)</span>, fornece IC para <span class="math inline">\(\sigma^2\)</span> e <span class="math inline">\(\sigma\)</span>:</p>
 <div class="code-copy-outer-scaffold"><div class="sourceCode" id="cb3"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb3-1"><a href="#cb3-1" aria-hidden="true" tabindex="-1"></a><span class="fu">ic_variancia</span>(mtcars<span class="sc">$</span>mpg, <span class="at">confianca =</span> <span class="fl">0.95</span>)</span></code></pre></div><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></div>
 </section>
-<section id="intervalo-para-diferença-entre-duas-médias" class="level3">
-<h3 class="anchored" data-anchor-id="intervalo-para-diferença-entre-duas-médias">Intervalo para Diferença entre Duas Médias</h3>
-<p>Calcula o intervalo de confiança para <span class="math inline">\(\mu_1 - \mu_2\)</span>, suportando variâncias iguais (Student agrupado) ou desiguais (Welch-Satterthwaite):</p>
+<section id="intervalo-para-diferença-entre-médias" class="level3">
+<h3 class="anchored" data-anchor-id="intervalo-para-diferença-entre-médias">Intervalo para Diferença entre Médias</h3>
+<p>Suporta variâncias iguais (Student agrupado) ou desiguais (Welch-Satterthwaite):</p>
 <div class="code-copy-outer-scaffold"><div class="sourceCode" id="cb4"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb4-1"><a href="#cb4-1" aria-hidden="true" tabindex="-1"></a><span class="fu">ic_diferenca_medias</span>(mtcars<span class="sc">$</span>mpg, mtcars<span class="sc">$</span>am, <span class="at">confianca =</span> <span class="fl">0.95</span>)</span></code></pre></div><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></div>
 <hr>
 </section>
 </section>
 <section id="representação-visual" class="level2">
 <h2 class="anchored" data-anchor-id="representação-visual">Representação Visual</h2>
-<p>Todas as funções de intervalo de confiança geram, por padrão (<code>grafico = TRUE</code>), um gráfico de régua com ponto médio, barras de erro e identificação explícita da variável analisada e do nível de confiança no subtítulo.</p>
+<p>Todas as funções geram, com <code>grafico = TRUE</code>, um gráfico de régua com ponto médio, barras de erro e identificação do nível de confiança no subtítulo.</p>
 
 
 </section>
@@ -637,19 +300,6 @@ window.Quarto = {
 </main> <!-- /main -->
 <script id="quarto-html-after-body" type="application/javascript">
   window.document.addEventListener("DOMContentLoaded", function (event) {
-    // Ensure there is a toggle, if there isn't float one in the top right
-    if (window.document.querySelector('.quarto-color-scheme-toggle') === null) {
-      const a = window.document.createElement('a');
-      a.classList.add('top-right');
-      a.classList.add('quarto-color-scheme-toggle');
-      a.href = "";
-      a.onclick = function() { try { window.quartoToggleColorScheme(); } catch {} return false; };
-      const i = window.document.createElement("i");
-      i.classList.add('bi');
-      a.appendChild(i);
-      window.document.body.appendChild(a);
-    }
-    setColorSchemeToggle(hasAlternateSentinel())
     const icon = "";
     const anchorJS = new window.AnchorJS();
     anchorJS.options = {
@@ -1052,24 +702,14 @@ window.Quarto = {
 <footer class="footer">
   <div class="nav-footer">
     <div class="nav-footer-left">
-<p>© 2026 estatR • Camada Estatística de Alto Padrão para R</p>
+<p>© 2026 estatR • Documentação Oficial</p>
 </div>   
     <div class="nav-footer-center">
       &nbsp;
     </div>
     <div class="nav-footer-right">
-      <ul class="footer-items list-unstyled">
-    <li class="nav-item compact">
-    <a class="nav-link" href="https://github.com/elizeumedeirosest/estatR">
-      <i class="bi bi-github" role="img">
-</i> 
-    </a>
-  </li>  
-    <li class="nav-item">
- Desenvolvido por Elizeu Medeiros
-  </li>  
-</ul>
-    </div>
+<p>Desenvolvido por Elizeu Medeiros</p>
+</div>
   </div>
 </footer>
 

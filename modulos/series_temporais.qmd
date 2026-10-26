@@ -3,16 +3,10 @@ title: "Séries Temporais e Previsão"
 subtitle: "Decomposição, testes de raiz unitária, modelos ARIMA e machine learning temporal"
 ---
 
-## Visão Geral do Módulo
-
-O módulo de séries temporais do **estatR** simplifica a modelagem dinâmica: da decomposição estrutural de tendências e sazonalidades até a modelagem com ARIMA e algoritmos modernos de aprendizado de máquina aplicados a séries temporais.
-
----
-
 ## Decomposição e Diagnóstico
 
 ### `analise_serie()`
-Realiza uma análise descritiva e exploratória completa da série temporal com estatísticas de autocorrelação (FAC/FACP) e gráfico de decomposição:
+Realiza análise exploratória completa da série temporal com estatísticas de autocorrelação (FAC/FACP) e gráfico de decomposição:
 
 ```r
 analise_serie(AirPassengers, grafico = TRUE)

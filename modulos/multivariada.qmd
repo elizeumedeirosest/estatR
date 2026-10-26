@@ -3,29 +3,23 @@ title: "Análise Multivariada e Agrupamento"
 subtitle: "Redução de dimensionalidade, agrupamento e técnicas supervisionadas"
 ---
 
-## Visão Geral do Módulo
-
-O módulo multivariado do **estatR** permite analisar simultaneamente dezenas de variáveis correlacionadas, facilitando a identificação de padrões latentes, agrupamentos naturais de observações e classificação multivariada com biplots editoriais.
-
----
-
 ## Redução de Dimensionalidade
 
 ### Análise de Componentes Principais (PCA)
-Calcula autovalores, variância explicada acumulada e gera biplots editoriais:
+Autovalores, variância explicada acumulada e biplots editoriais:
 
 ```r
 res_acp <- acp(iris[, 1:4])
 
-# Gráfico de sedimentação (Scree plot)
+# Scree plot
 screeplot_acp(res_acp)
 
-# Biplot com elipses de confiança por grupo
+# Biplot com elipses por grupo
 biplot_acp(res_acp, grupo = iris$Species)
 ```
 
 ### Análise Fatorial Exploratória
-Extração de fatores latentes com rotação ortogonal (Varimax) ou oblíqua (Promax):
+Extração de fatores com rotação Varimax ou Promax:
 
 ```r
 res_fat <- analise_fatorial(dados_questionario, n_fatores = 3, rotacionar = "varimax")
@@ -37,19 +31,17 @@ cargasplot_fatorial(res_fat)
 ## Métodos de Agrupamento (Cluster)
 
 ### K-means
-Agrupamento não-hierárquico com diagnóstico de número ótimo de clusters pelo método do cotovelo:
 
 ```r
-# Gráfico do cotovelo (Elbow method)
+# Gráfico do cotovelo
 cotovelo_plot(iris[, 1:4], max_k = 10)
 
-# Ajuste K-means e visualização em duas dimensões
+# K-means e visualização
 res_km <- cluster_kmeans(iris[, 1:4], k = 3)
 plot_clusters(res_km)
 ```
 
 ### Cluster Hierárquico
-Agrupamento aglomerativo com matriz de distâncias e dendrogramas estilizados:
 
 ```r
 res_hc <- cluster_hierarquico(iris[, 1:4], metodo = "ward.D2")
@@ -61,14 +53,13 @@ dendrograma(res_hc, k = 3)
 ## Técnicas Supervisionadas
 
 ### Análise Discriminante Linear (LDA) & MANOVA
-Classificação supervisionada e teste multivariado de hipóteses:
 
 ```r
-# Análise Discriminante com Biplot de separação
+# Discriminante com biplot de separação
 res_lda <- analise_discriminante(Species ~ ., dados = iris)
 biplot_lda(res_lda)
 
-# MANOVA (Análise Multivariada de Variância)
+# MANOVA
 res_manova <- analise_manova(cbind(Sepal.Length, Sepal.Width) ~ Species, dados = iris)
 plot_manova(res_manova)
 ```

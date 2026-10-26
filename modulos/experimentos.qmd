@@ -3,27 +3,24 @@ title: "Planejamento e Análise de Experimentos"
 subtitle: "Delineamentos experimentais (DIC, DBC, DQL, Fatorial) e testes de médias"
 ---
 
-## Visão Geral do Módulo
-
-O módulo de experimentos do **estatR** foi desenhado com base nos padrões agronômicos, biológicos e industriais de pesquisa científica, integrando a análise de variância (ANOVA), testes de pressupostos e testes de comparações múltiplas de médias (Tukey, Scott-Knott, Duncan).
-
----
-
 ## Delineamentos Básicos
 
 ### Delineamento Inteiramente Casualizado (DIC)
+
 ```r
 res_dic <- analise_dic(y = dados$produtividade, trat = dados$adubo, teste_medias = "tukey")
 grafico_dic(res_dic)
 ```
 
 ### Delineamento em Blocos Casualizados (DBC)
+
 ```r
 res_dbc <- analise_dbc(y = dados$produtividade, trat = dados$adubo, bloco = dados$bloco)
 grafico_dbc(res_dbc)
 ```
 
 ### Delineamento Quadrado Latino (DQL)
+
 ```r
 res_dql <- analise_dql(y = dados$prod, trat = dados$trat, linha = dados$lin, coluna = dados$col)
 grafico_dql(res_dql)
@@ -34,7 +31,6 @@ grafico_dql(res_dql)
 ## Esquemas Fatoriais e Parcelas
 
 ### Fatorial Duplo e Adicional
-Para experimentos com dois fatores combinados (com ou sem tratamento adicional de controle):
 
 ```r
 # Fatorial Duplo (Fator A x Fator B)
@@ -46,6 +42,7 @@ res_fat_ad <- analise_fatorial_adicional(y = dados$prod, fator_a = dados$fA, fat
 ```
 
 ### Parcelas Subdivididas (Split-Plot)
+
 ```r
 res_split <- analise_parcela_subdividida(y = dados$prod, parcela = dados$p, subparcela = dados$sp, bloco = dados$b)
 ```

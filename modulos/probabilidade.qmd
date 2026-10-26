@@ -3,16 +3,10 @@ title: "Probabilidade, Distribuições e Simulação"
 subtitle: "Painéis didáticos, probabilidades exatas e métodos computacionais de Monte Carlo"
 ---
 
-## Visão Geral do Módulo
-
-O módulo de probabilidade e distribuições do **estatR** foi concebido para transformar fórmulas abstratas em intuição visual. Ele permite explorar distribuições contínuas e discretas, calcular probabilidades exatas de cauda ou entre limites, e realizar experimentos computacionais modernos.
-
----
-
 ## Painel Didático de Distribuições
 
 ### `distribuicao()`
-Apresenta uma visão completa da distribuição solicitada: densidade/massa teórica, momentos teóricos (média, variância, assimetria e curtose), quantis principais e visualização gráfica com parâmetros explícitos no título (ex: $\mathcal{N}(\mu, \sigma)$):
+Apresenta densidade/massa teórica, momentos teóricos (média, variância, assimetria, curtose), quantis principais e visualização gráfica com parâmetros explícitos no título:
 
 ```r
 # Distribuição Normal com realce das áreas de 1, 2 e 3 desvios

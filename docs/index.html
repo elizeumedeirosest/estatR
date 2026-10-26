@@ -30,7 +30,6 @@ ul.task-list li input[type="checkbox"] {
 
 
 <script src="site_libs/quarto-nav/quarto-nav.js"></script>
-<script src="site_libs/quarto-nav/headroom.min.js"></script>
 <script src="site_libs/clipboard/clipboard.min.js"></script>
 <script src="site_libs/quarto-search/autocomplete.umd.js"></script>
 <script src="site_libs/quarto-search/fuse.min.js"></script>
@@ -43,14 +42,10 @@ ul.task-list li input[type="checkbox"] {
 <script src="site_libs/quarto-html/tippy.umd.min.js"></script>
 <script src="site_libs/quarto-html/anchor.min.js"></script>
 <link href="site_libs/quarto-html/tippy.css" rel="stylesheet">
-<link href="site_libs/quarto-html/quarto-syntax-highlighting-64a204ab8560d761af7679ceaba22944.css" rel="stylesheet" class="quarto-color-scheme" id="quarto-text-highlighting-styles">
-<link href="site_libs/quarto-html/quarto-syntax-highlighting-dark-b85bc7c33db8c58e0ec93c3465666fed.css" rel="stylesheet" class="quarto-color-scheme quarto-color-alternate" id="quarto-text-highlighting-styles">
-<link href="site_libs/quarto-html/quarto-syntax-highlighting-64a204ab8560d761af7679ceaba22944.css" rel="stylesheet" class="quarto-color-scheme-extra" id="quarto-text-highlighting-styles">
+<link href="site_libs/quarto-html/quarto-syntax-highlighting-64a204ab8560d761af7679ceaba22944.css" rel="stylesheet" id="quarto-text-highlighting-styles">
 <script src="site_libs/bootstrap/bootstrap.min.js"></script>
 <link href="site_libs/bootstrap/bootstrap-icons.css" rel="stylesheet">
-<link href="site_libs/bootstrap/bootstrap-711d5f0cb2eecbce4b54be160a5a7e6e.min.css" rel="stylesheet" append-hash="true" class="quarto-color-scheme" id="quarto-bootstrap" data-mode="light">
-<link href="site_libs/bootstrap/bootstrap-dark-4275d7de9d7afaebafdd53a5eb10d6d4.min.css" rel="stylesheet" append-hash="true" class="quarto-color-scheme quarto-color-alternate" id="quarto-bootstrap" data-mode="dark">
-<link href="site_libs/bootstrap/bootstrap-711d5f0cb2eecbce4b54be160a5a7e6e.min.css" rel="stylesheet" append-hash="true" class="quarto-color-scheme-extra" id="quarto-bootstrap" data-mode="light">
+<link href="site_libs/bootstrap/bootstrap-7dc4ccd0c432884e9fb256a0aa0e53a8.min.css" rel="stylesheet" append-hash="true" id="quarto-bootstrap" data-mode="light">
 <script id="quarto-search-options" type="application/json">{
   "location": "navbar",
   "copy-button": false,
@@ -80,212 +75,17 @@ ul.task-list li input[type="checkbox"] {
 }</script>
 <style>html{ scroll-behavior: smooth; }</style>
 
-  <script src="https://cdnjs.cloudflare.com/polyfill/v3/polyfill.min.js?features=es6"></script>
-  <script defer="" src="https://cdn.jsdelivr.net/npm/mathjax@4/tex-chtml.js" type="text/javascript"></script>
-
-<script type="text/javascript">
-const typesetMath = (el) => {
-  if (window.MathJax) {
-    // MathJax Typeset
-    window.MathJax.typeset([el]);
-  } else if (window.katex) {
-    // KaTeX Render
-    var mathElements = el.getElementsByClassName("math");
-    var macros = [];
-    for (var i = 0; i < mathElements.length; i++) {
-      var texText = mathElements[i].firstChild;
-      if (mathElements[i].tagName == "SPAN" && texText && texText.data) {
-        window.katex.render(texText.data, mathElements[i], {
-          displayMode: mathElements[i].classList.contains('display'),
-          throwOnError: false,
-          macros: macros,
-          fleqn: false
-        });
-      }
-    }
-  }
-}
-window.Quarto = {
-  typesetMath
-};
-</script>
 
 <link rel="stylesheet" href="styles.css">
 </head>
 
-<body class="nav-fixed quarto-light"><script id="quarto-html-before-body" type="application/javascript">
-    const toggleBodyColorMode = (bsSheetEl) => {
-      const mode = bsSheetEl.getAttribute("data-mode");
-      const bodyEl = window.document.querySelector("body");
-      if (mode === "dark") {
-        bodyEl.classList.add("quarto-dark");
-        bodyEl.classList.remove("quarto-light");
-      } else {
-        bodyEl.classList.add("quarto-light");
-        bodyEl.classList.remove("quarto-dark");
-      }
-    }
-    const toggleBodyColorPrimary = () => {
-      const bsSheetEl = window.document.querySelector("link#quarto-bootstrap:not([rel=disabled-stylesheet])");
-      if (bsSheetEl) {
-        toggleBodyColorMode(bsSheetEl);
-      }
-    }
-    const setColorSchemeToggle = (alternate) => {
-      const toggles = window.document.querySelectorAll('.quarto-color-scheme-toggle');
-      for (let i=0; i < toggles.length; i++) {
-        const toggle = toggles[i];
-        if (toggle) {
-          if (alternate) {
-            toggle.classList.add("alternate");
-          } else {
-            toggle.classList.remove("alternate");
-          }
-        }
-      }
-    };
-    const toggleColorMode = (alternate) => {
-      // Switch the stylesheets
-      const primaryStylesheets = window.document.querySelectorAll('link.quarto-color-scheme:not(.quarto-color-alternate)');
-      const alternateStylesheets = window.document.querySelectorAll('link.quarto-color-scheme.quarto-color-alternate');
-      manageTransitions('#quarto-margin-sidebar .nav-link', false);
-      if (alternate) {
-        // note: dark is layered on light, we don't disable primary!
-        enableStylesheet(alternateStylesheets);
-        for (const sheetNode of alternateStylesheets) {
-          if (sheetNode.id === "quarto-bootstrap") {
-            toggleBodyColorMode(sheetNode);
-          }
-        }
-      } else {
-        disableStylesheet(alternateStylesheets);
-        enableStylesheet(primaryStylesheets)
-        toggleBodyColorPrimary();
-      }
-      manageTransitions('#quarto-margin-sidebar .nav-link', true);
-      // Switch the toggles
-      setColorSchemeToggle(alternate)
-      // Hack to workaround the fact that safari doesn't
-      // properly recolor the scrollbar when toggling (#1455)
-      if (navigator.userAgent.indexOf('Safari') > 0 && navigator.userAgent.indexOf('Chrome') == -1) {
-        manageTransitions("body", false);
-        window.scrollTo(0, 1);
-        setTimeout(() => {
-          window.scrollTo(0, 0);
-          manageTransitions("body", true);
-        }, 40);
-      }
-    }
-    const disableStylesheet = (stylesheets) => {
-      for (let i=0; i < stylesheets.length; i++) {
-        const stylesheet = stylesheets[i];
-        stylesheet.rel = 'disabled-stylesheet';
-      }
-    }
-    const enableStylesheet = (stylesheets) => {
-      for (let i=0; i < stylesheets.length; i++) {
-        const stylesheet = stylesheets[i];
-        if(stylesheet.rel !== 'stylesheet') { // for Chrome, which will still FOUC without this check
-          stylesheet.rel = 'stylesheet';
-        }
-      }
-    }
-    const manageTransitions = (selector, allowTransitions) => {
-      const els = window.document.querySelectorAll(selector);
-      for (let i=0; i < els.length; i++) {
-        const el = els[i];
-        if (allowTransitions) {
-          el.classList.remove('notransition');
-        } else {
-          el.classList.add('notransition');
-        }
-      }
-    }
-    const isFileUrl = () => {
-      return window.location.protocol === 'file:';
-    }
-    const hasAlternateSentinel = () => {
-      let styleSentinel = getColorSchemeSentinel();
-      if (styleSentinel !== null) {
-        return styleSentinel === "alternate";
-      } else {
-        return false;
-      }
-    }
-    const setStyleSentinel = (alternate) => {
-      const value = alternate ? "alternate" : "default";
-      if (!isFileUrl()) {
-        window.localStorage.setItem("quarto-color-scheme", value);
-      } else {
-        localAlternateSentinel = value;
-      }
-    }
-    const getColorSchemeSentinel = () => {
-      if (!isFileUrl()) {
-        const storageValue = window.localStorage.getItem("quarto-color-scheme");
-        return storageValue != null ? storageValue : localAlternateSentinel;
-      } else {
-        return localAlternateSentinel;
-      }
-    }
-    const toggleGiscusIfUsed = (isAlternate, darkModeDefault) => {
-      const baseTheme = document.querySelector('#giscus-base-theme')?.value ?? 'light';
-      const alternateTheme = document.querySelector('#giscus-alt-theme')?.value ?? 'dark';
-      let newTheme = '';
-      if(authorPrefersDark) {
-        newTheme = isAlternate ? baseTheme : alternateTheme;
-      } else {
-        newTheme = isAlternate ? alternateTheme : baseTheme;
-      }
-      const changeGiscusTheme = () => {
-        // From: https://github.com/giscus/giscus/issues/336
-        const sendMessage = (message) => {
-          const iframe = document.querySelector('iframe.giscus-frame');
-          if (!iframe) return;
-          iframe.contentWindow.postMessage({ giscus: message }, 'https://giscus.app');
-        }
-        sendMessage({
-          setConfig: {
-            theme: newTheme
-          }
-        });
-      }
-      const isGiscussLoaded = window.document.querySelector('iframe.giscus-frame') !== null;
-      if (isGiscussLoaded) {
-        changeGiscusTheme();
-      }
-    };
-    const authorPrefersDark = false;
-    const darkModeDefault = authorPrefersDark;
-      document.querySelector('link#quarto-text-highlighting-styles.quarto-color-scheme-extra').rel = 'disabled-stylesheet';
-      document.querySelector('link#quarto-bootstrap.quarto-color-scheme-extra').rel = 'disabled-stylesheet';
-    let localAlternateSentinel = darkModeDefault ? 'alternate' : 'default';
-    // Dark / light mode switch
-    window.quartoToggleColorScheme = () => {
-      // Read the current dark / light value
-      let toAlternate = !hasAlternateSentinel();
-      toggleColorMode(toAlternate);
-      setStyleSentinel(toAlternate);
-      toggleGiscusIfUsed(toAlternate, darkModeDefault);
-      window.dispatchEvent(new Event('resize'));
-    };
-    // Switch to dark mode if need be
-    if (hasAlternateSentinel()) {
-      toggleColorMode(true);
-    } else {
-      toggleColorMode(false);
-    }
-  </script>
+<body class="nav-fixed quarto-light">
 
 <div id="quarto-search-results"></div>
   <header id="quarto-header" class="headroom fixed-top">
     <nav class="navbar navbar-expand-lg " data-bs-theme="dark">
       <div class="navbar-container container-fluid">
       <div class="navbar-brand-container mx-auto">
-    <a href="./index.html" class="navbar-brand navbar-brand-logo">
-    <img src="./man/figures/logo.svg" alt="" class="navbar-logo light-content">
-    <img src="./man/figures/logo.svg" alt="" class="navbar-logo dark-content">
-    </a>
     <a class="navbar-brand" href="./index.html">
     <span class="navbar-title">estatR</span>
     </a>
@@ -301,8 +101,8 @@ window.Quarto = {
 <span class="menu-text">Início</span></a>
   </li>  
   <li class="nav-item">
-    <a class="nav-link" href="./guia_rapido.html"> 
-<span class="menu-text">Guia Rápido</span></a>
+    <a class="nav-link" href="./sobre.html"> 
+<span class="menu-text">Sobre o estatR</span></a>
   </li>  
   <li class="nav-item dropdown ">
     <a class="nav-link dropdown-toggle" href="#" id="nav-menu-módulos" role="link" data-bs-toggle="dropdown" aria-expanded="false">
@@ -315,7 +115,7 @@ window.Quarto = {
   </li>  
         <li>
     <a class="dropdown-item" href="./modulos/inferencia.html">
- <span class="dropdown-text">Inferência e Testes</span></a>
+ <span class="dropdown-text">Testes de Hipótese</span></a>
   </li>  
         <li>
     <a class="dropdown-item" href="./modulos/intervalos.html">
@@ -331,7 +131,7 @@ window.Quarto = {
   </li>  
         <li>
     <a class="dropdown-item" href="./modulos/mlg.html">
- <span class="dropdown-text">Modelos Lineares Generalizados (MLG)</span></a>
+ <span class="dropdown-text">Modelos Generalizados (MLG)</span></a>
   </li>  
         <li>
     <a class="dropdown-item" href="./modulos/series_temporais.html">
@@ -343,7 +143,7 @@ window.Quarto = {
   </li>  
         <li>
     <a class="dropdown-item" href="./modulos/experimentos.html">
- <span class="dropdown-text">Planejamento Experimental</span></a>
+ <span class="dropdown-text">Delineamentos Experimentais</span></a>
   </li>  
         <li>
     <a class="dropdown-item" href="./modulos/aprendizado_maquina.html">
@@ -355,10 +155,6 @@ window.Quarto = {
   </li>  
     </ul>
   </li>
-  <li class="nav-item">
-    <a class="nav-link" href="./referencia.html"> 
-<span class="menu-text">Referência (120+ Funções)</span></a>
-  </li>  
 </ul>
             <ul class="navbar-nav navbar-nav-scroll ms-auto">
   <li class="nav-item compact">
@@ -369,7 +165,6 @@ window.Quarto = {
 </ul>
           </div> <!-- /navcollapse -->
             <div class="quarto-navbar-tools">
-  <a href="" class="quarto-color-scheme-toggle quarto-navigation-tool  px-1" onclick="window.quartoToggleColorScheme(); return false;" title="Toggle dark mode"><i class="bi"></i></a>
 </div>
       </div> <!-- /container-fluid -->
     </nav>
@@ -380,198 +175,136 @@ window.Quarto = {
 <!-- margin-sidebar -->
     
 <!-- main -->
-<main class="content column-page" id="quarto-document-content"><header id="title-block-header" class="quarto-title-block"></header>
+<main class="content column-page" id="quarto-document-content"><header id="title-block-header" class="quarto-title-block"><h1 class="title display-7">estatR</h1></header>
+
+<header id="title-block-header">
 
 
+</header>
 
 
-
-<div class="hero-wrapper">
-<p><img src="man/figures/logo.svg" alt="estatR Logo" width="130" height="130" style="margin-bottom: 1.5rem; filter: drop-shadow(0 12px 24px rgba(0, 113, 227, 0.2));"></p>
-<div class="hero-pill">
-<p><img src="assets/icons/sparkles.svg" width="14" height="14" style="vertical-align: middle; margin-right: 4px;"> Camada Estatística de Alto Padrão para R</p>
-</div>
-<section id="estatr" class="level1">
-<h1>estatR</h1>
-<section id="estatística-com-elegância-precisão-e-produtividade." class="level3">
-<h3 class="anchored" data-anchor-id="estatística-com-elegância-precisão-e-produtividade.">Estatística com Elegância, Precisão e Produtividade.</h3>
-<div class="hero-subtitle">
-<p>Uma camada moderna, didática e unificada sobre o ecossistema R. Saídas formatadas no console em português, tabelas prontas para publicação e gráficos editoriais em padrão publicação com uma sintaxe fluida e intuitiva.</p>
-</div>
-<div class="hero-actions">
-<p><a href="./guia_rapido.html" class="btn-hero-primary"> <img src="assets/icons/terminal.svg" width="18" height="18"> Começar Agora </a> <a href="./referencia.html" class="btn-hero-secondary"> <img src="assets/icons/search.svg" width="18" height="18"> Ver Catálogo de Funções (120+) </a></p>
-</div>
-<div class="terminal-window">
-<div class="terminal-header">
-<p><span class="terminal-dot dot-red"></span> <span class="terminal-dot dot-yellow"></span> <span class="terminal-dot dot-green"></span> <span class="terminal-title">RStudio Console • estatR Preview</span></p>
-</div>
-<div class="terminal-body">
-<p><span class="comment"># Instalação direta via GitHub</span> <span class="cmd">&gt; devtools::install_github(“elizeumedeirosest/estatR”)</span> <span class="cmd">&gt; library(estatR)</span></p>
-<p><span class="comment"># Diagnóstico e síntese descritiva em uma linha</span> <span class="cmd">&gt; descrever(iris<span class="math inline">\(Sepal.Length, por = iris\)</span>Species)</span> ::: {.output} ====================================================================== RESUMO DESCRITIVO: Sepal.Length POR Species ====================================================================== Grupo N Média DP Mediana IIQ Mín Máx ———————————————————————- setosa 50 5.006 0.352 5.000 0.400 4.300 5.800 versicolor 50 5.936 0.516 5.900 0.700 4.900 7.000 virginica 50 6.588 0.636 6.500 0.675 4.900 7.900 ======================================================================</p>
-</div>
-<p><span class="comment"># Gráficos com tema dual grid editorial pronto</span> <span class="cmd">&gt; analise_residual(modelo, grade = “dupla”)</span></p>
-</div>
+<section class="hero-section">
+  <div class="hero-inner">
+    <div class="hero-brand"><span class="brand-black">estat</span><span class="brand-blue">R</span></div>
+    <p class="hero-tagline">Estatística moderna, didática e de alto padrão para R.</p>
+    <p class="hero-meta">120+ funções &nbsp;·&nbsp; 11 módulos &nbsp;·&nbsp; Código aberto</p>
+    <div class="hero-actions">
+      <a href="./sobre.html" class="btn-primary">Sobre o estatR</a>
+      <a href="./modulos/descritiva.html" class="btn-secondary">Ver Módulos</a>
+    </div>
+  </div>
 </section>
+
+<section class="modules-section">
+  <div class="section-inner">
+    <h2 class="section-title anchored">Módulos Especializados</h2>
+    <p class="section-sub">Uma arquitetura modular cobrindo todo o fluxo da análise estatística.</p>
+
+    <div class="modules-grid">
+
+      <a href="./modulos/descritiva.html" class="module-card">
+        <div class="module-icon"><i class="bi bi-clipboard2-data"></i></div>
+        <div class="module-title">Diagnóstico &amp; Descritiva</div>
+        <div class="module-desc">Inspeção estrutural, detecção de outliers e estatísticas descritivas uni e multivariadas.</div>
+        <div class="module-link">Ver módulo →</div>
+      </a>
+
+      <a href="./modulos/inferencia.html" class="module-card">
+        <div class="module-icon"><i class="bi bi-bullseye"></i></div>
+        <div class="module-title">Testes de Hipótese</div>
+        <div class="module-desc">Testes paramétricos e não-paramétricos com interpretação automática dos resultados.</div>
+        <div class="module-link">Ver módulo →</div>
+      </a>
+
+      <a href="./modulos/intervalos.html" class="module-card">
+        <div class="module-icon"><i class="bi bi-rulers"></i></div>
+        <div class="module-title">Intervalos de Confiança</div>
+        <div class="module-desc">Construção e interpretação de intervalos para médias, proporções e variâncias.</div>
+        <div class="module-link">Ver módulo →</div>
+      </a>
+
+      <a href="./modulos/probabilidade.html" class="module-card">
+        <div class="module-icon"><i class="bi bi-bell"></i></div>
+        <div class="module-title">Probabilidade &amp; Simulação</div>
+        <div class="module-desc">Distribuições teóricas, bootstrap, Monte Carlo e Teorema Central do Limite.</div>
+        <div class="module-link">Ver módulo →</div>
+      </a>
+
+      <a href="./modulos/regressao.html" class="module-card">
+        <div class="module-icon"><i class="bi bi-graph-up"></i></div>
+        <div class="module-title">Modelos Lineares &amp; Regressão</div>
+        <div class="module-desc">Regressão múltipla com diagnóstico residual rigoroso e seleção de variáveis.</div>
+        <div class="module-link">Ver módulo →</div>
+      </a>
+
+      <a href="./modulos/mlg.html" class="module-card">
+        <div class="module-icon"><i class="bi bi-bar-chart-steps"></i></div>
+        <div class="module-title">Modelos Generalizados (MLG)</div>
+        <div class="module-desc">Logística, Poisson, Binomial Negativa, Gama e Beta com ponto de corte de Youden.</div>
+        <div class="module-link">Ver módulo →</div>
+      </a>
+
+      <a href="./modulos/series_temporais.html" class="module-card">
+        <div class="module-icon"><i class="bi bi-activity"></i></div>
+        <div class="module-title">Séries Temporais</div>
+        <div class="module-desc">Decomposição, testes de raiz unitária, ARIMA, previsão e modelos de machine learning.</div>
+        <div class="module-link">Ver módulo →</div>
+      </a>
+
+      <a href="./modulos/multivariada.html" class="module-card">
+        <div class="module-icon"><i class="bi bi-diagram-3"></i></div>
+        <div class="module-title">Análise Multivariada</div>
+        <div class="module-desc">PCA, Análise Fatorial, K-means, Dendrogramas, Discriminante Linear e MANOVA.</div>
+        <div class="module-link">Ver módulo →</div>
+      </a>
+
+      <a href="./modulos/experimentos.html" class="module-card">
+        <div class="module-icon"><i class="bi bi-grid-3x3"></i></div>
+        <div class="module-title">Delineamentos Experimentais</div>
+        <div class="module-desc">DIC, DBC, DQL, fatoriais e parcelas subdivididas com testes de médias (Tukey/Scott-Knott).</div>
+        <div class="module-link">Ver módulo →</div>
+      </a>
+
+      <a href="./modulos/aprendizado_maquina.html" class="module-card">
+        <div class="module-icon"><i class="bi bi-cpu"></i></div>
+        <div class="module-title">Machine Learning &amp; Sobrevivência</div>
+        <div class="module-desc">Análise de sobrevivência, curvas de Kaplan-Meier e modelos preditivos supervisionados.</div>
+        <div class="module-link">Ver módulo →</div>
+      </a>
+
+      <a href="./modulos/amostragem.html" class="module-card">
+        <div class="module-icon"><i class="bi bi-people"></i></div>
+        <div class="module-title">Amostragem Probabilística</div>
+        <div class="module-desc">AAS, estratificada (proporcional/ótima), sistemática e conglomerados em dois estágios.</div>
+        <div class="module-link">Ver módulo →</div>
+      </a>
+
+    </div>
+  </div>
 </section>
-</div>
-<p>:::</p>
-<div class="container" style="max-width: 1040px; margin: 0 auto 5rem;">
-<div style="text-align: center; margin-bottom: 3rem;">
-<h2 style="font-size: 2rem; border-bottom: none; margin-bottom: 0.5rem;" class="anchored">
-Arquitetura &amp; Módulos Especializados
-</h2>
-<p style="color: #64748b; font-size: 1.05rem;">
-Conheça os pilares que compõem o ecossistema do estatR
-</p>
-</div>
-<div class="feature-grid">
-<a href="./modulos/descritiva.html" class="feature-card">
-<div class="feature-card-icon">
-<pre><code>&lt;img src="assets/icons/search.svg" width="24" height="24" /&gt;</code></pre>
-</div>
-<div class="feature-card-title">
-Diagnóstico &amp; Descritiva
-</div>
-<div class="feature-card-desc">
-<pre><code>Inspeção estrutural imediata, detecção automática de outliers, valores ausentes e estatísticas descritivas polimórficas para variáveis univariadas ou agrupadas.</code></pre>
-</div>
-<div class="feature-card-link">
-Explorar Módulo →
-</div>
-</a><p><a href="./modulos/descritiva.html" class="feature-card"></a></p>
-<a href="./modulos/inferencia.html" class="feature-card">
-<div class="feature-card-icon">
-<pre><code>&lt;img src="assets/icons/target.svg" width="24" height="24" /&gt;</code></pre>
-</div>
-<div class="feature-card-title">
-Inferência &amp; Testes de Hipótese
-</div>
-<div class="feature-card-desc">
-<pre><code>Comparações paramétricas (Testes T de uma e duas amostras, pareado, proporções) e não-paramétricas (Wilcoxon, Mann-Whitney, Kruskal, Friedman e Qui-quadrado).</code></pre>
-</div>
-<div class="feature-card-link">
-Explorar Módulo →
-</div>
-</a><p><a href="./modulos/inferencia.html" class="feature-card"></a></p>
-<a href="./modulos/intervalos.html" class="feature-card">
-<div class="feature-card-icon">
-<pre><code>&lt;img src="assets/icons/ruler.svg" width="24" height="24" /&gt;</code></pre>
-</div>
-<div class="feature-card-title">
-Intervalos de Confiança
-</div>
-<div class="feature-card-desc">
-<pre><code>Construção de intervalos com formulação clássica e interpretação frequentista detalhada para médias, proporções, variâncias e diferença de médias populacionais.</code></pre>
-</div>
-<div class="feature-card-link">
-Explorar Módulo →
-</div>
-</a><p><a href="./modulos/intervalos.html" class="feature-card"></a></p>
-<a href="./modulos/probabilidade.html" class="feature-card">
-<div class="feature-card-icon">
-<pre><code>&lt;img src="assets/icons/bell.svg" width="24" height="24" /&gt;</code></pre>
-</div>
-<div class="feature-card-title">
-Probabilidade &amp; Simulação
-</div>
-<div class="feature-card-desc">
-<pre><code>Painéis visuais de distribuições teóricas com parâmetros didáticos, cálculo de probabilidades de cauda e entre limites, bootstrap, Monte Carlo e TCL.</code></pre>
-</div>
-<div class="feature-card-link">
-Explorar Módulo →
-</div>
-</a><p><a href="./modulos/probabilidade.html" class="feature-card"></a></p>
-<a href="./modulos/mlg.html" class="feature-card">
-<div class="feature-card-icon">
-<pre><code>&lt;img src="assets/icons/chart.svg" width="24" height="24" /&gt;</code></pre>
-</div>
-<div class="feature-card-title">
-Modelos Lineares &amp; MLG
-</div>
-<div class="feature-card-desc">
-<pre><code>Regressão múltipla e modelos generalizados (Logística, Poisson, Binomial Negativa, Gama, Beta) com diagnóstico residual rigoroso e ponto de corte ótimo de Youden.</code></pre>
-</div>
-<div class="feature-card-link">
-Explorar Módulo →
-</div>
-</a><p><a href="./modulos/mlg.html" class="feature-card"></a></p>
-<a href="./modulos/series_temporais.html" class="feature-card">
-<div class="feature-card-icon">
-<pre><code>&lt;img src="assets/icons/trending.svg" width="24" height="24" /&gt;</code></pre>
-</div>
-<div class="feature-card-title">
-Séries Temporais &amp; Previsão
-</div>
-<div class="feature-card-desc">
-<pre><code>Decomposição clássica e STL, testes de raiz unitária (ADF/KPSS), ajuste de modelos ARIMA, previsão com intervalos e modelos baseados em aprendizado de máquina.</code></pre>
-</div>
-<div class="feature-card-link">
-Explorar Módulo →
-</div>
-</a><p><a href="./modulos/series_temporais.html" class="feature-card"></a></p>
-<a href="./modulos/multivariada.html" class="feature-card">
-<div class="feature-card-icon">
-<pre><code>&lt;img src="assets/icons/layers.svg" width="24" height="24" /&gt;</code></pre>
-</div>
-<div class="feature-card-title">
-Análise Multivariada
-</div>
-<div class="feature-card-desc">
-<pre><code>Redução de dimensionalidade via PCA e Análise Fatorial, agrupamento com K-means e Dendrogramas Hierárquicos, Análise Discriminante Linear e MANOVA.</code></pre>
-</div>
-<div class="feature-card-link">
-Explorar Módulo →
-</div>
-</a><p><a href="./modulos/multivariada.html" class="feature-card"></a></p>
-<a href="./modulos/experimentos.html" class="feature-card">
-<div class="feature-card-icon">
-<pre><code>&lt;img src="assets/icons/flask.svg" width="24" height="24" /&gt;</code></pre>
-</div>
-<div class="feature-card-title">
-Delineamentos Experimentais
-</div>
-<div class="feature-card-desc">
-<pre><code>Análise completa de experimentos em DIC, DBC, DQL, Fatoriais Duplos, Esquemas com Tratamento Adicional e Parcelas Subdivididas com testes de médias (Tukey/Scott-Knott).</code></pre>
-</div>
-<div class="feature-card-link">
-Explorar Módulo →
-</div>
-</a><p><a href="./modulos/experimentos.html" class="feature-card"></a></p>
-<a href="./modulos/amostragem.html" class="feature-card">
-<div class="feature-card-icon">
-<pre><code>&lt;img src="assets/icons/users.svg" width="24" height="24" /&gt;</code></pre>
-</div>
-<div class="feature-card-title">
-Amostragem Probabilística
-</div>
-<div class="feature-card-desc">
-<pre><code>Planos amostrais para amostragem aleatória simples, estratificada por alocação proporcional/ótima, sistemática e por conglomerados em um ou dois estágios.</code></pre>
-</div>
-<div class="feature-card-link">
-Explorar Módulo →
-</div>
-</a><p><a href="./modulos/amostragem.html" class="feature-card"></a></p>
-</div>
-</div>
+
+<section class="install-section">
+  <div class="section-inner install-inner">
+    <div class="install-text">
+      <h2 class="install-title anchored">Instalação</h2>
+      <p class="install-desc">Disponível diretamente via GitHub. Nenhuma dependência externa obrigatória.</p>
+    </div>
+    <div class="install-code">
+      <pre class="install-pre"><code><span class="ic-comment"># Instalar via devtools</span>
+<span class="ic-fn">devtools</span>::install_github(<span class="ic-str">"elizeumedeirosest/estatR"</span>)
+<span class="ic-fn">library</span>(estatR)
+
+<span class="ic-comment"># Diagnóstico descritivo em uma linha</span>
+descrever(iris$Sepal.Length, por = iris$Species)</code></pre>
+    </div>
+  </div>
+</section>
 
 
 
 </main> <!-- /main -->
 <script id="quarto-html-after-body" type="application/javascript">
   window.document.addEventListener("DOMContentLoaded", function (event) {
-    // Ensure there is a toggle, if there isn't float one in the top right
-    if (window.document.querySelector('.quarto-color-scheme-toggle') === null) {
-      const a = window.document.createElement('a');
-      a.classList.add('top-right');
-      a.classList.add('quarto-color-scheme-toggle');
-      a.href = "";
-      a.onclick = function() { try { window.quartoToggleColorScheme(); } catch {} return false; };
-      const i = window.document.createElement("i");
-      i.classList.add('bi');
-      a.appendChild(i);
-      window.document.body.appendChild(a);
-    }
-    setColorSchemeToggle(hasAlternateSentinel())
     const icon = "";
     const anchorJS = new window.AnchorJS();
     anchorJS.options = {
@@ -974,24 +707,14 @@ Explorar Módulo →
 <footer class="footer">
   <div class="nav-footer">
     <div class="nav-footer-left">
-<p>© 2026 estatR • Camada Estatística de Alto Padrão para R</p>
+<p>© 2026 estatR • Documentação Oficial</p>
 </div>   
     <div class="nav-footer-center">
       &nbsp;
     </div>
     <div class="nav-footer-right">
-      <ul class="footer-items list-unstyled">
-    <li class="nav-item compact">
-    <a class="nav-link" href="https://github.com/elizeumedeirosest/estatR">
-      <i class="bi bi-github" role="img">
-</i> 
-    </a>
-  </li>  
-    <li class="nav-item">
- Desenvolvido por Elizeu Medeiros
-  </li>  
-</ul>
-    </div>
+<p>Desenvolvido por Elizeu Medeiros</p>
+</div>
   </div>
 </footer>
 

@@ -3,44 +3,36 @@ title: "Intervalos de Confiança"
 subtitle: "Estimação intervalar clássica e frequentista com representação gráfica em régua"
 ---
 
-## Visão Geral do Módulo
-
-O módulo de intervalos de confiança do **estatR** une a precisão analítica à clareza pedagógica. Cada função exibe no console a estimativa pontual, erro padrão, margem de erro, limites inferior e superior, acompanhados de dois parágrafos interpretativos:
-1. **Interpretação Amostral:** O intervalo calculado para a amostra corrente.
-2. **Interpretação Frequentista:** A definição formal de longo prazo baseada em repetições infinitas do experimento sob o mesmo nível de confiança.
-
----
-
 ## Funções Disponíveis
 
-### Intervalo de Confiança para a Média
-Calcula o intervalo de confiança baseado na distribuição t de Student (ou normal para grandes amostras):
+### Intervalo para a Média
+Baseado na distribuição t de Student (ou normal para grandes amostras):
 
 ```r
-# Intervalo padrão de 95%
+# IC de 95%
 ic_media(mtcars$mpg)
 
-# Intervalo com 99% de confiança
+# IC de 99%
 ic_media(mtcars$mpg, confianca = 0.99)
 ```
 
-### Intervalo de Confiança para Proporções
-Calcula o intervalo para uma proporção binomial (método de Wilson ou Wald com correção de continuidade):
+### Intervalo para Proporções
+Método de Wilson ou Wald com correção de continuidade:
 
 ```r
 # 87 sucessos em 300 tentativas
 ic_proporcao(x = 87, n = 300, confianca = 0.95)
 ```
 
-### Intervalo de Confiança para a Variância
-Baseado na distribuição qui-quadrado ($\chi^2$), fornecendo tanto o intervalo para a variância ($\sigma^2$) quanto para o desvio padrão ($\sigma$):
+### Intervalo para a Variância
+Baseado na distribuição $\chi^2$, fornece IC para $\sigma^2$ e $\sigma$:
 
 ```r
 ic_variancia(mtcars$mpg, confianca = 0.95)
 ```
 
-### Intervalo para Diferença entre Duas Médias
-Calcula o intervalo de confiança para $\mu_1 - \mu_2$, suportando variâncias iguais (Student agrupado) ou desiguais (Welch-Satterthwaite):
+### Intervalo para Diferença entre Médias
+Suporta variâncias iguais (Student agrupado) ou desiguais (Welch-Satterthwaite):
 
 ```r
 ic_diferenca_medias(mtcars$mpg, mtcars$am, confianca = 0.95)
@@ -50,4 +42,4 @@ ic_diferenca_medias(mtcars$mpg, mtcars$am, confianca = 0.95)
 
 ## Representação Visual
 
-Todas as funções de intervalo de confiança geram, por padrão (`grafico = TRUE`), um gráfico de régua com ponto médio, barras de erro e identificação explícita da variável analisada e do nível de confiança no subtítulo.
+Todas as funções geram, com `grafico = TRUE`, um gráfico de régua com ponto médio, barras de erro e identificação do nível de confiança no subtítulo.

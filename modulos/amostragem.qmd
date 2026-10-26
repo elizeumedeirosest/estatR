@@ -3,27 +3,19 @@ title: "Amostragem Probabilística"
 subtitle: "Planos amostrais probabilísticos e cálculo de tamanho amostral"
 ---
 
-## Visão Geral do Módulo
-
-O módulo de amostragem do **estatR** fornece ferramentas para o planejamento e extração de amostras probabilísticas representativas, contemplando os quatro principais delineamentos amostrais e o dimensionamento amostral exato.
-
----
-
 ## Planos Amostrais
 
 ### Amostragem Aleatória Simples (AAS)
-Com ou sem reposição:
 
 ```r
-# Extração de 50 observações por AAS sem reposição
+# 50 observações por AAS sem reposição
 amostra <- amostra_aleatoria(banco_dados, n = 50, reposicao = FALSE)
 ```
 
 ### Amostragem Estratificada
-Garante a representatividade proporcional ou ótima de subpopulações/estratos:
+Representatividade proporcional ou ótima de subpopulações:
 
 ```r
-# Amostragem proporcional por estrato (ex: região ou gênero)
 amostra_est <- amostra_estratificada(banco_dados, estrato = "regiao", n = 100, alocacao = "proporcional")
 ```
 
@@ -35,7 +27,6 @@ amostra_sist <- amostra_sistematica(banco_dados, n = 40)
 ```
 
 ### Amostragem por Conglomerados
-Seleção em um ou dois estágios de unidades primárias:
 
 ```r
 amostra_cong <- amostra_conglomerados(banco_dados, conglomerado = "escola", n_conglomerados = 5)
@@ -46,12 +37,12 @@ amostra_cong <- amostra_conglomerados(banco_dados, conglomerado = "escola", n_co
 ## Dimensionamento Amostral
 
 ### `tamanho_amostra()`
-Calcula o tamanho amostral necessário para estimar médias ou proporções dado o erro tolerável ($e$), nível de confiança e tamanho da população (caso finita):
+Calcula o n necessário dado erro tolerável ($e$), nível de confiança e tamanho da população:
 
 ```r
-# Dimensionamento para proporção (margem de erro de 3%, 95% de confiança)
+# Proporção (margem de 3%, 95% de confiança)
 tamanho_amostra(tipo = "proporcao", erro = 0.03, confianca = 0.95, N = 10000)
 
-# Dimensionamento para média contínua (com desvio padrão conhecido ou estimado)
+# Média contínua
 tamanho_amostra(tipo = "media", erro = 2, dp = 15, confianca = 0.95)
 ```

@@ -1,174 +1,125 @@
 ---
-title: ""
+title: "estatR"
+title-block-style: none
 page-layout: full
 toc: false
 ---
 
-::: {.hero-wrapper}
-
-<img src="man/figures/logo.svg" alt="estatR Logo" width="130" height="130" style="margin-bottom: 1.5rem; filter: drop-shadow(0 12px 24px rgba(0, 113, 227, 0.2));" />
-
-::: {.hero-pill}
-<img src="assets/icons/sparkles.svg" width="14" height="14" style="vertical-align: middle; margin-right: 4px;" /> Camada Estatística de Alto Padrão para R
-:::
-
-# estatR
-
-### Estatística com Elegância, Precisão e Produtividade.
-
-::: {.hero-subtitle}
-Uma camada moderna, didática e unificada sobre o ecossistema R. Saídas formatadas no console em português, tabelas prontas para publicação e gráficos editoriais em padrão publicação com uma sintaxe fluida e intuitiva.
-:::
-
-::: {.hero-actions}
-<a href="guia_rapido.qmd" class="btn-hero-primary">
-  <img src="assets/icons/terminal.svg" width="18" height="18" /> Começar Agora
-</a>
-<a href="referencia.qmd" class="btn-hero-secondary">
-  <img src="assets/icons/search.svg" width="18" height="18" /> Ver Catálogo de Funções (120+)
-</a>
-:::
-
-::: {.terminal-window}
-::: {.terminal-header}
-<span class="terminal-dot dot-red"></span>
-<span class="terminal-dot dot-yellow"></span>
-<span class="terminal-dot dot-green"></span>
-<span class="terminal-title">RStudio Console • estatR Preview</span>
-:::
-::: {.terminal-body}
-<span class="comment"># Instalação direta via GitHub</span>
-<span class="cmd">> devtools::install_github("elizeumedeirosest/estatR")</span>
-<span class="cmd">> library(estatR)</span>
-
-<span class="comment"># Diagnóstico e síntese descritiva em uma linha</span>
-<span class="cmd">> descrever(iris$Sepal.Length, por = iris$Species)</span>
-::: {.output}
-======================================================================
-  RESUMO DESCRITIVO: Sepal.Length POR Species
-======================================================================
-Grupo        N   Média     DP    Mediana    IIQ     Mín     Máx
-----------------------------------------------------------------------
-setosa      50   5.006  0.352      5.000  0.400   4.300   5.800
-versicolor  50   5.936  0.516      5.900  0.700   4.900   7.000
-virginica   50   6.588  0.636      6.500  0.675   4.900   7.900
-======================================================================
-:::
-<span class="comment"># Gráficos com tema dual grid editorial pronto</span>
-<span class="cmd">> analise_residual(modelo, grade = "dupla")</span>
-:::
-:::
-
-:::
-
-::: {.container style="max-width: 1040px; margin: 0 auto 5rem;"}
-
-<div style="text-align: center; margin-bottom: 3rem;">
-  <h2 style="font-size: 2rem; border-bottom: none; margin-bottom: 0.5rem;">Arquitetura & Módulos Especializados</h2>
-  <p style="color: #64748b; font-size: 1.05rem;">Conheça os pilares que compõem o ecossistema do estatR</p>
-</div>
-
-::: {.feature-grid}
-
-<a href="modulos/descritiva.qmd" class="feature-card">
-  <div class="feature-card-icon">
-    <img src="assets/icons/search.svg" width="24" height="24" />
+```{=html}
+<section class="hero-section">
+  <div class="hero-inner">
+    <div class="hero-brand"><span class="brand-black">estat</span><span class="brand-blue">R</span></div>
+    <p class="hero-tagline">Estatística moderna, didática e de alto padrão para R.</p>
+    <p class="hero-meta">120+ funções &nbsp;·&nbsp; 11 módulos &nbsp;·&nbsp; Código aberto</p>
+    <div class="hero-actions">
+      <a href="sobre.qmd" class="btn-primary">Sobre o estatR</a>
+      <a href="modulos/descritiva.qmd" class="btn-secondary">Ver Módulos</a>
+    </div>
   </div>
-  <div class="feature-card-title">Diagnóstico & Descritiva</div>
-  <div class="feature-card-desc">
-    Inspeção estrutural imediata, detecção automática de outliers, valores ausentes e estatísticas descritivas polimórficas para variáveis univariadas ou agrupadas.
-  </div>
-  <div class="feature-card-link">Explorar Módulo →</div>
-</a>
+</section>
 
-<a href="modulos/inferencia.qmd" class="feature-card">
-  <div class="feature-card-icon">
-    <img src="assets/icons/target.svg" width="24" height="24" />
-  </div>
-  <div class="feature-card-title">Inferência & Testes de Hipótese</div>
-  <div class="feature-card-desc">
-    Comparações paramétricas (Testes T de uma e duas amostras, pareado, proporções) e não-paramétricas (Wilcoxon, Mann-Whitney, Kruskal, Friedman e Qui-quadrado).
-  </div>
-  <div class="feature-card-link">Explorar Módulo →</div>
-</a>
+<section class="modules-section">
+  <div class="section-inner">
+    <h2 class="section-title">Módulos Especializados</h2>
+    <p class="section-sub">Uma arquitetura modular cobrindo todo o fluxo da análise estatística.</p>
 
-<a href="modulos/intervalos.qmd" class="feature-card">
-  <div class="feature-card-icon">
-    <img src="assets/icons/ruler.svg" width="24" height="24" />
-  </div>
-  <div class="feature-card-title">Intervalos de Confiança</div>
-  <div class="feature-card-desc">
-    Construção de intervalos com formulação clássica e interpretação frequentista detalhada para médias, proporções, variâncias e diferença de médias populacionais.
-  </div>
-  <div class="feature-card-link">Explorar Módulo →</div>
-</a>
+    <div class="modules-grid">
 
-<a href="modulos/probabilidade.qmd" class="feature-card">
-  <div class="feature-card-icon">
-    <img src="assets/icons/bell.svg" width="24" height="24" />
-  </div>
-  <div class="feature-card-title">Probabilidade & Simulação</div>
-  <div class="feature-card-desc">
-    Painéis visuais de distribuições teóricas com parâmetros didáticos, cálculo de probabilidades de cauda e entre limites, bootstrap, Monte Carlo e TCL.
-  </div>
-  <div class="feature-card-link">Explorar Módulo →</div>
-</a>
+      <a href="modulos/descritiva.qmd" class="module-card">
+        <div class="module-icon"><i class="bi bi-clipboard2-data"></i></div>
+        <div class="module-title">Diagnóstico &amp; Descritiva</div>
+        <div class="module-desc">Inspeção estrutural, detecção de outliers e estatísticas descritivas uni e multivariadas.</div>
+        <div class="module-link">Ver módulo →</div>
+      </a>
 
-<a href="modulos/mlg.qmd" class="feature-card">
-  <div class="feature-card-icon">
-    <img src="assets/icons/chart.svg" width="24" height="24" />
-  </div>
-  <div class="feature-card-title">Modelos Lineares & MLG</div>
-  <div class="feature-card-desc">
-    Regressão múltipla e modelos generalizados (Logística, Poisson, Binomial Negativa, Gama, Beta) com diagnóstico residual rigoroso e ponto de corte ótimo de Youden.
-  </div>
-  <div class="feature-card-link">Explorar Módulo →</div>
-</a>
+      <a href="modulos/inferencia.qmd" class="module-card">
+        <div class="module-icon"><i class="bi bi-bullseye"></i></div>
+        <div class="module-title">Testes de Hipótese</div>
+        <div class="module-desc">Testes paramétricos e não-paramétricos com interpretação automática dos resultados.</div>
+        <div class="module-link">Ver módulo →</div>
+      </a>
 
-<a href="modulos/series_temporais.qmd" class="feature-card">
-  <div class="feature-card-icon">
-    <img src="assets/icons/trending.svg" width="24" height="24" />
-  </div>
-  <div class="feature-card-title">Séries Temporais & Previsão</div>
-  <div class="feature-card-desc">
-    Decomposição clássica e STL, testes de raiz unitária (ADF/KPSS), ajuste de modelos ARIMA, previsão com intervalos e modelos baseados em aprendizado de máquina.
-  </div>
-  <div class="feature-card-link">Explorar Módulo →</div>
-</a>
+      <a href="modulos/intervalos.qmd" class="module-card">
+        <div class="module-icon"><i class="bi bi-rulers"></i></div>
+        <div class="module-title">Intervalos de Confiança</div>
+        <div class="module-desc">Construção e interpretação de intervalos para médias, proporções e variâncias.</div>
+        <div class="module-link">Ver módulo →</div>
+      </a>
 
-<a href="modulos/multivariada.qmd" class="feature-card">
-  <div class="feature-card-icon">
-    <img src="assets/icons/layers.svg" width="24" height="24" />
-  </div>
-  <div class="feature-card-title">Análise Multivariada</div>
-  <div class="feature-card-desc">
-    Redução de dimensionalidade via PCA e Análise Fatorial, agrupamento com K-means e Dendrogramas Hierárquicos, Análise Discriminante Linear e MANOVA.
-  </div>
-  <div class="feature-card-link">Explorar Módulo →</div>
-</a>
+      <a href="modulos/probabilidade.qmd" class="module-card">
+        <div class="module-icon"><i class="bi bi-bell"></i></div>
+        <div class="module-title">Probabilidade &amp; Simulação</div>
+        <div class="module-desc">Distribuições teóricas, bootstrap, Monte Carlo e Teorema Central do Limite.</div>
+        <div class="module-link">Ver módulo →</div>
+      </a>
 
-<a href="modulos/experimentos.qmd" class="feature-card">
-  <div class="feature-card-icon">
-    <img src="assets/icons/flask.svg" width="24" height="24" />
-  </div>
-  <div class="feature-card-title">Delineamentos Experimentais</div>
-  <div class="feature-card-desc">
-    Análise completa de experimentos em DIC, DBC, DQL, Fatoriais Duplos, Esquemas com Tratamento Adicional e Parcelas Subdivididas com testes de médias (Tukey/Scott-Knott).
-  </div>
-  <div class="feature-card-link">Explorar Módulo →</div>
-</a>
+      <a href="modulos/regressao.qmd" class="module-card">
+        <div class="module-icon"><i class="bi bi-graph-up"></i></div>
+        <div class="module-title">Modelos Lineares &amp; Regressão</div>
+        <div class="module-desc">Regressão múltipla com diagnóstico residual rigoroso e seleção de variáveis.</div>
+        <div class="module-link">Ver módulo →</div>
+      </a>
 
-<a href="modulos/amostragem.qmd" class="feature-card">
-  <div class="feature-card-icon">
-    <img src="assets/icons/users.svg" width="24" height="24" />
-  </div>
-  <div class="feature-card-title">Amostragem Probabilística</div>
-  <div class="feature-card-desc">
-    Planos amostrais para amostragem aleatória simples, estratificada por alocação proporcional/ótima, sistemática e por conglomerados em um ou dois estágios.
-  </div>
-  <div class="feature-card-link">Explorar Módulo →</div>
-</a>
+      <a href="modulos/mlg.qmd" class="module-card">
+        <div class="module-icon"><i class="bi bi-bar-chart-steps"></i></div>
+        <div class="module-title">Modelos Generalizados (MLG)</div>
+        <div class="module-desc">Logística, Poisson, Binomial Negativa, Gama e Beta com ponto de corte de Youden.</div>
+        <div class="module-link">Ver módulo →</div>
+      </a>
 
-:::
+      <a href="modulos/series_temporais.qmd" class="module-card">
+        <div class="module-icon"><i class="bi bi-activity"></i></div>
+        <div class="module-title">Séries Temporais</div>
+        <div class="module-desc">Decomposição, testes de raiz unitária, ARIMA, previsão e modelos de machine learning.</div>
+        <div class="module-link">Ver módulo →</div>
+      </a>
 
-:::
+      <a href="modulos/multivariada.qmd" class="module-card">
+        <div class="module-icon"><i class="bi bi-diagram-3"></i></div>
+        <div class="module-title">Análise Multivariada</div>
+        <div class="module-desc">PCA, Análise Fatorial, K-means, Dendrogramas, Discriminante Linear e MANOVA.</div>
+        <div class="module-link">Ver módulo →</div>
+      </a>
+
+      <a href="modulos/experimentos.qmd" class="module-card">
+        <div class="module-icon"><i class="bi bi-grid-3x3"></i></div>
+        <div class="module-title">Delineamentos Experimentais</div>
+        <div class="module-desc">DIC, DBC, DQL, fatoriais e parcelas subdivididas com testes de médias (Tukey/Scott-Knott).</div>
+        <div class="module-link">Ver módulo →</div>
+      </a>
+
+      <a href="modulos/aprendizado_maquina.qmd" class="module-card">
+        <div class="module-icon"><i class="bi bi-cpu"></i></div>
+        <div class="module-title">Machine Learning &amp; Sobrevivência</div>
+        <div class="module-desc">Análise de sobrevivência, curvas de Kaplan-Meier e modelos preditivos supervisionados.</div>
+        <div class="module-link">Ver módulo →</div>
+      </a>
+
+      <a href="modulos/amostragem.qmd" class="module-card">
+        <div class="module-icon"><i class="bi bi-people"></i></div>
+        <div class="module-title">Amostragem Probabilística</div>
+        <div class="module-desc">AAS, estratificada (proporcional/ótima), sistemática e conglomerados em dois estágios.</div>
+        <div class="module-link">Ver módulo →</div>
+      </a>
+
+    </div>
+  </div>
+</section>
+
+<section class="install-section">
+  <div class="section-inner install-inner">
+    <div class="install-text">
+      <h2 class="install-title">Instalação</h2>
+      <p class="install-desc">Disponível diretamente via GitHub. Nenhuma dependência externa obrigatória.</p>
+    </div>
+    <div class="install-code">
+      <pre class="install-pre"><code><span class="ic-comment"># Instalar via devtools</span>
+<span class="ic-fn">devtools</span>::install_github(<span class="ic-str">"elizeumedeirosest/estatR"</span>)
+<span class="ic-fn">library</span>(estatR)
+
+<span class="ic-comment"># Diagnóstico descritivo em uma linha</span>
+descrever(iris$Sepal.Length, por = iris$Species)</code></pre>
+    </div>
+  </div>
+</section>
+```

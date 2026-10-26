@@ -3,16 +3,10 @@ title: "Modelagem Linear e Diagnóstico Residual"
 subtitle: "Regressão múltipla, seleção de variáveis e diagnóstico gráfico em 4 painéis"
 ---
 
-## Visão Geral do Módulo
-
-O módulo de regressão linear do **estatR** oferece um fluxo completo para modelagem clássica: do ajuste e testes de hipóteses dos coeficientes até a seleção passo a passo (stepwise), multicolinearidade (VIF), pontos de alavanca e diagnóstico residual completo.
-
----
-
 ## Ajuste de Modelos
 
 ### `regressao_linear()`
-Ajusta o modelo por Mínimos Quadrados Ordinários (MQO) com saída no console formatada em seções de coeficientes, erros padrão, estatísticas t e p-valores:
+Mínimos Quadrados Ordinários (MQO) com saída formatada: coeficientes, erros padrão, estatísticas t e p-valores:
 
 ```r
 modelo <- regressao_linear(mpg ~ wt + hp + qsec, dados = mtcars)
@@ -23,11 +17,7 @@ modelo <- regressao_linear(mpg ~ wt + hp + qsec, dados = mtcars)
 ## Diagnóstico Residual
 
 ### `analise_residual()`
-Gera um painel com 4 gráficos no padrão editorial com tema dual grid (`grade = "dupla"`):
-1. **Resíduos vs Valores Ajustados** (Linearidade e Homocedasticidade)
-2. **Q-Q Plot Normal** (Normalidade dos resíduos)
-3. **Escala-Locação** (Homocedasticidade com raiz do módulo dos resíduos)
-4. **Resíduos vs Alavancagem** (Distância de Cook e pontos influentes)
+Painel editorial com 4 gráficos: Resíduos vs Ajustados, Q-Q Normal, Escala-Locação e Resíduos vs Alavancagem:
 
 ```r
 analise_residual(modelo, grade = "dupla")
@@ -38,18 +28,18 @@ analise_residual(modelo, grade = "dupla")
 ## Seleção e Validação
 
 ```r
-# Métricas de ajuste: R², R² ajustado, RMSE, MAE, AIC, BIC
+# R², R² ajustado, RMSE, MAE, AIC, BIC
 metricas(modelo)
 
-# Seleção automática de modelos (Stepwise AIC/BIC)
+# Stepwise AIC/BIC
 selecao_modelos(modelo, direcao = "both")
 
-# Diagnóstico de multicolinearidade (Fator de Inflação da Variância - VIF)
+# Fator de Inflação da Variância (VIF)
 multicolinearidade(modelo)
 
-# Detecção de observações influentes e distância de Cook
+# Observações influentes e distância de Cook
 pontos_influentes(modelo)
 
-# Gráfico editorial de coeficientes com intervalos de confiança
+# Gráfico de coeficientes com intervalos de confiança
 grafico_coeficientes(modelo)
 ```

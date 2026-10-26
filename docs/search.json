@@ -1,841 +1,436 @@
 [
   {
-    "objectID": "referencia.html",
-    "href": "referencia.html",
-    "title": "Catálogo de Funções",
+    "objectID": "sobre.html",
+    "href": "sobre.html",
+    "title": "Sobre o estatR",
     "section": "",
-    "text": "Todas as funções do estatR seguem a convenção de retorno duplo: exibem a síntese analítica visual no console (com formatação ANSI e tabelas padronizadas) e retornam invisivelmente listas com todos os dados brutos e objetos subjacentes para manipulação.",
-    "crumbs": [
-      "Guia Rápido",
-      "Catálogo Completo de Funções"
-    ]
+    "text": "O estatR é uma camada estatística moderna para R, desenvolvida para unificar análises dispersas em um único ecossistema coerente, didático e de alto padrão editorial. O pacote nasce da necessidade prática de realizar análises completas — do diagnóstico descritivo à modelagem avançada — com sintaxe fluida, saídas legíveis no console e gráficos prontos para publicação.\n\n\n\nA estatística aplicada no R, em sua forma nativa, exige o domínio de dezenas de pacotes com interfaces distintas. O estatR resolve isso: uma função, um resultado, uma linguagem. As saídas são formatadas automaticamente em português, com alinhamento preciso de colunas, casas decimais padronizadas e notas interpretativas embutidas — prontas para teses, artigos e relatórios corporativos.\n\n\n\nO pacote é organizado em 11 módulos especializados, cada um cobrindo um domínio da análise estatística:\n\nDiagnóstico e Descritiva — inspeção estrutural imediata\nTestes de Hipótese — paramétricos e não-paramétricos\nIntervalos de Confiança — com interpretação frequentista\nProbabilidade e Simulação — distribuições teóricas, Monte Carlo, bootstrap\nModelos Lineares e Regressão — com diagnóstico residual rigoroso\nModelos Generalizados (MLG) — Logística, Poisson, Gama, Beta e Youden\nSéries Temporais — ARIMA, STL e previsão com machine learning\nAnálise Multivariada — PCA, clustering, discriminante e MANOVA\nDelineamentos Experimentais — DIC, DBC, fatoriais e testes de médias\nMachine Learning e Sobrevivência — Kaplan-Meier e modelos preditivos\nAmostragem Probabilística — AAS, estratificada, sistemática e conglomerados\n\n\n\n\nO estatR é distribuído como código aberto via GitHub. Contribuições, sugestões e relatórios de problemas são bem-vindos no repositório oficial."
   },
   {
-    "objectID": "referencia.html#diagnóstico-e-estatística-descritiva",
-    "href": "referencia.html#diagnóstico-e-estatística-descritiva",
-    "title": "Catálogo de Funções",
-    "section": "Diagnóstico e Estatística Descritiva",
-    "text": "Diagnóstico e Estatística Descritiva\n\n\n\n\n\n\n\nFunção\nDescrição\n\n\n\n\ndiagnostico()\nDiagnóstico Completo do Banco de Dados. Gera um painel completo mesclando informações de estrutura, valores ausentes, outliers e valores únicos, alertando para duplicatas.\n\n\nestrutura()\nEstrutura do Banco de Dados. Retorna apenas os tipos de dados de cada variável.\n\n\nvalores_ausentes()\nAnálise de Valores Ausentes. Inspeciona procurando por NAs oficiais e valores que indicam respostas vazias ou erros ocultos (como -99 ou textos vazios).\n\n\noutliers()\nAnálise de Outliers pelo Método IQR. Detecta valores discrepantes (outliers) em um vetor numérico ou em todas as variáveis numéricas de um data.frame, usando o critério do Intervalo Interquartil (IQR): valores abaixo de Q1 - 1,5×IQR ou acima de Q3 + 1,5×IQR.\n\n\ndescrever()\nResumo Estatistico de Variaveis ou Banco de Dados. Gera um resumo estatistico completo.\n\n\ntabela_contingencia()\nTabela de Contingência (Cruzamento Bivariado). Cria uma tabela de dupla entrada para cruzar duas variáveis categóricas, incluindo totais marginais e opções de proporção por linha, coluna ou total geral.\n\n\nmed_tend_central()\nMedidas de Tendência Central. Medidas de Tendência Central\n\n\nmed_dispersao()\nMedidas de Dispersão e Escala. Medidas de Dispersão e Escala\n\n\nmed_forma()\nMedidas de Forma da Distribuição. Medidas de Forma da Distribuição\n\n\nquartis()\nQuartis da Distribuição. Quartis da Distribuição\n\n\nquintis()\nQuintis da Distribuição. Quintis da Distribuição\n\n\ndecis()\nDecis da Distribuição. Decis da Distribuição\n\n\npercentis()\nPercentis da Distribuição. Calcula e exibe os percentis de um vetor numérico, incluindo os extremos Mín (P0) e Máx (P100). Por padrão exibe P5, P10, P25, P50, P75, P90 e P95, além do Mínimo e Máximo.",
-    "crumbs": [
-      "Guia Rápido",
-      "Catálogo Completo de Funções"
-    ]
-  },
-  {
-    "objectID": "referencia.html#correlação-e-associação",
-    "href": "referencia.html#correlação-e-associação",
-    "title": "Catálogo de Funções",
-    "section": "Correlação e Associação",
-    "text": "Correlação e Associação\n\n\n\n\n\n\n\nFunção\nDescrição\n\n\n\n\nteste_correlacao()\nTeste de Correlação (Bivariada). Realiza o teste de correlação entre duas variáveis.\n\n\nmatriz_correlacao()\nMatriz de Correlação com Ranking dos Maiores Pares. Gera e imprime no console a matriz de correlação completa (com p-valores em asteriscos), exibe tabelas de ranking das maiores correlações positivas e negativas com classificação qualitativa centralizada, e plota o correlograma em ggplot2.",
-    "crumbs": [
-      "Guia Rápido",
-      "Catálogo Completo de Funções"
-    ]
-  },
-  {
-    "objectID": "referencia.html#inferência-paramétrica-testes-t-e-proporção",
-    "href": "referencia.html#inferência-paramétrica-testes-t-e-proporção",
-    "title": "Catálogo de Funções",
-    "section": "Inferência Paramétrica (Testes T e Proporção)",
-    "text": "Inferência Paramétrica (Testes T e Proporção)\n\n\n\n\n\n\n\nFunção\nDescrição\n\n\n\n\nteste_t_uma_amostra()\nTeste T para Uma Amostra. Testa se a média de uma variável numérica é igual a um valor de referência.\n\n\nteste_t_duas_amostras()\nTeste T para Duas Amostras Independentes. Compara as médias de dois grupos independentes.\n\n\nteste_t_pareado()\nTeste T Pareado. Compara as médias de duas medições pareadas (antes/depois, par de medidas).\n\n\nteste_proporcao()\nTeste de Proporção (Z). Testa se uma proporção amostral é igual a um valor de referência.",
-    "crumbs": [
-      "Guia Rápido",
-      "Catálogo Completo de Funções"
-    ]
-  },
-  {
-    "objectID": "referencia.html#inferência-não-paramétrica-e-testes-categóricos",
-    "href": "referencia.html#inferência-não-paramétrica-e-testes-categóricos",
-    "title": "Catálogo de Funções",
-    "section": "Inferência Não-Paramétrica e Testes Categóricos",
-    "text": "Inferência Não-Paramétrica e Testes Categóricos\n\n\n\n\n\n\n\nFunção\nDescrição\n\n\n\n\nteste_wilcoxon()\nTeste de Wilcoxon (Uma Amostra / Pareado). Alternativa não-paramétrica ao teste t para uma amostra ou para amostras pareadas. Indicado quando os dados não seguem distribuição normal.\n\n\nteste_mann_whitney()\nTeste de Mann-Whitney (Wilcoxon para Duas Amostras Independentes). Alternativa não-paramétrica ao teste t para dois grupos independentes. Indicado quando os dados não seguem distribuição normal.\n\n\nteste_kruskal()\nTeste de Kruskal-Wallis com Comparações Múltiplas (Dunn). Alternativa não-paramétrica à ANOVA a um fator para comparar a distribuição de grupos independentes. Caso haja significância estatística, executa automaticamente o teste post-hoc de Dunn com ajuste de p-valor (Holm, Bonferroni ou FDR) e gera gráfico de boxplot padronizado.\n\n\nteste_friedman()\nTeste de Friedman para Medidas Repetidas / Blocos. Alternativa não-paramétrica à ANOVA de medidas repetidas ou blocos casualizados (DBC). Avalia se as distribuições diferem entre condições ou períodos pareados. Caso significativo, executa comparações pareadas com ajuste de p-valor.\n\n\nteste_qui_quadrado()\nTeste Qui-Quadrado de Independência. Testa se duas variáveis categóricas são independentes.\n\n\nteste_levene()\nTeste de Levene (Homogeneidade de Variâncias). Testa se dois grupos possuem variâncias iguais (homogeneidade). Auxiliar ao teste t para duas amostras.\n\n\nconcordancia_kappa()\nAnálise de Concordância (Kappa de Cohen & Fleiss). Avalia a concordância e confiabilidade entre avaliadores. Calcula automaticamente o Kappa de Cohen (simples ou ponderado linear/quadrático) para 2 avaliadores, ou o Kappa de Fleiss caso haja 3 ou mais avaliadores. Classifica a qualidade da concordância segundo os critérios de Landis & Koch.\n\n\ngrafico_bland_altman()\nGráfico e Diagnóstico de Bland-Altman. Avalia a concordância entre dois métodos contínuos de medição (ex: dois instrumentos, ensaio laboratorial vs teste rápido). Estima o viés médio (), limites de concordância de 95\\% (), intervalos de confiança dos parâmetros e gera gráfico no padrão visual do estatR.",
-    "crumbs": [
-      "Guia Rápido",
-      "Catálogo Completo de Funções"
-    ]
-  },
-  {
-    "objectID": "referencia.html#intervalos-de-confiança",
-    "href": "referencia.html#intervalos-de-confiança",
-    "title": "Catálogo de Funções",
-    "section": "Intervalos de Confiança",
-    "text": "Intervalos de Confiança\n\n\n\n\n\n\n\nFunção\nDescrição\n\n\n\n\nic_media()\nIntervalo de Confiança para a Média. Calcula o intervalo de confiança para a média de uma amostra.\n\n\nic_proporcao()\nIntervalo de Confiança para a Proporção. Calcula o intervalo de confiança para uma proporção (aproximação normal/Wald).\n\n\nic_variancia()\nIntervalo de Confiança para a Variância. Calcula o intervalo de confiança para a variância e desvio padrão.\n\n\nic_diferenca_medias()\nIntervalo de Confiança para a Diferença de Médias. Calcula o intervalo de confiança para a diferença entre médias de dois grupos.",
-    "crumbs": [
-      "Guia Rápido",
-      "Catálogo Completo de Funções"
-    ]
-  },
-  {
-    "objectID": "referencia.html#probabilidade-e-distribuições-teóricas",
-    "href": "referencia.html#probabilidade-e-distribuições-teóricas",
-    "title": "Catálogo de Funções",
-    "section": "Probabilidade e Distribuições Teóricas",
-    "text": "Probabilidade e Distribuições Teóricas\n\n\n\n\n\n\n\nFunção\nDescrição\n\n\n\n\ndistribuicao()\nDistribuição Estatística. Exibe uma visão completa e pedagógica de uma distribuição de probabilidade: parâmetros, momentos teóricos, quantis-chave e gráfico ilustrativo. Suporta: ‘normal’, ‘binomial’, ‘poisson’, ‘exponencial’, ‘uniforme’, ‘t’, ‘qui_quadrado’, ‘f’, ‘gama’.\n\n\nprob_normal()\nProbabilidade da Distribuição Normal. Calcula a probabilidade para uma distribuição Normal e gera o gráfico com a área sombreada.\n\n\nprob_binomial()\nProbabilidade da Distribuição Binomial. Calcula a probabilidade para uma distribuição Binomial e plota as barras.\n\n\nprob_poisson()\nProbabilidade da Distribuição Poisson. Calcula a probabilidade para uma distribuição Poisson e plota as barras.\n\n\nprob_exponencial()\nProbabilidade da Distribuição Exponencial. Calcula a probabilidade para uma distribuição Exponencial e plota a curva com área sombreada.\n\n\ngerar_amostra()\nGerador de Amostras de Distribuições. Gera um conjunto de dados aleatórios baseado em distribuições teóricas e plota o histograma. Gera um conjunto de dados aleatórios baseado em distribuições teóricas e plota o histograma.",
-    "crumbs": [
-      "Guia Rápido",
-      "Catálogo Completo de Funções"
-    ]
-  },
-  {
-    "objectID": "referencia.html#estimação-de-parâmetros-e-simulação",
-    "href": "referencia.html#estimação-de-parâmetros-e-simulação",
-    "title": "Catálogo de Funções",
-    "section": "Estimação de Parâmetros e Simulação",
-    "text": "Estimação de Parâmetros e Simulação\n\n\n\n\n\n\n\nFunção\nDescrição\n\n\n\n\nestimar_verossimilhanca()\nEstimação por Máxima Verossimilhança (EMV). Estima os parâmetros de uma distribuição teórica via Máxima Verossimilhança. Plota a curva da função de log-verossimilhança com o EMV destacado.\n\n\nestimar_momentos()\nEstimação pelo Método dos Momentos. Estima os parâmetros de uma distribuição igualando os momentos amostrais aos momentos populacionais teóricos.\n\n\nbootstrap()\nBootstrap: Estimação por Reamostragem (Simples, Estratificado, Residual e por Bloco). Estima a variabilidade, viés, erro padrão e intervalos de confiança não-paramétricos usando reamostragem Bootstrap. Suporta quatro modalidades principais: \\itemize{ \n\n\nsimular_tcl()\nTeorema Central do Limite (TCL) — Simulação Visual. Demonstra visualmente o Teorema Central do Limite: extrai amostras da população fornecida e mostra que a distribuição das médias tende à Normal.\n\n\nmonte_carlo()\nSimulação de Monte Carlo. Estima a probabilidade de um evento por simulação repetida. O usuário define um experimento aleatório como uma função que retorna TRUE/FALSE.",
-    "crumbs": [
-      "Guia Rápido",
-      "Catálogo Completo de Funções"
-    ]
-  },
-  {
-    "objectID": "referencia.html#modelos-lineares-clássicos-regressão-múltipla",
-    "href": "referencia.html#modelos-lineares-clássicos-regressão-múltipla",
-    "title": "Catálogo de Funções",
-    "section": "Modelos Lineares Clássicos (Regressão Múltipla)",
-    "text": "Modelos Lineares Clássicos (Regressão Múltipla)\n\n\n\n\n\n\n\nFunção\nDescrição\n\n\n\n\nregressao_linear()\nRegressão Linear Simples e Múltipla. Ajusta um modelo de regressão linear e retorna uma saída formatada com ANOVA, coeficientes (com IC 95% e VIF), ajuste do modelo e interpretação automática.\n\n\nanalise_residual()\nAnálise Residual. Realiza o diagnóstico completo dos resíduos com testes estatísticos formais, interpretação automatizada e painel gráfico. Para modelos lineares (lm), avalia normalidade (Shapiro-Wilk ou Kolmogorov-Smirnov para n &gt; 5000), homocedasticidade (Breusch-Pagan) e independência dos resíduos (Durbin-Watson). Para Modelos Lineares Generalizados (glm), despacha automaticamente para o diagnóstico específico Análise Residual Completa para Modelos Estatísticos Realiza o diagnóstico completo de resíduos com testes estatísticos de Normalidade, Homocedasticidade e Independência, além de painel gráfico em ggplot2. Suporta modelos de regressão linear (lm), delineamentos experimentais (estatR_dic, estatR_dbc, estatR_dql, estatR_fatorial, aov), modelos lineares generalizados (glm) e modelos de sobrevivência (estatR_cox, coxph).\n\n\nmetricas()\nMétricas do Modelo. Exibe as principais métricas de avaliação e erro para um modelo de regressão.\n\n\nselecao_modelos()\nSeleção Múltipla de Modelos (Best Subsets / Stepwise). Avalia múltiplas combinações de variáveis preditoras para encontrar os melhores modelos baseando-se em métricas de ajuste e parcimônia. Utiliza algoritmo exaustivo para até 10 preditores e heurística inteligente para mais.\n\n\npredicao()\nPredição com o Modelo de Regressão. Gera previsões a partir de um modelo linear ajustado, exibindo a estimativa pontual e, opcionalmente, o intervalo de confiança ou de predição. \\itemize{ \n\n\nmulticolinearidade()\nDiagnóstico de Multicolinearidade (VIF e GVIF). Avalia a presença e a gravidade de multicolinearidade entre as variáveis preditoras de um modelo linear (lm) ou modelo linear generalizado (glm). Calcula o Fator de Inflação da Variância clássico (VIF) para variáveis contínuas e o VIF Generalizado (GVIF) para fatores com mais de dois níveis (Fox & Monette, 1992), além da Tolerância e do Número de Condição da matriz de planejamento.\n\n\npontos_influentes()\nDiagnóstico de Alavancagem e Pontos Influentes. Identifica observações atípicas, pontos de alta alavancagem (leverage) e observações influentes que afetam desproporcionalmente a estimação dos parâmetros do modelo de regressão linear (lm) ou modelo linear generalizado (glm). Opcionalmente reestima o modelo omitindo tais observações para comparar o impacto nos coeficientes e exibe gráficos diagnósticos com grade dupla.\n\n\ngrafico_coeficientes()\nGráfico de Coeficientes do Modelo (Forest Plot). Gera um gráfico elegante de coeficientes com intervalos de confiança de 95% (Forest Plot), nativo em ggplot2, com grade dupla por padrão e integração ao tema_estatR(). Suporta modelos lineares (lm), generalizados (glm), sobrevivência (coxph, estatR_cox) e outros.\n\n\ndividir_dados()\nDivisão Treino / Teste. Divide um conjunto de dados em partições de treino e teste para validação de modelos. Suporta três modos: \\itemize{",
-    "crumbs": [
-      "Guia Rápido",
-      "Catálogo Completo de Funções"
-    ]
-  },
-  {
-    "objectID": "referencia.html#modelos-lineares-generalizados-mlg-glm",
-    "href": "referencia.html#modelos-lineares-generalizados-mlg-glm",
-    "title": "Catálogo de Funções",
-    "section": "Modelos Lineares Generalizados (MLG / GLM)",
-    "text": "Modelos Lineares Generalizados (MLG / GLM)\n\n\n\n\n\n\n\nFunção\nDescrição\n\n\n\n\nregressao_mlg()\nRegressão por Modelos Lineares Generalizados (MLG / GLM). Ajusta modelos lineares generalizados para diversas distribuições da família exponencial (Binomial/Logística, Poisson, Quasipoisson, Gama, Gaussiana, Binomial Negativa e Beta). Fornece resumo detalhado no console, tabela de coeficientes com Erro Padrão, intervalos de confiança de 95%, testes de hipótese (Wald e Razão de Verossimilhança / LRT), diagnóstico de ajuste, número de iterações do Escore de Fisher e suporte opcional a gráfico.\n\n\nregressao_logistica()\nRegressão Logística (Binomial · Multinomial · Ordinal). Ajusta um modelo de regressão logística, detectando automaticamente se a variável resposta é binária (2 categorias) ou policotômica (3+ categorias). Para Y policotômico, use tipo = 'nominal' (multinomial via nnet::multinom) ou tipo = 'ordinal' (logística proporcional via MASS::polr).\n\n\nmetricas_logistica()\nMétricas do Modelo Logístico. Exibe as métricas de ajuste e performance de um modelo logístico ajustado por regressao_logistica().\n\n\nselecao_modelos_logistica()\nSeleção de Modelos Logísticos (Best Subsets). Avalia múltiplas combinações de variáveis para regressão logística, ordenando pelo AIC. Suporta modelos binomiais, multinomiais e ordinais.\n\n\nregressao_poisson()\nRegressao de Poisson. Ajusta um modelo de regressao de Poisson para dados de contagem. Apresenta estatisticas de ajuste, fator de sobredispersao, coeficientes, Razao de Taxa de Incidencia (IRR) e interpretacao automatizada.\n\n\nmetricas_poisson()\nMetricas do Modelo Poisson. Calcula e exibe as principais metricas para um modelo glm Poisson.\n\n\nselecao_modelos_poisson()\nSelecao de Modelos - Poisson. Realiza Best Subsets para regressao de Poisson.\n\n\nregressao_binomial_negativa()\nRegressao Binomial Negativa. Ajusta um modelo de regressao Binomial Negativa para dados de contagem com sobredispersao (variancia &gt; media). Apresenta estatisticas de ajuste, parametro de dispersao theta, coeficientes, Razao de Taxa de Incidencia (IRR) e interpretacao automatizada.\n\n\nmetricas_binomial_negativa()\nMetricas do Modelo Binomial Negativo. Calcula e exibe as principais metricas para um modelo glm.nb.\n\n\nselecao_modelos_binomial_negativa()\nSelecao de Modelos - Binomial Negativa. Realiza Best Subsets para regressao Binomial Negativa.\n\n\nregressao_gama()\nRegressao Gama. Ajusta um modelo de regressao Gama para variaveis contínuas e estritamente positivas, geralmente com forte assimetria à direita. Apresenta estatisticas de ajuste, parametro de forma, coeficientes (como multiplicadores da média) e interpretacao automatizada.\n\n\nmetricas_gama()\nMetricas do Modelo Gama. Calcula as principais metricas para um modelo glm Gama.\n\n\nselecao_modelos_gama()\nSelecao de Modelos - Gama. Realiza Best Subsets para regressao Gama.\n\n\nregressao_beta()\nRegressao Beta. Ajusta um modelo de regressao Beta para variaveis respostas que sao proporcoes ou taxas estritamente no intervalo (0, 1). Apresenta estatisticas de ajuste, parametro de precisao (phi), coeficientes, Odds Ratio (OR) para a media e interpretacao automatizada.\n\n\nmetricas_beta()\nMetricas do Modelo Beta. Calcula e exibe as principais metricas para um modelo betareg.\n\n\nselecao_modelos_beta()\nSelecao de Modelos - Beta. Realiza Best Subsets para regressao Beta.",
-    "crumbs": [
-      "Guia Rápido",
-      "Catálogo Completo de Funções"
-    ]
-  },
-  {
-    "objectID": "referencia.html#séries-temporais-e-previsão",
-    "href": "referencia.html#séries-temporais-e-previsão",
-    "title": "Catálogo de Funções",
-    "section": "Séries Temporais e Previsão",
-    "text": "Séries Temporais e Previsão\n\n\n\n\n\n\n\nFunção\nDescrição\n\n\n\n\nanalise_serie()\nDiagnóstico e Decomposição de Série Temporal. Realiza a análise estatística descritiva e a decomposição temporal (tendência, sazonalidade e componente aleatório/ruído) de uma série. Gera um painel gráfico com 4 gráficos alinhados com o padrão visual do estatR.\n\n\nteste_estacionariedade()\nTestes de Estacionariedade (ADF e KPSS). Aplica conjuntamente os testes de Dickey-Fuller Aumentado (ADF) e KPSS para avaliar a estacionariedade da série e a presença de raiz unitária. Apresenta diagnóstico com veredito consensual padronizado com [✓] e [!].\n\n\nprevisao_serie()\nPrevisão de Série Temporal (Suavização Exponencial e ETS). Modela a série temporal histórica por Suavização Exponencial (SES, Holt Linear, Holt Damped ou Holt-Winters) e projeta previsões futuras com intervalos de confiança em formato de leque ().\n\n\nprevisao_serie_aprend_maq()\nPrevisão de Séries Temporais com Aprendizado de Máquina. Realiza previsão pontual e por intervalo para séries temporais utilizando algoritmos de Aprendizado de Máquina (Random Forest, XGBoost ou Redes Neurais Autoregressivas - NNAR). Aplica engenharia de atributos automatizada gerando defasagens (lags), variáveis de calendário sazonais e tendência determinística, projetando previsões recursivas para o horizonte solicitado.\n\n\nmetricas_serie()\nMétricas de Acurácia para Séries Temporais. Calcula as principais métricas de erro preditivo e critérios de informação para séries temporais: RMSE, MAE, MAPE, sMAPE, MASE, UMBRAE, AIC, AICc e BIC.\n\n\nselecao_modelos_serie()\nSeleção de Modelos de Séries Temporais. Compara exaustivamente modelos preditivos organizados por famílias ('suavizacao', 'estocastica', 'decomposicao' ou 'todas') utilizando divisão real de validação fora da amostra (out-of-sample) de tamanho h. Retorna uma tabela formatada com o ranking dos melhores modelos segundo métricas de acurácia.\n\n\ngrafico_autocorrelacao()\nGráfico de Autocorrelação (FAC e FACP). Plota as funções de autocorrelação simples (FAC) e parcial (FACP) com limites de significância de Bartlett (95%) no estilo pirulito (lollipop) e executa opcionalmente o teste de Ljung-Box para diagnóstico de ruído branco.",
-    "crumbs": [
-      "Guia Rápido",
-      "Catálogo Completo de Funções"
-    ]
-  },
-  {
-    "objectID": "referencia.html#análise-multivariada-e-agrupamento",
-    "href": "referencia.html#análise-multivariada-e-agrupamento",
-    "title": "Catálogo de Funções",
-    "section": "Análise Multivariada e Agrupamento",
-    "text": "Análise Multivariada e Agrupamento\n\n\n\n\n\n\n\nFunção\nDescrição\n\n\n\n\nacp()\nAnálise de Componentes Principais (ACP / PCA). Realiza Análise de Componentes Principais (ACP) com diagnóstico completo de adequação da amostra (KMO e Bartlett), critérios de retenção de componentes (Kaiser, Análise Paralela de Horn e Variância Acumulada), cargas fatoriais (loadings), escores e interpretação automatizada.\n\n\nbiplot_acp()\nBiplot de ACP. Gera gráfico Biplot 2D (escores das observações e vetores das cargas das variáveis).\n\n\nscreeplot_acp()\nScree Plot de ACP. Gera gráfico Scree Plot com linha de Kaiser (autovalor = 1) e Análise Paralela de Horn.\n\n\nanalise_fatorial()\nAnálise Fatorial Exploratória (AFE). Realiza Análise Fatorial Exploratória (AFE) completa com diagnóstico de adequação amostral (KMO global e individual, Teste de Bartlett), critérios de retenção de fatores (Kaiser e Análise Paralela de Horn), cargas fatoriais rotacionadas, comunalidades (h²), unicidades (u²), escores fatoriais e interpretação automatizada.\n\n\nbiplot_fatorial()\nBiplot da Análise Fatorial. Gera gráfico Biplot 2D com escores das observações e vetores de cargas fatoriais.\n\n\ncargasplot_fatorial()\nGráfico de Cargas Fatoriais (Loadings Plot). Gera gráfico de barras das cargas fatoriais para cada fator retido.\n\n\nscreeplot_fatorial()\nScree Plot da Análise Fatorial. Gera gráfico Scree Plot com autovalores da matriz de correlação e Análise Paralela de Horn.\n\n\ncluster_kmeans()\nAnálise de Agrupamentos K-Means. Realiza Análise de Agrupamentos pelo método K-Means com padronização, otimização automática de inicializações (nstart) por estabilização da inércia (WSS), avaliação de k por Silhueta Média e Calinski-Harabasz, tabela de centróides na escala original e interpretação automatizada.\n\n\ncotovelo_plot()\nGráfico do Cotovelo e Silhueta (K-Means). Gera gráfico de linha comparativo do método do Cotovelo (WSS) e Silhueta Média por k.\n\n\ncluster_hierarquico()\nAnálise de Agrupamentos Hierárquica. Realiza Análise de Agrupamentos Hierárquica aglomerativa com matriz de distâncias, método de ligação selecionável, cálculo de silhueta e corte de árvore.\n\n\ndendrograma()\nDendrograma do Cluster Hierárquico. Plota dendrograma formatado do agrupamento hierárquico com ramos coloridos por cluster.\n\n\nplot_clusters()\nProjeção 2D dos Clusters (K-Means). Gera gráfico de dispersão 2D dos clusters projetados nas duas primeiras Componentes Principais (PC1 x PC2), com elipses de 95% e os centróides em destaque.\n\n\nanalise_discriminante()\nAnálise Discriminante (LDA / QDA). Realiza a Análise Discriminante Linear de Fisher (LDA) ou Quadrática (QDA), avaliando a capacidade de preditores numéricos contínuos em separar e classificar categorias. Apresenta probabilidades a priori, autovalores e correlações canônicas, coeficientes das funções discriminantes, matriz de confusão, métricas completas de classificação (Acurácia, Taxa de Erro, Kappa, Macro Sensibilidade, Precisão, F1-Score com validação cruzada LOO), teste de homogeneidade de covariâncias (M de Box) e interpretação automatizada.\n\n\nbiplot_lda()\nGráfico da Análise Discriminante (Biplot / Dispersão). Plota a projeção das observações no espaço discriminante. Para 3 ou mais grupos (2+ funções discriminantes), gera um Biplot 2D (LD1 x LD2) com elipses de confiança de 95% e setas das variáveis originais. Para 2 grupos (1 função), plota a distribuição/histograma dos escores de LD1 separados por cor.\n\n\nanalise_manova()\nAnálise de Variância Multivariada (MANOVA). Realiza a Análise de Variância Multivariada (MANOVA), avaliando o efeito de um fator categórico sobre múltiplas variáveis resposta contínuas simultaneamente. Apresenta o teste de homogeneidade das covariâncias (M de Box), os 4 critérios multivariados clássicos (Pillai, Wilks, Hotelling-Lawley, Roy), ANOVAs univariadas de acompanhamento com correção de Bonferroni, médias por grupo e interpretação automatizada.\n\n\nplot_manova()\nGráfico de Perfis Multivariados da MANOVA. Plota os perfis médios padronizados (escores Z) de cada grupo ao longo das variáveis resposta analisadas na MANOVA.",
-    "crumbs": [
-      "Guia Rápido",
-      "Catálogo Completo de Funções"
-    ]
-  },
-  {
-    "objectID": "referencia.html#planejamento-de-experimentos-delineamentos",
-    "href": "referencia.html#planejamento-de-experimentos-delineamentos",
-    "title": "Catálogo de Funções",
-    "section": "Planejamento de Experimentos (Delineamentos)",
-    "text": "Planejamento de Experimentos (Delineamentos)\n\n\n\n\n\n\n\nFunção\nDescrição\n\n\n\n\nanalise_dic()\nAnálise de Delineamento Inteiramente Casualizado (DIC). Executa a Análise de Variância (ANOVA) para experimentos em Delineamento Inteiramente Casualizado (DIC), com testes de comparações múltiplas de médias (Tukey, Scott-Knott, Duncan, SNK, Scheffé com suporte a contrastes complexos, Bonferroni, Dunnett) para fatores qualitativos, ou Regressão Polinomial (Linear, Quadrática e Cúbica com ponto ótimo) para fatores quantitativos (doses/níveis), além de visualização gráfica automatizada em painel.\n\n\ngrafico_dic()\nPainel Gráfico Completo do DIC. Gera painel integrado de gráficos do Delineamento Inteiramente Casualizado. Para fatores qualitativos, combina o gráfico de médias com letras e o gráfico de IC das diferenças. Para fatores quantitativos, exibe a curva de regressão polinomial.\n\n\nanalise_dbc()\nAnálise de Delineamento em Blocos Casualizados (DBC). Executa a Análise de Variância (ANOVA) para experimentos em Delineamento em Blocos Casualizados (DBC), com teste de eficiência da blocagem, testes de comparações múltiplas de médias (Tukey, Scott-Knott, Duncan, SNK, Scheffé com contrastes, Bonferroni, Dunnett) para fatores qualitativos, ou Regressão Polinomial (Linear, Quadrática e Cúbica com ponto ótimo) para fatores quantitativos, além de painel gráfico automatizado.\n\n\ngrafico_dbc()\nPainel Gráfico Completo do DBC. Gera painel integrado de gráficos do Delineamento em Blocos Casualizados. Para fatores qualitativos, combina o gráfico de médias com letras e o gráfico de IC das diferenças. Para fatores quantitativos, exibe a curva de regressão polinomial.\n\n\nanalise_dql()\nAnálise de Delineamento em Quadrado Latino (DQL). Executa a Análise de Variância (ANOVA) para experimentos em Delineamento em Quadrado Latino (DQL), com duplo controle local (linhas e colunas), testes de eficiência relativa, testes de comparações múltiplas de médias (Tukey, Scott-Knott, Duncan, SNK, Scheffé com contrastes, Bonferroni, Dunnett) ou Regressão Polinomial com ponto ótimo, além de painel gráfico automatizado.\n\n\ngrafico_dql()\nPainel Gráfico Completo do DQL. Gera painel integrado de gráficos do Delineamento em Quadrado Latino. Para fatores qualitativos, combina o gráfico de médias com letras e o gráfico de IC das diferenças. Para fatores quantitativos, exibe a curva de regressão polinomial.\n\n\nanalise_fatorial_duplo()\nAnálise Fatorial Duplo (A × B) — DIC e DBC. Executa a Análise de Variância (ANOVA) para experimentos em esquema fatorial duplo (A × B) nos delineamentos DIC ou DBC. Quando a interação é significativa, realiza o desdobramento dos fatores e apresenta uma tabela matricial combinada com letras minúsculas (comparação Realiza a análise estatística completa de experimentos em esquema fatorial duplo (A × B) em DIC ou DBC, com desdobramento automático da interação e testes de comparações múltiplas.\n\n\ngrafico_fatorial()\nGráfico de Perfil de Interação — Esquema Fatorial. Gera o gráfico de perfil de interação para um fatorial duplo, com linhas por nível de Fator2, barras de erro (IC) e anotação das letras de comparação múltipla (quando a interação é significativa).\n\n\nanalise_fatorial_adicional()\nAnálise de Esquema Fatorial com Testemunha Adicional (A × B + 1). Realiza a análise de variância e testes de comparações múltiplas para experimentos em esquema fatorial duplo mais um tratamento testemunha isolado () em Delineamento Inteiramente Casualizado (DIC) ou Blocos Casualizados (DBC). Decompõe ortogonalmente a soma de quadrados dos tratamentos em: Fatorial vs Testemunha (1 GL), Fator A, Fator B e Interação A × B. Aplica o teste de Dunnett para comparar cada combinação fatorial contra a testemunha, e testes clássicos (Tukey, Scott-Knott, etc.) para comparar os níveis do fatorial.\n\n\nanalise_parcela_subdividida()\nAnálise de Experimentos em Parcelas Subdivididas (Split-Plot). Realiza a análise estatística completa de experimentos instalados no esquema de Parcelas Subdivididas (Split-Plot) em Delineamento Inteiramente Casualizado (DIC) ou em Blocos Casualizados (DBC). Calcula o quadro de ANOVA com dois resíduos (Erro a para parcelas e Erro b para subparcelas), dois coeficientes de variação (CVa e CVb), testes de comparações múltiplas (Tukey, Scott-Knott, Duncan, SNK, Scheffé ou Bonferroni) e desdobramento automático quando a interação Parcela × Subparcela for significativa (utilizando combinações lineares de erros conforme Satterthwaite/Banzatto & Kronka).\n\n\ngrafico_medias()\nGráfico de Médias do Experimento. Gera gráfico de colunas com as médias dos tratamentos, barras de erro (IC 95%) e as letras do teste de comparações múltiplas sobrepostas no topo de cada grupo.\n\n\ngrafico_ic()\nGráfico de Intervalos de Confiança das Diferenças de Médias. Gera gráfico horizontal com os intervalos de confiança das diferenças pareadas entre tratamentos ou dos contrastes de Scheffé, com linha vertical vermelha no zero e destaque colorido para contrastes com diferença estatisticamente significativa.\n\n\ngrafico_regressao()\nGráfico da Regressão Polinomial. Gera gráfico de dispersão com os pontos observados, médias e curva ajustada do modelo polinomial recomendado (Linear, Quadrático ou Cúbico).",
-    "crumbs": [
-      "Guia Rápido",
-      "Catálogo Completo de Funções"
-    ]
-  },
-  {
-    "objectID": "referencia.html#aprendizado-de-máquina-e-sobrevivência",
-    "href": "referencia.html#aprendizado-de-máquina-e-sobrevivência",
-    "title": "Catálogo de Funções",
-    "section": "Aprendizado de Máquina e Sobrevivência",
-    "text": "Aprendizado de Máquina e Sobrevivência\n\n\n\n\n\n\n\nFunção\nDescrição\n\n\n\n\nclassificacao_aprend_maq()\nClassificação com Aprendizado de Máquina. Ajusta modelos de Aprendizado de Máquina para classificação (variável resposta categórica ou binária). Suporta algoritmos consolidados com otimização de hiperparâmetros ou ajuste manual em português.\n\n\nprevisao_aprend_maq()\nPrevisão com Aprendizado de Máquina (Regressão). Ajusta modelos de Aprendizado de Máquina para tarefas de regressão (variável resposta numérica contínua). Suporta múltiplos algoritmos com otimização automática de hiperparâmetros (estabilização OOB / Cross-Validation) ou parametrização manual em português.\n\n\nanalise_residual_aprend_maq()\nAnálise Residual para Modelos de Aprendizado de Máquina. Realiza diagnóstico formal dos resíduos em modelos de regressão ajustados por Aprendizado de Máquina (previsao_aprend_maq). Avalia viés sistemático (média dos resíduos = 0), dispersão e casos atípicos extremos, gerando painel gráfico com grade dupla.\n\n\nmetricas_aprend_maq()\nMétricas de Desempenho para Aprendizado de Máquina. Extrai e exibe a tabela de métricas de treino e teste de um objeto de Aprendizado de Máquina (estatR_aprend_maq).\n\n\nanalise_sobrevivencia()\nAnálise de Sobrevivência (Kaplan-Meier e Nelson-Aalen). Ajusta e apresenta curvas de sobrevivência não-paramétricas pelos métodos de Kaplan-Meier e Nelson-Aalen / Fleming-Harrington, com cálculo de medianas de sobrevivência, intervalos de confiança, taxas de censura, tabela pontual completa com estimativas de S(t), risco acumulado H(t), taxa de risco instantâneo h(t) e densidade f(t), além de teste de Log-Rank (simples ou estratificado) para comparação de grupos.\n\n\ngrafico_sobrevivencia()\nGráfico de Curva de Sobrevivência e Funções de Risco. Gera visualizações para análise de sobrevivência em degraus ou curvas suavizadas, incluindo curva de sobrevivência S(t), risco acumulado H(t) (Nelson-Aalen), taxa de risco instantâneo h(t) (hazard rate) e densidade de falhas f(t).\n\n\nregressao_cox()\nRegressão de Cox (Modelo de Riscos Proporcionais). Ajusta o modelo semi-paramétrico de Cox para análise de tempo até o evento, fornecendo Hazard Ratios (HR), intervalos de confiança de 95%, estatísticas globais de qualidade de ajuste e diagnóstico formal de proporcionalidade dos riscos baseado nos resíduos de Schoenfeld.\n\n\nmetricas_cox()\nMétricas de Avaliação do Modelo de Cox. Exibe e retorna as principais medidas de qualidade de ajuste, discriminação e critérios de informação para o modelo de riscos proporcionais de Cox.\n\n\nselecao_modelos_cox()\nSeleção de Modelos de Riscos Proporcionais de Cox. Avalia todas as combinações de covariáveis para o modelo de Cox, ranqueando os melhores modelos pelos critérios de AIC, Delta AIC, pesos de Akaike e Índice C de Concordância.\n\n\ngrafico_cox()\nForest Plot dos Hazard Ratios do Modelo de Cox. Gera gráfico de Forest Plot com os Hazard Ratios pontuais e intervalos de confiança de 95%, com linha de referência em HR = 1.",
-    "crumbs": [
-      "Guia Rápido",
-      "Catálogo Completo de Funções"
-    ]
-  },
-  {
-    "objectID": "referencia.html#amostragem-probabilística",
-    "href": "referencia.html#amostragem-probabilística",
-    "title": "Catálogo de Funções",
-    "section": "Amostragem Probabilística",
-    "text": "Amostragem Probabilística\n\n\n\n\n\n\n\nFunção\nDescrição\n\n\n\n\namostra_aleatoria()\nAmostragem AleatÃ³ria Simples (AAS). Seleciona uma amostra aleatÃ³ria simples de um conjunto de dados ou vetor, com ou sem reposiÃ§Ã£o.\n\n\namostra_estratificada()\nAmostragem Estratificada. Seleciona uma amostra estratificada de um data.frame, com suporte a trÃªs tipos de alocaÃ§Ã£o.\n\n\namostra_sistematica()\nAmostragem SistemÃ¡tica. Seleciona uma amostra sistemÃ¡tica a cada salto de k elementos a partir de um ponto inicial sorteado aleatoriamente.\n\n\namostra_conglomerados()\nAmostragem por Conglomerados (Clusters). Seleciona aleatoriamente conglomerados (grupos inteiros) de um data.frame, retornando todos os indivÃ­duos pertencentes aos conglomerados sorteados.\n\n\ntamanho_amostra()\nCÃ¡lculo de Tamanho Amostral Ã“timo. Calcula o tamanho mÃ­nimo de amostra necessÃ¡rio para estimar uma proporÃ§Ã£o ou uma mÃ©dia com nÃ­vel de confianÃ§a e margem de erro especificados.",
-    "crumbs": [
-      "Guia Rápido",
-      "Catálogo Completo de Funções"
-    ]
-  },
-  {
-    "objectID": "referencia.html#visualização-e-gráficos-auxiliares",
-    "href": "referencia.html#visualização-e-gráficos-auxiliares",
-    "title": "Catálogo de Funções",
-    "section": "Visualização e Gráficos Auxiliares",
-    "text": "Visualização e Gráficos Auxiliares\n\n\n\n\n\n\n\nFunção\nDescrição\n\n\n\n\ntema_estatR()\nTema Padronizado do estatR. Aplica formatação limpa e profissional aos gráficos do ggplot2.\n\n\npaleta_estatR()\nPaleta de Cores do estatR. Aplica paletas de cores padronizadas aos gráficos ggplot2.\n\n\ngrafico_boxplot()\nGráfico de Boxplot Avançado. Cria um boxplot completo com opções de violino, dispersão, detecção de outliers, médias e personalização visual.",
-    "crumbs": [
-      "Guia Rápido",
-      "Catálogo Completo de Funções"
-    ]
-  },
-  {
-    "objectID": "modulos/regressao.html",
-    "href": "modulos/regressao.html",
-    "title": "Modelagem Linear e Diagnóstico Residual",
+    "objectID": "sobre.html#o-que-é-o-estatr",
+    "href": "sobre.html#o-que-é-o-estatr",
+    "title": "Sobre o estatR",
     "section": "",
-    "text": "O módulo de regressão linear do estatR oferece um fluxo completo para modelagem clássica: do ajuste e testes de hipóteses dos coeficientes até a seleção passo a passo (stepwise), multicolinearidade (VIF), pontos de alavanca e diagnóstico residual completo.",
-    "crumbs": [
-      "Guia Rápido",
-      "Modelagem Estatística",
-      "Regressão Linear Clássica"
-    ]
+    "text": "O estatR é uma camada estatística moderna para R, desenvolvida para unificar análises dispersas em um único ecossistema coerente, didático e de alto padrão editorial. O pacote nasce da necessidade prática de realizar análises completas — do diagnóstico descritivo à modelagem avançada — com sintaxe fluida, saídas legíveis no console e gráficos prontos para publicação."
   },
   {
-    "objectID": "modulos/regressao.html#visão-geral-do-módulo",
-    "href": "modulos/regressao.html#visão-geral-do-módulo",
-    "title": "Modelagem Linear e Diagnóstico Residual",
+    "objectID": "sobre.html#propósito",
+    "href": "sobre.html#propósito",
+    "title": "Sobre o estatR",
     "section": "",
-    "text": "O módulo de regressão linear do estatR oferece um fluxo completo para modelagem clássica: do ajuste e testes de hipóteses dos coeficientes até a seleção passo a passo (stepwise), multicolinearidade (VIF), pontos de alavanca e diagnóstico residual completo.",
-    "crumbs": [
-      "Guia Rápido",
-      "Modelagem Estatística",
-      "Regressão Linear Clássica"
-    ]
+    "text": "A estatística aplicada no R, em sua forma nativa, exige o domínio de dezenas de pacotes com interfaces distintas. O estatR resolve isso: uma função, um resultado, uma linguagem. As saídas são formatadas automaticamente em português, com alinhamento preciso de colunas, casas decimais padronizadas e notas interpretativas embutidas — prontas para teses, artigos e relatórios corporativos."
   },
   {
-    "objectID": "modulos/regressao.html#ajuste-de-modelos",
-    "href": "modulos/regressao.html#ajuste-de-modelos",
-    "title": "Modelagem Linear e Diagnóstico Residual",
-    "section": "Ajuste de Modelos",
-    "text": "Ajuste de Modelos\n\nregressao_linear()\nAjusta o modelo por Mínimos Quadrados Ordinários (MQO) com saída no console formatada em seções de coeficientes, erros padrão, estatísticas t e p-valores:\nmodelo &lt;- regressao_linear(mpg ~ wt + hp + qsec, dados = mtcars)",
-    "crumbs": [
-      "Guia Rápido",
-      "Modelagem Estatística",
-      "Regressão Linear Clássica"
-    ]
-  },
-  {
-    "objectID": "modulos/regressao.html#diagnóstico-residual",
-    "href": "modulos/regressao.html#diagnóstico-residual",
-    "title": "Modelagem Linear e Diagnóstico Residual",
-    "section": "Diagnóstico Residual",
-    "text": "Diagnóstico Residual\n\nanalise_residual()\nGera um painel com 4 gráficos no padrão editorial com tema dual grid (grade = \"dupla\"): 1. Resíduos vs Valores Ajustados (Linearidade e Homocedasticidade) 2. Q-Q Plot Normal (Normalidade dos resíduos) 3. Escala-Locação (Homocedasticidade com raiz do módulo dos resíduos) 4. Resíduos vs Alavancagem (Distância de Cook e pontos influentes)\nanalise_residual(modelo, grade = \"dupla\")",
-    "crumbs": [
-      "Guia Rápido",
-      "Modelagem Estatística",
-      "Regressão Linear Clássica"
-    ]
-  },
-  {
-    "objectID": "modulos/regressao.html#seleção-e-validação",
-    "href": "modulos/regressao.html#seleção-e-validação",
-    "title": "Modelagem Linear e Diagnóstico Residual",
-    "section": "Seleção e Validação",
-    "text": "Seleção e Validação\n# Métricas de ajuste: R², R² ajustado, RMSE, MAE, AIC, BIC\nmetricas(modelo)\n\n# Seleção automática de modelos (Stepwise AIC/BIC)\nselecao_modelos(modelo, direcao = \"both\")\n\n# Diagnóstico de multicolinearidade (Fator de Inflação da Variância - VIF)\nmulticolinearidade(modelo)\n\n# Detecção de observações influentes e distância de Cook\npontos_influentes(modelo)\n\n# Gráfico editorial de coeficientes com intervalos de confiança\ngrafico_coeficientes(modelo)",
-    "crumbs": [
-      "Guia Rápido",
-      "Modelagem Estatística",
-      "Regressão Linear Clássica"
-    ]
-  },
-  {
-    "objectID": "modulos/multivariada.html",
-    "href": "modulos/multivariada.html",
-    "title": "Análise Multivariada e Agrupamento",
+    "objectID": "sobre.html#objetivos",
+    "href": "sobre.html#objetivos",
+    "title": "Sobre o estatR",
     "section": "",
-    "text": "O módulo multivariado do estatR permite analisar simultaneamente dezenas de variáveis correlacionadas, facilitando a identificação de padrões latentes, agrupamentos naturais de observações e classificação multivariada com biplots editoriais.",
-    "crumbs": [
-      "Guia Rápido",
-      "Métodos Avançados",
-      "Análise Multivariada"
-    ]
+    "text": "O pacote é organizado em 11 módulos especializados, cada um cobrindo um domínio da análise estatística:\n\nDiagnóstico e Descritiva — inspeção estrutural imediata\nTestes de Hipótese — paramétricos e não-paramétricos\nIntervalos de Confiança — com interpretação frequentista\nProbabilidade e Simulação — distribuições teóricas, Monte Carlo, bootstrap\nModelos Lineares e Regressão — com diagnóstico residual rigoroso\nModelos Generalizados (MLG) — Logística, Poisson, Gama, Beta e Youden\nSéries Temporais — ARIMA, STL e previsão com machine learning\nAnálise Multivariada — PCA, clustering, discriminante e MANOVA\nDelineamentos Experimentais — DIC, DBC, fatoriais e testes de médias\nMachine Learning e Sobrevivência — Kaplan-Meier e modelos preditivos\nAmostragem Probabilística — AAS, estratificada, sistemática e conglomerados"
   },
   {
-    "objectID": "modulos/multivariada.html#visão-geral-do-módulo",
-    "href": "modulos/multivariada.html#visão-geral-do-módulo",
-    "title": "Análise Multivariada e Agrupamento",
+    "objectID": "sobre.html#código-aberto",
+    "href": "sobre.html#código-aberto",
+    "title": "Sobre o estatR",
     "section": "",
-    "text": "O módulo multivariado do estatR permite analisar simultaneamente dezenas de variáveis correlacionadas, facilitando a identificação de padrões latentes, agrupamentos naturais de observações e classificação multivariada com biplots editoriais.",
-    "crumbs": [
-      "Guia Rápido",
-      "Métodos Avançados",
-      "Análise Multivariada"
-    ]
-  },
-  {
-    "objectID": "modulos/multivariada.html#redução-de-dimensionalidade",
-    "href": "modulos/multivariada.html#redução-de-dimensionalidade",
-    "title": "Análise Multivariada e Agrupamento",
-    "section": "Redução de Dimensionalidade",
-    "text": "Redução de Dimensionalidade\n\nAnálise de Componentes Principais (PCA)\nCalcula autovalores, variância explicada acumulada e gera biplots editoriais:\nres_acp &lt;- acp(iris[, 1:4])\n\n# Gráfico de sedimentação (Scree plot)\nscreeplot_acp(res_acp)\n\n# Biplot com elipses de confiança por grupo\nbiplot_acp(res_acp, grupo = iris$Species)\n\n\nAnálise Fatorial Exploratória\nExtração de fatores latentes com rotação ortogonal (Varimax) ou oblíqua (Promax):\nres_fat &lt;- analise_fatorial(dados_questionario, n_fatores = 3, rotacionar = \"varimax\")\ncargasplot_fatorial(res_fat)",
-    "crumbs": [
-      "Guia Rápido",
-      "Métodos Avançados",
-      "Análise Multivariada"
-    ]
-  },
-  {
-    "objectID": "modulos/multivariada.html#métodos-de-agrupamento-cluster",
-    "href": "modulos/multivariada.html#métodos-de-agrupamento-cluster",
-    "title": "Análise Multivariada e Agrupamento",
-    "section": "Métodos de Agrupamento (Cluster)",
-    "text": "Métodos de Agrupamento (Cluster)\n\nK-means\nAgrupamento não-hierárquico com diagnóstico de número ótimo de clusters pelo método do cotovelo:\n# Gráfico do cotovelo (Elbow method)\ncotovelo_plot(iris[, 1:4], max_k = 10)\n\n# Ajuste K-means e visualização em duas dimensões\nres_km &lt;- cluster_kmeans(iris[, 1:4], k = 3)\nplot_clusters(res_km)\n\n\nCluster Hierárquico\nAgrupamento aglomerativo com matriz de distâncias e dendrogramas estilizados:\nres_hc &lt;- cluster_hierarquico(iris[, 1:4], metodo = \"ward.D2\")\ndendrograma(res_hc, k = 3)",
-    "crumbs": [
-      "Guia Rápido",
-      "Métodos Avançados",
-      "Análise Multivariada"
-    ]
-  },
-  {
-    "objectID": "modulos/multivariada.html#técnicas-supervisionadas",
-    "href": "modulos/multivariada.html#técnicas-supervisionadas",
-    "title": "Análise Multivariada e Agrupamento",
-    "section": "Técnicas Supervisionadas",
-    "text": "Técnicas Supervisionadas\n\nAnálise Discriminante Linear (LDA) & MANOVA\nClassificação supervisionada e teste multivariado de hipóteses:\n# Análise Discriminante com Biplot de separação\nres_lda &lt;- analise_discriminante(Species ~ ., dados = iris)\nbiplot_lda(res_lda)\n\n# MANOVA (Análise Multivariada de Variância)\nres_manova &lt;- analise_manova(cbind(Sepal.Length, Sepal.Width) ~ Species, dados = iris)\nplot_manova(res_manova)",
-    "crumbs": [
-      "Guia Rápido",
-      "Métodos Avançados",
-      "Análise Multivariada"
-    ]
-  },
-  {
-    "objectID": "modulos/intervalos.html",
-    "href": "modulos/intervalos.html",
-    "title": "Intervalos de Confiança",
-    "section": "",
-    "text": "O módulo de intervalos de confiança do estatR une a precisão analítica à clareza pedagógica. Cada função exibe no console a estimativa pontual, erro padrão, margem de erro, limites inferior e superior, acompanhados de dois parágrafos interpretativos: 1. Interpretação Amostral: O intervalo calculado para a amostra corrente. 2. Interpretação Frequentista: A definição formal de longo prazo baseada em repetições infinitas do experimento sob o mesmo nível de confiança.",
-    "crumbs": [
-      "Guia Rápido",
-      "Inferência Estatística",
-      "Intervalos de Confiança"
-    ]
-  },
-  {
-    "objectID": "modulos/intervalos.html#visão-geral-do-módulo",
-    "href": "modulos/intervalos.html#visão-geral-do-módulo",
-    "title": "Intervalos de Confiança",
-    "section": "",
-    "text": "O módulo de intervalos de confiança do estatR une a precisão analítica à clareza pedagógica. Cada função exibe no console a estimativa pontual, erro padrão, margem de erro, limites inferior e superior, acompanhados de dois parágrafos interpretativos: 1. Interpretação Amostral: O intervalo calculado para a amostra corrente. 2. Interpretação Frequentista: A definição formal de longo prazo baseada em repetições infinitas do experimento sob o mesmo nível de confiança.",
-    "crumbs": [
-      "Guia Rápido",
-      "Inferência Estatística",
-      "Intervalos de Confiança"
-    ]
-  },
-  {
-    "objectID": "modulos/intervalos.html#funções-disponíveis",
-    "href": "modulos/intervalos.html#funções-disponíveis",
-    "title": "Intervalos de Confiança",
-    "section": "Funções Disponíveis",
-    "text": "Funções Disponíveis\n\nIntervalo de Confiança para a Média\nCalcula o intervalo de confiança baseado na distribuição t de Student (ou normal para grandes amostras):\n# Intervalo padrão de 95%\nic_media(mtcars$mpg)\n\n# Intervalo com 99% de confiança\nic_media(mtcars$mpg, confianca = 0.99)\n\n\nIntervalo de Confiança para Proporções\nCalcula o intervalo para uma proporção binomial (método de Wilson ou Wald com correção de continuidade):\n# 87 sucessos em 300 tentativas\nic_proporcao(x = 87, n = 300, confianca = 0.95)\n\n\nIntervalo de Confiança para a Variância\nBaseado na distribuição qui-quadrado (\\(\\chi^2\\)), fornecendo tanto o intervalo para a variância (\\(\\sigma^2\\)) quanto para o desvio padrão (\\(\\sigma\\)):\nic_variancia(mtcars$mpg, confianca = 0.95)\n\n\nIntervalo para Diferença entre Duas Médias\nCalcula o intervalo de confiança para \\(\\mu_1 - \\mu_2\\), suportando variâncias iguais (Student agrupado) ou desiguais (Welch-Satterthwaite):\nic_diferenca_medias(mtcars$mpg, mtcars$am, confianca = 0.95)",
-    "crumbs": [
-      "Guia Rápido",
-      "Inferência Estatística",
-      "Intervalos de Confiança"
-    ]
-  },
-  {
-    "objectID": "modulos/intervalos.html#representação-visual",
-    "href": "modulos/intervalos.html#representação-visual",
-    "title": "Intervalos de Confiança",
-    "section": "Representação Visual",
-    "text": "Representação Visual\nTodas as funções de intervalo de confiança geram, por padrão (grafico = TRUE), um gráfico de régua com ponto médio, barras de erro e identificação explícita da variável analisada e do nível de confiança no subtítulo.",
-    "crumbs": [
-      "Guia Rápido",
-      "Inferência Estatística",
-      "Intervalos de Confiança"
-    ]
-  },
-  {
-    "objectID": "modulos/experimentos.html",
-    "href": "modulos/experimentos.html",
-    "title": "Planejamento e Análise de Experimentos",
-    "section": "",
-    "text": "O módulo de experimentos do estatR foi desenhado com base nos padrões agronômicos, biológicos e industriais de pesquisa científica, integrando a análise de variância (ANOVA), testes de pressupostos e testes de comparações múltiplas de médias (Tukey, Scott-Knott, Duncan).",
-    "crumbs": [
-      "Guia Rápido",
-      "Métodos Avançados",
-      "Delineamentos Experimentais"
-    ]
-  },
-  {
-    "objectID": "modulos/experimentos.html#visão-geral-do-módulo",
-    "href": "modulos/experimentos.html#visão-geral-do-módulo",
-    "title": "Planejamento e Análise de Experimentos",
-    "section": "",
-    "text": "O módulo de experimentos do estatR foi desenhado com base nos padrões agronômicos, biológicos e industriais de pesquisa científica, integrando a análise de variância (ANOVA), testes de pressupostos e testes de comparações múltiplas de médias (Tukey, Scott-Knott, Duncan).",
-    "crumbs": [
-      "Guia Rápido",
-      "Métodos Avançados",
-      "Delineamentos Experimentais"
-    ]
-  },
-  {
-    "objectID": "modulos/experimentos.html#delineamentos-básicos",
-    "href": "modulos/experimentos.html#delineamentos-básicos",
-    "title": "Planejamento e Análise de Experimentos",
-    "section": "Delineamentos Básicos",
-    "text": "Delineamentos Básicos\n\nDelineamento Inteiramente Casualizado (DIC)\nres_dic &lt;- analise_dic(y = dados$produtividade, trat = dados$adubo, teste_medias = \"tukey\")\ngrafico_dic(res_dic)\n\n\nDelineamento em Blocos Casualizados (DBC)\nres_dbc &lt;- analise_dbc(y = dados$produtividade, trat = dados$adubo, bloco = dados$bloco)\ngrafico_dbc(res_dbc)\n\n\nDelineamento Quadrado Latino (DQL)\nres_dql &lt;- analise_dql(y = dados$prod, trat = dados$trat, linha = dados$lin, coluna = dados$col)\ngrafico_dql(res_dql)",
-    "crumbs": [
-      "Guia Rápido",
-      "Métodos Avançados",
-      "Delineamentos Experimentais"
-    ]
-  },
-  {
-    "objectID": "modulos/experimentos.html#esquemas-fatoriais-e-parcelas",
-    "href": "modulos/experimentos.html#esquemas-fatoriais-e-parcelas",
-    "title": "Planejamento e Análise de Experimentos",
-    "section": "Esquemas Fatoriais e Parcelas",
-    "text": "Esquemas Fatoriais e Parcelas\n\nFatorial Duplo e Adicional\nPara experimentos com dois fatores combinados (com ou sem tratamento adicional de controle):\n# Fatorial Duplo (Fator A x Fator B)\nres_fat &lt;- analise_fatorial_duplo(y = dados$prod, fator_a = dados$irrigacao, fator_b = dados$adubo)\ngrafico_fatorial(res_fat)\n\n# Fatorial com Testemunha Adicional\nres_fat_ad &lt;- analise_fatorial_adicional(y = dados$prod, fator_a = dados$fA, fator_b = dados$fB, testemunha = dados$test)\n\n\nParcelas Subdivididas (Split-Plot)\nres_split &lt;- analise_parcela_subdividida(y = dados$prod, parcela = dados$p, subparcela = dados$sp, bloco = dados$b)",
-    "crumbs": [
-      "Guia Rápido",
-      "Métodos Avançados",
-      "Delineamentos Experimentais"
-    ]
-  },
-  {
-    "objectID": "modulos/aprendizado_maquina.html",
-    "href": "modulos/aprendizado_maquina.html",
-    "title": "Aprendizado de Máquina e Sobrevivência",
-    "section": "",
-    "text": "O módulo integra algoritmos de classificação supervisionada (árvores de decisão, florestas aleatórias, gradient boosting) com a análise clássica de dados de sobrevivência e tempo até o evento.",
-    "crumbs": [
-      "Guia Rápido",
-      "Métodos Avançados",
-      "Machine Learning & Sobrevivência"
-    ]
-  },
-  {
-    "objectID": "modulos/aprendizado_maquina.html#visão-geral-do-módulo",
-    "href": "modulos/aprendizado_maquina.html#visão-geral-do-módulo",
-    "title": "Aprendizado de Máquina e Sobrevivência",
-    "section": "",
-    "text": "O módulo integra algoritmos de classificação supervisionada (árvores de decisão, florestas aleatórias, gradient boosting) com a análise clássica de dados de sobrevivência e tempo até o evento.",
-    "crumbs": [
-      "Guia Rápido",
-      "Métodos Avançados",
-      "Machine Learning & Sobrevivência"
-    ]
-  },
-  {
-    "objectID": "modulos/aprendizado_maquina.html#aprendizado-de-máquina",
-    "href": "modulos/aprendizado_maquina.html#aprendizado-de-máquina",
-    "title": "Aprendizado de Máquina e Sobrevivência",
-    "section": "Aprendizado de Máquina",
-    "text": "Aprendizado de Máquina\n\nClassificação Supervisionada\nTreinamento, predição e matriz de confusão com métricas completas de sensibilidade, especificidade, precisão e escore F1:\n# Ajuste do classificador\nmodelo_ml &lt;- classificacao_aprend_maq(Species ~ ., dados = iris, algoritmo = \"random_forest\")\n\n# Previsão e métricas em dados de teste\npredicoes &lt;- previsao_aprend_maq(modelo_ml, novos_dados = dados_teste)\nmetricas_aprend_maq(modelo_ml)",
-    "crumbs": [
-      "Guia Rápido",
-      "Métodos Avançados",
-      "Machine Learning & Sobrevivência"
-    ]
-  },
-  {
-    "objectID": "modulos/aprendizado_maquina.html#análise-de-sobrevivência",
-    "href": "modulos/aprendizado_maquina.html#análise-de-sobrevivência",
-    "title": "Aprendizado de Máquina e Sobrevivência",
-    "section": "Análise de Sobrevivência",
-    "text": "Análise de Sobrevivência\n\nCurvas de Kaplan-Meier\nEstimação não-paramétrica da função de sobrevivência com intervalos de confiança e teste de log-rank:\nres_sob &lt;- analise_sobrevivencia(tempo = dados$tempo, status = dados$evento, grupo = dados$tratamento)\ngrafico_sobrevivencia(res_sob)\n\n\nRegressão de Riscos Proporcionais de Cox\nModelagem semi-paramétrica de fatores de risco com verificação de pressupostos de proporcionalidade:\nmod_cox &lt;- regressao_cox(tempo = dados$tempo, status = dados$evento, formula = ~ idade + sexo + grupo, dados = dados)\nmetricas_cox(mod_cox)\ngrafico_cox(mod_cox)",
-    "crumbs": [
-      "Guia Rápido",
-      "Métodos Avançados",
-      "Machine Learning & Sobrevivência"
-    ]
-  },
-  {
-    "objectID": "index.html",
-    "href": "index.html",
-    "title": "estatR",
-    "section": "",
-    "text": "Camada Estatística de Alto Padrão para R\n\n\nestatR\n\nEstatística com Elegância, Precisão e Produtividade.\n\nUma camada moderna, didática e unificada sobre o ecossistema R. Saídas formatadas no console em português, tabelas prontas para publicação e gráficos editoriais em padrão publicação com uma sintaxe fluida e intuitiva.\n\n\n  Começar Agora    Ver Catálogo de Funções (120+) \n\n\n\n   RStudio Console • estatR Preview\n\n\n# Instalação direta via GitHub &gt; devtools::install_github(“elizeumedeirosest/estatR”) &gt; library(estatR)\n# Diagnóstico e síntese descritiva em uma linha &gt; descrever(iris\\(Sepal.Length, por = iris\\)Species) ::: {.output} ====================================================================== RESUMO DESCRITIVO: Sepal.Length POR Species ====================================================================== Grupo N Média DP Mediana IIQ Mín Máx ———————————————————————- setosa 50 5.006 0.352 5.000 0.400 4.300 5.800 versicolor 50 5.936 0.516 5.900 0.700 4.900 7.000 virginica 50 6.588 0.636 6.500 0.675 4.900 7.900 ======================================================================\n\n# Gráficos com tema dual grid editorial pronto &gt; analise_residual(modelo, grade = “dupla”)\n\n\n\n\n:::\n\n\n\nArquitetura & Módulos Especializados\n\n\nConheça os pilares que compõem o ecossistema do estatR\n\n\n\n\n\n&lt;img src=\"assets/icons/search.svg\" width=\"24\" height=\"24\" /&gt;\n\n\nDiagnóstico & Descritiva\n\n\nInspeção estrutural imediata, detecção automática de outliers, valores ausentes e estatísticas descritivas polimórficas para variáveis univariadas ou agrupadas.\n\n\nExplorar Módulo →\n\n\n\n\n&lt;img src=\"assets/icons/target.svg\" width=\"24\" height=\"24\" /&gt;\n\n\nInferência & Testes de Hipótese\n\n\nComparações paramétricas (Testes T de uma e duas amostras, pareado, proporções) e não-paramétricas (Wilcoxon, Mann-Whitney, Kruskal, Friedman e Qui-quadrado).\n\n\nExplorar Módulo →\n\n\n\n\n&lt;img src=\"assets/icons/ruler.svg\" width=\"24\" height=\"24\" /&gt;\n\n\nIntervalos de Confiança\n\n\nConstrução de intervalos com formulação clássica e interpretação frequentista detalhada para médias, proporções, variâncias e diferença de médias populacionais.\n\n\nExplorar Módulo →\n\n\n\n\n&lt;img src=\"assets/icons/bell.svg\" width=\"24\" height=\"24\" /&gt;\n\n\nProbabilidade & Simulação\n\n\nPainéis visuais de distribuições teóricas com parâmetros didáticos, cálculo de probabilidades de cauda e entre limites, bootstrap, Monte Carlo e TCL.\n\n\nExplorar Módulo →\n\n\n\n\n&lt;img src=\"assets/icons/chart.svg\" width=\"24\" height=\"24\" /&gt;\n\n\nModelos Lineares & MLG\n\n\nRegressão múltipla e modelos generalizados (Logística, Poisson, Binomial Negativa, Gama, Beta) com diagnóstico residual rigoroso e ponto de corte ótimo de Youden.\n\n\nExplorar Módulo →\n\n\n\n\n&lt;img src=\"assets/icons/trending.svg\" width=\"24\" height=\"24\" /&gt;\n\n\nSéries Temporais & Previsão\n\n\nDecomposição clássica e STL, testes de raiz unitária (ADF/KPSS), ajuste de modelos ARIMA, previsão com intervalos e modelos baseados em aprendizado de máquina.\n\n\nExplorar Módulo →\n\n\n\n\n&lt;img src=\"assets/icons/layers.svg\" width=\"24\" height=\"24\" /&gt;\n\n\nAnálise Multivariada\n\n\nRedução de dimensionalidade via PCA e Análise Fatorial, agrupamento com K-means e Dendrogramas Hierárquicos, Análise Discriminante Linear e MANOVA.\n\n\nExplorar Módulo →\n\n\n\n\n&lt;img src=\"assets/icons/flask.svg\" width=\"24\" height=\"24\" /&gt;\n\n\nDelineamentos Experimentais\n\n\nAnálise completa de experimentos em DIC, DBC, DQL, Fatoriais Duplos, Esquemas com Tratamento Adicional e Parcelas Subdivididas com testes de médias (Tukey/Scott-Knott).\n\n\nExplorar Módulo →\n\n\n\n\n&lt;img src=\"assets/icons/users.svg\" width=\"24\" height=\"24\" /&gt;\n\n\nAmostragem Probabilística\n\n\nPlanos amostrais para amostragem aleatória simples, estratificada por alocação proporcional/ótima, sistemática e por conglomerados em um ou dois estágios.\n\n\nExplorar Módulo →"
-  },
-  {
-    "objectID": "guia_rapido.html",
-    "href": "guia_rapido.html",
-    "title": "Guia Rápido de Instalação e Uso",
-    "section": "",
-    "text": "O estatR pode ser instalado diretamente do repositório oficial no GitHub utilizando o pacote devtools ou remotes:\n# Caso ainda não tenha o devtools instalado:\ninstall.packages(\"devtools\")\n\n# Instalação do estatR a partir do GitHub:\ndevtools::install_github(\"elizeumedeirosest/estatR\")\nApós a conclusão da instalação, carregue o pacote na sua sessão do R:\nlibrary(estatR)",
-    "crumbs": [
-      "Guia Rápido",
-      "Guia de Instalação"
-    ]
-  },
-  {
-    "objectID": "guia_rapido.html#instalação",
-    "href": "guia_rapido.html#instalação",
-    "title": "Guia Rápido de Instalação e Uso",
-    "section": "",
-    "text": "O estatR pode ser instalado diretamente do repositório oficial no GitHub utilizando o pacote devtools ou remotes:\n# Caso ainda não tenha o devtools instalado:\ninstall.packages(\"devtools\")\n\n# Instalação do estatR a partir do GitHub:\ndevtools::install_github(\"elizeumedeirosest/estatR\")\nApós a conclusão da instalação, carregue o pacote na sua sessão do R:\nlibrary(estatR)",
-    "crumbs": [
-      "Guia Rápido",
-      "Guia de Instalação"
-    ]
-  },
-  {
-    "objectID": "guia_rapido.html#primeiros-passos",
-    "href": "guia_rapido.html#primeiros-passos",
-    "title": "Guia Rápido de Instalação e Uso",
-    "section": "Primeiros Passos",
-    "text": "Primeiros Passos\n\n1. Diagnóstico do Banco de Dados\nAntes de qualquer análise, utilize a função diagnostico() para inspecionar tipos de variáveis, contagem de observações e presença de valores faltantes:\n# Diagnóstico completo de um data frame\ndiagnostico(iris)\n\n# Diagnóstico específico de uma variável\ndiagnostico(iris$Sepal.Length)\n\n\n2. Estatística Descritiva em Uma Linha\nA função descrever() é polimórfica: ela detecta automaticamente se a variável é numérica, categórica ou se foi passado um agrupamento:\n# Numérica simples\ndescrever(mtcars$mpg)\n\n# Categórica (tabela de frequências absolutas e percentuais)\ndescrever(mtcars$cyl)\n\n# Numérica agrupada por fator\ndescrever(iris$Sepal.Length, por = iris$Species)\n\n\n3. Ajuste de Modelos e Análise Residual\nAo ajustar modelos lineares ou generalizados, o estatR fornece saídas estruturadas e diagnóstico gráfico pronto em padrão editorial com tema dual grid (grade = \"dupla\"):\n# Ajuste de regressão linear\nmodelo &lt;- regressao_linear(mpg ~ wt + hp, dados = mtcars)\n\n# Diagnóstico residual completo (4 painéis padronizados)\nanalise_residual(modelo)",
-    "crumbs": [
-      "Guia Rápido",
-      "Guia de Instalação"
-    ]
-  },
-  {
-    "objectID": "guia_rapido.html#convenções-do-pacote",
-    "href": "guia_rapido.html#convenções-do-pacote",
-    "title": "Guia Rápido de Instalação e Uso",
-    "section": "Convenções do Pacote",
-    "text": "Convenções do Pacote\n\nLocalização em Português: Nomes de parâmetros, cabeçalhos do console e legendas gráficas são apresentados em português claro e rigoroso.\nPadrão Gráfico Editorial: Todos os gráficos gerados pelo pacote utilizam a função tema_estatR(grade = \"dupla\"), com paleta corporativa elegante e tipografia limpa.\nObjetos Invisíveis: As funções exibem o resultado formatado no console e retornam invisivelmente listas com todos os dados brutos e modelos subjacentes para uso posterior.",
-    "crumbs": [
-      "Guia Rápido",
-      "Guia de Instalação"
-    ]
-  },
-  {
-    "objectID": "modulos/amostragem.html",
-    "href": "modulos/amostragem.html",
-    "title": "Amostragem Probabilística",
-    "section": "",
-    "text": "O módulo de amostragem do estatR fornece ferramentas para o planejamento e extração de amostras probabilísticas representativas, contemplando os quatro principais delineamentos amostrais e o dimensionamento amostral exato.",
-    "crumbs": [
-      "Guia Rápido",
-      "Análise Exploratória",
-      "Amostragem Probabilística"
-    ]
-  },
-  {
-    "objectID": "modulos/amostragem.html#visão-geral-do-módulo",
-    "href": "modulos/amostragem.html#visão-geral-do-módulo",
-    "title": "Amostragem Probabilística",
-    "section": "",
-    "text": "O módulo de amostragem do estatR fornece ferramentas para o planejamento e extração de amostras probabilísticas representativas, contemplando os quatro principais delineamentos amostrais e o dimensionamento amostral exato.",
-    "crumbs": [
-      "Guia Rápido",
-      "Análise Exploratória",
-      "Amostragem Probabilística"
-    ]
-  },
-  {
-    "objectID": "modulos/amostragem.html#planos-amostrais",
-    "href": "modulos/amostragem.html#planos-amostrais",
-    "title": "Amostragem Probabilística",
-    "section": "Planos Amostrais",
-    "text": "Planos Amostrais\n\nAmostragem Aleatória Simples (AAS)\nCom ou sem reposição:\n# Extração de 50 observações por AAS sem reposição\namostra &lt;- amostra_aleatoria(banco_dados, n = 50, reposicao = FALSE)\n\n\nAmostragem Estratificada\nGarante a representatividade proporcional ou ótima de subpopulações/estratos:\n# Amostragem proporcional por estrato (ex: região ou gênero)\namostra_est &lt;- amostra_estratificada(banco_dados, estrato = \"regiao\", n = 100, alocacao = \"proporcional\")\n\n\nAmostragem Sistemática\nSeleção periódica com intervalo fixo (\\(k = N/n\\)):\namostra_sist &lt;- amostra_sistematica(banco_dados, n = 40)\n\n\nAmostragem por Conglomerados\nSeleção em um ou dois estágios de unidades primárias:\namostra_cong &lt;- amostra_conglomerados(banco_dados, conglomerado = \"escola\", n_conglomerados = 5)",
-    "crumbs": [
-      "Guia Rápido",
-      "Análise Exploratória",
-      "Amostragem Probabilística"
-    ]
-  },
-  {
-    "objectID": "modulos/amostragem.html#dimensionamento-amostral",
-    "href": "modulos/amostragem.html#dimensionamento-amostral",
-    "title": "Amostragem Probabilística",
-    "section": "Dimensionamento Amostral",
-    "text": "Dimensionamento Amostral\n\ntamanho_amostra()\nCalcula o tamanho amostral necessário para estimar médias ou proporções dado o erro tolerável (\\(e\\)), nível de confiança e tamanho da população (caso finita):\n# Dimensionamento para proporção (margem de erro de 3%, 95% de confiança)\ntamanho_amostra(tipo = \"proporcao\", erro = 0.03, confianca = 0.95, N = 10000)\n\n# Dimensionamento para média contínua (com desvio padrão conhecido ou estimado)\ntamanho_amostra(tipo = \"media\", erro = 2, dp = 15, confianca = 0.95)",
-    "crumbs": [
-      "Guia Rápido",
-      "Análise Exploratória",
-      "Amostragem Probabilística"
-    ]
-  },
-  {
-    "objectID": "modulos/descritiva.html",
-    "href": "modulos/descritiva.html",
-    "title": "Diagnóstico e Estatística Descritiva",
-    "section": "",
-    "text": "O módulo de diagnóstico e estatística descritiva do estatR foi projetado para eliminar o atrito inicial na exploração de qualquer conjunto de dados. Ele reúne desde a checagem de tipos e valores ausentes até resumos numéricos completos e tabelas de contingência bidimensionais.",
-    "crumbs": [
-      "Guia Rápido",
-      "Análise Exploratória",
-      "Diagnóstico e Descritiva"
-    ]
-  },
-  {
-    "objectID": "modulos/descritiva.html#visão-geral-do-módulo",
-    "href": "modulos/descritiva.html#visão-geral-do-módulo",
-    "title": "Diagnóstico e Estatística Descritiva",
-    "section": "",
-    "text": "O módulo de diagnóstico e estatística descritiva do estatR foi projetado para eliminar o atrito inicial na exploração de qualquer conjunto de dados. Ele reúne desde a checagem de tipos e valores ausentes até resumos numéricos completos e tabelas de contingência bidimensionais.",
-    "crumbs": [
-      "Guia Rápido",
-      "Análise Exploratória",
-      "Diagnóstico e Descritiva"
-    ]
-  },
-  {
-    "objectID": "modulos/descritiva.html#diagnóstico-de-dados",
-    "href": "modulos/descritiva.html#diagnóstico-de-dados",
-    "title": "Diagnóstico e Estatística Descritiva",
-    "section": "Diagnóstico de Dados",
-    "text": "Diagnóstico de Dados\n\ndiagnostico()\nProduz um diagnóstico global com número de linhas, colunas, presença de valores faltantes (NA) e classificação das variáveis.\n# Diagnóstico global de um data frame\ndiagnostico(iris)\n\n# Diagnóstico de uma variável específica\ndiagnostico(iris$Sepal.Length)\n\n\nestrutura() & valores_ausentes()\nFunções focadas na integridade do banco:\n# Inspeção de tipos e classes de colunas\nestrutura(iris)\n\n# Mapa e contagem de valores ausentes (com gráfico opcional)\nvalores_ausentes(airquality, grafico = TRUE)\n\n\noutliers()\nIdentifica valores discrepantes com base no critério de Tukey (distância interquartílica, \\(1{,}5 \\times IIQ\\)) ou escore Z:\noutliers(mtcars$mpg, metodo = \"iqr\")",
-    "crumbs": [
-      "Guia Rápido",
-      "Análise Exploratória",
-      "Diagnóstico e Descritiva"
-    ]
-  },
-  {
-    "objectID": "modulos/descritiva.html#estatística-descritiva",
-    "href": "modulos/descritiva.html#estatística-descritiva",
-    "title": "Diagnóstico e Estatística Descritiva",
-    "section": "Estatística Descritiva",
-    "text": "Estatística Descritiva\n\ndescrever()\nFunção polimórfica universal do estatR: * Para vetores numéricos: calcula média, desvio padrão, mediana, IIQ, mínimo e máximo. * Para fatores / strings: gera tabela de frequências absolutas e percentuais com alinhamento rigoroso. * Para data frames: sintetiza todas as variáveis da tabela de forma compacta. * Com argumento por: calcula as métricas numéricas estratificadas por uma variável de grupo.\n# Numérica simples\ndescrever(mtcars$mpg)\n\n# Categórica simples\ndescrever(mtcars$cyl)\n\n# Estratificada por grupo\ndescrever(iris$Sepal.Length, por = iris$Species)\n\n\ntabela_contingencia()\nCruzamento bivariado de duas variáveis categóricas, com suporte a frequências conjuntas e proporções por linha, coluna ou total:\n# Frequências absolutas\ntabela_contingencia(mtcars, cyl, am)\n\n# Proporções por linha centralizadas\ntabela_contingencia(mtcars, cyl, am, proporcao = \"linha\")",
-    "crumbs": [
-      "Guia Rápido",
-      "Análise Exploratória",
-      "Diagnóstico e Descritiva"
-    ]
-  },
-  {
-    "objectID": "modulos/descritiva.html#separatrizes-amostrais",
-    "href": "modulos/descritiva.html#separatrizes-amostrais",
-    "title": "Diagnóstico e Estatística Descritiva",
-    "section": "Separatrizes Amostrais",
-    "text": "Separatrizes Amostrais\nFunções dedicadas para cálculo intuitivo de pontos de corte e medidas de posição:\n# Quartis (Q1, Q2, Q3) e IIQ\nquartis(mtcars$mpg)\n\n# Quintis (20%, 40%, 60%, 80%)\nquintis(mtcars$mpg)\n\n# Decis (D1 a D9)\ndecis(mtcars$mpg)\n\n# Percentis específicos\npercentis(mtcars$mpg, p = c(0.01, 0.05, 0.95, 0.99))",
-    "crumbs": [
-      "Guia Rápido",
-      "Análise Exploratória",
-      "Diagnóstico e Descritiva"
-    ]
-  },
-  {
-    "objectID": "modulos/descritiva.html#medidas-específicas",
-    "href": "modulos/descritiva.html#medidas-específicas",
-    "title": "Diagnóstico e Estatística Descritiva",
-    "section": "Medidas Específicas",
-    "text": "Medidas Específicas\nQuando você precisa apenas de um bloco específico de estatísticas:\n# Tendência Central: média, mediana e moda\nmed_tend_central(mtcars$mpg)\n\n# Dispersão: variância, desvio padrão, erro padrão, CV (%) e amplitude\nmed_dispersao(mtcars$mpg)\n\n# Forma: assimetria (skewness) e curtose teóricas\nmed_forma(mtcars$mpg)",
-    "crumbs": [
-      "Guia Rápido",
-      "Análise Exploratória",
-      "Diagnóstico e Descritiva"
-    ]
-  },
-  {
-    "objectID": "modulos/inferencia.html",
-    "href": "modulos/inferencia.html",
-    "title": "Inferência e Testes de Hipótese",
-    "section": "",
-    "text": "O módulo de inferência estatística do estatR traduz os testes de hipótese clássicos em saídas ricas no console, explicitando a hipótese nula (\\(H_0\\)), hipótese alternativa (\\(H_1\\)), estatística de teste, graus de liberdade, p-valor e conclusão didática imediata.",
-    "crumbs": [
-      "Guia Rápido",
-      "Inferência Estatística",
-      "Testes de Hipótese"
-    ]
-  },
-  {
-    "objectID": "modulos/inferencia.html#visão-geral-do-módulo",
-    "href": "modulos/inferencia.html#visão-geral-do-módulo",
-    "title": "Inferência e Testes de Hipótese",
-    "section": "",
-    "text": "O módulo de inferência estatística do estatR traduz os testes de hipótese clássicos em saídas ricas no console, explicitando a hipótese nula (\\(H_0\\)), hipótese alternativa (\\(H_1\\)), estatística de teste, graus de liberdade, p-valor e conclusão didática imediata.",
-    "crumbs": [
-      "Guia Rápido",
-      "Inferência Estatística",
-      "Testes de Hipótese"
-    ]
-  },
-  {
-    "objectID": "modulos/inferencia.html#testes-paramétricos",
-    "href": "modulos/inferencia.html#testes-paramétricos",
-    "title": "Inferência e Testes de Hipótese",
-    "section": "Testes Paramétricos",
-    "text": "Testes Paramétricos\n\nTeste T para Uma Amostra\nCompara a média amostral com um valor de referência populacional (\\(\\mu_0\\)):\nteste_t_uma_amostra(mtcars$mpg, mu = 20, grafico = TRUE)\n\n\nTeste T para Duas Amostras Independentes\nAvalia se as médias de dois grupos diferem significativamente, executando automaticamente a verificação de homocedasticidade (teste de Welch por padrão):\nteste_t_duas_amostras(mpg ~ am, dados = mtcars, grafico = TRUE)\nO gráfico exibe o boxplot editorial com ponto de média em preto, realce da caixa maior e intervalo de confiança.\n\n\nTeste T Pareado\nPara amostras dependentes (ex: medidas de antes e depois):\nteste_t_pareado(dados$antes, dados$depois, grafico = TRUE)\n\n\nTeste de Proporção\nTeste binomial exato ou assintótico para proporções amostrais:\nteste_proporcao(x = 87, n = 300, p0 = 0.25)",
-    "crumbs": [
-      "Guia Rápido",
-      "Inferência Estatística",
-      "Testes de Hipótese"
-    ]
-  },
-  {
-    "objectID": "modulos/inferencia.html#testes-não-paramétricos-e-categóricos",
-    "href": "modulos/inferencia.html#testes-não-paramétricos-e-categóricos",
-    "title": "Inferência e Testes de Hipótese",
-    "section": "Testes Não-Paramétricos e Categóricos",
-    "text": "Testes Não-Paramétricos e Categóricos\n\nTeste de Wilcoxon & Mann-Whitney\nAlternativas não-paramétricas para comparação de medianas quando o pressuposto de normalidade não é atendido:\n# Uma amostra / pareado (Wilcoxon Signed-Rank)\nteste_wilcoxon(mtcars$mpg, mu = 20, grafico = TRUE)\n\n# Duas amostras independentes (Mann-Whitney U)\nteste_mann_whitney(mpg ~ am, dados = mtcars, grafico = TRUE)\n\n\nKruskal-Wallis & Friedman\nAlternativas não-paramétricas para comparação de 3 ou mais grupos:\n# Grupos independentes (Kruskal-Wallis com post-hoc de Dunn)\nteste_kruskal(Sepal.Length ~ Species, dados = iris)\n\n# Medidas repetidas / blocos (Friedman)\nteste_friedman(y ~ grupo | bloco, dados = dados_repetidos)\n\n\nQui-Quadrado de Independência & Homogeneidade\nTesta a associação entre variáveis categóricas com tabela de contingência, resíduos padronizados e teste de homogeneidade de variâncias de Levene:\n# Teste Qui-Quadrado de Independência\nteste_qui_quadrado(mtcars, cyl, am)\n\n# Teste de Homocedasticidade de Levene\nteste_levene(mtcars$mpg, mtcars$am)\n\n\nConcordância Contínua e Categórica\n# Concordância de Cohen / Fleiss (Kappa)\nconcordancia_kappa(avaliador1, avaliador2)\n\n# Gráfico de Concordância de Bland-Altman\ngrafico_bland_altman(dados, metodo1 = \"termometro_A\", metodo2 = \"termometro_B\")",
-    "crumbs": [
-      "Guia Rápido",
-      "Inferência Estatística",
-      "Testes de Hipótese"
-    ]
-  },
-  {
-    "objectID": "modulos/mlg.html",
-    "href": "modulos/mlg.html",
-    "title": "Modelos Lineares Generalizados (MLG)",
-    "section": "",
-    "text": "O módulo de MLG do estatR abrange as principais famílias exponenciais de dispersão, incorporando recursos avançados como detecção de superdispersão, inflação de zeros (Zero-inflated e Hurdle), modelos de probabilidade com ponto de corte ótimo baseado no Índice de Youden (\\(J = \\text{Sensibilidade} + \\text{Especificidade} - 1\\)) e análise residual em 4 gráficos.",
-    "crumbs": [
-      "Guia Rápido",
-      "Modelagem Estatística",
-      "Modelos Generalizados (MLG)"
-    ]
-  },
-  {
-    "objectID": "modulos/mlg.html#visão-geral-do-módulo",
-    "href": "modulos/mlg.html#visão-geral-do-módulo",
-    "title": "Modelos Lineares Generalizados (MLG)",
-    "section": "",
-    "text": "O módulo de MLG do estatR abrange as principais famílias exponenciais de dispersão, incorporando recursos avançados como detecção de superdispersão, inflação de zeros (Zero-inflated e Hurdle), modelos de probabilidade com ponto de corte ótimo baseado no Índice de Youden (\\(J = \\text{Sensibilidade} + \\text{Especificidade} - 1\\)) e análise residual em 4 gráficos.",
-    "crumbs": [
-      "Guia Rápido",
-      "Modelagem Estatística",
-      "Modelos Generalizados (MLG)"
-    ]
-  },
-  {
-    "objectID": "modulos/mlg.html#modelos-para-variáveis-binárias",
-    "href": "modulos/mlg.html#modelos-para-variáveis-binárias",
-    "title": "Modelos Lineares Generalizados (MLG)",
-    "section": "Modelos para Variáveis Binárias",
-    "text": "Modelos para Variáveis Binárias\n\nRegressão Logística & Cutoff Ótimo\nAjusta modelos logísticos binários e calcula automaticamente o ponto de corte ideal:\nmodelo_log &lt;- regressao_logistica(am ~ mpg + hp, dados = mtcars)\n\n# Métricas com matriz de confusão, AUC-ROC e cutoff ótimo de Youden\nmetricas_logistica(modelo_log, ponto_corte = \"youden\")",
-    "crumbs": [
-      "Guia Rápido",
-      "Modelagem Estatística",
-      "Modelos Generalizados (MLG)"
-    ]
-  },
-  {
-    "objectID": "modulos/mlg.html#modelos-para-dados-de-contagem",
-    "href": "modulos/mlg.html#modelos-para-dados-de-contagem",
-    "title": "Modelos Lineares Generalizados (MLG)",
-    "section": "Modelos para Dados de Contagem",
-    "text": "Modelos para Dados de Contagem\n\nPoisson & Binomial Negativa\nPara dados de contagens discretas, com checagem automática de superdispersão:\n# Regressão de Poisson\nmod_pois &lt;- regressao_poisson(num_visitas ~ idade + renda, dados = dados_saude)\n\n# Regressão Binomial Negativa (para contagens superdispersas)\nmod_nb &lt;- regressao_binomial_negativa(num_visitas ~ idade + renda, dados = dados_saude)",
-    "crumbs": [
-      "Guia Rápido",
-      "Modelagem Estatística",
-      "Modelos Generalizados (MLG)"
-    ]
-  },
-  {
-    "objectID": "modulos/mlg.html#modelos-para-dados-contínuos-positivos-e-taxas",
-    "href": "modulos/mlg.html#modelos-para-dados-contínuos-positivos-e-taxas",
-    "title": "Modelos Lineares Generalizados (MLG)",
-    "section": "Modelos para Dados Contínuos Positivos e Taxas",
-    "text": "Modelos para Dados Contínuos Positivos e Taxas\n\nRegressão Gama\nIdeal para respostas estritamente positivas e assimétricas à direita (ex: custos, tempo de reação, consumo):\nmod_gama &lt;- regressao_gama(custo ~ idade + tratamento, dados = dados_hospital)\n\n\nRegressão Beta\nPara respostas contínuas limitadas no intervalo aberto \\((0, 1)\\) (ex: taxas, índices, proporções contínuas):\nmod_beta &lt;- regressao_beta(taxa_conclusao ~ investimento + regiao, dados = dados_escolas)",
-    "crumbs": [
-      "Guia Rápido",
-      "Modelagem Estatística",
-      "Modelos Generalizados (MLG)"
-    ]
-  },
-  {
-    "objectID": "modulos/mlg.html#diagnóstico-residual-em-mlg",
-    "href": "modulos/mlg.html#diagnóstico-residual-em-mlg",
-    "title": "Modelos Lineares Generalizados (MLG)",
-    "section": "Diagnóstico Residual em MLG",
-    "text": "Diagnóstico Residual em MLG\nAssim como nos modelos lineares clássicos, todos os modelos generalizados contam com análise residual especializada em 4 gráficos:\nanalise_residual(modelo_log, grade = \"dupla\")\nanalise_residual(mod_pois, grade = \"dupla\")",
-    "crumbs": [
-      "Guia Rápido",
-      "Modelagem Estatística",
-      "Modelos Generalizados (MLG)"
-    ]
-  },
-  {
-    "objectID": "modulos/probabilidade.html",
-    "href": "modulos/probabilidade.html",
-    "title": "Probabilidade, Distribuições e Simulação",
-    "section": "",
-    "text": "O módulo de probabilidade e distribuições do estatR foi concebido para transformar fórmulas abstratas em intuição visual. Ele permite explorar distribuições contínuas e discretas, calcular probabilidades exatas de cauda ou entre limites, e realizar experimentos computacionais modernos.",
-    "crumbs": [
-      "Guia Rápido",
-      "Inferência Estatística",
-      "Probabilidade e Simulação"
-    ]
-  },
-  {
-    "objectID": "modulos/probabilidade.html#visão-geral-do-módulo",
-    "href": "modulos/probabilidade.html#visão-geral-do-módulo",
-    "title": "Probabilidade, Distribuições e Simulação",
-    "section": "",
-    "text": "O módulo de probabilidade e distribuições do estatR foi concebido para transformar fórmulas abstratas em intuição visual. Ele permite explorar distribuições contínuas e discretas, calcular probabilidades exatas de cauda ou entre limites, e realizar experimentos computacionais modernos.",
-    "crumbs": [
-      "Guia Rápido",
-      "Inferência Estatística",
-      "Probabilidade e Simulação"
-    ]
-  },
-  {
-    "objectID": "modulos/probabilidade.html#painel-didático-de-distribuições",
-    "href": "modulos/probabilidade.html#painel-didático-de-distribuições",
-    "title": "Probabilidade, Distribuições e Simulação",
-    "section": "Painel Didático de Distribuições",
-    "text": "Painel Didático de Distribuições\n\ndistribuicao()\nApresenta uma visão completa da distribuição solicitada: densidade/massa teórica, momentos teóricos (média, variância, assimetria e curtose), quantis principais e visualização gráfica com parâmetros explícitos no título (ex: \\(\\mathcal{N}(\\mu, \\sigma)\\)):\n# Distribuição Normal com realce das áreas de 1, 2 e 3 desvios\ndistribuicao(\"normal\", media = 100, dp = 15)\n\n# Distribuição t de Student com graus de liberdade\ndistribuicao(\"t\", gl = 5)\n\n# Distribuição Qui-Quadrado\ndistribuicao(\"qui_quadrado\", gl = 3)\n\n# Distribuição F de Snedecor\ndistribuicao(\"f\", gl1 = 2, gl2 = 15)\n\n# Distribuição Poisson\ndistribuicao(\"poisson\", lambda = 3)\n\n# Distribuição Exponencial com simulação da Lei dos Grandes Números\ndistribuicao(\"exponencial\", taxa = 0.5, simulacao = TRUE)",
-    "crumbs": [
-      "Guia Rápido",
-      "Inferência Estatística",
-      "Probabilidade e Simulação"
-    ]
-  },
-  {
-    "objectID": "modulos/probabilidade.html#cálculo-de-probabilidades-específicas",
-    "href": "modulos/probabilidade.html#cálculo-de-probabilidades-específicas",
-    "title": "Probabilidade, Distribuições e Simulação",
-    "section": "Cálculo de Probabilidades Específicas",
-    "text": "Cálculo de Probabilidades Específicas\nCálculo com saídas estruturadas em cabeçalho, parâmetros e probabilidade associada:\n# Probabilidade Normal: P(85 &lt;= X &lt;= 115)\nprob_normal(media = 100, dp = 15, q1 = 85, q2 = 115, tipo = \"entre\")\n\n# Probabilidade Binomial: P(5 &lt;= X &lt;= 6) em 10 ensaios\nprob_binomial(ensaios = 10, prob = 0.5, q1 = 5, q2 = 6, tipo = \"entre\")\n\n# Probabilidade Poisson: P(X &lt;= 2) com lambda = 2\nprob_poisson(lambda = 2, q = 2, tipo = \"menor\")\n\n# Probabilidade Exponencial: P(X &gt; 2)\nprob_exponencial(taxa = 0.5, q1 = 2, tipo = \"maior\")",
-    "crumbs": [
-      "Guia Rápido",
-      "Inferência Estatística",
-      "Probabilidade e Simulação"
-    ]
-  },
-  {
-    "objectID": "modulos/probabilidade.html#estimação-simulação-computacional",
-    "href": "modulos/probabilidade.html#estimação-simulação-computacional",
-    "title": "Probabilidade, Distribuições e Simulação",
-    "section": "Estimação & Simulação Computacional",
-    "text": "Estimação & Simulação Computacional\n\nMáxima Verossimilhança & Método dos Momentos\nPlota a curva de log-verossimilhança e ajusta curvas teóricas com bordas pretas padronizadas nos histogramas:\n# Máxima Verossimilhança\nestimar_verossimilhanca(mtcars$mpg, distribuicao = \"normal\")\n\n# Método dos Momentos\nestimar_momentos(mtcars$wt, distribuicao = \"gamma\")\n\n\nBootstrap & Teorema Central do Limite (TCL)\n# Bootstrap não-paramétrico com 5.000 replicações\nbootstrap(mtcars$mpg, estatistica = \"media\", repeticoes = 5000)\n\n# Simulação didática do TCL (comparação amostra vs distribuição das médias)\nsimular_tcl(mtcars$mpg, n_amostra = 30, repeticoes = 1000)\n\n# Experimentos de Monte Carlo\nmonte_carlo(experimento = function() mean(rnorm(30)) &gt; 0.3, repeticoes = 10000)",
-    "crumbs": [
-      "Guia Rápido",
-      "Inferência Estatística",
-      "Probabilidade e Simulação"
-    ]
+    "text": "O estatR é distribuído como código aberto via GitHub. Contribuições, sugestões e relatórios de problemas são bem-vindos no repositório oficial."
   },
   {
     "objectID": "modulos/series_temporais.html",
     "href": "modulos/series_temporais.html",
     "title": "Séries Temporais e Previsão",
     "section": "",
-    "text": "O módulo de séries temporais do estatR simplifica a modelagem dinâmica: da decomposição estrutural de tendências e sazonalidades até a modelagem com ARIMA e algoritmos modernos de aprendizado de máquina aplicados a séries temporais.",
-    "crumbs": [
-      "Guia Rápido",
-      "Modelagem Estatística",
-      "Séries Temporais"
-    ]
-  },
-  {
-    "objectID": "modulos/series_temporais.html#visão-geral-do-módulo",
-    "href": "modulos/series_temporais.html#visão-geral-do-módulo",
-    "title": "Séries Temporais e Previsão",
-    "section": "",
-    "text": "O módulo de séries temporais do estatR simplifica a modelagem dinâmica: da decomposição estrutural de tendências e sazonalidades até a modelagem com ARIMA e algoritmos modernos de aprendizado de máquina aplicados a séries temporais.",
-    "crumbs": [
-      "Guia Rápido",
-      "Modelagem Estatística",
-      "Séries Temporais"
-    ]
+    "text": "Realiza análise exploratória completa da série temporal com estatísticas de autocorrelação (FAC/FACP) e gráfico de decomposição:\nanalise_serie(AirPassengers, grafico = TRUE)\n\n\n\nExecuta testes de raiz unitária para guiar a necessidade de diferenciação:\nteste_estacionariedade(AirPassengers)"
   },
   {
     "objectID": "modulos/series_temporais.html#decomposição-e-diagnóstico",
     "href": "modulos/series_temporais.html#decomposição-e-diagnóstico",
     "title": "Séries Temporais e Previsão",
-    "section": "Decomposição e Diagnóstico",
-    "text": "Decomposição e Diagnóstico\n\nanalise_serie()\nRealiza uma análise descritiva e exploratória completa da série temporal com estatísticas de autocorrelação (FAC/FACP) e gráfico de decomposição:\nanalise_serie(AirPassengers, grafico = TRUE)\n\n\nTestes de Estacionariedade\nExecuta testes de raiz unitária para guiar a necessidade de diferenciação:\nteste_estacionariedade(AirPassengers)",
-    "crumbs": [
-      "Guia Rápido",
-      "Modelagem Estatística",
-      "Séries Temporais"
-    ]
+    "section": "",
+    "text": "Realiza análise exploratória completa da série temporal com estatísticas de autocorrelação (FAC/FACP) e gráfico de decomposição:\nanalise_serie(AirPassengers, grafico = TRUE)\n\n\n\nExecuta testes de raiz unitária para guiar a necessidade de diferenciação:\nteste_estacionariedade(AirPassengers)"
   },
   {
     "objectID": "modulos/series_temporais.html#previsão-e-métricas",
     "href": "modulos/series_temporais.html#previsão-e-métricas",
     "title": "Séries Temporais e Previsão",
     "section": "Previsão e Métricas",
-    "text": "Previsão e Métricas\n\nModelos ARIMA\nAjusta modelos autorregressivos integrados de médias móveis e gera previsões com intervalos de confiança:\n# Previsão da série para h passos à frente\nprev &lt;- previsao_serie(AirPassengers, h = 12)\n\n# Métricas de acurácia (RMSE, MAE, MAPE, MASE)\nmetricas_serie(prev)\n\n\nPrevisão com Machine Learning\nAplica algoritmos de aprendizado de máquina supervisionado para projeção temporal:\nprev_ml &lt;- previsao_serie_aprend_maq(AirPassengers, h = 12, metodo = \"random_forest\")",
-    "crumbs": [
-      "Guia Rápido",
-      "Modelagem Estatística",
-      "Séries Temporais"
-    ]
+    "text": "Previsão e Métricas\n\nModelos ARIMA\nAjusta modelos autorregressivos integrados de médias móveis e gera previsões com intervalos de confiança:\n# Previsão da série para h passos à frente\nprev &lt;- previsao_serie(AirPassengers, h = 12)\n\n# Métricas de acurácia (RMSE, MAE, MAPE, MASE)\nmetricas_serie(prev)\n\n\nPrevisão com Machine Learning\nAplica algoritmos de aprendizado de máquina supervisionado para projeção temporal:\nprev_ml &lt;- previsao_serie_aprend_maq(AirPassengers, h = 12, metodo = \"random_forest\")"
+  },
+  {
+    "objectID": "modulos/probabilidade.html",
+    "href": "modulos/probabilidade.html",
+    "title": "Probabilidade, Distribuições e Simulação",
+    "section": "",
+    "text": "Apresenta densidade/massa teórica, momentos teóricos (média, variância, assimetria, curtose), quantis principais e visualização gráfica com parâmetros explícitos no título:\n# Distribuição Normal com realce das áreas de 1, 2 e 3 desvios\ndistribuicao(\"normal\", media = 100, dp = 15)\n\n# Distribuição t de Student com graus de liberdade\ndistribuicao(\"t\", gl = 5)\n\n# Distribuição Qui-Quadrado\ndistribuicao(\"qui_quadrado\", gl = 3)\n\n# Distribuição F de Snedecor\ndistribuicao(\"f\", gl1 = 2, gl2 = 15)\n\n# Distribuição Poisson\ndistribuicao(\"poisson\", lambda = 3)\n\n# Distribuição Exponencial com simulação da Lei dos Grandes Números\ndistribuicao(\"exponencial\", taxa = 0.5, simulacao = TRUE)"
+  },
+  {
+    "objectID": "modulos/probabilidade.html#painel-didático-de-distribuições",
+    "href": "modulos/probabilidade.html#painel-didático-de-distribuições",
+    "title": "Probabilidade, Distribuições e Simulação",
+    "section": "",
+    "text": "Apresenta densidade/massa teórica, momentos teóricos (média, variância, assimetria, curtose), quantis principais e visualização gráfica com parâmetros explícitos no título:\n# Distribuição Normal com realce das áreas de 1, 2 e 3 desvios\ndistribuicao(\"normal\", media = 100, dp = 15)\n\n# Distribuição t de Student com graus de liberdade\ndistribuicao(\"t\", gl = 5)\n\n# Distribuição Qui-Quadrado\ndistribuicao(\"qui_quadrado\", gl = 3)\n\n# Distribuição F de Snedecor\ndistribuicao(\"f\", gl1 = 2, gl2 = 15)\n\n# Distribuição Poisson\ndistribuicao(\"poisson\", lambda = 3)\n\n# Distribuição Exponencial com simulação da Lei dos Grandes Números\ndistribuicao(\"exponencial\", taxa = 0.5, simulacao = TRUE)"
+  },
+  {
+    "objectID": "modulos/probabilidade.html#cálculo-de-probabilidades-específicas",
+    "href": "modulos/probabilidade.html#cálculo-de-probabilidades-específicas",
+    "title": "Probabilidade, Distribuições e Simulação",
+    "section": "Cálculo de Probabilidades Específicas",
+    "text": "Cálculo de Probabilidades Específicas\nCálculo com saídas estruturadas em cabeçalho, parâmetros e probabilidade associada:\n# Probabilidade Normal: P(85 &lt;= X &lt;= 115)\nprob_normal(media = 100, dp = 15, q1 = 85, q2 = 115, tipo = \"entre\")\n\n# Probabilidade Binomial: P(5 &lt;= X &lt;= 6) em 10 ensaios\nprob_binomial(ensaios = 10, prob = 0.5, q1 = 5, q2 = 6, tipo = \"entre\")\n\n# Probabilidade Poisson: P(X &lt;= 2) com lambda = 2\nprob_poisson(lambda = 2, q = 2, tipo = \"menor\")\n\n# Probabilidade Exponencial: P(X &gt; 2)\nprob_exponencial(taxa = 0.5, q1 = 2, tipo = \"maior\")"
+  },
+  {
+    "objectID": "modulos/probabilidade.html#estimação-simulação-computacional",
+    "href": "modulos/probabilidade.html#estimação-simulação-computacional",
+    "title": "Probabilidade, Distribuições e Simulação",
+    "section": "Estimação & Simulação Computacional",
+    "text": "Estimação & Simulação Computacional\n\nMáxima Verossimilhança & Método dos Momentos\nPlota a curva de log-verossimilhança e ajusta curvas teóricas com bordas pretas padronizadas nos histogramas:\n# Máxima Verossimilhança\nestimar_verossimilhanca(mtcars$mpg, distribuicao = \"normal\")\n\n# Método dos Momentos\nestimar_momentos(mtcars$wt, distribuicao = \"gamma\")\n\n\nBootstrap & Teorema Central do Limite (TCL)\n# Bootstrap não-paramétrico com 5.000 replicações\nbootstrap(mtcars$mpg, estatistica = \"media\", repeticoes = 5000)\n\n# Simulação didática do TCL (comparação amostra vs distribuição das médias)\nsimular_tcl(mtcars$mpg, n_amostra = 30, repeticoes = 1000)\n\n# Experimentos de Monte Carlo\nmonte_carlo(experimento = function() mean(rnorm(30)) &gt; 0.3, repeticoes = 10000)"
+  },
+  {
+    "objectID": "modulos/mlg.html",
+    "href": "modulos/mlg.html",
+    "title": "Modelos Lineares Generalizados (MLG)",
+    "section": "",
+    "text": "modelo_log &lt;- regressao_logistica(am ~ mpg + hp, dados = mtcars)\n\n# Matriz de confusão, AUC-ROC e cutoff ótimo de Youden\nmetricas_logistica(modelo_log, ponto_corte = \"youden\")"
+  },
+  {
+    "objectID": "modulos/mlg.html#modelos-para-variáveis-binárias",
+    "href": "modulos/mlg.html#modelos-para-variáveis-binárias",
+    "title": "Modelos Lineares Generalizados (MLG)",
+    "section": "",
+    "text": "modelo_log &lt;- regressao_logistica(am ~ mpg + hp, dados = mtcars)\n\n# Matriz de confusão, AUC-ROC e cutoff ótimo de Youden\nmetricas_logistica(modelo_log, ponto_corte = \"youden\")"
+  },
+  {
+    "objectID": "modulos/mlg.html#modelos-para-dados-de-contagem",
+    "href": "modulos/mlg.html#modelos-para-dados-de-contagem",
+    "title": "Modelos Lineares Generalizados (MLG)",
+    "section": "Modelos para Dados de Contagem",
+    "text": "Modelos para Dados de Contagem\n\nPoisson & Binomial Negativa\n# Poisson\nmod_pois &lt;- regressao_poisson(num_visitas ~ idade + renda, dados = dados_saude)\n\n# Binomial Negativa (para contagens superdispersas)\nmod_nb &lt;- regressao_binomial_negativa(num_visitas ~ idade + renda, dados = dados_saude)"
+  },
+  {
+    "objectID": "modulos/mlg.html#modelos-para-dados-contínuos-e-taxas",
+    "href": "modulos/mlg.html#modelos-para-dados-contínuos-e-taxas",
+    "title": "Modelos Lineares Generalizados (MLG)",
+    "section": "Modelos para Dados Contínuos e Taxas",
+    "text": "Modelos para Dados Contínuos e Taxas\n\nRegressão Gama\nPara respostas estritamente positivas e assimétricas (custos, tempo de reação):\nmod_gama &lt;- regressao_gama(custo ~ idade + tratamento, dados = dados_hospital)\n\n\nRegressão Beta\nPara respostas no intervalo aberto \\((0, 1)\\) (taxas, índices, proporções contínuas):\nmod_beta &lt;- regressao_beta(taxa_conclusao ~ investimento + regiao, dados = dados_escolas)"
+  },
+  {
+    "objectID": "modulos/mlg.html#diagnóstico-residual-em-mlg",
+    "href": "modulos/mlg.html#diagnóstico-residual-em-mlg",
+    "title": "Modelos Lineares Generalizados (MLG)",
+    "section": "Diagnóstico Residual em MLG",
+    "text": "Diagnóstico Residual em MLG\nanalise_residual(modelo_log, grade = \"dupla\")\nanalise_residual(mod_pois, grade = \"dupla\")"
+  },
+  {
+    "objectID": "modulos/inferencia.html",
+    "href": "modulos/inferencia.html",
+    "title": "Inferência e Testes de Hipótese",
+    "section": "",
+    "text": "Compara a média amostral com um valor de referência populacional (\\(\\mu_0\\)):\nteste_t_uma_amostra(mtcars$mpg, mu = 20, grafico = TRUE)\n\n\n\nAvalia diferença entre grupos com verificação automática de homocedasticidade (Welch por padrão):\nteste_t_duas_amostras(mpg ~ am, dados = mtcars, grafico = TRUE)\n\n\n\nteste_t_pareado(dados$antes, dados$depois, grafico = TRUE)\n\n\n\nteste_proporcao(x = 87, n = 300, p0 = 0.25)"
+  },
+  {
+    "objectID": "modulos/inferencia.html#testes-paramétricos",
+    "href": "modulos/inferencia.html#testes-paramétricos",
+    "title": "Inferência e Testes de Hipótese",
+    "section": "",
+    "text": "Compara a média amostral com um valor de referência populacional (\\(\\mu_0\\)):\nteste_t_uma_amostra(mtcars$mpg, mu = 20, grafico = TRUE)\n\n\n\nAvalia diferença entre grupos com verificação automática de homocedasticidade (Welch por padrão):\nteste_t_duas_amostras(mpg ~ am, dados = mtcars, grafico = TRUE)\n\n\n\nteste_t_pareado(dados$antes, dados$depois, grafico = TRUE)\n\n\n\nteste_proporcao(x = 87, n = 300, p0 = 0.25)"
+  },
+  {
+    "objectID": "modulos/inferencia.html#testes-não-paramétricos-e-categóricos",
+    "href": "modulos/inferencia.html#testes-não-paramétricos-e-categóricos",
+    "title": "Inferência e Testes de Hipótese",
+    "section": "Testes Não-Paramétricos e Categóricos",
+    "text": "Testes Não-Paramétricos e Categóricos\n\nTeste de Wilcoxon & Mann-Whitney\n# Uma amostra / pareado (Wilcoxon Signed-Rank)\nteste_wilcoxon(mtcars$mpg, mu = 20, grafico = TRUE)\n\n# Duas amostras independentes (Mann-Whitney U)\nteste_mann_whitney(mpg ~ am, dados = mtcars, grafico = TRUE)\n\n\nKruskal-Wallis & Friedman\n# Grupos independentes (Kruskal-Wallis com post-hoc de Dunn)\nteste_kruskal(Sepal.Length ~ Species, dados = iris)\n\n# Medidas repetidas / blocos (Friedman)\nteste_friedman(y ~ grupo | bloco, dados = dados_repetidos)\n\n\nQui-Quadrado & Homocedasticidade\n# Qui-Quadrado de Independência\nteste_qui_quadrado(mtcars, cyl, am)\n\n# Homocedasticidade de Levene\nteste_levene(mtcars$mpg, mtcars$am)\n\n\nConcordância\n# Cohen / Fleiss Kappa\nconcordancia_kappa(avaliador1, avaliador2)\n\n# Bland-Altman\ngrafico_bland_altman(dados, metodo1 = \"termometro_A\", metodo2 = \"termometro_B\")"
+  },
+  {
+    "objectID": "modulos/descritiva.html",
+    "href": "modulos/descritiva.html",
+    "title": "Diagnóstico e Estatística Descritiva",
+    "section": "",
+    "text": "Produz um diagnóstico global com número de linhas, colunas, presença de NA e classificação das variáveis.\n# Diagnóstico global de um data frame\ndiagnostico(iris)\n\n# Diagnóstico de uma variável específica\ndiagnostico(iris$Sepal.Length)\n\n\n\nFunções focadas na integridade do banco:\n# Inspeção de tipos e classes de colunas\nestrutura(iris)\n\n# Mapa e contagem de valores ausentes (com gráfico opcional)\nvalores_ausentes(airquality, grafico = TRUE)\n\n\n\nIdentifica valores discrepantes com base no critério de Tukey (\\(1{,}5 \\times IIQ\\)) ou escore Z:\noutliers(mtcars$mpg, metodo = \"iqr\")"
+  },
+  {
+    "objectID": "modulos/descritiva.html#diagnóstico-de-dados",
+    "href": "modulos/descritiva.html#diagnóstico-de-dados",
+    "title": "Diagnóstico e Estatística Descritiva",
+    "section": "",
+    "text": "Produz um diagnóstico global com número de linhas, colunas, presença de NA e classificação das variáveis.\n# Diagnóstico global de um data frame\ndiagnostico(iris)\n\n# Diagnóstico de uma variável específica\ndiagnostico(iris$Sepal.Length)\n\n\n\nFunções focadas na integridade do banco:\n# Inspeção de tipos e classes de colunas\nestrutura(iris)\n\n# Mapa e contagem de valores ausentes (com gráfico opcional)\nvalores_ausentes(airquality, grafico = TRUE)\n\n\n\nIdentifica valores discrepantes com base no critério de Tukey (\\(1{,}5 \\times IIQ\\)) ou escore Z:\noutliers(mtcars$mpg, metodo = \"iqr\")"
+  },
+  {
+    "objectID": "modulos/descritiva.html#estatística-descritiva",
+    "href": "modulos/descritiva.html#estatística-descritiva",
+    "title": "Diagnóstico e Estatística Descritiva",
+    "section": "Estatística Descritiva",
+    "text": "Estatística Descritiva\n\ndescrever()\nFunção polimórfica universal: resume vetores numéricos (média, DP, mediana, IIQ), fatores (frequências), data frames completos ou métricas estratificadas por grupo (por).\n# Numérica simples\ndescrever(mtcars$mpg)\n\n# Categórica simples\ndescrever(mtcars$cyl)\n\n# Estratificada por grupo\ndescrever(iris$Sepal.Length, por = iris$Species)\n\n\ntabela_contingencia()\nCruzamento bivariado com suporte a frequências conjuntas e proporções por linha, coluna ou total:\n# Frequências absolutas\ntabela_contingencia(mtcars, cyl, am)\n\n# Proporções por linha centralizadas\ntabela_contingencia(mtcars, cyl, am, proporcao = \"linha\")"
+  },
+  {
+    "objectID": "modulos/descritiva.html#separatrizes-amostrais",
+    "href": "modulos/descritiva.html#separatrizes-amostrais",
+    "title": "Diagnóstico e Estatística Descritiva",
+    "section": "Separatrizes Amostrais",
+    "text": "Separatrizes Amostrais\nFunções dedicadas para cálculo intuitivo de pontos de corte e medidas de posição:\n# Quartis (Q1, Q2, Q3) e IIQ\nquartis(mtcars$mpg)\n\n# Quintis (20%, 40%, 60%, 80%)\nquintis(mtcars$mpg)\n\n# Decis (D1 a D9)\ndecis(mtcars$mpg)\n\n# Percentis específicos\npercentis(mtcars$mpg, p = c(0.01, 0.05, 0.95, 0.99))"
+  },
+  {
+    "objectID": "modulos/descritiva.html#medidas-específicas",
+    "href": "modulos/descritiva.html#medidas-específicas",
+    "title": "Diagnóstico e Estatística Descritiva",
+    "section": "Medidas Específicas",
+    "text": "Medidas Específicas\nQuando você precisa apenas de um bloco específico de estatísticas:\n# Tendência Central: média, mediana e moda\nmed_tend_central(mtcars$mpg)\n\n# Dispersão: variância, desvio padrão, erro padrão, CV (%) e amplitude\nmed_dispersao(mtcars$mpg)\n\n# Forma: assimetria (skewness) e curtose teóricas\nmed_forma(mtcars$mpg)"
+  },
+  {
+    "objectID": "modulos/amostragem.html",
+    "href": "modulos/amostragem.html",
+    "title": "Amostragem Probabilística",
+    "section": "",
+    "text": "# 50 observações por AAS sem reposição\namostra &lt;- amostra_aleatoria(banco_dados, n = 50, reposicao = FALSE)\n\n\n\nRepresentatividade proporcional ou ótima de subpopulações:\namostra_est &lt;- amostra_estratificada(banco_dados, estrato = \"regiao\", n = 100, alocacao = \"proporcional\")\n\n\n\nSeleção periódica com intervalo fixo (\\(k = N/n\\)):\namostra_sist &lt;- amostra_sistematica(banco_dados, n = 40)\n\n\n\namostra_cong &lt;- amostra_conglomerados(banco_dados, conglomerado = \"escola\", n_conglomerados = 5)"
+  },
+  {
+    "objectID": "modulos/amostragem.html#planos-amostrais",
+    "href": "modulos/amostragem.html#planos-amostrais",
+    "title": "Amostragem Probabilística",
+    "section": "",
+    "text": "# 50 observações por AAS sem reposição\namostra &lt;- amostra_aleatoria(banco_dados, n = 50, reposicao = FALSE)\n\n\n\nRepresentatividade proporcional ou ótima de subpopulações:\namostra_est &lt;- amostra_estratificada(banco_dados, estrato = \"regiao\", n = 100, alocacao = \"proporcional\")\n\n\n\nSeleção periódica com intervalo fixo (\\(k = N/n\\)):\namostra_sist &lt;- amostra_sistematica(banco_dados, n = 40)\n\n\n\namostra_cong &lt;- amostra_conglomerados(banco_dados, conglomerado = \"escola\", n_conglomerados = 5)"
+  },
+  {
+    "objectID": "modulos/amostragem.html#dimensionamento-amostral",
+    "href": "modulos/amostragem.html#dimensionamento-amostral",
+    "title": "Amostragem Probabilística",
+    "section": "Dimensionamento Amostral",
+    "text": "Dimensionamento Amostral\n\ntamanho_amostra()\nCalcula o n necessário dado erro tolerável (\\(e\\)), nível de confiança e tamanho da população:\n# Proporção (margem de 3%, 95% de confiança)\ntamanho_amostra(tipo = \"proporcao\", erro = 0.03, confianca = 0.95, N = 10000)\n\n# Média contínua\ntamanho_amostra(tipo = \"media\", erro = 2, dp = 15, confianca = 0.95)"
+  },
+  {
+    "objectID": "index.html",
+    "href": "index.html",
+    "title": "estatR",
+    "section": "",
+    "text": "estatR\n    Estatística moderna, didática e de alto padrão para R.\n    120+ funções  ·  11 módulos  ·  Código aberto\n    \n      Sobre o estatR\n      Ver Módulos\n    \n  \n\n\n\n  \n    Módulos Especializados\n    Uma arquitetura modular cobrindo todo o fluxo da análise estatística.\n\n    \n\n      \n        \n        Diagnóstico & Descritiva\n        Inspeção estrutural, detecção de outliers e estatísticas descritivas uni e multivariadas.\n        Ver módulo →\n      \n\n      \n        \n        Testes de Hipótese\n        Testes paramétricos e não-paramétricos com interpretação automática dos resultados.\n        Ver módulo →\n      \n\n      \n        \n        Intervalos de Confiança\n        Construção e interpretação de intervalos para médias, proporções e variâncias.\n        Ver módulo →\n      \n\n      \n        \n        Probabilidade & Simulação\n        Distribuições teóricas, bootstrap, Monte Carlo e Teorema Central do Limite.\n        Ver módulo →\n      \n\n      \n        \n        Modelos Lineares & Regressão\n        Regressão múltipla com diagnóstico residual rigoroso e seleção de variáveis.\n        Ver módulo →\n      \n\n      \n        \n        Modelos Generalizados (MLG)\n        Logística, Poisson, Binomial Negativa, Gama e Beta com ponto de corte de Youden.\n        Ver módulo →\n      \n\n      \n        \n        Séries Temporais\n        Decomposição, testes de raiz unitária, ARIMA, previsão e modelos de machine learning.\n        Ver módulo →\n      \n\n      \n        \n        Análise Multivariada\n        PCA, Análise Fatorial, K-means, Dendrogramas, Discriminante Linear e MANOVA.\n        Ver módulo →\n      \n\n      \n        \n        Delineamentos Experimentais\n        DIC, DBC, DQL, fatoriais e parcelas subdivididas com testes de médias (Tukey/Scott-Knott).\n        Ver módulo →\n      \n\n      \n        \n        Machine Learning & Sobrevivência\n        Análise de sobrevivência, curvas de Kaplan-Meier e modelos preditivos supervisionados.\n        Ver módulo →\n      \n\n      \n        \n        Amostragem Probabilística\n        AAS, estratificada (proporcional/ótima), sistemática e conglomerados em dois estágios.\n        Ver módulo →\n      \n\n    \n  \n\n\n\n  \n    \n      Instalação\n      Disponível diretamente via GitHub. Nenhuma dependência externa obrigatória.\n    \n    \n      # Instalar via devtools\ndevtools::install_github(\"elizeumedeirosest/estatR\")\nlibrary(estatR)\n\n# Diagnóstico descritivo em uma linha\ndescrever(iris$Sepal.Length, por = iris$Species)"
+  },
+  {
+    "objectID": "modulos/aprendizado_maquina.html",
+    "href": "modulos/aprendizado_maquina.html",
+    "title": "Aprendizado de Máquina e Sobrevivência",
+    "section": "",
+    "text": "Treinamento e predição com métricas completas (sensibilidade, especificidade, F1, AUC):\n# Ajuste do classificador\nmodelo_ml &lt;- classificacao_aprend_maq(Species ~ ., dados = iris, algoritmo = \"random_forest\")\n\n# Previsão e métricas\npredicoes &lt;- previsao_aprend_maq(modelo_ml, novos_dados = dados_teste)\nmetricas_aprend_maq(modelo_ml)"
+  },
+  {
+    "objectID": "modulos/aprendizado_maquina.html#aprendizado-de-máquina",
+    "href": "modulos/aprendizado_maquina.html#aprendizado-de-máquina",
+    "title": "Aprendizado de Máquina e Sobrevivência",
+    "section": "",
+    "text": "Treinamento e predição com métricas completas (sensibilidade, especificidade, F1, AUC):\n# Ajuste do classificador\nmodelo_ml &lt;- classificacao_aprend_maq(Species ~ ., dados = iris, algoritmo = \"random_forest\")\n\n# Previsão e métricas\npredicoes &lt;- previsao_aprend_maq(modelo_ml, novos_dados = dados_teste)\nmetricas_aprend_maq(modelo_ml)"
+  },
+  {
+    "objectID": "modulos/aprendizado_maquina.html#análise-de-sobrevivência",
+    "href": "modulos/aprendizado_maquina.html#análise-de-sobrevivência",
+    "title": "Aprendizado de Máquina e Sobrevivência",
+    "section": "Análise de Sobrevivência",
+    "text": "Análise de Sobrevivência\n\nCurvas de Kaplan-Meier\nres_sob &lt;- analise_sobrevivencia(tempo = dados$tempo, status = dados$evento, grupo = dados$tratamento)\ngrafico_sobrevivencia(res_sob)\n\n\nRegressão de Cox\nmod_cox &lt;- regressao_cox(tempo = dados$tempo, status = dados$evento, formula = ~ idade + sexo + grupo, dados = dados)\nmetricas_cox(mod_cox)\ngrafico_cox(mod_cox)"
+  },
+  {
+    "objectID": "modulos/experimentos.html",
+    "href": "modulos/experimentos.html",
+    "title": "Planejamento e Análise de Experimentos",
+    "section": "",
+    "text": "res_dic &lt;- analise_dic(y = dados$produtividade, trat = dados$adubo, teste_medias = \"tukey\")\ngrafico_dic(res_dic)\n\n\n\nres_dbc &lt;- analise_dbc(y = dados$produtividade, trat = dados$adubo, bloco = dados$bloco)\ngrafico_dbc(res_dbc)\n\n\n\nres_dql &lt;- analise_dql(y = dados$prod, trat = dados$trat, linha = dados$lin, coluna = dados$col)\ngrafico_dql(res_dql)"
+  },
+  {
+    "objectID": "modulos/experimentos.html#delineamentos-básicos",
+    "href": "modulos/experimentos.html#delineamentos-básicos",
+    "title": "Planejamento e Análise de Experimentos",
+    "section": "",
+    "text": "res_dic &lt;- analise_dic(y = dados$produtividade, trat = dados$adubo, teste_medias = \"tukey\")\ngrafico_dic(res_dic)\n\n\n\nres_dbc &lt;- analise_dbc(y = dados$produtividade, trat = dados$adubo, bloco = dados$bloco)\ngrafico_dbc(res_dbc)\n\n\n\nres_dql &lt;- analise_dql(y = dados$prod, trat = dados$trat, linha = dados$lin, coluna = dados$col)\ngrafico_dql(res_dql)"
+  },
+  {
+    "objectID": "modulos/experimentos.html#esquemas-fatoriais-e-parcelas",
+    "href": "modulos/experimentos.html#esquemas-fatoriais-e-parcelas",
+    "title": "Planejamento e Análise de Experimentos",
+    "section": "Esquemas Fatoriais e Parcelas",
+    "text": "Esquemas Fatoriais e Parcelas\n\nFatorial Duplo e Adicional\n# Fatorial Duplo (Fator A x Fator B)\nres_fat &lt;- analise_fatorial_duplo(y = dados$prod, fator_a = dados$irrigacao, fator_b = dados$adubo)\ngrafico_fatorial(res_fat)\n\n# Fatorial com Testemunha Adicional\nres_fat_ad &lt;- analise_fatorial_adicional(y = dados$prod, fator_a = dados$fA, fator_b = dados$fB, testemunha = dados$test)\n\n\nParcelas Subdivididas (Split-Plot)\nres_split &lt;- analise_parcela_subdividida(y = dados$prod, parcela = dados$p, subparcela = dados$sp, bloco = dados$b)"
+  },
+  {
+    "objectID": "modulos/intervalos.html",
+    "href": "modulos/intervalos.html",
+    "title": "Intervalos de Confiança",
+    "section": "",
+    "text": "Baseado na distribuição t de Student (ou normal para grandes amostras):\n# IC de 95%\nic_media(mtcars$mpg)\n\n# IC de 99%\nic_media(mtcars$mpg, confianca = 0.99)\n\n\n\nMétodo de Wilson ou Wald com correção de continuidade:\n# 87 sucessos em 300 tentativas\nic_proporcao(x = 87, n = 300, confianca = 0.95)\n\n\n\nBaseado na distribuição \\(\\chi^2\\), fornece IC para \\(\\sigma^2\\) e \\(\\sigma\\):\nic_variancia(mtcars$mpg, confianca = 0.95)\n\n\n\nSuporta variâncias iguais (Student agrupado) ou desiguais (Welch-Satterthwaite):\nic_diferenca_medias(mtcars$mpg, mtcars$am, confianca = 0.95)"
+  },
+  {
+    "objectID": "modulos/intervalos.html#funções-disponíveis",
+    "href": "modulos/intervalos.html#funções-disponíveis",
+    "title": "Intervalos de Confiança",
+    "section": "",
+    "text": "Baseado na distribuição t de Student (ou normal para grandes amostras):\n# IC de 95%\nic_media(mtcars$mpg)\n\n# IC de 99%\nic_media(mtcars$mpg, confianca = 0.99)\n\n\n\nMétodo de Wilson ou Wald com correção de continuidade:\n# 87 sucessos em 300 tentativas\nic_proporcao(x = 87, n = 300, confianca = 0.95)\n\n\n\nBaseado na distribuição \\(\\chi^2\\), fornece IC para \\(\\sigma^2\\) e \\(\\sigma\\):\nic_variancia(mtcars$mpg, confianca = 0.95)\n\n\n\nSuporta variâncias iguais (Student agrupado) ou desiguais (Welch-Satterthwaite):\nic_diferenca_medias(mtcars$mpg, mtcars$am, confianca = 0.95)"
+  },
+  {
+    "objectID": "modulos/intervalos.html#representação-visual",
+    "href": "modulos/intervalos.html#representação-visual",
+    "title": "Intervalos de Confiança",
+    "section": "Representação Visual",
+    "text": "Representação Visual\nTodas as funções geram, com grafico = TRUE, um gráfico de régua com ponto médio, barras de erro e identificação do nível de confiança no subtítulo."
+  },
+  {
+    "objectID": "modulos/multivariada.html",
+    "href": "modulos/multivariada.html",
+    "title": "Análise Multivariada e Agrupamento",
+    "section": "",
+    "text": "Autovalores, variância explicada acumulada e biplots editoriais:\nres_acp &lt;- acp(iris[, 1:4])\n\n# Scree plot\nscreeplot_acp(res_acp)\n\n# Biplot com elipses por grupo\nbiplot_acp(res_acp, grupo = iris$Species)\n\n\n\nExtração de fatores com rotação Varimax ou Promax:\nres_fat &lt;- analise_fatorial(dados_questionario, n_fatores = 3, rotacionar = \"varimax\")\ncargasplot_fatorial(res_fat)"
+  },
+  {
+    "objectID": "modulos/multivariada.html#redução-de-dimensionalidade",
+    "href": "modulos/multivariada.html#redução-de-dimensionalidade",
+    "title": "Análise Multivariada e Agrupamento",
+    "section": "",
+    "text": "Autovalores, variância explicada acumulada e biplots editoriais:\nres_acp &lt;- acp(iris[, 1:4])\n\n# Scree plot\nscreeplot_acp(res_acp)\n\n# Biplot com elipses por grupo\nbiplot_acp(res_acp, grupo = iris$Species)\n\n\n\nExtração de fatores com rotação Varimax ou Promax:\nres_fat &lt;- analise_fatorial(dados_questionario, n_fatores = 3, rotacionar = \"varimax\")\ncargasplot_fatorial(res_fat)"
+  },
+  {
+    "objectID": "modulos/multivariada.html#métodos-de-agrupamento-cluster",
+    "href": "modulos/multivariada.html#métodos-de-agrupamento-cluster",
+    "title": "Análise Multivariada e Agrupamento",
+    "section": "Métodos de Agrupamento (Cluster)",
+    "text": "Métodos de Agrupamento (Cluster)\n\nK-means\n# Gráfico do cotovelo\ncotovelo_plot(iris[, 1:4], max_k = 10)\n\n# K-means e visualização\nres_km &lt;- cluster_kmeans(iris[, 1:4], k = 3)\nplot_clusters(res_km)\n\n\nCluster Hierárquico\nres_hc &lt;- cluster_hierarquico(iris[, 1:4], metodo = \"ward.D2\")\ndendrograma(res_hc, k = 3)"
+  },
+  {
+    "objectID": "modulos/multivariada.html#técnicas-supervisionadas",
+    "href": "modulos/multivariada.html#técnicas-supervisionadas",
+    "title": "Análise Multivariada e Agrupamento",
+    "section": "Técnicas Supervisionadas",
+    "text": "Técnicas Supervisionadas\n\nAnálise Discriminante Linear (LDA) & MANOVA\n# Discriminante com biplot de separação\nres_lda &lt;- analise_discriminante(Species ~ ., dados = iris)\nbiplot_lda(res_lda)\n\n# MANOVA\nres_manova &lt;- analise_manova(cbind(Sepal.Length, Sepal.Width) ~ Species, dados = iris)\nplot_manova(res_manova)"
+  },
+  {
+    "objectID": "modulos/regressao.html",
+    "href": "modulos/regressao.html",
+    "title": "Modelagem Linear e Diagnóstico Residual",
+    "section": "",
+    "text": "Mínimos Quadrados Ordinários (MQO) com saída formatada: coeficientes, erros padrão, estatísticas t e p-valores:\nmodelo &lt;- regressao_linear(mpg ~ wt + hp + qsec, dados = mtcars)"
+  },
+  {
+    "objectID": "modulos/regressao.html#ajuste-de-modelos",
+    "href": "modulos/regressao.html#ajuste-de-modelos",
+    "title": "Modelagem Linear e Diagnóstico Residual",
+    "section": "",
+    "text": "Mínimos Quadrados Ordinários (MQO) com saída formatada: coeficientes, erros padrão, estatísticas t e p-valores:\nmodelo &lt;- regressao_linear(mpg ~ wt + hp + qsec, dados = mtcars)"
+  },
+  {
+    "objectID": "modulos/regressao.html#diagnóstico-residual",
+    "href": "modulos/regressao.html#diagnóstico-residual",
+    "title": "Modelagem Linear e Diagnóstico Residual",
+    "section": "Diagnóstico Residual",
+    "text": "Diagnóstico Residual\n\nanalise_residual()\nPainel editorial com 4 gráficos: Resíduos vs Ajustados, Q-Q Normal, Escala-Locação e Resíduos vs Alavancagem:\nanalise_residual(modelo, grade = \"dupla\")"
+  },
+  {
+    "objectID": "modulos/regressao.html#seleção-e-validação",
+    "href": "modulos/regressao.html#seleção-e-validação",
+    "title": "Modelagem Linear e Diagnóstico Residual",
+    "section": "Seleção e Validação",
+    "text": "Seleção e Validação\n# R², R² ajustado, RMSE, MAE, AIC, BIC\nmetricas(modelo)\n\n# Stepwise AIC/BIC\nselecao_modelos(modelo, direcao = \"both\")\n\n# Fator de Inflação da Variância (VIF)\nmulticolinearidade(modelo)\n\n# Observações influentes e distância de Cook\npontos_influentes(modelo)\n\n# Gráfico de coeficientes com intervalos de confiança\ngrafico_coeficientes(modelo)"
+  },
+  {
+    "objectID": "referencia.html",
+    "href": "referencia.html",
+    "title": "Catálogo de Funções",
+    "section": "",
+    "text": "Todas as funções do estatR seguem a convenção de retorno duplo: exibem a síntese analítica visual no console (com formatação ANSI e tabelas padronizadas) e retornam invisivelmente listas com todos os dados brutos e objetos subjacentes para manipulação."
+  },
+  {
+    "objectID": "referencia.html#diagnóstico-e-estatística-descritiva",
+    "href": "referencia.html#diagnóstico-e-estatística-descritiva",
+    "title": "Catálogo de Funções",
+    "section": "Diagnóstico e Estatística Descritiva",
+    "text": "Diagnóstico e Estatística Descritiva\n\n\n\n\n\n\n\nFunção\nDescrição\n\n\n\n\ndiagnostico()\nDiagnóstico Completo do Banco de Dados. Gera um painel completo mesclando informações de estrutura, valores ausentes, outliers e valores únicos, alertando para duplicatas.\n\n\nestrutura()\nEstrutura do Banco de Dados. Retorna apenas os tipos de dados de cada variável.\n\n\nvalores_ausentes()\nAnálise de Valores Ausentes. Inspeciona procurando por NAs oficiais e valores que indicam respostas vazias ou erros ocultos (como -99 ou textos vazios).\n\n\noutliers()\nAnálise de Outliers pelo Método IQR. Detecta valores discrepantes (outliers) em um vetor numérico ou em todas as variáveis numéricas de um data.frame, usando o critério do Intervalo Interquartil (IQR): valores abaixo de Q1 - 1,5×IQR ou acima de Q3 + 1,5×IQR.\n\n\ndescrever()\nResumo Estatistico de Variaveis ou Banco de Dados. Gera um resumo estatistico completo.\n\n\ntabela_contingencia()\nTabela de Contingência (Cruzamento Bivariado). Cria uma tabela de dupla entrada para cruzar duas variáveis categóricas, incluindo totais marginais e opções de proporção por linha, coluna ou total geral.\n\n\nmed_tend_central()\nMedidas de Tendência Central. Medidas de Tendência Central\n\n\nmed_dispersao()\nMedidas de Dispersão e Escala. Medidas de Dispersão e Escala\n\n\nmed_forma()\nMedidas de Forma da Distribuição. Medidas de Forma da Distribuição\n\n\nquartis()\nQuartis da Distribuição. Quartis da Distribuição\n\n\nquintis()\nQuintis da Distribuição. Quintis da Distribuição\n\n\ndecis()\nDecis da Distribuição. Decis da Distribuição\n\n\npercentis()\nPercentis da Distribuição. Calcula e exibe os percentis de um vetor numérico, incluindo os extremos Mín (P0) e Máx (P100). Por padrão exibe P5, P10, P25, P50, P75, P90 e P95, além do Mínimo e Máximo."
+  },
+  {
+    "objectID": "referencia.html#correlação-e-associação",
+    "href": "referencia.html#correlação-e-associação",
+    "title": "Catálogo de Funções",
+    "section": "Correlação e Associação",
+    "text": "Correlação e Associação\n\n\n\n\n\n\n\nFunção\nDescrição\n\n\n\n\nteste_correlacao()\nTeste de Correlação (Bivariada). Realiza o teste de correlação entre duas variáveis.\n\n\nmatriz_correlacao()\nMatriz de Correlação com Ranking dos Maiores Pares. Gera e imprime no console a matriz de correlação completa (com p-valores em asteriscos), exibe tabelas de ranking das maiores correlações positivas e negativas com classificação qualitativa centralizada, e plota o correlograma em ggplot2."
+  },
+  {
+    "objectID": "referencia.html#inferência-paramétrica-testes-t-e-proporção",
+    "href": "referencia.html#inferência-paramétrica-testes-t-e-proporção",
+    "title": "Catálogo de Funções",
+    "section": "Inferência Paramétrica (Testes T e Proporção)",
+    "text": "Inferência Paramétrica (Testes T e Proporção)\n\n\n\n\n\n\n\nFunção\nDescrição\n\n\n\n\nteste_t_uma_amostra()\nTeste T para Uma Amostra. Testa se a média de uma variável numérica é igual a um valor de referência.\n\n\nteste_t_duas_amostras()\nTeste T para Duas Amostras Independentes. Compara as médias de dois grupos independentes.\n\n\nteste_t_pareado()\nTeste T Pareado. Compara as médias de duas medições pareadas (antes/depois, par de medidas).\n\n\nteste_proporcao()\nTeste de Proporção (Z). Testa se uma proporção amostral é igual a um valor de referência."
+  },
+  {
+    "objectID": "referencia.html#inferência-não-paramétrica-e-testes-categóricos",
+    "href": "referencia.html#inferência-não-paramétrica-e-testes-categóricos",
+    "title": "Catálogo de Funções",
+    "section": "Inferência Não-Paramétrica e Testes Categóricos",
+    "text": "Inferência Não-Paramétrica e Testes Categóricos\n\n\n\n\n\n\n\nFunção\nDescrição\n\n\n\n\nteste_wilcoxon()\nTeste de Wilcoxon (Uma Amostra / Pareado). Alternativa não-paramétrica ao teste t para uma amostra ou para amostras pareadas. Indicado quando os dados não seguem distribuição normal.\n\n\nteste_mann_whitney()\nTeste de Mann-Whitney (Wilcoxon para Duas Amostras Independentes). Alternativa não-paramétrica ao teste t para dois grupos independentes. Indicado quando os dados não seguem distribuição normal.\n\n\nteste_kruskal()\nTeste de Kruskal-Wallis com Comparações Múltiplas (Dunn). Alternativa não-paramétrica à ANOVA a um fator para comparar a distribuição de grupos independentes. Caso haja significância estatística, executa automaticamente o teste post-hoc de Dunn com ajuste de p-valor (Holm, Bonferroni ou FDR) e gera gráfico de boxplot padronizado.\n\n\nteste_friedman()\nTeste de Friedman para Medidas Repetidas / Blocos. Alternativa não-paramétrica à ANOVA de medidas repetidas ou blocos casualizados (DBC). Avalia se as distribuições diferem entre condições ou períodos pareados. Caso significativo, executa comparações pareadas com ajuste de p-valor.\n\n\nteste_qui_quadrado()\nTeste Qui-Quadrado de Independência. Testa se duas variáveis categóricas são independentes.\n\n\nteste_levene()\nTeste de Levene (Homogeneidade de Variâncias). Testa se dois grupos possuem variâncias iguais (homogeneidade). Auxiliar ao teste t para duas amostras.\n\n\nconcordancia_kappa()\nAnálise de Concordância (Kappa de Cohen & Fleiss). Avalia a concordância e confiabilidade entre avaliadores. Calcula automaticamente o Kappa de Cohen (simples ou ponderado linear/quadrático) para 2 avaliadores, ou o Kappa de Fleiss caso haja 3 ou mais avaliadores. Classifica a qualidade da concordância segundo os critérios de Landis & Koch.\n\n\ngrafico_bland_altman()\nGráfico e Diagnóstico de Bland-Altman. Avalia a concordância entre dois métodos contínuos de medição (ex: dois instrumentos, ensaio laboratorial vs teste rápido). Estima o viés médio (), limites de concordância de 95\\% (), intervalos de confiança dos parâmetros e gera gráfico no padrão visual do estatR."
+  },
+  {
+    "objectID": "referencia.html#intervalos-de-confiança",
+    "href": "referencia.html#intervalos-de-confiança",
+    "title": "Catálogo de Funções",
+    "section": "Intervalos de Confiança",
+    "text": "Intervalos de Confiança\n\n\n\n\n\n\n\nFunção\nDescrição\n\n\n\n\nic_media()\nIntervalo de Confiança para a Média. Calcula o intervalo de confiança para a média de uma amostra.\n\n\nic_proporcao()\nIntervalo de Confiança para a Proporção. Calcula o intervalo de confiança para uma proporção (aproximação normal/Wald).\n\n\nic_variancia()\nIntervalo de Confiança para a Variância. Calcula o intervalo de confiança para a variância e desvio padrão.\n\n\nic_diferenca_medias()\nIntervalo de Confiança para a Diferença de Médias. Calcula o intervalo de confiança para a diferença entre médias de dois grupos."
+  },
+  {
+    "objectID": "referencia.html#probabilidade-e-distribuições-teóricas",
+    "href": "referencia.html#probabilidade-e-distribuições-teóricas",
+    "title": "Catálogo de Funções",
+    "section": "Probabilidade e Distribuições Teóricas",
+    "text": "Probabilidade e Distribuições Teóricas\n\n\n\n\n\n\n\nFunção\nDescrição\n\n\n\n\ndistribuicao()\nDistribuição Estatística. Exibe uma visão completa e pedagógica de uma distribuição de probabilidade: parâmetros, momentos teóricos, quantis-chave e gráfico ilustrativo. Suporta: ‘normal’, ‘binomial’, ‘poisson’, ‘exponencial’, ‘uniforme’, ‘t’, ‘qui_quadrado’, ‘f’, ‘gama’.\n\n\nprob_normal()\nProbabilidade da Distribuição Normal. Calcula a probabilidade para uma distribuição Normal e gera o gráfico com a área sombreada.\n\n\nprob_binomial()\nProbabilidade da Distribuição Binomial. Calcula a probabilidade para uma distribuição Binomial e plota as barras.\n\n\nprob_poisson()\nProbabilidade da Distribuição Poisson. Calcula a probabilidade para uma distribuição Poisson e plota as barras.\n\n\nprob_exponencial()\nProbabilidade da Distribuição Exponencial. Calcula a probabilidade para uma distribuição Exponencial e plota a curva com área sombreada.\n\n\ngerar_amostra()\nGerador de Amostras de Distribuições. Gera um conjunto de dados aleatórios baseado em distribuições teóricas e plota o histograma. Gera um conjunto de dados aleatórios baseado em distribuições teóricas e plota o histograma."
+  },
+  {
+    "objectID": "referencia.html#estimação-de-parâmetros-e-simulação",
+    "href": "referencia.html#estimação-de-parâmetros-e-simulação",
+    "title": "Catálogo de Funções",
+    "section": "Estimação de Parâmetros e Simulação",
+    "text": "Estimação de Parâmetros e Simulação\n\n\n\n\n\n\n\nFunção\nDescrição\n\n\n\n\nestimar_verossimilhanca()\nEstimação por Máxima Verossimilhança (EMV). Estima os parâmetros de uma distribuição teórica via Máxima Verossimilhança. Plota a curva da função de log-verossimilhança com o EMV destacado.\n\n\nestimar_momentos()\nEstimação pelo Método dos Momentos. Estima os parâmetros de uma distribuição igualando os momentos amostrais aos momentos populacionais teóricos.\n\n\nbootstrap()\nBootstrap: Estimação por Reamostragem (Simples, Estratificado, Residual e por Bloco). Estima a variabilidade, viés, erro padrão e intervalos de confiança não-paramétricos usando reamostragem Bootstrap. Suporta quatro modalidades principais: \\itemize{ \n\n\nsimular_tcl()\nTeorema Central do Limite (TCL) — Simulação Visual. Demonstra visualmente o Teorema Central do Limite: extrai amostras da população fornecida e mostra que a distribuição das médias tende à Normal.\n\n\nmonte_carlo()\nSimulação de Monte Carlo. Estima a probabilidade de um evento por simulação repetida. O usuário define um experimento aleatório como uma função que retorna TRUE/FALSE."
+  },
+  {
+    "objectID": "referencia.html#modelos-lineares-clássicos-regressão-múltipla",
+    "href": "referencia.html#modelos-lineares-clássicos-regressão-múltipla",
+    "title": "Catálogo de Funções",
+    "section": "Modelos Lineares Clássicos (Regressão Múltipla)",
+    "text": "Modelos Lineares Clássicos (Regressão Múltipla)\n\n\n\n\n\n\n\nFunção\nDescrição\n\n\n\n\nregressao_linear()\nRegressão Linear Simples e Múltipla. Ajusta um modelo de regressão linear e retorna uma saída formatada com ANOVA, coeficientes (com IC 95% e VIF), ajuste do modelo e interpretação automática.\n\n\nanalise_residual()\nAnálise Residual. Realiza o diagnóstico completo dos resíduos com testes estatísticos formais, interpretação automatizada e painel gráfico. Para modelos lineares (lm), avalia normalidade (Shapiro-Wilk ou Kolmogorov-Smirnov para n &gt; 5000), homocedasticidade (Breusch-Pagan) e independência dos resíduos (Durbin-Watson). Para Modelos Lineares Generalizados (glm), despacha automaticamente para o diagnóstico específico Análise Residual Completa para Modelos Estatísticos Realiza o diagnóstico completo de resíduos com testes estatísticos de Normalidade, Homocedasticidade e Independência, além de painel gráfico em ggplot2. Suporta modelos de regressão linear (lm), delineamentos experimentais (estatR_dic, estatR_dbc, estatR_dql, estatR_fatorial, aov), modelos lineares generalizados (glm) e modelos de sobrevivência (estatR_cox, coxph).\n\n\nmetricas()\nMétricas do Modelo. Exibe as principais métricas de avaliação e erro para um modelo de regressão.\n\n\nselecao_modelos()\nSeleção Múltipla de Modelos (Best Subsets / Stepwise). Avalia múltiplas combinações de variáveis preditoras para encontrar os melhores modelos baseando-se em métricas de ajuste e parcimônia. Utiliza algoritmo exaustivo para até 10 preditores e heurística inteligente para mais.\n\n\npredicao()\nPredição com o Modelo de Regressão. Gera previsões a partir de um modelo linear ajustado, exibindo a estimativa pontual e, opcionalmente, o intervalo de confiança ou de predição. \\itemize{ \n\n\nmulticolinearidade()\nDiagnóstico de Multicolinearidade (VIF e GVIF). Avalia a presença e a gravidade de multicolinearidade entre as variáveis preditoras de um modelo linear (lm) ou modelo linear generalizado (glm). Calcula o Fator de Inflação da Variância clássico (VIF) para variáveis contínuas e o VIF Generalizado (GVIF) para fatores com mais de dois níveis (Fox & Monette, 1992), além da Tolerância e do Número de Condição da matriz de planejamento.\n\n\npontos_influentes()\nDiagnóstico de Alavancagem e Pontos Influentes. Identifica observações atípicas, pontos de alta alavancagem (leverage) e observações influentes que afetam desproporcionalmente a estimação dos parâmetros do modelo de regressão linear (lm) ou modelo linear generalizado (glm). Opcionalmente reestima o modelo omitindo tais observações para comparar o impacto nos coeficientes e exibe gráficos diagnósticos com grade dupla.\n\n\ngrafico_coeficientes()\nGráfico de Coeficientes do Modelo (Forest Plot). Gera um gráfico elegante de coeficientes com intervalos de confiança de 95% (Forest Plot), nativo em ggplot2, com grade dupla por padrão e integração ao tema_estatR(). Suporta modelos lineares (lm), generalizados (glm), sobrevivência (coxph, estatR_cox) e outros.\n\n\ndividir_dados()\nDivisão Treino / Teste. Divide um conjunto de dados em partições de treino e teste para validação de modelos. Suporta três modos: \\itemize{"
+  },
+  {
+    "objectID": "referencia.html#modelos-lineares-generalizados-mlg-glm",
+    "href": "referencia.html#modelos-lineares-generalizados-mlg-glm",
+    "title": "Catálogo de Funções",
+    "section": "Modelos Lineares Generalizados (MLG / GLM)",
+    "text": "Modelos Lineares Generalizados (MLG / GLM)\n\n\n\n\n\n\n\nFunção\nDescrição\n\n\n\n\nregressao_mlg()\nRegressão por Modelos Lineares Generalizados (MLG / GLM). Ajusta modelos lineares generalizados para diversas distribuições da família exponencial (Binomial/Logística, Poisson, Quasipoisson, Gama, Gaussiana, Binomial Negativa e Beta). Fornece resumo detalhado no console, tabela de coeficientes com Erro Padrão, intervalos de confiança de 95%, testes de hipótese (Wald e Razão de Verossimilhança / LRT), diagnóstico de ajuste, número de iterações do Escore de Fisher e suporte opcional a gráfico.\n\n\nregressao_logistica()\nRegressão Logística (Binomial · Multinomial · Ordinal). Ajusta um modelo de regressão logística, detectando automaticamente se a variável resposta é binária (2 categorias) ou policotômica (3+ categorias). Para Y policotômico, use tipo = 'nominal' (multinomial via nnet::multinom) ou tipo = 'ordinal' (logística proporcional via MASS::polr).\n\n\nmetricas_logistica()\nMétricas do Modelo Logístico. Exibe as métricas de ajuste e performance de um modelo logístico ajustado por regressao_logistica().\n\n\nselecao_modelos_logistica()\nSeleção de Modelos Logísticos (Best Subsets). Avalia múltiplas combinações de variáveis para regressão logística, ordenando pelo AIC. Suporta modelos binomiais, multinomiais e ordinais.\n\n\nregressao_poisson()\nRegressao de Poisson. Ajusta um modelo de regressao de Poisson para dados de contagem. Apresenta estatisticas de ajuste, fator de sobredispersao, coeficientes, Razao de Taxa de Incidencia (IRR) e interpretacao automatizada.\n\n\nmetricas_poisson()\nMetricas do Modelo Poisson. Calcula e exibe as principais metricas para um modelo glm Poisson.\n\n\nselecao_modelos_poisson()\nSelecao de Modelos - Poisson. Realiza Best Subsets para regressao de Poisson.\n\n\nregressao_binomial_negativa()\nRegressao Binomial Negativa. Ajusta um modelo de regressao Binomial Negativa para dados de contagem com sobredispersao (variancia &gt; media). Apresenta estatisticas de ajuste, parametro de dispersao theta, coeficientes, Razao de Taxa de Incidencia (IRR) e interpretacao automatizada.\n\n\nmetricas_binomial_negativa()\nMetricas do Modelo Binomial Negativo. Calcula e exibe as principais metricas para um modelo glm.nb.\n\n\nselecao_modelos_binomial_negativa()\nSelecao de Modelos - Binomial Negativa. Realiza Best Subsets para regressao Binomial Negativa.\n\n\nregressao_gama()\nRegressao Gama. Ajusta um modelo de regressao Gama para variaveis contínuas e estritamente positivas, geralmente com forte assimetria à direita. Apresenta estatisticas de ajuste, parametro de forma, coeficientes (como multiplicadores da média) e interpretacao automatizada.\n\n\nmetricas_gama()\nMetricas do Modelo Gama. Calcula as principais metricas para um modelo glm Gama.\n\n\nselecao_modelos_gama()\nSelecao de Modelos - Gama. Realiza Best Subsets para regressao Gama.\n\n\nregressao_beta()\nRegressao Beta. Ajusta um modelo de regressao Beta para variaveis respostas que sao proporcoes ou taxas estritamente no intervalo (0, 1). Apresenta estatisticas de ajuste, parametro de precisao (phi), coeficientes, Odds Ratio (OR) para a media e interpretacao automatizada.\n\n\nmetricas_beta()\nMetricas do Modelo Beta. Calcula e exibe as principais metricas para um modelo betareg.\n\n\nselecao_modelos_beta()\nSelecao de Modelos - Beta. Realiza Best Subsets para regressao Beta."
+  },
+  {
+    "objectID": "referencia.html#séries-temporais-e-previsão",
+    "href": "referencia.html#séries-temporais-e-previsão",
+    "title": "Catálogo de Funções",
+    "section": "Séries Temporais e Previsão",
+    "text": "Séries Temporais e Previsão\n\n\n\n\n\n\n\nFunção\nDescrição\n\n\n\n\nanalise_serie()\nDiagnóstico e Decomposição de Série Temporal. Realiza a análise estatística descritiva e a decomposição temporal (tendência, sazonalidade e componente aleatório/ruído) de uma série. Gera um painel gráfico com 4 gráficos alinhados com o padrão visual do estatR.\n\n\nteste_estacionariedade()\nTestes de Estacionariedade (ADF e KPSS). Aplica conjuntamente os testes de Dickey-Fuller Aumentado (ADF) e KPSS para avaliar a estacionariedade da série e a presença de raiz unitária. Apresenta diagnóstico com veredito consensual padronizado com [✓] e [!].\n\n\nprevisao_serie()\nPrevisão de Série Temporal (Suavização Exponencial e ETS). Modela a série temporal histórica por Suavização Exponencial (SES, Holt Linear, Holt Damped ou Holt-Winters) e projeta previsões futuras com intervalos de confiança em formato de leque ().\n\n\nprevisao_serie_aprend_maq()\nPrevisão de Séries Temporais com Aprendizado de Máquina. Realiza previsão pontual e por intervalo para séries temporais utilizando algoritmos de Aprendizado de Máquina (Random Forest, XGBoost ou Redes Neurais Autoregressivas - NNAR). Aplica engenharia de atributos automatizada gerando defasagens (lags), variáveis de calendário sazonais e tendência determinística, projetando previsões recursivas para o horizonte solicitado.\n\n\nmetricas_serie()\nMétricas de Acurácia para Séries Temporais. Calcula as principais métricas de erro preditivo e critérios de informação para séries temporais: RMSE, MAE, MAPE, sMAPE, MASE, UMBRAE, AIC, AICc e BIC.\n\n\nselecao_modelos_serie()\nSeleção de Modelos de Séries Temporais. Compara exaustivamente modelos preditivos organizados por famílias ('suavizacao', 'estocastica', 'decomposicao' ou 'todas') utilizando divisão real de validação fora da amostra (out-of-sample) de tamanho h. Retorna uma tabela formatada com o ranking dos melhores modelos segundo métricas de acurácia.\n\n\ngrafico_autocorrelacao()\nGráfico de Autocorrelação (FAC e FACP). Plota as funções de autocorrelação simples (FAC) e parcial (FACP) com limites de significância de Bartlett (95%) no estilo pirulito (lollipop) e executa opcionalmente o teste de Ljung-Box para diagnóstico de ruído branco."
+  },
+  {
+    "objectID": "referencia.html#análise-multivariada-e-agrupamento",
+    "href": "referencia.html#análise-multivariada-e-agrupamento",
+    "title": "Catálogo de Funções",
+    "section": "Análise Multivariada e Agrupamento",
+    "text": "Análise Multivariada e Agrupamento\n\n\n\n\n\n\n\nFunção\nDescrição\n\n\n\n\nacp()\nAnálise de Componentes Principais (ACP / PCA). Realiza Análise de Componentes Principais (ACP) com diagnóstico completo de adequação da amostra (KMO e Bartlett), critérios de retenção de componentes (Kaiser, Análise Paralela de Horn e Variância Acumulada), cargas fatoriais (loadings), escores e interpretação automatizada.\n\n\nbiplot_acp()\nBiplot de ACP. Gera gráfico Biplot 2D (escores das observações e vetores das cargas das variáveis).\n\n\nscreeplot_acp()\nScree Plot de ACP. Gera gráfico Scree Plot com linha de Kaiser (autovalor = 1) e Análise Paralela de Horn.\n\n\nanalise_fatorial()\nAnálise Fatorial Exploratória (AFE). Realiza Análise Fatorial Exploratória (AFE) completa com diagnóstico de adequação amostral (KMO global e individual, Teste de Bartlett), critérios de retenção de fatores (Kaiser e Análise Paralela de Horn), cargas fatoriais rotacionadas, comunalidades (h²), unicidades (u²), escores fatoriais e interpretação automatizada.\n\n\nbiplot_fatorial()\nBiplot da Análise Fatorial. Gera gráfico Biplot 2D com escores das observações e vetores de cargas fatoriais.\n\n\ncargasplot_fatorial()\nGráfico de Cargas Fatoriais (Loadings Plot). Gera gráfico de barras das cargas fatoriais para cada fator retido.\n\n\nscreeplot_fatorial()\nScree Plot da Análise Fatorial. Gera gráfico Scree Plot com autovalores da matriz de correlação e Análise Paralela de Horn.\n\n\ncluster_kmeans()\nAnálise de Agrupamentos K-Means. Realiza Análise de Agrupamentos pelo método K-Means com padronização, otimização automática de inicializações (nstart) por estabilização da inércia (WSS), avaliação de k por Silhueta Média e Calinski-Harabasz, tabela de centróides na escala original e interpretação automatizada.\n\n\ncotovelo_plot()\nGráfico do Cotovelo e Silhueta (K-Means). Gera gráfico de linha comparativo do método do Cotovelo (WSS) e Silhueta Média por k.\n\n\ncluster_hierarquico()\nAnálise de Agrupamentos Hierárquica. Realiza Análise de Agrupamentos Hierárquica aglomerativa com matriz de distâncias, método de ligação selecionável, cálculo de silhueta e corte de árvore.\n\n\ndendrograma()\nDendrograma do Cluster Hierárquico. Plota dendrograma formatado do agrupamento hierárquico com ramos coloridos por cluster.\n\n\nplot_clusters()\nProjeção 2D dos Clusters (K-Means). Gera gráfico de dispersão 2D dos clusters projetados nas duas primeiras Componentes Principais (PC1 x PC2), com elipses de 95% e os centróides em destaque.\n\n\nanalise_discriminante()\nAnálise Discriminante (LDA / QDA). Realiza a Análise Discriminante Linear de Fisher (LDA) ou Quadrática (QDA), avaliando a capacidade de preditores numéricos contínuos em separar e classificar categorias. Apresenta probabilidades a priori, autovalores e correlações canônicas, coeficientes das funções discriminantes, matriz de confusão, métricas completas de classificação (Acurácia, Taxa de Erro, Kappa, Macro Sensibilidade, Precisão, F1-Score com validação cruzada LOO), teste de homogeneidade de covariâncias (M de Box) e interpretação automatizada.\n\n\nbiplot_lda()\nGráfico da Análise Discriminante (Biplot / Dispersão). Plota a projeção das observações no espaço discriminante. Para 3 ou mais grupos (2+ funções discriminantes), gera um Biplot 2D (LD1 x LD2) com elipses de confiança de 95% e setas das variáveis originais. Para 2 grupos (1 função), plota a distribuição/histograma dos escores de LD1 separados por cor.\n\n\nanalise_manova()\nAnálise de Variância Multivariada (MANOVA). Realiza a Análise de Variância Multivariada (MANOVA), avaliando o efeito de um fator categórico sobre múltiplas variáveis resposta contínuas simultaneamente. Apresenta o teste de homogeneidade das covariâncias (M de Box), os 4 critérios multivariados clássicos (Pillai, Wilks, Hotelling-Lawley, Roy), ANOVAs univariadas de acompanhamento com correção de Bonferroni, médias por grupo e interpretação automatizada.\n\n\nplot_manova()\nGráfico de Perfis Multivariados da MANOVA. Plota os perfis médios padronizados (escores Z) de cada grupo ao longo das variáveis resposta analisadas na MANOVA."
+  },
+  {
+    "objectID": "referencia.html#planejamento-de-experimentos-delineamentos",
+    "href": "referencia.html#planejamento-de-experimentos-delineamentos",
+    "title": "Catálogo de Funções",
+    "section": "Planejamento de Experimentos (Delineamentos)",
+    "text": "Planejamento de Experimentos (Delineamentos)\n\n\n\n\n\n\n\nFunção\nDescrição\n\n\n\n\nanalise_dic()\nAnálise de Delineamento Inteiramente Casualizado (DIC). Executa a Análise de Variância (ANOVA) para experimentos em Delineamento Inteiramente Casualizado (DIC), com testes de comparações múltiplas de médias (Tukey, Scott-Knott, Duncan, SNK, Scheffé com suporte a contrastes complexos, Bonferroni, Dunnett) para fatores qualitativos, ou Regressão Polinomial (Linear, Quadrática e Cúbica com ponto ótimo) para fatores quantitativos (doses/níveis), além de visualização gráfica automatizada em painel.\n\n\ngrafico_dic()\nPainel Gráfico Completo do DIC. Gera painel integrado de gráficos do Delineamento Inteiramente Casualizado. Para fatores qualitativos, combina o gráfico de médias com letras e o gráfico de IC das diferenças. Para fatores quantitativos, exibe a curva de regressão polinomial.\n\n\nanalise_dbc()\nAnálise de Delineamento em Blocos Casualizados (DBC). Executa a Análise de Variância (ANOVA) para experimentos em Delineamento em Blocos Casualizados (DBC), com teste de eficiência da blocagem, testes de comparações múltiplas de médias (Tukey, Scott-Knott, Duncan, SNK, Scheffé com contrastes, Bonferroni, Dunnett) para fatores qualitativos, ou Regressão Polinomial (Linear, Quadrática e Cúbica com ponto ótimo) para fatores quantitativos, além de painel gráfico automatizado.\n\n\ngrafico_dbc()\nPainel Gráfico Completo do DBC. Gera painel integrado de gráficos do Delineamento em Blocos Casualizados. Para fatores qualitativos, combina o gráfico de médias com letras e o gráfico de IC das diferenças. Para fatores quantitativos, exibe a curva de regressão polinomial.\n\n\nanalise_dql()\nAnálise de Delineamento em Quadrado Latino (DQL). Executa a Análise de Variância (ANOVA) para experimentos em Delineamento em Quadrado Latino (DQL), com duplo controle local (linhas e colunas), testes de eficiência relativa, testes de comparações múltiplas de médias (Tukey, Scott-Knott, Duncan, SNK, Scheffé com contrastes, Bonferroni, Dunnett) ou Regressão Polinomial com ponto ótimo, além de painel gráfico automatizado.\n\n\ngrafico_dql()\nPainel Gráfico Completo do DQL. Gera painel integrado de gráficos do Delineamento em Quadrado Latino. Para fatores qualitativos, combina o gráfico de médias com letras e o gráfico de IC das diferenças. Para fatores quantitativos, exibe a curva de regressão polinomial.\n\n\nanalise_fatorial_duplo()\nAnálise Fatorial Duplo (A × B) — DIC e DBC. Executa a Análise de Variância (ANOVA) para experimentos em esquema fatorial duplo (A × B) nos delineamentos DIC ou DBC. Quando a interação é significativa, realiza o desdobramento dos fatores e apresenta uma tabela matricial combinada com letras minúsculas (comparação Realiza a análise estatística completa de experimentos em esquema fatorial duplo (A × B) em DIC ou DBC, com desdobramento automático da interação e testes de comparações múltiplas.\n\n\ngrafico_fatorial()\nGráfico de Perfil de Interação — Esquema Fatorial. Gera o gráfico de perfil de interação para um fatorial duplo, com linhas por nível de Fator2, barras de erro (IC) e anotação das letras de comparação múltipla (quando a interação é significativa).\n\n\nanalise_fatorial_adicional()\nAnálise de Esquema Fatorial com Testemunha Adicional (A × B + 1). Realiza a análise de variância e testes de comparações múltiplas para experimentos em esquema fatorial duplo mais um tratamento testemunha isolado () em Delineamento Inteiramente Casualizado (DIC) ou Blocos Casualizados (DBC). Decompõe ortogonalmente a soma de quadrados dos tratamentos em: Fatorial vs Testemunha (1 GL), Fator A, Fator B e Interação A × B. Aplica o teste de Dunnett para comparar cada combinação fatorial contra a testemunha, e testes clássicos (Tukey, Scott-Knott, etc.) para comparar os níveis do fatorial.\n\n\nanalise_parcela_subdividida()\nAnálise de Experimentos em Parcelas Subdivididas (Split-Plot). Realiza a análise estatística completa de experimentos instalados no esquema de Parcelas Subdivididas (Split-Plot) em Delineamento Inteiramente Casualizado (DIC) ou em Blocos Casualizados (DBC). Calcula o quadro de ANOVA com dois resíduos (Erro a para parcelas e Erro b para subparcelas), dois coeficientes de variação (CVa e CVb), testes de comparações múltiplas (Tukey, Scott-Knott, Duncan, SNK, Scheffé ou Bonferroni) e desdobramento automático quando a interação Parcela × Subparcela for significativa (utilizando combinações lineares de erros conforme Satterthwaite/Banzatto & Kronka).\n\n\ngrafico_medias()\nGráfico de Médias do Experimento. Gera gráfico de colunas com as médias dos tratamentos, barras de erro (IC 95%) e as letras do teste de comparações múltiplas sobrepostas no topo de cada grupo.\n\n\ngrafico_ic()\nGráfico de Intervalos de Confiança das Diferenças de Médias. Gera gráfico horizontal com os intervalos de confiança das diferenças pareadas entre tratamentos ou dos contrastes de Scheffé, com linha vertical vermelha no zero e destaque colorido para contrastes com diferença estatisticamente significativa.\n\n\ngrafico_regressao()\nGráfico da Regressão Polinomial. Gera gráfico de dispersão com os pontos observados, médias e curva ajustada do modelo polinomial recomendado (Linear, Quadrático ou Cúbico)."
+  },
+  {
+    "objectID": "referencia.html#aprendizado-de-máquina-e-sobrevivência",
+    "href": "referencia.html#aprendizado-de-máquina-e-sobrevivência",
+    "title": "Catálogo de Funções",
+    "section": "Aprendizado de Máquina e Sobrevivência",
+    "text": "Aprendizado de Máquina e Sobrevivência\n\n\n\n\n\n\n\nFunção\nDescrição\n\n\n\n\nclassificacao_aprend_maq()\nClassificação com Aprendizado de Máquina. Ajusta modelos de Aprendizado de Máquina para classificação (variável resposta categórica ou binária). Suporta algoritmos consolidados com otimização de hiperparâmetros ou ajuste manual em português.\n\n\nprevisao_aprend_maq()\nPrevisão com Aprendizado de Máquina (Regressão). Ajusta modelos de Aprendizado de Máquina para tarefas de regressão (variável resposta numérica contínua). Suporta múltiplos algoritmos com otimização automática de hiperparâmetros (estabilização OOB / Cross-Validation) ou parametrização manual em português.\n\n\nanalise_residual_aprend_maq()\nAnálise Residual para Modelos de Aprendizado de Máquina. Realiza diagnóstico formal dos resíduos em modelos de regressão ajustados por Aprendizado de Máquina (previsao_aprend_maq). Avalia viés sistemático (média dos resíduos = 0), dispersão e casos atípicos extremos, gerando painel gráfico com grade dupla.\n\n\nmetricas_aprend_maq()\nMétricas de Desempenho para Aprendizado de Máquina. Extrai e exibe a tabela de métricas de treino e teste de um objeto de Aprendizado de Máquina (estatR_aprend_maq).\n\n\nanalise_sobrevivencia()\nAnálise de Sobrevivência (Kaplan-Meier e Nelson-Aalen). Ajusta e apresenta curvas de sobrevivência não-paramétricas pelos métodos de Kaplan-Meier e Nelson-Aalen / Fleming-Harrington, com cálculo de medianas de sobrevivência, intervalos de confiança, taxas de censura, tabela pontual completa com estimativas de S(t), risco acumulado H(t), taxa de risco instantâneo h(t) e densidade f(t), além de teste de Log-Rank (simples ou estratificado) para comparação de grupos.\n\n\ngrafico_sobrevivencia()\nGráfico de Curva de Sobrevivência e Funções de Risco. Gera visualizações para análise de sobrevivência em degraus ou curvas suavizadas, incluindo curva de sobrevivência S(t), risco acumulado H(t) (Nelson-Aalen), taxa de risco instantâneo h(t) (hazard rate) e densidade de falhas f(t).\n\n\nregressao_cox()\nRegressão de Cox (Modelo de Riscos Proporcionais). Ajusta o modelo semi-paramétrico de Cox para análise de tempo até o evento, fornecendo Hazard Ratios (HR), intervalos de confiança de 95%, estatísticas globais de qualidade de ajuste e diagnóstico formal de proporcionalidade dos riscos baseado nos resíduos de Schoenfeld.\n\n\nmetricas_cox()\nMétricas de Avaliação do Modelo de Cox. Exibe e retorna as principais medidas de qualidade de ajuste, discriminação e critérios de informação para o modelo de riscos proporcionais de Cox.\n\n\nselecao_modelos_cox()\nSeleção de Modelos de Riscos Proporcionais de Cox. Avalia todas as combinações de covariáveis para o modelo de Cox, ranqueando os melhores modelos pelos critérios de AIC, Delta AIC, pesos de Akaike e Índice C de Concordância.\n\n\ngrafico_cox()\nForest Plot dos Hazard Ratios do Modelo de Cox. Gera gráfico de Forest Plot com os Hazard Ratios pontuais e intervalos de confiança de 95%, com linha de referência em HR = 1."
+  },
+  {
+    "objectID": "referencia.html#amostragem-probabilística",
+    "href": "referencia.html#amostragem-probabilística",
+    "title": "Catálogo de Funções",
+    "section": "Amostragem Probabilística",
+    "text": "Amostragem Probabilística\n\n\n\n\n\n\n\nFunção\nDescrição\n\n\n\n\namostra_aleatoria()\nAmostragem AleatÃ³ria Simples (AAS). Seleciona uma amostra aleatÃ³ria simples de um conjunto de dados ou vetor, com ou sem reposiÃ§Ã£o.\n\n\namostra_estratificada()\nAmostragem Estratificada. Seleciona uma amostra estratificada de um data.frame, com suporte a trÃªs tipos de alocaÃ§Ã£o.\n\n\namostra_sistematica()\nAmostragem SistemÃ¡tica. Seleciona uma amostra sistemÃ¡tica a cada salto de k elementos a partir de um ponto inicial sorteado aleatoriamente.\n\n\namostra_conglomerados()\nAmostragem por Conglomerados (Clusters). Seleciona aleatoriamente conglomerados (grupos inteiros) de um data.frame, retornando todos os indivÃ­duos pertencentes aos conglomerados sorteados.\n\n\ntamanho_amostra()\nCÃ¡lculo de Tamanho Amostral Ã“timo. Calcula o tamanho mÃ­nimo de amostra necessÃ¡rio para estimar uma proporÃ§Ã£o ou uma mÃ©dia com nÃ­vel de confianÃ§a e margem de erro especificados."
+  },
+  {
+    "objectID": "referencia.html#visualização-e-gráficos-auxiliares",
+    "href": "referencia.html#visualização-e-gráficos-auxiliares",
+    "title": "Catálogo de Funções",
+    "section": "Visualização e Gráficos Auxiliares",
+    "text": "Visualização e Gráficos Auxiliares\n\n\n\n\n\n\n\nFunção\nDescrição\n\n\n\n\ntema_estatR()\nTema Padronizado do estatR. Aplica formatação limpa e profissional aos gráficos do ggplot2.\n\n\npaleta_estatR()\nPaleta de Cores do estatR. Aplica paletas de cores padronizadas aos gráficos ggplot2.\n\n\ngrafico_boxplot()\nGráfico de Boxplot Avançado. Cria um boxplot completo com opções de violino, dispersão, detecção de outliers, médias e personalização visual."
   }
 ]

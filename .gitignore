@@ -16,3 +16,6 @@
 # Cache devtools
 
 testes/
+
+/.quarto/
+**/*.quarto_ipynb

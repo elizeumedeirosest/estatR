@@ -65,7 +65,6 @@ pre > code.sourceCode > span > a:first-child::before { text-decoration: underlin
 
 
 <script src="../site_libs/quarto-nav/quarto-nav.js"></script>
-<script src="../site_libs/quarto-nav/headroom.min.js"></script>
 <script src="../site_libs/clipboard/clipboard.min.js"></script>
 <script src="../site_libs/quarto-search/autocomplete.umd.js"></script>
 <script src="../site_libs/quarto-search/fuse.min.js"></script>
@@ -78,14 +77,10 @@ pre > code.sourceCode > span > a:first-child::before { text-decoration: underlin
 <script src="../site_libs/quarto-html/tippy.umd.min.js"></script>
 <script src="../site_libs/quarto-html/anchor.min.js"></script>
 <link href="../site_libs/quarto-html/tippy.css" rel="stylesheet">
-<link href="../site_libs/quarto-html/quarto-syntax-highlighting-64a204ab8560d761af7679ceaba22944.css" rel="stylesheet" class="quarto-color-scheme" id="quarto-text-highlighting-styles">
-<link href="../site_libs/quarto-html/quarto-syntax-highlighting-dark-b85bc7c33db8c58e0ec93c3465666fed.css" rel="stylesheet" class="quarto-color-scheme quarto-color-alternate" id="quarto-text-highlighting-styles">
-<link href="../site_libs/quarto-html/quarto-syntax-highlighting-64a204ab8560d761af7679ceaba22944.css" rel="stylesheet" class="quarto-color-scheme-extra" id="quarto-text-highlighting-styles">
+<link href="../site_libs/quarto-html/quarto-syntax-highlighting-64a204ab8560d761af7679ceaba22944.css" rel="stylesheet" id="quarto-text-highlighting-styles">
 <script src="../site_libs/bootstrap/bootstrap.min.js"></script>
 <link href="../site_libs/bootstrap/bootstrap-icons.css" rel="stylesheet">
-<link href="../site_libs/bootstrap/bootstrap-711d5f0cb2eecbce4b54be160a5a7e6e.min.css" rel="stylesheet" append-hash="true" class="quarto-color-scheme" id="quarto-bootstrap" data-mode="light">
-<link href="../site_libs/bootstrap/bootstrap-dark-4275d7de9d7afaebafdd53a5eb10d6d4.min.css" rel="stylesheet" append-hash="true" class="quarto-color-scheme quarto-color-alternate" id="quarto-bootstrap" data-mode="dark">
-<link href="../site_libs/bootstrap/bootstrap-711d5f0cb2eecbce4b54be160a5a7e6e.min.css" rel="stylesheet" append-hash="true" class="quarto-color-scheme-extra" id="quarto-bootstrap" data-mode="light">
+<link href="../site_libs/bootstrap/bootstrap-574f58f4068bb8f43535e6e9c10c5508.min.css" rel="stylesheet" append-hash="true" id="quarto-bootstrap" data-mode="light">
 <script id="quarto-search-options" type="application/json">{
   "location": "navbar",
   "copy-button": false,
@@ -148,179 +143,13 @@ window.Quarto = {
 <link rel="stylesheet" href="../styles.css">
 </head>
 
-<body class="nav-sidebar docked nav-fixed quarto-light"><script id="quarto-html-before-body" type="application/javascript">
-    const toggleBodyColorMode = (bsSheetEl) => {
-      const mode = bsSheetEl.getAttribute("data-mode");
-      const bodyEl = window.document.querySelector("body");
-      if (mode === "dark") {
-        bodyEl.classList.add("quarto-dark");
-        bodyEl.classList.remove("quarto-light");
-      } else {
-        bodyEl.classList.add("quarto-light");
-        bodyEl.classList.remove("quarto-dark");
-      }
-    }
-    const toggleBodyColorPrimary = () => {
-      const bsSheetEl = window.document.querySelector("link#quarto-bootstrap:not([rel=disabled-stylesheet])");
-      if (bsSheetEl) {
-        toggleBodyColorMode(bsSheetEl);
-      }
-    }
-    const setColorSchemeToggle = (alternate) => {
-      const toggles = window.document.querySelectorAll('.quarto-color-scheme-toggle');
-      for (let i=0; i < toggles.length; i++) {
-        const toggle = toggles[i];
-        if (toggle) {
-          if (alternate) {
-            toggle.classList.add("alternate");
-          } else {
-            toggle.classList.remove("alternate");
-          }
-        }
-      }
-    };
-    const toggleColorMode = (alternate) => {
-      // Switch the stylesheets
-      const primaryStylesheets = window.document.querySelectorAll('link.quarto-color-scheme:not(.quarto-color-alternate)');
-      const alternateStylesheets = window.document.querySelectorAll('link.quarto-color-scheme.quarto-color-alternate');
-      manageTransitions('#quarto-margin-sidebar .nav-link', false);
-      if (alternate) {
-        // note: dark is layered on light, we don't disable primary!
-        enableStylesheet(alternateStylesheets);
-        for (const sheetNode of alternateStylesheets) {
-          if (sheetNode.id === "quarto-bootstrap") {
-            toggleBodyColorMode(sheetNode);
-          }
-        }
-      } else {
-        disableStylesheet(alternateStylesheets);
-        enableStylesheet(primaryStylesheets)
-        toggleBodyColorPrimary();
-      }
-      manageTransitions('#quarto-margin-sidebar .nav-link', true);
-      // Switch the toggles
-      setColorSchemeToggle(alternate)
-      // Hack to workaround the fact that safari doesn't
-      // properly recolor the scrollbar when toggling (#1455)
-      if (navigator.userAgent.indexOf('Safari') > 0 && navigator.userAgent.indexOf('Chrome') == -1) {
-        manageTransitions("body", false);
-        window.scrollTo(0, 1);
-        setTimeout(() => {
-          window.scrollTo(0, 0);
-          manageTransitions("body", true);
-        }, 40);
-      }
-    }
-    const disableStylesheet = (stylesheets) => {
-      for (let i=0; i < stylesheets.length; i++) {
-        const stylesheet = stylesheets[i];
-        stylesheet.rel = 'disabled-stylesheet';
-      }
-    }
-    const enableStylesheet = (stylesheets) => {
-      for (let i=0; i < stylesheets.length; i++) {
-        const stylesheet = stylesheets[i];
-        if(stylesheet.rel !== 'stylesheet') { // for Chrome, which will still FOUC without this check
-          stylesheet.rel = 'stylesheet';
-        }
-      }
-    }
-    const manageTransitions = (selector, allowTransitions) => {
-      const els = window.document.querySelectorAll(selector);
-      for (let i=0; i < els.length; i++) {
-        const el = els[i];
-        if (allowTransitions) {
-          el.classList.remove('notransition');
-        } else {
-          el.classList.add('notransition');
-        }
-      }
-    }
-    const isFileUrl = () => {
-      return window.location.protocol === 'file:';
-    }
-    const hasAlternateSentinel = () => {
-      let styleSentinel = getColorSchemeSentinel();
-      if (styleSentinel !== null) {
-        return styleSentinel === "alternate";
-      } else {
-        return false;
-      }
-    }
-    const setStyleSentinel = (alternate) => {
-      const value = alternate ? "alternate" : "default";
-      if (!isFileUrl()) {
-        window.localStorage.setItem("quarto-color-scheme", value);
-      } else {
-        localAlternateSentinel = value;
-      }
-    }
-    const getColorSchemeSentinel = () => {
-      if (!isFileUrl()) {
-        const storageValue = window.localStorage.getItem("quarto-color-scheme");
-        return storageValue != null ? storageValue : localAlternateSentinel;
-      } else {
-        return localAlternateSentinel;
-      }
-    }
-    const toggleGiscusIfUsed = (isAlternate, darkModeDefault) => {
-      const baseTheme = document.querySelector('#giscus-base-theme')?.value ?? 'light';
-      const alternateTheme = document.querySelector('#giscus-alt-theme')?.value ?? 'dark';
-      let newTheme = '';
-      if(authorPrefersDark) {
-        newTheme = isAlternate ? baseTheme : alternateTheme;
-      } else {
-        newTheme = isAlternate ? alternateTheme : baseTheme;
-      }
-      const changeGiscusTheme = () => {
-        // From: https://github.com/giscus/giscus/issues/336
-        const sendMessage = (message) => {
-          const iframe = document.querySelector('iframe.giscus-frame');
-          if (!iframe) return;
-          iframe.contentWindow.postMessage({ giscus: message }, 'https://giscus.app');
-        }
-        sendMessage({
-          setConfig: {
-            theme: newTheme
-          }
-        });
-      }
-      const isGiscussLoaded = window.document.querySelector('iframe.giscus-frame') !== null;
-      if (isGiscussLoaded) {
-        changeGiscusTheme();
-      }
-    };
-    const authorPrefersDark = false;
-    const darkModeDefault = authorPrefersDark;
-      document.querySelector('link#quarto-text-highlighting-styles.quarto-color-scheme-extra').rel = 'disabled-stylesheet';
-      document.querySelector('link#quarto-bootstrap.quarto-color-scheme-extra').rel = 'disabled-stylesheet';
-    let localAlternateSentinel = darkModeDefault ? 'alternate' : 'default';
-    // Dark / light mode switch
-    window.quartoToggleColorScheme = () => {
-      // Read the current dark / light value
-      let toAlternate = !hasAlternateSentinel();
-      toggleColorMode(toAlternate);
-      setStyleSentinel(toAlternate);
-      toggleGiscusIfUsed(toAlternate, darkModeDefault);
-      window.dispatchEvent(new Event('resize'));
-    };
-    // Switch to dark mode if need be
-    if (hasAlternateSentinel()) {
-      toggleColorMode(true);
-    } else {
-      toggleColorMode(false);
-    }
-  </script>
+<body class="nav-fixed fullcontent quarto-light">
 
 <div id="quarto-search-results"></div>
   <header id="quarto-header" class="headroom fixed-top">
     <nav class="navbar navbar-expand-lg " data-bs-theme="dark">
       <div class="navbar-container container-fluid">
       <div class="navbar-brand-container mx-auto">
-    <a href="../index.html" class="navbar-brand navbar-brand-logo">
-    <img src="../man/figures/logo.svg" alt="" class="navbar-logo light-content">
-    <img src="../man/figures/logo.svg" alt="" class="navbar-logo dark-content">
-    </a>
     <a class="navbar-brand" href="../index.html">
     <span class="navbar-title">estatR</span>
     </a>
@@ -336,8 +165,8 @@ window.Quarto = {
 <span class="menu-text">Início</span></a>
   </li>  
   <li class="nav-item">
-    <a class="nav-link active" href="../guia_rapido.html" aria-current="page"> 
-<span class="menu-text">Guia Rápido</span></a>
+    <a class="nav-link" href="../sobre.html"> 
+<span class="menu-text">Sobre o estatR</span></a>
   </li>  
   <li class="nav-item dropdown ">
     <a class="nav-link dropdown-toggle" href="#" id="nav-menu-módulos" role="link" data-bs-toggle="dropdown" aria-expanded="false">
@@ -350,7 +179,7 @@ window.Quarto = {
   </li>  
         <li>
     <a class="dropdown-item" href="../modulos/inferencia.html">
- <span class="dropdown-text">Inferência e Testes</span></a>
+ <span class="dropdown-text">Testes de Hipótese</span></a>
   </li>  
         <li>
     <a class="dropdown-item" href="../modulos/intervalos.html">
@@ -366,7 +195,7 @@ window.Quarto = {
   </li>  
         <li>
     <a class="dropdown-item" href="../modulos/mlg.html">
- <span class="dropdown-text">Modelos Lineares Generalizados (MLG)</span></a>
+ <span class="dropdown-text">Modelos Generalizados (MLG)</span></a>
   </li>  
         <li>
     <a class="dropdown-item" href="../modulos/series_temporais.html">
@@ -378,7 +207,7 @@ window.Quarto = {
   </li>  
         <li>
     <a class="dropdown-item" href="../modulos/experimentos.html">
- <span class="dropdown-text">Planejamento Experimental</span></a>
+ <span class="dropdown-text">Delineamentos Experimentais</span></a>
   </li>  
         <li>
     <a class="dropdown-item" href="../modulos/aprendizado_maquina.html">
@@ -390,10 +219,6 @@ window.Quarto = {
   </li>  
     </ul>
   </li>
-  <li class="nav-item">
-    <a class="nav-link" href="../referencia.html"> 
-<span class="menu-text">Referência (120+ Funções)</span></a>
-  </li>  
 </ul>
             <ul class="navbar-nav navbar-nav-scroll ms-auto">
   <li class="nav-item compact">
@@ -404,182 +229,19 @@ window.Quarto = {
 </ul>
           </div> <!-- /navcollapse -->
             <div class="quarto-navbar-tools">
-  <a href="" class="quarto-color-scheme-toggle quarto-navigation-tool  px-1" onclick="window.quartoToggleColorScheme(); return false;" title="Toggle dark mode"><i class="bi"></i></a>
 </div>
       </div> <!-- /container-fluid -->
     </nav>
-  <nav class="quarto-secondary-nav">
-    <div class="container-fluid d-flex">
-      <button type="button" class="quarto-btn-toggle btn" data-bs-toggle="collapse" role="button" data-bs-target=".quarto-sidebar-collapse-item" aria-controls="quarto-sidebar" aria-expanded="false" aria-label="Toggle sidebar navigation" onclick="if (window.quartoToggleHeadroom) { window.quartoToggleHeadroom(); }">
-        <i class="bi bi-layout-text-sidebar-reverse"></i>
-      </button>
-        <nav class="quarto-page-breadcrumbs" aria-label="breadcrumb"><ol class="breadcrumb"><li class="breadcrumb-item"><a href="../modulos/regressao.html">Modelagem Estatística</a></li><li class="breadcrumb-item"><a href="../modulos/mlg.html">Modelos Generalizados (MLG)</a></li></ol></nav>
-        <a class="flex-grow-1" role="navigation" data-bs-toggle="collapse" data-bs-target=".quarto-sidebar-collapse-item" aria-controls="quarto-sidebar" aria-expanded="false" aria-label="Toggle sidebar navigation" onclick="if (window.quartoToggleHeadroom) { window.quartoToggleHeadroom(); }">      
-        </a>
-    </div>
-  </nav>
 </header>
 <!-- content -->
 <div id="quarto-content" class="quarto-container page-columns page-rows-contents page-layout-article page-navbar">
 <!-- sidebar -->
-  <nav id="quarto-sidebar" class="sidebar collapse collapse-horizontal quarto-sidebar-collapse-item sidebar-navigation docked overflow-auto">
-    <div class="sidebar-menu-container"> 
-    <ul class="list-unstyled mt-1">
-        <li class="sidebar-item">
-  <div class="sidebar-item-container"> 
-  <a href="../guia_rapido.html" class="sidebar-item-text sidebar-link">
- <span class="menu-text">Guia de Instalação</span></a>
-  </div>
-</li>
-        <li class="sidebar-item sidebar-item-section">
-      <div class="sidebar-item-container"> 
-            <a class="sidebar-item-text sidebar-link text-start" data-bs-toggle="collapse" data-bs-target="#quarto-sidebar-section-1" role="navigation" aria-expanded="true">
- <span class="menu-text">Análise Exploratória</span></a>
-          <a class="sidebar-item-toggle text-start" data-bs-toggle="collapse" data-bs-target="#quarto-sidebar-section-1" role="navigation" aria-expanded="true" aria-label="Toggle section">
-            <i class="bi bi-chevron-right ms-2"></i>
-          </a> 
-      </div>
-      <ul id="quarto-sidebar-section-1" class="collapse list-unstyled sidebar-section depth1 show">  
-          <li class="sidebar-item">
-  <div class="sidebar-item-container"> 
-  <a href="../modulos/descritiva.html" class="sidebar-item-text sidebar-link">
- <span class="menu-text">Diagnóstico e Descritiva</span></a>
-  </div>
-</li>
-          <li class="sidebar-item">
-  <div class="sidebar-item-container"> 
-  <a href="../modulos/amostragem.html" class="sidebar-item-text sidebar-link">
- <span class="menu-text">Amostragem Probabilística</span></a>
-  </div>
-</li>
-      </ul>
-  </li>
-        <li class="sidebar-item sidebar-item-section">
-      <div class="sidebar-item-container"> 
-            <a class="sidebar-item-text sidebar-link text-start" data-bs-toggle="collapse" data-bs-target="#quarto-sidebar-section-2" role="navigation" aria-expanded="true">
- <span class="menu-text">Inferência Estatística</span></a>
-          <a class="sidebar-item-toggle text-start" data-bs-toggle="collapse" data-bs-target="#quarto-sidebar-section-2" role="navigation" aria-expanded="true" aria-label="Toggle section">
-            <i class="bi bi-chevron-right ms-2"></i>
-          </a> 
-      </div>
-      <ul id="quarto-sidebar-section-2" class="collapse list-unstyled sidebar-section depth1 show">  
-          <li class="sidebar-item">
-  <div class="sidebar-item-container"> 
-  <a href="../modulos/inferencia.html" class="sidebar-item-text sidebar-link">
- <span class="menu-text">Testes de Hipótese</span></a>
-  </div>
-</li>
-          <li class="sidebar-item">
-  <div class="sidebar-item-container"> 
-  <a href="../modulos/intervalos.html" class="sidebar-item-text sidebar-link">
- <span class="menu-text">Intervalos de Confiança</span></a>
-  </div>
-</li>
-          <li class="sidebar-item">
-  <div class="sidebar-item-container"> 
-  <a href="../modulos/probabilidade.html" class="sidebar-item-text sidebar-link">
- <span class="menu-text">Probabilidade e Simulação</span></a>
-  </div>
-</li>
-      </ul>
-  </li>
-        <li class="sidebar-item sidebar-item-section">
-      <div class="sidebar-item-container"> 
-            <a class="sidebar-item-text sidebar-link text-start" data-bs-toggle="collapse" data-bs-target="#quarto-sidebar-section-3" role="navigation" aria-expanded="true">
- <span class="menu-text">Modelagem Estatística</span></a>
-          <a class="sidebar-item-toggle text-start" data-bs-toggle="collapse" data-bs-target="#quarto-sidebar-section-3" role="navigation" aria-expanded="true" aria-label="Toggle section">
-            <i class="bi bi-chevron-right ms-2"></i>
-          </a> 
-      </div>
-      <ul id="quarto-sidebar-section-3" class="collapse list-unstyled sidebar-section depth1 show">  
-          <li class="sidebar-item">
-  <div class="sidebar-item-container"> 
-  <a href="../modulos/regressao.html" class="sidebar-item-text sidebar-link">
- <span class="menu-text">Regressão Linear Clássica</span></a>
-  </div>
-</li>
-          <li class="sidebar-item">
-  <div class="sidebar-item-container"> 
-  <a href="../modulos/mlg.html" class="sidebar-item-text sidebar-link active">
- <span class="menu-text">Modelos Generalizados (MLG)</span></a>
-  </div>
-</li>
-          <li class="sidebar-item">
-  <div class="sidebar-item-container"> 
-  <a href="../modulos/series_temporais.html" class="sidebar-item-text sidebar-link">
- <span class="menu-text">Séries Temporais</span></a>
-  </div>
-</li>
-      </ul>
-  </li>
-        <li class="sidebar-item sidebar-item-section">
-      <div class="sidebar-item-container"> 
-            <a class="sidebar-item-text sidebar-link text-start" data-bs-toggle="collapse" data-bs-target="#quarto-sidebar-section-4" role="navigation" aria-expanded="true">
- <span class="menu-text">Métodos Avançados</span></a>
-          <a class="sidebar-item-toggle text-start" data-bs-toggle="collapse" data-bs-target="#quarto-sidebar-section-4" role="navigation" aria-expanded="true" aria-label="Toggle section">
-            <i class="bi bi-chevron-right ms-2"></i>
-          </a> 
-      </div>
-      <ul id="quarto-sidebar-section-4" class="collapse list-unstyled sidebar-section depth1 show">  
-          <li class="sidebar-item">
-  <div class="sidebar-item-container"> 
-  <a href="../modulos/multivariada.html" class="sidebar-item-text sidebar-link">
- <span class="menu-text">Análise Multivariada</span></a>
-  </div>
-</li>
-          <li class="sidebar-item">
-  <div class="sidebar-item-container"> 
-  <a href="../modulos/experimentos.html" class="sidebar-item-text sidebar-link">
- <span class="menu-text">Delineamentos Experimentais</span></a>
-  </div>
-</li>
-          <li class="sidebar-item">
-  <div class="sidebar-item-container"> 
-  <a href="../modulos/aprendizado_maquina.html" class="sidebar-item-text sidebar-link">
- <span class="menu-text">Machine Learning &amp; Sobrevivência</span></a>
-  </div>
-</li>
-      </ul>
-  </li>
-        <li class="sidebar-item">
-  <div class="sidebar-item-container"> 
-  <a href="../referencia.html" class="sidebar-item-text sidebar-link">
- <span class="menu-text">Catálogo Completo de Funções</span></a>
-  </div>
-</li>
-    </ul>
-    </div>
-</nav>
-<div id="quarto-sidebar-glass" class="quarto-sidebar-collapse-item" data-bs-toggle="collapse" data-bs-target=".quarto-sidebar-collapse-item"></div>
 <!-- margin-sidebar -->
-    <div id="quarto-margin-sidebar" class="sidebar margin-sidebar">
-        <nav id="TOC" role="doc-toc" class="toc-active">
-    <h2 id="toc-title">Nesta Página</h2>
-   
-  <ul>
-  <li><a href="#visão-geral-do-módulo" id="toc-visão-geral-do-módulo" class="nav-link active" data-scroll-target="#visão-geral-do-módulo">Visão Geral do Módulo</a></li>
-  <li><a href="#modelos-para-variáveis-binárias" id="toc-modelos-para-variáveis-binárias" class="nav-link" data-scroll-target="#modelos-para-variáveis-binárias">Modelos para Variáveis Binárias</a>
-  <ul class="collapse">
-  <li><a href="#regressão-logística-cutoff-ótimo" id="toc-regressão-logística-cutoff-ótimo" class="nav-link" data-scroll-target="#regressão-logística-cutoff-ótimo">Regressão Logística &amp; Cutoff Ótimo</a></li>
-  </ul></li>
-  <li><a href="#modelos-para-dados-de-contagem" id="toc-modelos-para-dados-de-contagem" class="nav-link" data-scroll-target="#modelos-para-dados-de-contagem">Modelos para Dados de Contagem</a>
-  <ul class="collapse">
-  <li><a href="#poisson-binomial-negativa" id="toc-poisson-binomial-negativa" class="nav-link" data-scroll-target="#poisson-binomial-negativa">Poisson &amp; Binomial Negativa</a></li>
-  </ul></li>
-  <li><a href="#modelos-para-dados-contínuos-positivos-e-taxas" id="toc-modelos-para-dados-contínuos-positivos-e-taxas" class="nav-link" data-scroll-target="#modelos-para-dados-contínuos-positivos-e-taxas">Modelos para Dados Contínuos Positivos e Taxas</a>
-  <ul class="collapse">
-  <li><a href="#regressão-gama" id="toc-regressão-gama" class="nav-link" data-scroll-target="#regressão-gama">Regressão Gama</a></li>
-  <li><a href="#regressão-beta" id="toc-regressão-beta" class="nav-link" data-scroll-target="#regressão-beta">Regressão Beta</a></li>
-  </ul></li>
-  <li><a href="#diagnóstico-residual-em-mlg" id="toc-diagnóstico-residual-em-mlg" class="nav-link" data-scroll-target="#diagnóstico-residual-em-mlg">Diagnóstico Residual em MLG</a></li>
-  </ul>
-</nav>
-    </div>
+    
 <!-- main -->
 <main class="content" id="quarto-document-content">
 
-
-<header id="title-block-header" class="quarto-title-block default"><nav class="quarto-page-breadcrumbs quarto-title-breadcrumbs d-none d-lg-block" aria-label="breadcrumb"><ol class="breadcrumb"><li class="breadcrumb-item"><a href="../modulos/regressao.html">Modelagem Estatística</a></li><li class="breadcrumb-item"><a href="../modulos/mlg.html">Modelos Generalizados (MLG)</a></li></ol></nav>
+<header id="title-block-header" class="quarto-title-block default">
 <div class="quarto-title">
 <h1 class="title">Modelos Lineares Generalizados (MLG)</h1>
 <p class="subtitle lead">Regressão logística, Poisson, Binomial Negativa, Gama e Beta com cutoff de Youden</p>
@@ -599,19 +261,13 @@ window.Quarto = {
 </header>
 
 
-<section id="visão-geral-do-módulo" class="level2">
-<h2 class="anchored" data-anchor-id="visão-geral-do-módulo">Visão Geral do Módulo</h2>
-<p>O módulo de MLG do <strong>estatR</strong> abrange as principais famílias exponenciais de dispersão, incorporando recursos avançados como detecção de superdispersão, inflação de zeros (<em>Zero-inflated</em> e <em>Hurdle</em>), modelos de probabilidade com ponto de corte ótimo baseado no <strong>Índice de Youden</strong> (<span class="math inline">\(J = \text{Sensibilidade} + \text{Especificidade} - 1\)</span>) e análise residual em 4 gráficos.</p>
-<hr>
-</section>
 <section id="modelos-para-variáveis-binárias" class="level2">
 <h2 class="anchored" data-anchor-id="modelos-para-variáveis-binárias">Modelos para Variáveis Binárias</h2>
 <section id="regressão-logística-cutoff-ótimo" class="level3">
 <h3 class="anchored" data-anchor-id="regressão-logística-cutoff-ótimo">Regressão Logística &amp; Cutoff Ótimo</h3>
-<p>Ajusta modelos logísticos binários e calcula automaticamente o ponto de corte ideal:</p>
 <div class="code-copy-outer-scaffold"><div class="sourceCode" id="cb1"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb1-1"><a href="#cb1-1" aria-hidden="true" tabindex="-1"></a>modelo_log <span class="ot">&lt;-</span> <span class="fu">regressao_logistica</span>(am <span class="sc">~</span> mpg <span class="sc">+</span> hp, <span class="at">dados =</span> mtcars)</span>
 <span id="cb1-2"><a href="#cb1-2" aria-hidden="true" tabindex="-1"></a></span>
-<span id="cb1-3"><a href="#cb1-3" aria-hidden="true" tabindex="-1"></a><span class="co"># Métricas com matriz de confusão, AUC-ROC e cutoff ótimo de Youden</span></span>
+<span id="cb1-3"><a href="#cb1-3" aria-hidden="true" tabindex="-1"></a><span class="co"># Matriz de confusão, AUC-ROC e cutoff ótimo de Youden</span></span>
 <span id="cb1-4"><a href="#cb1-4" aria-hidden="true" tabindex="-1"></a><span class="fu">metricas_logistica</span>(modelo_log, <span class="at">ponto_corte =</span> <span class="st">"youden"</span>)</span></code></pre></div><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></div>
 <hr>
 </section>
@@ -620,32 +276,30 @@ window.Quarto = {
 <h2 class="anchored" data-anchor-id="modelos-para-dados-de-contagem">Modelos para Dados de Contagem</h2>
 <section id="poisson-binomial-negativa" class="level3">
 <h3 class="anchored" data-anchor-id="poisson-binomial-negativa">Poisson &amp; Binomial Negativa</h3>
-<p>Para dados de contagens discretas, com checagem automática de superdispersão:</p>
-<div class="code-copy-outer-scaffold"><div class="sourceCode" id="cb2"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb2-1"><a href="#cb2-1" aria-hidden="true" tabindex="-1"></a><span class="co"># Regressão de Poisson</span></span>
+<div class="code-copy-outer-scaffold"><div class="sourceCode" id="cb2"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb2-1"><a href="#cb2-1" aria-hidden="true" tabindex="-1"></a><span class="co"># Poisson</span></span>
 <span id="cb2-2"><a href="#cb2-2" aria-hidden="true" tabindex="-1"></a>mod_pois <span class="ot">&lt;-</span> <span class="fu">regressao_poisson</span>(num_visitas <span class="sc">~</span> idade <span class="sc">+</span> renda, <span class="at">dados =</span> dados_saude)</span>
 <span id="cb2-3"><a href="#cb2-3" aria-hidden="true" tabindex="-1"></a></span>
-<span id="cb2-4"><a href="#cb2-4" aria-hidden="true" tabindex="-1"></a><span class="co"># Regressão Binomial Negativa (para contagens superdispersas)</span></span>
+<span id="cb2-4"><a href="#cb2-4" aria-hidden="true" tabindex="-1"></a><span class="co"># Binomial Negativa (para contagens superdispersas)</span></span>
 <span id="cb2-5"><a href="#cb2-5" aria-hidden="true" tabindex="-1"></a>mod_nb <span class="ot">&lt;-</span> <span class="fu">regressao_binomial_negativa</span>(num_visitas <span class="sc">~</span> idade <span class="sc">+</span> renda, <span class="at">dados =</span> dados_saude)</span></code></pre></div><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></div>
 <hr>
 </section>
 </section>
-<section id="modelos-para-dados-contínuos-positivos-e-taxas" class="level2">
-<h2 class="anchored" data-anchor-id="modelos-para-dados-contínuos-positivos-e-taxas">Modelos para Dados Contínuos Positivos e Taxas</h2>
+<section id="modelos-para-dados-contínuos-e-taxas" class="level2">
+<h2 class="anchored" data-anchor-id="modelos-para-dados-contínuos-e-taxas">Modelos para Dados Contínuos e Taxas</h2>
 <section id="regressão-gama" class="level3">
 <h3 class="anchored" data-anchor-id="regressão-gama">Regressão Gama</h3>
-<p>Ideal para respostas estritamente positivas e assimétricas à direita (ex: custos, tempo de reação, consumo):</p>
+<p>Para respostas estritamente positivas e assimétricas (custos, tempo de reação):</p>
 <div class="code-copy-outer-scaffold"><div class="sourceCode" id="cb3"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb3-1"><a href="#cb3-1" aria-hidden="true" tabindex="-1"></a>mod_gama <span class="ot">&lt;-</span> <span class="fu">regressao_gama</span>(custo <span class="sc">~</span> idade <span class="sc">+</span> tratamento, <span class="at">dados =</span> dados_hospital)</span></code></pre></div><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></div>
 </section>
 <section id="regressão-beta" class="level3">
 <h3 class="anchored" data-anchor-id="regressão-beta">Regressão Beta</h3>
-<p>Para respostas contínuas limitadas no intervalo aberto <span class="math inline">\((0, 1)\)</span> (ex: taxas, índices, proporções contínuas):</p>
+<p>Para respostas no intervalo aberto <span class="math inline">\((0, 1)\)</span> (taxas, índices, proporções contínuas):</p>
 <div class="code-copy-outer-scaffold"><div class="sourceCode" id="cb4"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb4-1"><a href="#cb4-1" aria-hidden="true" tabindex="-1"></a>mod_beta <span class="ot">&lt;-</span> <span class="fu">regressao_beta</span>(taxa_conclusao <span class="sc">~</span> investimento <span class="sc">+</span> regiao, <span class="at">dados =</span> dados_escolas)</span></code></pre></div><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></div>
 <hr>
 </section>
 </section>
 <section id="diagnóstico-residual-em-mlg" class="level2">
 <h2 class="anchored" data-anchor-id="diagnóstico-residual-em-mlg">Diagnóstico Residual em MLG</h2>
-<p>Assim como nos modelos lineares clássicos, todos os modelos generalizados contam com análise residual especializada em 4 gráficos:</p>
 <div class="code-copy-outer-scaffold"><div class="sourceCode" id="cb5"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb5-1"><a href="#cb5-1" aria-hidden="true" tabindex="-1"></a><span class="fu">analise_residual</span>(modelo_log, <span class="at">grade =</span> <span class="st">"dupla"</span>)</span>
 <span id="cb5-2"><a href="#cb5-2" aria-hidden="true" tabindex="-1"></a><span class="fu">analise_residual</span>(mod_pois, <span class="at">grade =</span> <span class="st">"dupla"</span>)</span></code></pre></div><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></div>
 
@@ -655,19 +309,6 @@ window.Quarto = {
 </main> <!-- /main -->
 <script id="quarto-html-after-body" type="application/javascript">
   window.document.addEventListener("DOMContentLoaded", function (event) {
-    // Ensure there is a toggle, if there isn't float one in the top right
-    if (window.document.querySelector('.quarto-color-scheme-toggle') === null) {
-      const a = window.document.createElement('a');
-      a.classList.add('top-right');
-      a.classList.add('quarto-color-scheme-toggle');
-      a.href = "";
-      a.onclick = function() { try { window.quartoToggleColorScheme(); } catch {} return false; };
-      const i = window.document.createElement("i");
-      i.classList.add('bi');
-      a.appendChild(i);
-      window.document.body.appendChild(a);
-    }
-    setColorSchemeToggle(hasAlternateSentinel())
     const icon = "";
     const anchorJS = new window.AnchorJS();
     anchorJS.options = {
@@ -1070,24 +711,14 @@ window.Quarto = {
 <footer class="footer">
   <div class="nav-footer">
     <div class="nav-footer-left">
-<p>© 2026 estatR • Camada Estatística de Alto Padrão para R</p>
+<p>© 2026 estatR • Documentação Oficial</p>
 </div>   
     <div class="nav-footer-center">
       &nbsp;
     </div>
     <div class="nav-footer-right">
-      <ul class="footer-items list-unstyled">
-    <li class="nav-item compact">
-    <a class="nav-link" href="https://github.com/elizeumedeirosest/estatR">
-      <i class="bi bi-github" role="img">
-</i> 
-    </a>
-  </li>  
-    <li class="nav-item">
- Desenvolvido por Elizeu Medeiros
-  </li>  
-</ul>
-    </div>
+<p>Desenvolvido por Elizeu Medeiros</p>
+</div>
   </div>
 </footer>
 
