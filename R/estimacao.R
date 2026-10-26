@@ -1,4 +1,4 @@
-# ─────────────────────────────────────────────────────────────────────────────
+﻿# ─────────────────────────────────────────────────────────────────────────────
 # MÓDULO: ESTIMAÇÃO
 # Funções de Estimação por Máxima Verossimilhança (EMV) e Método dos Momentos
 # ─────────────────────────────────────────────────────────────────────────────
@@ -213,7 +213,7 @@ estimar_verossimilhanca <- function(x, distribuicao = c("normal", "poisson", "ex
                           fontface = "bold", color = "#D90429", parse = TRUE) +
         ggplot2::scale_y_continuous(expand = ggplot2::expansion(mult = c(0.05, 0.15))) +
         ggplot2::labs(title = titulo, subtitle = sub_txt,
-                      x = xlab_plot, y = "log L(\u03b8)", caption = "estatR") +
+                      x = xlab_plot, y = "log L(\u03b8)") +
         meu_tema(grade = "dupla")
 
       suppressMessages(print(p_plot))
@@ -381,7 +381,7 @@ estimar_momentos <- function(x, distribuicao = c("normal", "poisson", "exponenci
           ggplot2::labs(
             title    = sprintf("Ajuste Poisson — M\u00e9todo dos Momentos"),
             subtitle = sub_txt,
-            x = var_nome, y = "Propor\u00e7\u00e3o", caption = "estatR"
+            x = var_nome, y = "Propor\u00e7\u00e3o"
           ) +
           meu_tema(grade = "dupla")
       } else {
@@ -394,7 +394,7 @@ estimar_momentos <- function(x, distribuicao = c("normal", "poisson", "exponenci
           ggplot2::labs(
             title    = sprintf("Ajuste %s — M\u00e9todo dos Momentos", tools::toTitleCase(distribuicao)),
             subtitle = sub_txt,
-            x = var_nome, y = "Densidade", caption = "estatR"
+            x = var_nome, y = "Densidade"
           ) +
           meu_tema(grade = "dupla")
       }

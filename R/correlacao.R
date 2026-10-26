@@ -1,4 +1,4 @@
-#' @title Teste de Correlação (Bivariada)
+﻿#' @title Teste de Correlação (Bivariada)
 #' @description Realiza o teste de correlação entre duas variáveis.
 #' @param dados Data frame
 #' @param var1 Variável 1 (sem aspas)
@@ -101,7 +101,7 @@ teste_correlacao <- function(dados, var1, var2, metodo = c("pearson", "spearman"
       p_plot <- ggplot2::ggplot() + eval(chamada_grafico) +
         ggplot2::annotate("text", x = pos_x, y = pos_y, label = anotacao,
                           hjust = anc_h, vjust = anc_v, size = 6.5, fontface = "bold", color = "#333333") +
-        ggplot2::labs(title = sprintf("Correla\u00e7\u00e3o: %s vs %s", v2_str, v1_str), caption = "estatR") +
+        ggplot2::labs(title = sprintf("Correla\u00e7\u00e3o: %s vs %s", v2_str, v1_str)) +
         meu_tema()
       suppressMessages(print(p_plot))
       options(warn = old_w)
@@ -368,7 +368,7 @@ matriz_correlacao <- function(dados,
                   grafico_correlacao(data = df_num, metodo = metodo, sig = TRUE, 
                                      mostrar_val = TRUE, paleta = 1) + 
                   meu_tema(estilo = 3) + 
-                  ggplot2::labs(title = "Correlograma", caption = "estatR", fill = legenda_titulo)
+                  ggplot2::labs(title = "Correlograma", fill = legenda_titulo)
         suppressMessages(print(p_corr))
       }, error = function(e) {
         message("[Aviso] N\u00e3o foi poss\u00edvel gerar o correlograma: ", e$message)

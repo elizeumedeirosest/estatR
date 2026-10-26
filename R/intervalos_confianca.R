@@ -1,4 +1,4 @@
-# ─────────────────────────────────────────────────────────────────────────────
+﻿# ─────────────────────────────────────────────────────────────────────────────
 # MÓDULO: INTERVALOS DE CONFIANÇA
 # ─────────────────────────────────────────────────────────────────────────────
 
@@ -42,7 +42,7 @@
                       size = 4.5, fontface = "bold", color = "#D90429") +
     ggplot2::scale_y_continuous(limits = c(0.7, 1.3)) +
     ggplot2::scale_x_continuous(expand = ggplot2::expansion(mult = c(0.1, 0.1))) +
-    ggplot2::labs(title = titulo, subtitle = subtitulo, x = x_label, y = NULL, caption = "estatR") +
+    ggplot2::labs(title = titulo, subtitle = subtitulo, x = x_label, y = NULL) +
     meu_tema(estilo = 1, grade = "dupla") +
     ggplot2::theme(axis.text.y = ggplot2::element_blank(),
                    axis.ticks.y = ggplot2::element_blank(),

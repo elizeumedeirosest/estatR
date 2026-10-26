@@ -193,8 +193,7 @@ teste_t_uma_amostra <- function(x, mu, hipotese = c("bilateral", "maior", "menor
                                ifelse(p_val < 0.001, "<", "="), .th_fmt_p(p_val),
                                ifelse(nchar(p_ast) > 0, paste0(" ", p_ast), "")),
             x = "t",
-            y = "Densidade",
-            caption = "estatR"
+            y = "Densidade"
           ) +
           meu_tema(grade = "dupla")
 
@@ -389,8 +388,7 @@ teste_t_duas_amostras <- function(x, grupo, hipotese = c("bilateral", "maior", "
           ggplot2::labs(
             title    = sprintf("Comparação: %s por %s", var_nome, grupo_nome),
             x        = grupo_nome,
-            y        = var_nome,
-            caption  = "estatR"
+            y        = var_nome
           ) +
           meu_tema(estilo = 2, grade = "dupla") +
           ggplot2::theme(legend.position = "none")
@@ -548,7 +546,7 @@ teste_t_pareado <- function(x, y, hipotese = c("bilateral", "maior", "menor"),
           ggplot2::labs(
             title    = sprintf("Teste Pareado: %s vs %s", x_nome, y_nome),
             subtitle = p_sub,
-            x = "Momento", y = "Valor", color = NULL, caption = "estatR"
+            x = "Momento", y = "Valor", color = NULL
           ) +
           meu_tema()
         suppressMessages(print(p_plot))
@@ -682,7 +680,7 @@ teste_proporcao <- function(x, n, p0, hipotese = c("bilateral", "maior", "menor"
           ggplot2::labs(
             title    = "Distribuição Normal — Teste de Proporção (Z)",
             subtitle = p_sub,
-            x = "Z", y = "Densidade", caption = "estatR"
+            x = "Z", y = "Densidade"
           ) +
           meu_tema(grade = "dupla")
 
@@ -802,7 +800,7 @@ teste_wilcoxon <- function(x, y = NULL, mu = 0, hipotese = c("bilateral", "maior
             ggplot2::labs(
               title = sprintf("Teste de Wilcoxon: %s", x_nome),
               subtitle = p_sub,
-              x = x_nome, y = "Densidade", caption = "estatR"
+              x = x_nome, y = "Densidade"
             ) +
             meu_tema(estilo = 1, grade = "dupla")
           suppressMessages(print(p_plot))
@@ -818,7 +816,7 @@ teste_wilcoxon <- function(x, y = NULL, mu = 0, hipotese = c("bilateral", "maior
             ggplot2::labs(
               title = "Teste de Wilcoxon Pareado (Diferenças)",
               subtitle = p_sub,
-              x = "Diferença (x - y)", y = "Densidade", caption = "estatR"
+              x = "Diferença (x - y)", y = "Densidade"
             ) +
             meu_tema(grade = "dupla")
           suppressMessages(print(p_plot))
@@ -964,8 +962,7 @@ teste_mann_whitney <- function(x, grupo, hipotese = c("bilateral", "maior", "men
           ggplot2::labs(
             title    = sprintf("Teste de Mann-Whitney: %s por %s", x_nome, grupo_nome),
             x        = grupo_nome,
-            y        = x_nome,
-            caption  = "estatR"
+            y        = x_nome
           ) +
           meu_tema(grade = "dupla") +
           ggplot2::theme(legend.position = "none")
@@ -1067,7 +1064,7 @@ teste_qui_quadrado <- function(dados, var_x, var_y, confianca = 0.95, decimais =
         ggplot2::labs(
           title = sprintf("Associação: %s x %s", vx_nome, vy_nome),
           subtitle = sprintf("Qui-Quadrado = %.3f | p-valor %s", chi2, if (p_val < 0.001) "< 0,001" else paste0("= ", formatC(p_val, format="f", digits=3, decimal.mark=","))),
-          x = vx_nome, y = "Proporção", fill = vy_nome, caption = "estatR"
+          x = vx_nome, y = "Proporção", fill = vy_nome
         ) +
         meu_tema(estilo = 1, grade = "dupla")
       print(p_qui)
@@ -1163,7 +1160,7 @@ teste_levene <- function(x, grupo, confianca = 0.95, decimais = 2, grafico = TRU
         ggplot2::labs(
           title = "Teste de Levene: Desvios da Mediana por Grupo",
           subtitle = sprintf("F = %.3f | p-valor %s", f_stat, if (p_val < 0.001) "< 0,001" else paste0("= ", formatC(p_val, format="f", digits=3, decimal.mark=","))),
-          x = grupo_nome, y = "|y - Mediana|", caption = "estatR"
+          x = grupo_nome, y = "|y - Mediana|"
         ) +
         meu_tema(estilo = 2, grade = "dupla") +
         ggplot2::theme(legend.position = "none")

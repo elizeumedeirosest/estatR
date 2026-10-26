@@ -1,4 +1,4 @@
-# ==============================================================================
+﻿# ==============================================================================
 # MÓDULO: SÉRIES TEMPORAIS
 # Análise, Decomposição, Estacionariedade, Autocorrelação, Previsão e Seleção
 # ==============================================================================
@@ -223,12 +223,12 @@ analise_serie <- function(dados, y = NULL, data = NULL, frequencia = 12,
         ggplot2::facet_wrap(ggplot2::vars(Componente), ncol = 1, scales = "free_y", strip.position = "top") +
         ggplot2::labs(title = sprintf("Decomposição da Série Temporal (%s)", tools::toTitleCase(tipo)),
                       subtitle = "Componentes: Original, Tendência, Sazonalidade e Ruído",
-                      x = "Tempo", y = NULL, caption = "estatR") +
+                      x = "Tempo", y = NULL) +
         meu_tema(grade = "dupla")
     } else {
       p_final <- ggplot2::ggplot(data.frame(Tempo = tempos, Valor = as.numeric(ts_serie)), ggplot2::aes(x = Tempo, y = Valor)) +
         ggplot2::geom_line(color = "#3470a3", linewidth = 0.9) +
-        ggplot2::labs(title = "Série Temporal", x = "Tempo", y = "Valor", caption = "estatR") +
+        ggplot2::labs(title = "Série Temporal", x = "Tempo", y = "Valor") +
         meu_tema(grade = "dupla")
     }
 

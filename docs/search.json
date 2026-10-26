@@ -4,7 +4,7 @@
     "href": "sobre.html",
     "title": "Sobre o estatR",
     "section": "",
-    "text": "O estatR é uma camada estatística moderna para R, desenvolvida para unificar análises dispersas em um único ecossistema coerente, didático e de alto padrão editorial. O pacote nasce da necessidade prática de realizar análises completas — do diagnóstico descritivo à modelagem avançada — com sintaxe fluida, saídas legíveis no console e gráficos prontos para publicação.\n\n\n\nA estatística aplicada no R, em sua forma nativa, exige o domínio de dezenas de pacotes com interfaces distintas. O estatR resolve isso: uma função, um resultado, uma linguagem. As saídas são formatadas automaticamente em português, com alinhamento preciso de colunas, casas decimais padronizadas e notas interpretativas embutidas — prontas para teses, artigos e relatórios corporativos.\n\n\n\nOs 11 módulos do estatR estão organizados em 4 grandes áreas estatísticas:\n\n\n  \n     Exploratória & Amostragem\n    \n      Diagnóstico e Descritiva\n      Amostragem Probabilística\n    \n  \n\n  \n     Inferência & Probabilidade\n    \n      Testes de Hipótese\n      Intervalos de Confiança\n      Probabilidade e Simulação\n    \n  \n\n  \n     Modelagem & Séries Temporais\n    \n      Modelos Lineares e Regressão\n      Modelos Generalizados (MLG)\n      Séries Temporais\n    \n  \n\n  \n     Multivariada & Avançado\n    \n      Análise Multivariada\n      Delineamentos Experimentais\n      Machine Learning e Sobrevivência\n    \n  \n\n\n\n\n\nO estatR é distribuído como código aberto via GitHub. Contribuições, sugestões e relatórios de problemas são bem-vindos no repositório oficial."
+    "text": "O estatR é uma camada estatística moderna para R, desenvolvida para unificar análises dispersas em um único ecossistema coerente, didático e de alto padrão editorial. O pacote nasce da necessidade prática de realizar análises completas — do diagnóstico descritivo à modelagem avançada — com sintaxe fluida, saídas legíveis no console e gráficos prontos para publicação.\n\n\n\nA estatística aplicada no R, em sua forma nativa, exige o domínio de dezenas de pacotes com interfaces distintas. O estatR resolve isso: uma função, um resultado, uma linguagem. As saídas são formatadas automaticamente em português, com alinhamento preciso de colunas, casas decimais padronizadas e notas interpretativas embutidas — prontas para teses, artigos e relatórios corporativos.\n\n\n\nO pacote é organizado em 11 módulos especializados:\n\nDiagnóstico e Descritiva\nTestes de Hipótese\nIntervalos de Confiança\nProbabilidade e Simulação\nModelos Lineares e Regressão\nModelos Generalizados (MLG)\nSéries Temporais\nAnálise Multivariada\nDelineamentos Experimentais\nMachine Learning e Sobrevivência\nAmostragem Probabilística\n\n\n\n\nO estatR é distribuído como código aberto via GitHub. Contribuições, sugestões e relatórios de problemas são bem-vindos no repositório oficial."
   },
   {
     "objectID": "sobre.html#o-que-é-o-estatr",
@@ -21,11 +21,11 @@
     "text": "A estatística aplicada no R, em sua forma nativa, exige o domínio de dezenas de pacotes com interfaces distintas. O estatR resolve isso: uma função, um resultado, uma linguagem. As saídas são formatadas automaticamente em português, com alinhamento preciso de colunas, casas decimais padronizadas e notas interpretativas embutidas — prontas para teses, artigos e relatórios corporativos."
   },
   {
-    "objectID": "sobre.html#módulos-do-pacote",
-    "href": "sobre.html#módulos-do-pacote",
+    "objectID": "sobre.html#módulos",
+    "href": "sobre.html#módulos",
     "title": "Sobre o estatR",
     "section": "",
-    "text": "Os 11 módulos do estatR estão organizados em 4 grandes áreas estatísticas:\n\n\n  \n     Exploratória & Amostragem\n    \n      Diagnóstico e Descritiva\n      Amostragem Probabilística\n    \n  \n\n  \n     Inferência & Probabilidade\n    \n      Testes de Hipótese\n      Intervalos de Confiança\n      Probabilidade e Simulação\n    \n  \n\n  \n     Modelagem & Séries Temporais\n    \n      Modelos Lineares e Regressão\n      Modelos Generalizados (MLG)\n      Séries Temporais\n    \n  \n\n  \n     Multivariada & Avançado\n    \n      Análise Multivariada\n      Delineamentos Experimentais\n      Machine Learning e Sobrevivência"
+    "text": "O pacote é organizado em 11 módulos especializados:\n\nDiagnóstico e Descritiva\nTestes de Hipótese\nIntervalos de Confiança\nProbabilidade e Simulação\nModelos Lineares e Regressão\nModelos Generalizados (MLG)\nSéries Temporais\nAnálise Multivariada\nDelineamentos Experimentais\nMachine Learning e Sobrevivência\nAmostragem Probabilística"
   },
   {
     "objectID": "sobre.html#código-aberto",

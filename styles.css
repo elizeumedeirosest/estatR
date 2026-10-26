@@ -50,7 +50,6 @@ h2 { border-bottom: 1px solid var(--slate-200); padding-bottom: .5rem; }
 /* Textos explicativos com alinhamento justificado */
 .module-desc,
 .sobre-wrapper p,
-.sobre-wrapper li,
 .section-sub,
 .install-desc,
 .hero-tagline,
@@ -406,7 +405,7 @@ div.quarto-document-content p {
 }
 
 .install-pre {
-  background: #ffffff !important; /* fundo branco puro */
+  background: #ffffff !important;
   border: 1px solid #e2e8f0 !important;
   border-radius: var(--radius-md);
   padding: 1.5rem 1.75rem;
@@ -460,109 +459,72 @@ code:not([class]) {
   font-size: .85em;
 }
 
-/* ── Areas Grid (Página Sobre) ── */
-.areas-grid {
-  display: grid;
-  grid-template-columns: repeat(auto-fit, minmax(240px, 1fr));
-  gap: 1.25rem;
-  margin: 1.75rem 0 2.5rem;
-}
-
-.area-col {
-  background: #ffffff;
-  border: 1px solid var(--slate-200);
-  border-radius: var(--radius-md);
-  padding: 1.35rem 1.25rem;
-  box-shadow: 0 1px 3px rgba(0,0,0,0.03);
-  transition: border-color .2s, box-shadow .2s;
-}
-
-.area-col:hover {
-  border-color: #bfdbfe;
-  box-shadow: var(--shadow-sm);
-}
-
-.area-header {
-  font-size: 0.95rem;
-  font-weight: 700;
-  color: var(--brand-dark);
-  margin-bottom: 0.85rem;
-  display: flex;
-  align-items: center;
-  gap: 0.45rem;
-}
-
-.area-header i {
-  color: var(--brand-blue);
-  font-size: 1.15rem;
-}
-
-.area-list {
-  list-style: none;
-  padding: 0;
-  margin: 0;
-  display: flex;
-  flex-direction: column;
-  gap: 0.5rem;
-}
-
-.area-list li {
-  margin: 0;
-  padding: 0;
-}
-
-.area-list li a {
-  color: #2563eb;
-  font-size: 0.88rem;
-  font-weight: 500;
-  text-decoration: none;
-  transition: color .15s;
-}
-
-.area-list li a:hover {
-  color: #0071e3;
-  text-decoration: underline;
-}
-
-/* ── Footer (Compacto, texto centralizado e proporcional) ── */
-footer.footer,
-.nav-footer {
-  border-top: 1px solid #e2e8f0 !important;
-  padding: 1.15rem 1.5rem !important;
-  background: #ffffff !important;
-  font-size: 0.95rem !important;
-  margin: 0 !important;
-}
-
-.nav-footer .nav-footer-container {
-  display: flex !important;
-  justify-content: center !important;
-  align-items: center !important;
-  max-width: 1080px !important;
-  margin: 0 auto !important;
-  padding: 0 !important;
-  text-align: center !important;
-}
-
-.nav-footer-center,
-.nav-footer-left,
-.nav-footer-right {
-  display: flex !important;
-  align-items: center !important;
-  justify-content: center !important;
-  font-size: 0.95rem !important;
-  color: var(--slate-600) !important;
-  line-height: 1.5 !important;
-  margin: 0 !important;
-  padding: 0 !important;
-  text-align: center !important;
-}
-
 /* ── Sobre page ── */
 .sobre-wrapper {
   max-width: 780px;
   margin: 0 auto;
   padding: 2rem 0 4rem;
+}
+
+.sobre-wrapper ul {
+  padding-left: 1.5rem;
+  margin-bottom: 2rem;
+}
+
+.sobre-wrapper ul li {
+  margin-bottom: 0.5rem;
+  font-size: 1.02rem;
+}
+
+.sobre-wrapper ul li a {
+  color: #2563eb;
+  font-weight: 600;
+  text-decoration: none;
+  transition: color .15s;
+}
+
+.sobre-wrapper ul li a:hover {
+  color: #0071e3;
+  text-decoration: underline;
+}
+
+/* ── Footer padrão original ── */
+footer.footer,
+.nav-footer {
+  border-top: 1px solid var(--slate-200) !important;
+  padding: 1.5rem !important;
+  font-size: .85rem !important;
+  color: var(--slate-400) !important;
+  background: transparent !important;
+  margin: 0 !important;
+}
+
+.nav-footer .nav-footer-container {
+  display: flex !important;
+  justify-content: space-between !important;
+  align-items: center !important;
+  width: 100% !important;
+  max-width: 100% !important;
+  padding: 0 !important;
+}
+
+.nav-footer-left,
+.nav-footer-right {
+  display: flex !important;
+  align-items: center !important;
+  font-size: .85rem !important;
+  color: var(--slate-400) !important;
+  line-height: 1.5 !important;
+  margin: 0 !important;
+  padding: 0 !important;
+}
+
+@media (max-width: 768px) {
+  .nav-footer .nav-footer-container {
+    flex-direction: column !important;
+    gap: .5rem !important;
+    text-align: center !important;
+  }
 }
 
 /* ── Dropdown ── */

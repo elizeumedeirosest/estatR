@@ -1,4 +1,4 @@
-# ─────────────────────────────────────────────────────────────────────────────
+﻿# ─────────────────────────────────────────────────────────────────────────────
 # MÓDULO: PLANEJAMENTO E ANÁLISE DE EXPERIMENTOS (DIC)
 # ─────────────────────────────────────────────────────────────────────────────
 
@@ -1200,8 +1200,7 @@ grafico_regressao <- function(modelo) {
           title    = sprintf("Regressão Linear: %s vs %s", y_nm, x_nms[1]),
           subtitle = sprintf("R² = %.2f%%", r2_val * 100),
           x        = x_nms[1],
-          y        = y_nm,
-          caption  = "estatR"
+          y        = y_nm
         ) +
         meu_tema(grade = "dupla")
       return(p)
@@ -1215,8 +1214,7 @@ grafico_regressao <- function(modelo) {
           title    = "Valores Observados vs Ajustados",
           subtitle = sprintf("R² = %.2f%%", summary(modelo)$r.squared * 100),
           x        = "Valores Ajustados",
-          y        = "Valores Observados",
-          caption  = "estatR"
+          y        = "Valores Observados"
         ) +
         meu_tema(grade = "dupla")
       return(p)

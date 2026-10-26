@@ -1,4 +1,4 @@
-#' @title Regressão Linear Simples e Múltipla
+﻿#' @title Regressão Linear Simples e Múltipla
 #' @description Ajusta um modelo de regressão linear e retorna uma saída formatada com
 #'   ANOVA, coeficientes (com IC 95% e VIF), ajuste do modelo e interpretação automática.
 #' @param formula Fórmula do modelo (ex: \code{y ~ x} ou \code{y ~ x1 + x2})
@@ -293,8 +293,7 @@ regressao_linear <- function(formula, dados, grafico = TRUE, ...) {
           title    = sprintf("Regressão Linear: %s vs %s", y_name, x_names[1]),
           subtitle = sprintf("Modelo estimado com %d observações", nrow(df_p)),
           x        = x_names[1],
-          y        = y_name,
-          caption  = "estatR"
+          y        = y_name
         ) +
         meu_tema(grade = "dupla")
       suppressMessages(print(p_plot))
@@ -433,8 +432,7 @@ predicao <- function(modelo, novos_dados,
           title    = sprintf("Predição: %s vs %s", y_name, x_names[1]),
           subtitle = sprintf("Pontos em vermelho: valores preditos com intervalo de %s (%.0f%%)", nome_int, nivel * 100),
           x        = x_names[1],
-          y        = y_name,
-          caption  = "estatR"
+          y        = y_name
         ) +
         meu_tema(grade = "dupla")
       suppressMessages(print(p_plot))
@@ -738,8 +736,7 @@ analise_residual <- function(modelo, grafico = TRUE) {
                                 bins = 10, fill = "#555555", color = "black", alpha = 0.8) +
         ggplot2::geom_density(color = "#D90429", linewidth = 0.8) +
         ggplot2::labs(title = "Histograma dos Res\u00edduos",
-                      x = "Res\u00edduos Padronizados", y = "Densidade",
-                      caption = "estatR") +
+                      x = "Res\u00edduos Padronizados", y = "Densidade") +
         tema_painel
 
       if (requireNamespace("patchwork", quietly = TRUE)) {

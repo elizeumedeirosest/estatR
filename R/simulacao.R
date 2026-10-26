@@ -1,4 +1,4 @@
-# ─────────────────────────────────────────────────────────────────────────────
+﻿# ─────────────────────────────────────────────────────────────────────────────
 # MÓDULO: SIMULAÇÃO
 # Bootstrap, Teorema Central do Limite e Monte Carlo
 # ─────────────────────────────────────────────────────────────────────────────
@@ -432,8 +432,7 @@ simular_tcl <- function(x, n_amostra = 30, repeticoes = 1000, semente = NULL) {
         ggplot2::geom_line(data = df_norm, ggplot2::aes(x = x, y = y),
                            color = "#D90429", linewidth = 1.1) +
         ggplot2::labs(title = sprintf("Distribui\u00e7\u00e3o das M\u00e9dias\n(%d amostras, n = %d)", repeticoes, n_amostra),
-                      x = sprintf("M\u00e9dia de %s", var_nome), y = "Densidade",
-                      caption = "estatR") +
+                      x = sprintf("M\u00e9dia de %s", var_nome), y = "Densidade") +
         meu_tema(grade = "dupla")
 
       if (requireNamespace("patchwork", quietly = TRUE)) {
@@ -536,8 +535,7 @@ monte_carlo <- function(experimento, repeticoes = 10000, confianca = 0.95,
                              .sim_fmt(p_hat * 100, 2), confianca * 100,
                              .sim_fmt(linf * 100, 2), .sim_fmt(lsup * 100, 2)),
           x = "N\u00famero de Simula\u00e7\u00f5es",
-          y = "Probabilidade Acumulada (%)",
-          caption = "estatR"
+          y = "Probabilidade Acumulada (%)"
         ) +
         meu_tema(grade = "dupla")
 

@@ -1,4 +1,4 @@
-# ─────────────────────────────────────────────────────────────────────────────
+﻿# ─────────────────────────────────────────────────────────────────────────────
 # MÓDULO: REGRESSÃO LOGÍSTICA (BINOMIAL · MULTINOMIAL · ORDINAL)
 # ─────────────────────────────────────────────────────────────────────────────
 
@@ -468,8 +468,7 @@ regressao_logistica <- function(formula, dados, ligacao = "logit",
       ggplot2::scale_y_continuous(labels = scales::percent, limits = c(0, 1)) +
       ggplot2::labs(title = "Gráfico de Calibração",
                     subtitle = sprintf("Hosmer-Lemeshow: p = %s", .formata_p_local(hl$p.value)),
-                    x = "Probabilidade Prevista Média", y = "Proporção Observada",
-                    caption = "estatR") +
+                    x = "Probabilidade Prevista Média", y = "Proporção Observada") +
       tema_painel
     if (requireNamespace("patchwork", quietly = TRUE)) {
       suppressMessages(suppressWarnings(print(p1 | p2)))
@@ -639,8 +638,7 @@ regressao_logistica <- function(formula, dados, ligacao = "logit",
         ggplot2::scale_y_continuous(labels = scales::percent, limits = c(0, 1)) +
         ggplot2::labs(title = "Probabilidades Preditas por Categoria",
                       subtitle = sprintf("Variando '%s', demais fixos na mediana/moda", xv),
-                      x = xv, y = "Probabilidade Predita", color = y_name,
-                      caption = "estatR") +
+                      x = xv, y = "Probabilidade Predita", color = y_name) +
         tema_g
       suppressMessages(suppressWarnings(print(p_graf)))
     } else {
@@ -652,7 +650,7 @@ regressao_logistica <- function(formula, dados, ligacao = "logit",
         ggplot2::geom_col(alpha = 0.85, width = 0.6) +
         ggplot2::scale_y_continuous(labels = scales::percent) +
         ggplot2::labs(title = "Probabilidade Predita Média por Categoria",
-                      x = y_name, y = "Probabilidade Média", caption = "estatR") +
+                      x = y_name, y = "Probabilidade Média") +
         ggplot2::guides(fill = "none") +
         tema_g
       suppressMessages(suppressWarnings(print(p_graf)))
@@ -849,8 +847,7 @@ regressao_logistica <- function(formula, dados, ligacao = "logit",
         ggplot2::scale_y_continuous(labels = scales::percent, limits = c(0, 1)) +
         ggplot2::labs(title = "Probabilidades Preditas por Nível Ordinal",
                       subtitle = sprintf("Variando '%s', demais fixos na mediana/moda", xv),
-                      x = xv, y = "Probabilidade Predita", color = y_name,
-                      caption = "estatR") +
+                      x = xv, y = "Probabilidade Predita", color = y_name) +
         tema_g
       suppressMessages(suppressWarnings(print(p_graf)))
     }
@@ -1162,8 +1159,7 @@ analise_residual_logistica <- function(modelo, grafico = TRUE) {
       ggplot2::geom_hline(yintercept = 0, linetype = "dashed", color = "gray60") +
       ggplot2::geom_point(color = "#555555", alpha = 0.8) +
       ggplot2::labs(title = "Alavancagem vs Resíduo de Pearson",
-                    x = "Alavancagem (Leverage)", y = "Resíduo de Pearson",
-                    caption = "estatR") + tema_painel
+                    x = "Alavancagem (Leverage)", y = "Resíduo de Pearson") + tema_painel
     if (requireNamespace("patchwork", quietly = TRUE)) {
       suppressMessages(suppressWarnings(print((p1 | p2) / (p3 | p4))))
     } else {

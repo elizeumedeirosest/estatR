@@ -1,4 +1,4 @@
-#' @title Probabilidade da Distribuição Normal
+﻿#' @title Probabilidade da Distribuição Normal
 #' @description Calcula a probabilidade para uma distribuição Normal e gera o gráfico com a área sombreada.
 #' @param media Média teórica da distribuição.
 #' @param dp Desvio-padrão teórico.
@@ -83,8 +83,7 @@ prob_normal <- function(media = 0, dp = 1, q1 = NULL, q2 = NULL, tipo = c("menor
       ggplot2::geom_polygon(data = df_poly, ggplot2::aes(x = x, y = y), fill = "dodgerblue1", alpha = 0.6) +
       ggplot2::labs(title = titulo, 
                     subtitle = sprintf("Probabilidade: %.2f%%", prob * 100),
-                    x = "x", y = "Densidade",
-                    caption = "estatR")
+                    x = "x", y = "Densidade")
     
     if (exists("meu_tema")) {
       p <- p + meu_tema(estilo = 1)
@@ -242,7 +241,7 @@ gerar_amostra <- function(n, distribuicao = c("normal", "binomial", "poisson", "
       if (distribuicao == "weibull") p <- p + ggplot2::stat_function(fun = dweibull, args = list(shape=forma_weibull, scale=escala_weibull), color="#1F77B4", linewidth=1.2)
       texto_sub <- "Barras (Amostra) vs Curva (Teórica)"
     }
-    p <- p + ggplot2::labs(title = tit_graf, subtitle = texto_sub, y = if(distribuicao %in% c("binomial", "poisson")) "Proporção" else "Densidade", caption = "estatR")
+    p <- p + ggplot2::labs(title = tit_graf, subtitle = texto_sub, y = if(distribuicao %in% c("binomial", "poisson")) "Proporção" else "Densidade")
     if (exists("tema_estatR", mode = "function")) { p <- p + tema_estatR(estilo = 1, grade = "dupla") }
     else if (requireNamespace("estatR", quietly = TRUE)) { fn <- get("tema_estatR", envir = asNamespace("estatR")); p <- p + fn(estilo = 1, grade = "dupla") }
     else { p <- p + ggplot2::theme_minimal() }
@@ -311,7 +310,7 @@ prob_binomial <- function(ensaios, prob, q1 = NULL, q2 = NULL, q = NULL, tipo = 
       ggplot2::geom_col(color = "black", alpha = 0.8) +
       ggplot2::scale_fill_identity() +
       ggplot2::labs(title = tit, subtitle = sprintf("Probabilidade: %.2f%%", res * 100),
-                    x = "Número de Sucessos (X)", y = "Probabilidade", caption = "estatR")
+                    x = "Número de Sucessos (X)", y = "Probabilidade")
     if (exists("meu_tema")) p <- p + meu_tema(estilo = 1) else p <- p + ggplot2::theme_minimal()
     suppressMessages(print(p))
   }
@@ -363,7 +362,7 @@ prob_poisson <- function(lambda, q, tipo = c("exato", "menor", "maior"), grafico
       ggplot2::geom_col(color = "black", alpha = 0.8) +
       ggplot2::scale_fill_identity() +
       ggplot2::labs(title = tit, subtitle = sprintf("Probabilidade: %.2f%%", res * 100),
-                    x = "Número de Ocorrências (X)", y = "Probabilidade", caption = "estatR")
+                    x = "Número de Ocorrências (X)", y = "Probabilidade")
     
     if (exists("meu_tema")) p <- p + meu_tema(estilo = 1) else p <- p + ggplot2::theme_minimal()
     suppressMessages(print(p))
@@ -459,7 +458,7 @@ prob_exponencial <- function(taxa = 1, q1 = NULL, q2 = NULL,
       ggplot2::labs(
         title    = titulo,
         subtitle = sprintf("Probabilidade: %.2f%%", prob * 100),
-        x = "x", y = "Densidade", caption = "estatR"
+        x = "x", y = "Densidade"
       )
 
     if (exists("tema_estatR", mode = "function")) {
