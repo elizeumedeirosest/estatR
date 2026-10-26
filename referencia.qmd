@@ -42,6 +42,7 @@ Todas as funções do **estatR** seguem a convenção de retorno duplo: exibem a
 | `teste_t_duas_amostras()` | **Teste T para Duas Amostras Independentes**.  Compara as médias de dois grupos independentes.  |
 | `teste_t_pareado()` | **Teste T Pareado**.  Compara as médias de duas medições pareadas (antes/depois, par de medidas).  |
 | `teste_proporcao()` | **Teste de Proporção (Z)**.  Testa se uma proporção amostral é igual a um valor de referência.  |
+| `teste_equivalencia()` | **Teste de Equivalência (TOST)**. Executa o procedimento de Dois Testes Unicaudais (Two One-Sided Tests) para avaliar se dois tratamentos são estatisticamente equivalentes dentro de uma margem pré-definida. |
 
 ## Inferência Não-Paramétrica e Testes Categóricos
 
@@ -172,6 +173,7 @@ Todas as funções do **estatR** seguem a convenção de retorno duplo: exibem a
 | `grafico_fatorial()` | **Gráfico de Perfil de Interação — Esquema Fatorial**.  Gera o gráfico de perfil de interação para um fatorial duplo, com linhas por nível de Fator2, barras de erro (IC) e anotação das letras de comparação múltipla (quando a interação é significativa).  |
 | `analise_fatorial_adicional()` | **Análise de Esquema Fatorial com Testemunha Adicional (A × B + 1)**.  Realiza a análise de variância e testes de comparações múltiplas para experimentos em esquema fatorial duplo mais um tratamento testemunha isolado (\eqn{A \times B + 1}) em Delineamento Inteiramente Casualizado (DIC) ou Blocos Casualizados (DBC). Decompõe ortogonalmente a soma de quadrados dos tratamentos em: Fatorial vs Testemunha (1 GL), Fator A, Fator B e Interação A × B. Aplica o teste de Dunnett para comparar cada combinação fatorial contra a testemunha, e testes clássicos (Tukey, Scott-Knott, etc.) para comparar os níveis do fatorial.  |
 | `analise_parcela_subdividida()` | **Análise de Experimentos em Parcelas Subdivididas (Split-Plot)**.  Realiza a análise estatística completa de experimentos instalados no esquema de Parcelas Subdivididas (Split-Plot) em Delineamento Inteiramente Casualizado (DIC) ou em Blocos Casualizados (DBC). Calcula o quadro de ANOVA com dois resíduos (Erro a para parcelas e Erro b para subparcelas), dois coeficientes de variação (CVa e CVb), testes de comparações múltiplas (Tukey, Scott-Knott, Duncan, SNK, Scheffé ou Bonferroni) e desdobramento automático quando a interação Parcela × Subparcela for significativa (utilizando combinações lineares de erros conforme Satterthwaite/Banzatto & Kronka).  |
+| `analise_medidas_repetidas()` | **Análise de Medidas Repetidas (ANOVA Intrasujeito)**. Executa ANOVA de medidas repetidas no tempo com teste de esfericidade de Mauchly, correções de Greenhouse-Geisser e Huynh-Feldt, tamanho de efeito eta² e gráfico de perfis longitudinais. |
 | `grafico_medias()` | **Gráfico de Médias do Experimento**.  Gera gráfico de colunas com as médias dos tratamentos, barras de erro (IC 95\%) e as letras do teste de comparações múltiplas sobrepostas no topo de cada grupo.  |
 | `grafico_ic()` | **Gráfico de Intervalos de Confiança das Diferenças de Médias**.  Gera gráfico horizontal com os intervalos de confiança das diferenças pareadas entre tratamentos ou dos contrastes de Scheffé, com linha vertical vermelha no zero e destaque colorido para contrastes com diferença estatisticamente significativa.  |
 | `grafico_regressao()` | **Gráfico da Regressão Polinomial**.  Gera gráfico de dispersão com os pontos observados, médias e curva ajustada do modelo polinomial recomendado (Linear, Quadrático ou Cúbico).  |
@@ -202,6 +204,7 @@ Todas as funções do **estatR** seguem a convenção de retorno duplo: exibem a
 | `amostra_sistematica()` | **Amostragem SistemÃ¡tica**.  Seleciona uma amostra sistemÃ¡tica a cada salto de k elementos a partir de um ponto inicial sorteado aleatoriamente.  |
 | `amostra_conglomerados()` | **Amostragem por Conglomerados (Clusters)**.  Seleciona aleatoriamente conglomerados (grupos inteiros) de um data.frame, retornando todos os indivÃ­duos pertencentes aos conglomerados sorteados.  |
 | `tamanho_amostra()` | **CÃ¡lculo de Tamanho Amostral Ã“timo**.  Calcula o tamanho mÃ­nimo de amostra necessÃ¡rio para estimar uma proporÃ§Ã£o ou uma mÃ©dia com nÃ­vel de confianÃ§a e margem de erro especificados.  |
+| `poder_estatistico()` | **Cálculo de Poder Estatístico e Dimensionamento de Experimentos**. Calcula o poder estatístico (1 - beta) ou o tamanho amostral necessário para testes T, ANOVA, correlação e proporção, com curva gráfica de poder. |
 
 ## Visualização e Gráficos Auxiliares
 

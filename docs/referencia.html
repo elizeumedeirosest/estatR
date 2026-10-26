@@ -336,6 +336,10 @@ ul.task-list li input[type="checkbox"] {
 <td style="text-align: left;"><code>teste_proporcao()</code></td>
 <td style="text-align: left;"><strong>Teste de Proporção (Z)</strong>. Testa se uma proporção amostral é igual a um valor de referência.</td>
 </tr>
+<tr class="odd">
+<td style="text-align: left;"><code>teste_equivalencia()</code></td>
+<td style="text-align: left;"><strong>Teste de Equivalência (TOST)</strong>. Executa o procedimento de Dois Testes Unicaudais (Two One-Sided Tests) para avaliar se dois tratamentos são estatisticamente equivalentes dentro de uma margem pré-definida.</td>
+</tr>
 </tbody>
 </table>
 </section>
@@ -830,22 +834,26 @@ ul.task-list li input[type="checkbox"] {
 <td style="text-align: left;"><strong>Análise de Experimentos em Parcelas Subdivididas (Split-Plot)</strong>. Realiza a análise estatística completa de experimentos instalados no esquema de Parcelas Subdivididas (Split-Plot) em Delineamento Inteiramente Casualizado (DIC) ou em Blocos Casualizados (DBC). Calcula o quadro de ANOVA com dois resíduos (Erro a para parcelas e Erro b para subparcelas), dois coeficientes de variação (CVa e CVb), testes de comparações múltiplas (Tukey, Scott-Knott, Duncan, SNK, Scheffé ou Bonferroni) e desdobramento automático quando a interação Parcela × Subparcela for significativa (utilizando combinações lineares de erros conforme Satterthwaite/Banzatto &amp; Kronka).</td>
 </tr>
 <tr class="odd">
+<td style="text-align: left;"><code>analise_medidas_repetidas()</code></td>
+<td style="text-align: left;"><strong>Análise de Medidas Repetidas (ANOVA Intrasujeito)</strong>. Executa ANOVA de medidas repetidas no tempo com teste de esfericidade de Mauchly, correções de Greenhouse-Geisser e Huynh-Feldt, tamanho de efeito eta² e gráfico de perfis longitudinais.</td>
+</tr>
+<tr class="even">
 <td style="text-align: left;"><code>grafico_medias()</code></td>
 <td style="text-align: left;"><strong>Gráfico de Médias do Experimento</strong>. Gera gráfico de colunas com as médias dos tratamentos, barras de erro (IC 95%) e as letras do teste de comparações múltiplas sobrepostas no topo de cada grupo.</td>
 </tr>
-<tr class="even">
+<tr class="odd">
 <td style="text-align: left;"><code>grafico_ic()</code></td>
 <td style="text-align: left;"><strong>Gráfico de Intervalos de Confiança das Diferenças de Médias</strong>. Gera gráfico horizontal com os intervalos de confiança das diferenças pareadas entre tratamentos ou dos contrastes de Scheffé, com linha vertical vermelha no zero e destaque colorido para contrastes com diferença estatisticamente significativa.</td>
 </tr>
-<tr class="odd">
+<tr class="even">
 <td style="text-align: left;"><code>grafico_regressao()</code></td>
 <td style="text-align: left;"><strong>Gráfico da Regressão Polinomial</strong>. Gera gráfico de dispersão com os pontos observados, médias e curva ajustada do modelo polinomial recomendado (Linear, Quadrático ou Cúbico).</td>
 </tr>
-<tr class="even">
+<tr class="odd">
 <td style="text-align: left;"><code>teste_dunnett()</code></td>
 <td style="text-align: left;"><strong>Teste de Dunnett (Comparações com o Controle)</strong>. Realiza comparações múltiplas contra uma testemunha/controle com controle rigoroso do erro Tipo I, aceitando fórmulas, vetores ou modelos ANOVA com interpretação automatizada.</td>
 </tr>
-<tr class="odd">
+<tr class="even">
 <td style="text-align: left;"><code>grafico_dunnett()</code></td>
 <td style="text-align: left;"><strong>Gráfico do Teste de Dunnett</strong>. Plota os intervalos de confiança das diferenças entre cada tratamento e o controle com linha de referência no zero e destaque para contrastes significativos.</td>
 </tr>
@@ -942,6 +950,10 @@ ul.task-list li input[type="checkbox"] {
 <tr class="odd">
 <td style="text-align: left;"><code>tamanho_amostra()</code></td>
 <td style="text-align: left;"><strong>CÃ¡lculo de Tamanho Amostral Ã“timo</strong>. Calcula o tamanho mÃ­nimo de amostra necessÃ¡rio para estimar uma proporÃ§Ã£o ou uma mÃ©dia com nÃ­vel de confianÃ§a e margem de erro especificados.</td>
+</tr>
+<tr class="even">
+<td style="text-align: left;"><code>poder_estatistico()</code></td>
+<td style="text-align: left;"><strong>Cálculo de Poder Estatístico e Dimensionamento de Experimentos</strong>. Calcula o poder estatístico (1 - beta) ou o tamanho amostral necessário para testes T, ANOVA, correlação e proporção, com curva gráfica de poder.</td>
 </tr>
 </tbody>
 </table>
