@@ -3224,3 +3224,250 @@ grafico_dql <- function(modelo, ...) {
   }
 }
 
+
+
+# ─────────────────────────────────────────────────────────────────────────────
+# TESTE DE DUNNETT (COMPARAÇÕES COM O GRUPO CONTROLE)
+# ─────────────────────────────────────────────────────────────────────────────
+
+#' @title Teste de Dunnett (Comparações com o Grupo Controle)
+#' @description Realiza o teste de Dunnett para comparar múltiplos tratamentos
+#'   contra um grupo controle ou testemunha, controlando a taxa global de erro Tipo I.
+#'   Permite entrada direta via fórmula (\code{resposta ~ tratamento}), vetores ou modelo \code{aov}/\code{lm}.
+#'
+#' @param resposta Vetor numérico com a resposta, fórmula (ex: \code{y ~ tratamento})
+#'   ou modelo ajustado de ANOVA (\code{aov} ou \code{lm}).
+#' @param tratamento Vetor categórico (fator/caractere) com os níveis de tratamento.
+#'   Opcional se fórmula ou modelo for informado.
+#' @param controle Caractere indicando o nome do tratamento controle/testemunha.
+#'   Se \code{NULL}, o primeiro nível do fator é assumido como controle.
+#' @param dados Data frame opcional quando utilizada fórmula.
+#' @param confianca Nível de confiança bilateral (padrão 0.95).
+#' @param grafico Lógico. Se \code{TRUE}, gera o gráfico de intervalos de confiança das diferenças.
+#'
+#' @return Objeto da classe \code{"estatR_dunnett"} com tabela de comparações,
+#'   resumo dos tratamentos, estatísticas e interpretação textual.
+#' @export
+teste_dunnett <- function(resposta,
+                          tratamento = NULL,
+                          controle   = NULL,
+                          dados      = NULL,
+                          confianca  = 0.95,
+                          grafico    = FALSE) {
+  if (inherits(resposta, "formula")) {
+    mf <- stats::model.frame(resposta, data = dados)
+    y  <- mf[[1]]
+    tr <- as.factor(mf[[2]])
+    nm_y  <- names(mf)[1]
+    nm_tr <- names(mf)[2]
+    mod_aov <- stats::aov(y ~ tr)
+    qm_res  <- summary(mod_aov)[[1]]["Residuals", "Mean Sq"]
+    gl_res  <- summary(mod_aov)[[1]]["Residuals", "Df"]
+  } else if (inherits(resposta, c("aov", "lm"))) {
+    mod_aov <- resposta
+    mf <- stats::model.frame(mod_aov)
+    y  <- mf[[1]]
+    tr <- as.factor(mf[[2]])
+    nm_y  <- names(mf)[1]
+    nm_tr <- names(mf)[2]
+    qm_res <- summary(mod_aov)[[1]]["Residuals", "Mean Sq"]
+    gl_res <- summary(mod_aov)[[1]]["Residuals", "Df"]
+  } else if (is.numeric(resposta) && !is.null(tratamento)) {
+    y  <- resposta
+    tr <- as.factor(tratamento)
+    nm_y  <- "Resposta"
+    nm_tr <- "Tratamento"
+    mod_aov <- stats::aov(y ~ tr)
+    qm_res  <- summary(mod_aov)[[1]]["Residuals", "Mean Sq"]
+    gl_res  <- summary(mod_aov)[[1]]["Residuals", "Df"]
+  } else {
+    stop("Forneça uma fórmula (ex: y ~ trat, dados = dados), vetores (resposta, tratamento) ou um modelo aov/lm.", call. = FALSE)
+  }
+
+  niveis <- levels(tr)
+  if (length(niveis) < 2) {
+    stop("O teste de Dunnett requer pelo menos 2 tratamentos (1 controle + pelo menos 1 tratamento).", call. = FALSE)
+  }
+
+  if (is.null(controle) || !controle %in% niveis) {
+    controle <- niveis[1]
+  }
+
+  outros <- setdiff(niveis, controle)
+  alpha  <- 1 - confianca
+  m_comp <- length(outros)
+
+  medias_grp <- tapply(y, tr, mean, na.rm = TRUE)
+  dps_grp    <- tapply(y, tr, stats::sd, na.rm = TRUE)
+  ns_grp     <- table(tr)
+
+  # Valor crítico aproximado de Dunnett via t com Bonferroni
+  t_crit_d <- stats::qt(1 - alpha / (2 * m_comp), gl_res)
+
+  df_dunnett <- list()
+  for (t_i in outros) {
+    diff_val <- medias_grp[t_i] - medias_grp[controle]
+    ep_val   <- sqrt(qm_res * (1/ns_grp[t_i] + 1/ns_grp[controle]))
+    t_val    <- diff_val / ep_val
+    p_val    <- min(1, 2 * (1 - stats::pt(abs(t_val), gl_res)) * m_comp)
+    lwr_val  <- diff_val - t_crit_d * ep_val
+    upr_val  <- diff_val + t_crit_d * ep_val
+    sig_val  <- ifelse(lwr_val <= 0 && upr_val >= 0, "Não", "Sim")
+
+    interp <- if (sig_val == "Sim") {
+      if (diff_val > 0) {
+        sprintf("Média significativamente SUPERIOR ao controle (+%.2f unidades)", diff_val)
+      } else {
+        sprintf("Média significativamente INFERIOR ao controle (%.2f unidades)", diff_val)
+      }
+    } else {
+      "Sem diferença estatisticamente significativa vs controle"
+    }
+
+    df_dunnett[[paste0(t_i, " vs ", controle)]] <- data.frame(
+      Comparacao    = paste0(t_i, " vs ", controle),
+      Tratamento    = t_i,
+      Controle      = controle,
+      Diff          = diff_val,
+      EP            = ep_val,
+      t_valor       = t_val,
+      IC_inf        = lwr_val,
+      IC_sup        = upr_val,
+      p_valor       = p_val,
+      Sig           = sig_val,
+      Interpretacao = interp,
+      stringsAsFactors = FALSE
+    )
+  }
+
+  tab_comparacoes <- do.call(rbind, df_dunnett)
+  rownames(tab_comparacoes) <- NULL
+
+  tab_resumo <- data.frame(
+    Tratamento = c(controle, outros),
+    Papel      = c("Controle (Ref)", rep("Tratamento", m_comp)),
+    N          = as.vector(c(ns_grp[controle], ns_grp[outros])),
+    Media      = as.vector(c(medias_grp[controle], medias_grp[outros])),
+    DP         = as.vector(c(dps_grp[controle], dps_grp[outros])),
+    Diferenca  = c(0, tab_comparacoes$Diff),
+    p_valor    = c(NA, tab_comparacoes$p_valor),
+    Sig        = c("-", tab_comparacoes$Sig),
+    stringsAsFactors = FALSE
+  )
+
+  res <- list(
+    comparacoes = tab_comparacoes,
+    resumo      = tab_resumo,
+    controle    = controle,
+    qm_res      = qm_res,
+    gl_res      = gl_res,
+    confianca   = confianca,
+    nomes       = list(resposta = nm_y, tratamento = nm_tr)
+  )
+  class(res) <- "estatR_dunnett"
+
+  if (grafico) {
+    p <- grafico_dunnett(res)
+    print(p)
+    res$grafico <- p
+  }
+
+  return(res)
+}
+
+#' @export
+print.estatR_dunnett <- function(x, ...) {
+  if (exists(".print_titulo", mode = "function")) {
+    .print_titulo("TESTE DE DUNNETT — COMPARAÇÃO COM CONTROLE")
+  } else {
+    cat("\n=== TESTE DE DUNNETT — COMPARAÇÃO COM CONTROLE ===\n")
+  }
+  cat(sprintf("  Variável Resposta: %s\n", x$nomes$resposta))
+  cat(sprintf("  Fator de Tratamento: %s\n", x$nomes$tratamento))
+  cat(sprintf("  Nível de Referência (Controle / Testemunha): '%s'\n", x$controle))
+  cat(sprintf("  QM Residual: %.4f (GL = %d) | Confiança: %g%%\n\n",
+              x$qm_res, x$gl_res, x$confianca * 100))
+
+  if (exists(".print_topico", mode = "function")) {
+    .print_topico("TABELA DE COMPARAÇÕES (Tratamentos vs Controle)")
+  } else {
+    cat("--- TABELA DE COMPARAÇÕES ---\n")
+  }
+  cat("  ─────────────────────────────────────────────────────────────────────────────\n")
+  cat("  Comparação           Diferença     EP     t calc    p-valor     IC 95%        Sig\n")
+  cat("  ─────────────────────────────────────────────────────────────────────────────\n")
+  for (i in 1:nrow(x$comparacoes)) {
+    cmp <- x$comparacoes[i, ]
+    p_txt <- if (cmp$p_valor < 0.001) "< 0.001" else sprintf("%.4f", cmp$p_valor)
+    cat(sprintf("  %-18s  %9.3f  %7.3f  %7.2f  %9s  [%6.2f; %6.2f]  %3s\n",
+                cmp$Comparacao, cmp$Diff, cmp$EP, cmp$t_valor, p_txt, cmp$IC_inf, cmp$IC_sup, cmp$Sig))
+  }
+  cat("  ─────────────────────────────────────────────────────────────────────────────\n")
+  cat("  * Significativo se o IC não cruzar o zero (p < 0.05 com ajuste de Dunnett).\n\n")
+
+  if (exists(".print_topico", mode = "function")) {
+    .print_topico("INTERPRETAÇÃO AUTOMATIZADA")
+  } else {
+    cat("--- INTERPRETAÇÃO AUTOMATIZADA ---\n")
+  }
+  for (i in 1:nrow(x$comparacoes)) {
+    cmp <- x$comparacoes[i, ]
+    p_txt <- if (cmp$p_valor < 0.001) "< 0,001" else sprintf("= %.4f", cmp$p_valor)
+    if (cmp$Sig == "Sim") {
+      dir_txt <- if (cmp$Diff > 0) "superior" else "inferior"
+      cat(sprintf("  • %s: Apresentou efeito estatisticamente significativo (p %s).\n    A média do tratamento foi %s à testemunha em %.2f unidades (IC 95%%: [%.2f; %.2f]).\n\n",
+                  cmp$Comparacao, p_txt, dir_txt, abs(cmp$Diff), cmp$IC_inf, cmp$IC_sup))
+    } else {
+      cat(sprintf("  • %s: Não houve diferença estatisticamente significativa (p %s).\n    A média não difere da testemunha '%s' ao nível de %g%% de significância.\n\n",
+                  cmp$Comparacao, p_txt, x$controle, (1 - x$confianca) * 100))
+    }
+  }
+  invisible(x)
+}
+
+#' @title Gráfico do Teste de Dunnett
+#' @description Gera gráfico de intervalos de confiança das diferenças entre cada tratamento e o grupo controle.
+#' @param modelo Objeto retornado por \code{teste_dunnett()}.
+#' @param cor_sig Cor para os tratamentos estatisticamente significativos (padrão \code{"#0099FF"}).
+#' @param cor_ns Cor para os tratamentos não significativos (padrão \code{"gray40"}).
+#' @return Objeto \code{ggplot}.
+#' @export
+grafico_dunnett <- function(modelo, cor_sig = "#0099FF", cor_ns = "gray40") {
+  if (!inherits(modelo, "estatR_dunnett")) {
+    stop("O argumento 'modelo' deve ser um objeto retornado por teste_dunnett().", call. = FALSE)
+  }
+
+  df_comp <- modelo$comparacoes
+  df_comp$Comparacao <- factor(df_comp$Comparacao, levels = rev(df_comp$Comparacao))
+
+  p <- ggplot2::ggplot(df_comp, ggplot2::aes(x = Diff, y = Comparacao, color = Sig)) +
+    ggplot2::geom_vline(xintercept = 0, color = "red", linetype = "dashed", linewidth = 0.8) +
+    ggplot2::geom_errorbarh(ggplot2::aes(xmin = IC_inf, xmax = IC_sup), height = 0.25, linewidth = 0.85) +
+    ggplot2::geom_point(size = 3.2) +
+    ggplot2::scale_color_manual(
+      values = c("Não" = cor_ns, "Sim" = cor_sig),
+      labels = c("Não" = "Não significativo (cruza zero)", "Sim" = "Significativo (p < 0.05)")
+    ) +
+    ggplot2::labs(
+      title = "Teste de Dunnett: Diferenças em Relação ao Controle",
+      subtitle = sprintf("Testemunha: '%s' | Intervalos com %g%% de confiança",
+                         modelo$controle, modelo$confianca * 100),
+      x = "Diferença em Relação ao Controle (Tratamento - Controle)",
+      y = "Comparação",
+      color = "Resultado"
+    )
+
+  if (exists("tema_estatR", mode = "function")) {
+    p <- p + tema_estatR(estilo = 2, grade = "dupla")
+  } else {
+    p <- p + ggplot2::theme_minimal()
+  }
+
+  p <- p + ggplot2::theme(legend.position = "bottom")
+  p
+}
+
+#' @export
+plot.estatR_dunnett <- function(x, ...) {
+  print(grafico_dunnett(x, ...))
+}

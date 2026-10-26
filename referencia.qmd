@@ -120,6 +120,10 @@ Todas as funções do **estatR** seguem a convenção de retorno duplo: exibem a
 | `regressao_beta()` | **Regressao Beta**.  Ajusta um modelo de regressao Beta para variaveis respostas que sao proporcoes ou taxas estritamente no intervalo (0, 1). Apresenta estatisticas de ajuste, parametro de precisao (phi), coeficientes, Odds Ratio (OR) para a media e interpretacao automatizada.  |
 | `metricas_beta()` | **Metricas do Modelo Beta**.  Calcula e exibe as principais metricas para um modelo betareg.  |
 | `selecao_modelos_beta()` | **Selecao de Modelos - Beta**.  Realiza Best Subsets para regressao Beta.  |
+| `odds_ratio()` | **Odds Ratio (Razão de Chances)**. Extrai e interpreta as razões de chances (OR) de modelos logísticos com intervalos de confiança e interpretação clínica/estatística automatizada. |
+| `grafico_odds_ratio()` | **Forest Plot de Odds Ratio**. Gera gráfico tipo Forest Plot com intervalos de confiança e linha de referência no 1 (efeito nulo). |
+| `irr()` | **Razão de Taxas de Incidência (IRR)**. Extrai e interpreta as razões de taxa (IRR) de modelos de Poisson, Binomial Negativa e Zero-Inflados com intervalos de confiança e interpretação automatizada. |
+| `grafico_irr()` | **Forest Plot de IRR**. Gera gráfico tipo Forest Plot com intervalos de confiança e linha de referência no 1 (efeito nulo). |
 
 ## Séries Temporais e Previsão
 
@@ -171,6 +175,8 @@ Todas as funções do **estatR** seguem a convenção de retorno duplo: exibem a
 | `grafico_medias()` | **Gráfico de Médias do Experimento**.  Gera gráfico de colunas com as médias dos tratamentos, barras de erro (IC 95\%) e as letras do teste de comparações múltiplas sobrepostas no topo de cada grupo.  |
 | `grafico_ic()` | **Gráfico de Intervalos de Confiança das Diferenças de Médias**.  Gera gráfico horizontal com os intervalos de confiança das diferenças pareadas entre tratamentos ou dos contrastes de Scheffé, com linha vertical vermelha no zero e destaque colorido para contrastes com diferença estatisticamente significativa.  |
 | `grafico_regressao()` | **Gráfico da Regressão Polinomial**.  Gera gráfico de dispersão com os pontos observados, médias e curva ajustada do modelo polinomial recomendado (Linear, Quadrático ou Cúbico).  |
+| `teste_dunnett()` | **Teste de Dunnett (Comparações com o Controle)**. Realiza comparações múltiplas contra uma testemunha/controle com controle rigoroso do erro Tipo I, aceitando fórmulas, vetores ou modelos ANOVA com interpretação automatizada. |
+| `grafico_dunnett()` | **Gráfico do Teste de Dunnett**. Plota os intervalos de confiança das diferenças entre cada tratamento e o controle com linha de referência no zero e destaque para contrastes significativos. |
 
 ## Aprendizado de Máquina e Sobrevivência
 

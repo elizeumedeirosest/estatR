@@ -11,7 +11,8 @@ analise_fatorial_duplo(
   bloco = NULL,
   dados = NULL,
   delineamento = c("auto", "dic", "dbc"),
-  teste = c("tukey", "scott_knott", "duncan", "snk", "scheffe", "bonferroni"),
+  teste = c("tukey", "scott_knott", "duncan", "snk", "scheffe", "bonferroni", "dunnett"),
+  controle = NULL,
   confianca = 0.95,
   grafico = TRUE,
   residuos = FALSE

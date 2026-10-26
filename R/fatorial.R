@@ -8,7 +8,7 @@
 
 #' @keywords internal
 .comparar_dentro <- function(y_sub, fator_sub, qm_res_global, gl_res_global,
-                              teste = "tukey", confianca = 0.95, upper = FALSE) {
+                              teste = "tukey", controle = NULL, confianca = 0.95, upper = FALSE) {
   # Retorna vetor nomeado de letras para os niveis de fator_sub
   # usando qm_res_global (residuo do modelo fatorial completo)
   alpha    <- 1 - confianca
@@ -83,6 +83,24 @@
       p_mat[n1, n2] <- p_v
       p_mat[n2, n1] <- p_v
     }
+  } else if (teste == "dunnett") {
+    ctrl <- if (is.null(controle) || !controle %in% niveis_s) niveis_s[1] else controle
+    m_comp <- max(1, k - 1)
+    for (i in 1:k) {
+      for (j in 1:k) {
+        if (i == j) {
+          p_mat[niveis_s[i], niveis_s[j]] <- 1
+        } else if (niveis_s[i] == ctrl || niveis_s[j] == ctrl) {
+          diff_v <- medias_s[niveis_s[i]] - medias_s[niveis_s[j]]
+          ep_v   <- sqrt(qm_res_global * (1/ns_s[niveis_s[i]] + 1/ns_s[niveis_s[j]]))
+          t_v    <- abs(diff_v) / ep_v
+          p_v    <- min(1, 2 * (1 - stats::pt(t_v, gl_res_global)) * m_comp)
+          p_mat[niveis_s[i], niveis_s[j]] <- p_v
+        } else {
+          p_mat[niveis_s[i], niveis_s[j]] <- 1
+        }
+      }
+    }
   } else {
     # Fallback: tukey
     pares_lista <- utils::combn(niveis_s, 2, simplify = FALSE)
@@ -137,7 +155,8 @@ analise_fatorial_duplo <- function(resposta,
                                    bloco        = NULL,
                                    dados        = NULL,
                                    delineamento = c("auto", "dic", "dbc"),
-                                   teste        = c("tukey", "scott_knott", "duncan", "snk", "scheffe", "bonferroni"),
+                                   teste        = c("tukey", "scott_knott", "duncan", "snk", "scheffe", "bonferroni", "dunnett"),
+                                   controle     = NULL,
                                    confianca    = 0.95,
                                    grafico      = TRUE,
                                    residuos     = FALSE) {
@@ -327,7 +346,7 @@ analise_fatorial_duplo <- function(resposta,
       # Letras de comparação (apenas se F for significativo)
       if (!is.na(p_desf) && p_desf < alpha) {
         letras_lin <- .comparar_dentro(y_b, f1_b, qm_res, gl_res,
-                                       teste = teste, confianca = confianca,
+                                       teste = teste, controle = controle, confianca = confianca,
                                        upper = FALSE)
       } else {
         letras_lin <- stats::setNames(rep("a", length(levels(f1_b))), levels(f1_b))
@@ -363,7 +382,7 @@ analise_fatorial_duplo <- function(resposta,
 
       if (!is.na(p_desf) && p_desf < alpha) {
         letras_col <- .comparar_dentro(y_a, f2_a, qm_res, gl_res,
-                                       teste = teste, confianca = confianca,
+                                       teste = teste, controle = controle, confianca = confianca,
                                        upper = TRUE)
       } else {
         letras_col <- stats::setNames(rep("A", length(levels(f2_a))), levels(f2_a))
@@ -515,7 +534,8 @@ print.estatR_fatorial <- function(x, ...) {
     duncan      = "Duncan",
     snk         = "SNK",
     scheffe     = "Scheffé",
-    bonferroni  = "Bonferroni"
+    bonferroni  = "Bonferroni",
+    dunnett     = "Dunnett"
   )
 
   if (x$interacao_sig) {
@@ -734,6 +754,7 @@ grafico_fatorial <- function(modelo, ...) {
     snk         = "SNK",
     scheffe     = "Scheffé",
     bonferroni  = "Bonferroni",
+    dunnett     = "Dunnett",
     "Tukey"
   )
 

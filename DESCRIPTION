@@ -1,7 +1,7 @@
 Package: estatR
 Type: Package
 Title: Interface Estatística em Português para o R
-Version: 0.1.0
+Version: 0.2.0
 Authors@R: 
     person("Elizeu", "Medeiros", email = "elizeu@estatr.local", role = c("aut", "cre"))
 Description: Camada de abstração e localização em português sobre o ecossistema 
