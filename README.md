@@ -16,8 +16,6 @@
   Saídas estruturadas em português, formatação ANSI de alto padrão, tabelas prontas para publicação e gráficos editoriais em um único pacote.
 </p>
 
-[**Explorar Documentação Interativa →**](https://elizeumedeirosest.github.io/estatR) &nbsp;•&nbsp; [**Referência de Funções**](https://elizeumedeirosest.github.io/estatR/reference/index.html) &nbsp;•&nbsp; [**Instalação Rápida**](#instalação)
-
 </div>
 
 ---
