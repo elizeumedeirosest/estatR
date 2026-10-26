@@ -112,7 +112,7 @@ div.quarto-document-content p {
     align-items: center !important;
   }
   
-  /* GitHub Icon à direita (destacado e bem posicionado) */
+  /* GitHub Icon à direita */
   .navbar-nav.ms-auto {
     position: absolute !important;
     right: 1.5rem !important;
@@ -283,7 +283,7 @@ div.quarto-document-content p {
   margin-left: -50vw !important;
   margin-right: -50vw !important;
   box-sizing: border-box !important;
-  padding: 4.5rem 1.5rem 6rem;
+  padding: 4.5rem 1.5rem 5rem;
   background: #ffffff;
 }
 
@@ -363,7 +363,7 @@ div.quarto-document-content p {
   letter-spacing: .01em;
 }
 
-/* ── Install Section (fundo branco no bloco e no código) ── */
+/* ── Install Section (fundo branco no bloco e no código, padding compacto) ── */
 .install-section {
   width: 100vw !important;
   position: relative !important;
@@ -372,7 +372,7 @@ div.quarto-document-content p {
   margin-left: -50vw !important;
   margin-right: -50vw !important;
   box-sizing: border-box !important;
-  padding: 5rem 1.5rem 6rem;
+  padding: 3.5rem 1.5rem 3.5rem !important;
   background: #ffffff !important;
   border-top: 1px solid var(--slate-200);
 }
@@ -488,41 +488,63 @@ code:not([class]) {
   text-decoration: underline;
 }
 
-/* ── Footer padrão original ── */
-footer.footer,
-.nav-footer {
+/* ── Footer Slim, Elegante e de Margem a Margem ── */
+footer.footer {
   border-top: 1px solid var(--slate-200) !important;
-  padding: 1.5rem !important;
-  font-size: .85rem !important;
-  color: var(--slate-400) !important;
-  background: transparent !important;
+  background: #ffffff !important;
+  padding: 0 !important;
   margin: 0 !important;
+  width: 100% !important;
 }
 
-.nav-footer .nav-footer-container {
+.nav-footer {
   display: flex !important;
   justify-content: space-between !important;
   align-items: center !important;
   width: 100% !important;
   max-width: 100% !important;
-  padding: 0 !important;
+  padding: 0.85rem 1.5rem !important;
+  margin: 0 !important;
+  border-top: none !important;
+  background: transparent !important;
 }
 
-.nav-footer-left,
+.nav-footer-center {
+  display: none !important;
+}
+
+.nav-footer-left {
+  display: flex !important;
+  align-items: center !important;
+  text-align: left !important;
+}
+
 .nav-footer-right {
   display: flex !important;
   align-items: center !important;
-  font-size: .85rem !important;
-  color: var(--slate-400) !important;
-  line-height: 1.5 !important;
+  text-align: right !important;
+}
+
+.nav-footer-left p,
+.nav-footer-right p,
+.nav-footer p {
   margin: 0 !important;
   padding: 0 !important;
+  font-size: 0.85rem !important;
+  color: var(--slate-400) !important;
+  line-height: 1.4 !important;
 }
 
 @media (max-width: 768px) {
-  .nav-footer .nav-footer-container {
+  .nav-footer {
     flex-direction: column !important;
-    gap: .5rem !important;
+    gap: .4rem !important;
+    padding: .75rem 1.5rem !important;
+    text-align: center !important;
+  }
+  .nav-footer-left,
+  .nav-footer-right {
+    justify-content: center !important;
     text-align: center !important;
   }
 }
