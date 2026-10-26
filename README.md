@@ -22,14 +22,6 @@
 
 ---
 
-### ✨ Pilares de Design do estatR
-
-| 🎨 Padrão Editorial Automático | ⚡ Sintaxe Fluida & Polimórfica | 📋 Saídas Estruturadas & ANSI | 🔬 Rigor Matemático Completo |
-| :--- | :--- | :--- | :--- |
-| Gráficos com paleta corporativa e tema dual grid (`grade = 'dupla'`). Prontos para teses, artigos e relatórios corporativos sem necessidade de formatação manual. | Funções inteligentes que detectam o tipo de entrada (`descrever()`, `metricas()`, `analise_residual()`) e entregam diagnósticos sob medida. | Cabeçalhos visualmente estilizados no console, alinhamento rigoroso de colunas, casas decimais padronizadas e notas interpretativas explicativas. | Do diagnóstico preliminar à modelagem linear generalizada (GLM/Youden), séries temporais com machine learning, sobrevivência e multivariada. |
-
----
-
 ## Instalação
 
 ```r
