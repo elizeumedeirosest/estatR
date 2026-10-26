@@ -1,8 +1,8 @@
-<div align="center">
+﻿<div align="center">
 
-<img src="man/figures/logo.svg" alt="estatR Logo" width="150" height="150" />
-
-# estatR
+<p align="center">
+  <img src="man/figures/estatR_title.svg" alt="estatR" width="340" />
+</p>
 
 ### Estatística com Elegância, Precisão e Produtividade em R
 

@@ -21,8 +21,8 @@
     "text": "A estatística aplicada no R, em sua forma nativa, exige o domínio de dezenas de pacotes com interfaces distintas. O estatR resolve isso: uma função, um resultado, uma linguagem. As saídas são formatadas automaticamente em português, com alinhamento preciso de colunas, casas decimais padronizadas e notas interpretativas embutidas — prontas para teses, artigos e relatórios corporativos."
   },
   {
-    "objectID": "sobre.html#objetivos",
-    "href": "sobre.html#objetivos",
+    "objectID": "sobre.html#módulos",
+    "href": "sobre.html#módulos",
     "title": "Sobre o estatR",
     "section": "",
     "text": "O pacote é organizado em 11 módulos especializados, cada um cobrindo um domínio da análise estatística:\n\nDiagnóstico e Descritiva — inspeção estrutural imediata\nTestes de Hipótese — paramétricos e não-paramétricos\nIntervalos de Confiança — com interpretação frequentista\nProbabilidade e Simulação — distribuições teóricas, Monte Carlo, bootstrap\nModelos Lineares e Regressão — com diagnóstico residual rigoroso\nModelos Generalizados (MLG) — Logística, Poisson, Gama, Beta e Youden\nSéries Temporais — ARIMA, STL e previsão com machine learning\nAnálise Multivariada — PCA, clustering, discriminante e MANOVA\nDelineamentos Experimentais — DIC, DBC, fatoriais e testes de médias\nMachine Learning e Sobrevivência — Kaplan-Meier e modelos preditivos\nAmostragem Probabilística — AAS, estratificada, sistemática e conglomerados"

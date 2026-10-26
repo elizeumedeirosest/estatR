@@ -13,7 +13,7 @@
   --slate-600:    #475569;
   --slate-400:    #94a3b8;
   --slate-200:    #e2e8f0;
-  --bg:           #fafbfc;
+  --bg:           #ffffff;
   --card-bg:      #ffffff;
   --radius-lg:    18px;
   --radius-md:    12px;
@@ -25,6 +25,10 @@
 }
 
 /* ── Base ── */
+html, body {
+  overflow-x: hidden !important;
+}
+
 body {
   font-family: var(--font);
   -webkit-font-smoothing: antialiased;
@@ -43,9 +47,21 @@ h1, h2, h3, h4 {
 
 h2 { border-bottom: 1px solid var(--slate-200); padding-bottom: .5rem; }
 
+/* Textos explicativos com alinhamento justificado */
+.module-desc,
+.sobre-wrapper p,
+.sobre-wrapper li,
+.section-sub,
+.install-desc,
+.hero-tagline,
+div.quarto-document-content p {
+  text-align: justify;
+  text-justify: inter-word;
+}
+
 /* ── Navbar (glassmorphism) ── */
 .navbar {
-  background: rgba(255,255,255,.92) !important;
+  background: rgba(255,255,255,.94) !important;
   backdrop-filter: blur(20px) saturate(180%) !important;
   -webkit-backdrop-filter: blur(20px) saturate(180%) !important;
   border-bottom: 1px solid rgba(226,232,240,.8) !important;
@@ -62,26 +78,54 @@ h2 { border-bottom: 1px solid var(--slate-200); padding-bottom: .5rem; }
   color: var(--brand-dark) !important;
 }
 
-/* Itens de navegação perfeitamente centralizados */
-.navbar #navbarCollapse {
-  display: flex !important;
-  justify-content: center !important;
-}
-
-.navbar .navbar-nav.me-auto {
-  margin: 0 auto !important;
-  display: flex !important;
-  align-items: center !important;
-}
-
+/* Alinhamento da barra de navegação no desktop */
 @media (min-width: 992px) {
-  .navbar .navbar-brand {
+  .navbar .navbar-container {
+    position: relative !important;
+    display: flex !important;
+    align-items: center !important;
+    min-height: 48px !important;
+    width: 100% !important;
+  }
+  
+  .navbar-brand-container {
     position: absolute !important;
     left: 1.5rem !important;
+    top: 50% !important;
+    transform: translateY(-50%) !important;
+    margin: 0 !important;
   }
-  .navbar .navbar-nav.ms-auto {
+  
+  #navbarCollapse {
+    display: flex !important;
+    justify-content: center !important;
+    width: 100% !important;
+  }
+  
+  .navbar-nav.me-auto {
+    margin: 0 auto !important;
+    display: flex !important;
+    align-items: center !important;
+  }
+  
+  /* GitHub Icon à direita (sem sobrepor o search) */
+  .navbar-nav.ms-auto {
+    position: absolute !important;
+    right: 4.25rem !important;
+    top: 50% !important;
+    transform: translateY(-50%) !important;
+    margin: 0 !important;
+  }
+  
+  /* Botão de Pesquisa Quarto */
+  #quarto-search {
     position: absolute !important;
     right: 1.5rem !important;
+    top: 50% !important;
+    transform: translateY(-50%) !important;
+    margin: 0 !important;
+    display: flex !important;
+    align-items: center !important;
   }
 }
 
@@ -100,30 +144,34 @@ h2 { border-bottom: 1px solid var(--slate-200); padding-bottom: .5rem; }
   background: rgba(15,23,42,.05);
 }
 
-/* ── Hero Section (sem logo, estatR grande) ── */
+/* ── Hero Section (degrade suave de cima pra baixo, 100% largura) ── */
 .page-layout-full #title-block-header,
 #title-block-header:empty {
   display: none !important;
 }
 
-.hero-section {
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  text-align: center;
-  padding: 6.5rem 1.5rem 5rem;
-  background: linear-gradient(160deg, #f8faff 0%, #fafbfc 55%, #f0f7ff 100%);
-  position: relative;
-  overflow: hidden;
+.page-layout-full main.content {
+  padding-left: 0 !important;
+  padding-right: 0 !important;
+  margin-left: 0 !important;
+  margin-right: 0 !important;
+  max-width: 100% !important;
 }
 
-.hero-section::before {
-  content: '';
-  position: absolute;
-  top: -180px; left: 50%; transform: translateX(-50%);
-  width: 700px; height: 700px;
-  background: radial-gradient(circle, rgba(0,113,227,.07) 0%, transparent 70%);
-  pointer-events: none;
+.hero-section {
+  width: 100vw !important;
+  position: relative !important;
+  left: 50% !important;
+  right: 50% !important;
+  margin-left: -50vw !important;
+  margin-right: -50vw !important;
+  box-sizing: border-box !important;
+  display: flex !important;
+  align-items: center !important;
+  justify-content: center !important;
+  text-align: center !important;
+  padding: 6.5rem 1.5rem 5.5rem !important;
+  background: linear-gradient(180deg, #dbeafe 0%, #ebf3fe 30%, #f4f8fe 65%, #ffffff 100%) !important;
 }
 
 .hero-inner {
@@ -150,6 +198,7 @@ h2 { border-bottom: 1px solid var(--slate-200); padding-bottom: .5rem; }
   font-weight: 400;
   margin: 0 0 .75rem;
   letter-spacing: -0.01em;
+  text-align: center !important;
 }
 
 .hero-meta {
@@ -159,6 +208,7 @@ h2 { border-bottom: 1px solid var(--slate-200); padding-bottom: .5rem; }
   letter-spacing: .04em;
   text-transform: uppercase;
   margin: 0 0 2.5rem;
+  text-align: center !important;
 }
 
 .hero-actions {
@@ -212,8 +262,15 @@ h2 { border-bottom: 1px solid var(--slate-200); padding-bottom: .5rem; }
 
 /* ── Modules Section ── */
 .modules-section {
-  padding: 5rem 1.5rem 6rem;
-  background: var(--bg);
+  width: 100vw !important;
+  position: relative !important;
+  left: 50% !important;
+  right: 50% !important;
+  margin-left: -50vw !important;
+  margin-right: -50vw !important;
+  box-sizing: border-box !important;
+  padding: 4.5rem 1.5rem 6rem;
+  background: #ffffff;
 }
 
 .section-inner {
@@ -230,7 +287,7 @@ h2 { border-bottom: 1px solid var(--slate-200); padding-bottom: .5rem; }
 }
 
 .section-sub {
-  text-align: center;
+  text-align: center !important;
   color: var(--slate-600);
   font-size: 1.05rem;
   margin-bottom: 3rem;
@@ -292,10 +349,18 @@ h2 { border-bottom: 1px solid var(--slate-200); padding-bottom: .5rem; }
   letter-spacing: .01em;
 }
 
-/* ── Install Section ── */
+/* ── Install Section (fundo branco clean) ── */
 .install-section {
-  padding: 5rem 1.5rem;
-  background: var(--brand-dark);
+  width: 100vw !important;
+  position: relative !important;
+  left: 50% !important;
+  right: 50% !important;
+  margin-left: -50vw !important;
+  margin-right: -50vw !important;
+  box-sizing: border-box !important;
+  padding: 5rem 1.5rem 6rem;
+  background: #ffffff !important;
+  border-top: 1px solid var(--slate-200);
 }
 
 .install-inner {
@@ -303,6 +368,8 @@ h2 { border-bottom: 1px solid var(--slate-200); padding-bottom: .5rem; }
   grid-template-columns: 1fr 1.5fr;
   gap: 3rem;
   align-items: center;
+  max-width: 1080px;
+  margin: 0 auto;
 }
 
 @media (max-width: 768px) {
@@ -310,27 +377,31 @@ h2 { border-bottom: 1px solid var(--slate-200); padding-bottom: .5rem; }
 }
 
 .install-title {
-  font-size: 1.75rem;
-  color: #fff;
+  font-size: 1.85rem;
+  font-weight: 700;
+  color: var(--brand-dark) !important;
   border-bottom: none !important;
+  margin-bottom: .75rem;
 }
 
 .install-desc {
-  color: rgba(255,255,255,.6);
-  font-size: .95rem;
+  color: var(--slate-600) !important;
+  font-size: 1rem;
+  line-height: 1.6;
 }
 
 .install-pre {
-  background: rgba(255,255,255,.06);
-  border: 1px solid rgba(255,255,255,.1);
+  background: #f8fafc !important;
+  border: 1px solid var(--slate-200) !important;
   border-radius: var(--radius-md);
   padding: 1.5rem 1.75rem;
   margin: 0;
   overflow-x: auto;
   font-family: var(--mono);
-  font-size: .82rem;
+  font-size: .85rem;
   line-height: 1.75;
-  color: #e2e8f0;
+  color: #1e293b !important;
+  box-shadow: 0 1px 3px rgba(0,0,0,0.03);
 }
 
 .install-pre code {
@@ -338,12 +409,12 @@ h2 { border-bottom: 1px solid var(--slate-200); padding-bottom: .5rem; }
   font-size: inherit;
   background: none;
   padding: 0;
-  color: inherit;
+  color: #1e293b !important;
 }
 
-.ic-comment { color: #64748b; }
-.ic-fn      { color: #7dd3fc; }
-.ic-str     { color: #86efac; }
+.ic-comment { color: #64748b !important; font-style: italic; }
+.ic-fn      { color: #0071e3 !important; font-weight: 600; }
+.ic-str     { color: #059669 !important; }
 
 /* ── Code Blocks (Clean & Light) ── */
 div.sourceCode,
@@ -374,12 +445,41 @@ code:not([class]) {
   font-size: .85em;
 }
 
-/* ── Footer ── */
+/* ── Footer (maior, centralizado verticalmente) ── */
+footer.footer,
 .nav-footer {
-  border-top: 1px solid var(--slate-200);
-  padding: 1.5rem;
-  font-size: .85rem;
-  color: var(--slate-400);
+  border-top: 1px solid var(--slate-200) !important;
+  padding: 2.25rem 1.5rem !important;
+  background: #ffffff !important;
+  font-size: 0.98rem !important;
+}
+
+.nav-footer .nav-footer-container {
+  display: flex !important;
+  justify-content: space-between !important;
+  align-items: center !important;
+  max-width: 1080px !important;
+  margin: 0 auto !important;
+  min-height: 2.5rem !important;
+}
+
+.nav-footer-left,
+.nav-footer-right {
+  display: flex !important;
+  align-items: center !important;
+  font-size: 0.98rem !important;
+  color: var(--slate-600) !important;
+  line-height: 1.5 !important;
+  margin: 0 !important;
+  padding: 0 !important;
+}
+
+@media (max-width: 768px) {
+  .nav-footer .nav-footer-container {
+    flex-direction: column !important;
+    gap: .5rem !important;
+    text-align: center !important;
+  }
 }
 
 /* ── Sobre page ── */

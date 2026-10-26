@@ -46,7 +46,7 @@ website:
         aria-label: GitHub
 
   page-footer:
-    left: "© 2026 estatR • Documentação Oficial"
+    left: "© 2026 estatR"
     right: "Desenvolvido por Elizeu Medeiros"
 
 format:
