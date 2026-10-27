@@ -1,37 +1,71 @@
 ---
-title: "Aprendizado de Máquina e Sobrevivência"
-subtitle: "Classificação supervisionada, modelos de Cox e curvas de Kaplan-Meier"
+title: "Aprendizado de Máquina"
+subtitle: "Modelos preditivos supervisionados, florestas aleatórias, avaliação e validação cruzada"
 ---
 
-## Aprendizado de Máquina
+## Visão Geral
 
-### Classificação Supervisionada
-Treinamento e predição com métricas completas (sensibilidade, especificidade, F1, AUC):
+O módulo de **Aprendizado de Máquina** do `estatR` fornece uma interface padronizada, fluida e em português para treinamento, avaliação e diagnóstico de modelos preditivos supervisionados (classificação e regressão).
+
+---
+
+## Classificação Supervisionada
+
+Ajuste de modelos preditivos quando a variável resposta é categórica ou binária, com cálculo automatizado de métricas de acurácia, matriz de confusão, sensibilidade, especificidade, precisão e F1-Score:
 
 ```r
-# Ajuste do classificador
-modelo_ml <- classificacao_aprend_maq(Species ~ ., dados = iris, algoritmo = "random_forest")
+library(estatR)
 
-# Previsão e métricas
-predicoes <- previsao_aprend_maq(modelo_ml, novos_dados = dados_teste)
-metricas_aprend_maq(modelo_ml)
+# Ajuste do classificador com Random Forest (otimização automática de árvores)
+modelo_rf <- classificacao_aprend_maq(
+  formula   = Species ~ .,
+  dados     = iris,
+  algoritmo = "random_forest"
+)
+
+# Métricas de desempenho no treino e no teste
+metricas_aprend_maq(modelo_rf)
+
+# Predição em novas amostras
+novos_casos <- iris[1:5, ]
+predicoes <- previsao_aprend_maq(modelo_rf, novos_dados = novos_casos)
 ```
 
 ---
 
-## Análise de Sobrevivência
+## Previsão com Aprendizado de Máquina (Regressão)
 
-### Curvas de Kaplan-Meier
+Ajuste de algoritmos de aprendizado de máquina para predição contínua:
 
 ```r
-res_sob <- analise_sobrevivencia(tempo = dados$tempo, status = dados$evento, grupo = dados$tratamento)
-grafico_sobrevivencia(res_sob)
+# Treinamento com regressão
+modelo_reg <- previsao_aprend_maq(
+  formula   = Sepal.Length ~ Sepal.Width + Petal.Length,
+  dados     = iris,
+  algoritmo = "random_forest"
+)
+
+# Diagnóstico de resíduos e dispersão do modelo de Machine Learning
+analise_residual_aprend_maq(modelo_reg)
 ```
 
-### Regressão de Cox
+---
+
+## Validação Cruzada K-Fold (Cross-Validation)
+
+Avaliação rigorosa de generalização fora da amostra com métricas fold a fold e resumo estatístico:
 
 ```r
-mod_cox <- regressao_cox(tempo = dados$tempo, status = dados$evento, formula = ~ idade + sexo + grupo, dados = dados)
-metricas_cox(mod_cox)
-grafico_cox(mod_cox)
+# Validação cruzada estratificada em 5 partições
+cv_res <- validacao_cruzada(
+  formula   = Sepal.Length ~ Sepal.Width + Petal.Length,
+  dados     = iris,
+  k         = 5,
+  tipo      = "regressao",
+  algoritmo = "linear",
+  grafico   = TRUE
+)
+
+# Visualizar resumo de desempenho
+cv_res$resumo
 ```

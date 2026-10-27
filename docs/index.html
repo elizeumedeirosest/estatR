@@ -109,6 +109,10 @@ ul.task-list li input[type="checkbox"] {
  <span class="dropdown-text">Probabilidade e Simulação</span></a>
   </li>  
         <li>
+    <a class="dropdown-item" href="./modulos/transformacoes.html">
+ <span class="dropdown-text">Transformações de Variáveis</span></a>
+  </li>  
+        <li>
     <a class="dropdown-item" href="./modulos/regressao.html">
  <span class="dropdown-text">Modelos Lineares e Regressão</span></a>
   </li>  
@@ -129,8 +133,16 @@ ul.task-list li input[type="checkbox"] {
  <span class="dropdown-text">Delineamentos Experimentais</span></a>
   </li>  
         <li>
+    <a class="dropdown-item" href="./modulos/qualidade.html">
+ <span class="dropdown-text">Controle Estatístico da Qualidade</span></a>
+  </li>  
+        <li>
     <a class="dropdown-item" href="./modulos/aprendizado_maquina.html">
- <span class="dropdown-text">Machine Learning e Sobrevivência</span></a>
+ <span class="dropdown-text">Aprendizado de Máquina</span></a>
+  </li>  
+        <li>
+    <a class="dropdown-item" href="./modulos/sobrevivencia.html">
+ <span class="dropdown-text">Análise de Sobrevivência</span></a>
   </li>  
         <li>
     <a class="dropdown-item" href="./modulos/amostragem.html">
@@ -138,6 +150,10 @@ ul.task-list li input[type="checkbox"] {
   </li>  
     </ul>
   </li>
+  <li class="nav-item">
+    <a class="nav-link" href="./referencia.html"> 
+<span class="menu-text">Catálogo de Funções</span></a>
+  </li>  
 </ul>
             <ul class="navbar-nav navbar-nav-scroll ms-auto">
   <li class="nav-item compact">
@@ -170,10 +186,10 @@ ul.task-list li input[type="checkbox"] {
   <div class="hero-inner">
     <div class="hero-brand"><span class="brand-black">estat</span><span class="brand-blue">R</span></div>
     <p class="hero-tagline">Estatística moderna, didática e de alto padrão para R.</p>
-    <p class="hero-meta">120+ funções &nbsp;·&nbsp; 11 módulos &nbsp;·&nbsp; Código aberto</p>
+    <p class="hero-meta">120+ funções &nbsp;·&nbsp; 14 módulos &nbsp;·&nbsp; Código aberto</p>
     <div class="hero-actions">
       <a href="./sobre.html" class="btn-primary">Sobre o estatR</a>
-      <a href="./modulos/descritiva.html" class="btn-secondary">Ver Módulos</a>
+      <a href="./referencia.html" class="btn-secondary">Catálogo Completo</a>
     </div>
   </div>
 </section>
@@ -195,7 +211,7 @@ ul.task-list li input[type="checkbox"] {
       <a href="./modulos/inferencia.html" class="module-card">
         <div class="module-icon"><i class="bi bi-bullseye"></i></div>
         <div class="module-title">Testes de Hipótese</div>
-        <div class="module-desc">Testes paramétricos e não-paramétricos com interpretação automática dos resultados.</div>
+        <div class="module-desc">Testes paramétricos e não-paramétricos com tamanhos de efeito e interpretação automática.</div>
         <div class="module-link">Ver módulo →</div>
       </a>
 
@@ -209,28 +225,35 @@ ul.task-list li input[type="checkbox"] {
       <a href="./modulos/probabilidade.html" class="module-card">
         <div class="module-icon"><i class="bi bi-bell"></i></div>
         <div class="module-title">Probabilidade &amp; Simulação</div>
-        <div class="module-desc">Distribuições teóricas, bootstrap, Monte Carlo e Teorema Central do Limite.</div>
+        <div class="module-desc">Distribuições teóricas (Normal, Poisson, Weibull), bootstrap, Monte Carlo e TCL.</div>
+        <div class="module-link">Ver módulo →</div>
+      </a>
+
+      <a href="./modulos/transformacoes.html" class="module-card">
+        <div class="module-icon"><i class="bi bi-sliders"></i></div>
+        <div class="module-title">Transformações de Variáveis</div>
+        <div class="module-desc">Box-Cox com bandas de confiança, Yeo-Johnson, família de potências e seleção automática.</div>
         <div class="module-link">Ver módulo →</div>
       </a>
 
       <a href="./modulos/regressao.html" class="module-card">
         <div class="module-icon"><i class="bi bi-graph-up"></i></div>
         <div class="module-title">Modelos Lineares &amp; Regressão</div>
-        <div class="module-desc">Regressão múltipla com diagnóstico residual rigoroso e seleção de variáveis.</div>
+        <div class="module-desc">Regressão múltipla com diagnóstico residual rigoroso e extratores em português.</div>
         <div class="module-link">Ver módulo →</div>
       </a>
 
       <a href="./modulos/mlg.html" class="module-card">
         <div class="module-icon"><i class="bi bi-bar-chart-steps"></i></div>
         <div class="module-title">Modelos Generalizados (MLG)</div>
-        <div class="module-desc">Logística, Poisson, Binomial Negativa, Gama e Beta com ponto de corte de Youden.</div>
+        <div class="module-desc">Logística, Poisson, Binomial Negativa, Gama e Beta com Odds Ratio e IRR.</div>
         <div class="module-link">Ver módulo →</div>
       </a>
 
       <a href="./modulos/series_temporais.html" class="module-card">
         <div class="module-icon"><i class="bi bi-activity"></i></div>
         <div class="module-title">Séries Temporais</div>
-        <div class="module-desc">Decomposição, testes de raiz unitária, ARIMA, previsão e modelos de machine learning.</div>
+        <div class="module-desc">Decomposição, testes de raiz unitária, previsão e modelos de machine learning.</div>
         <div class="module-link">Ver módulo →</div>
       </a>
 
@@ -244,21 +267,35 @@ ul.task-list li input[type="checkbox"] {
       <a href="./modulos/experimentos.html" class="module-card">
         <div class="module-icon"><i class="bi bi-grid-3x3"></i></div>
         <div class="module-title">Delineamentos Experimentais</div>
-        <div class="module-desc">DIC, DBC, DQL, fatoriais e parcelas subdivididas com testes de médias (Tukey/Scott-Knott).</div>
+        <div class="module-desc">DIC, DBC, DQL, fatoriais, parcelas subdivididas e testes de Tukey, Dunnett e Scott-Knott.</div>
+        <div class="module-link">Ver módulo →</div>
+      </a>
+
+      <a href="./modulos/qualidade.html" class="module-card">
+        <div class="module-icon"><i class="bi bi-shield-check"></i></div>
+        <div class="module-title">Controle de Qualidade (CEQ)</div>
+        <div class="module-desc">Cartas de Shewhart (I-MR, Xbar-R, p, c), regras de alarme, índices Cp/Cpk e nível Sigma.</div>
         <div class="module-link">Ver módulo →</div>
       </a>
 
       <a href="./modulos/aprendizado_maquina.html" class="module-card">
         <div class="module-icon"><i class="bi bi-cpu"></i></div>
-        <div class="module-title">Machine Learning &amp; Sobrevivência</div>
-        <div class="module-desc">Análise de sobrevivência, curvas de Kaplan-Meier e modelos preditivos supervisionados.</div>
+        <div class="module-title">Aprendizado de Máquina</div>
+        <div class="module-desc">Classificação, regressão supervisionada, Random Forest e validação cruzada K-fold.</div>
+        <div class="module-link">Ver módulo →</div>
+      </a>
+
+      <a href="./modulos/sobrevivencia.html" class="module-card">
+        <div class="module-icon"><i class="bi bi-heart-pulse"></i></div>
+        <div class="module-title">Análise de Sobrevivência</div>
+        <div class="module-desc">Curvas de Kaplan-Meier, Nelson-Aalen, testes de Log-Rank e modelos de riscos de Cox.</div>
         <div class="module-link">Ver módulo →</div>
       </a>
 
       <a href="./modulos/amostragem.html" class="module-card">
         <div class="module-icon"><i class="bi bi-people"></i></div>
         <div class="module-title">Amostragem Probabilística</div>
-        <div class="module-desc">AAS, estratificada (proporcional/ótima), sistemática e conglomerados em dois estágios.</div>
+        <div class="module-desc">AAS, estratificada (proporcional/ótima), sistemática e cálculo de poder estatístico.</div>
         <div class="module-link">Ver módulo →</div>
       </a>
 

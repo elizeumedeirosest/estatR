@@ -7,7 +7,7 @@
 <meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=yes">
 
 
-<title>Aprendizado de Máquina e Sobrevivência – estatR</title>
+<title>Aprendizado de Máquina – estatR</title>
 <style>
 /* Default styles provided by pandoc.
 ** See https://pandoc.org/MANUAL.html#variables-for-html for config info.
@@ -144,6 +144,10 @@ pre > code.sourceCode > span > a:first-child::before { text-decoration: underlin
  <span class="dropdown-text">Probabilidade e Simulação</span></a>
   </li>  
         <li>
+    <a class="dropdown-item" href="../modulos/transformacoes.html">
+ <span class="dropdown-text">Transformações de Variáveis</span></a>
+  </li>  
+        <li>
     <a class="dropdown-item" href="../modulos/regressao.html">
  <span class="dropdown-text">Modelos Lineares e Regressão</span></a>
   </li>  
@@ -164,8 +168,16 @@ pre > code.sourceCode > span > a:first-child::before { text-decoration: underlin
  <span class="dropdown-text">Delineamentos Experimentais</span></a>
   </li>  
         <li>
+    <a class="dropdown-item" href="../modulos/qualidade.html">
+ <span class="dropdown-text">Controle Estatístico da Qualidade</span></a>
+  </li>  
+        <li>
     <a class="dropdown-item" href="../modulos/aprendizado_maquina.html">
- <span class="dropdown-text">Machine Learning e Sobrevivência</span></a>
+ <span class="dropdown-text">Aprendizado de Máquina</span></a>
+  </li>  
+        <li>
+    <a class="dropdown-item" href="../modulos/sobrevivencia.html">
+ <span class="dropdown-text">Análise de Sobrevivência</span></a>
   </li>  
         <li>
     <a class="dropdown-item" href="../modulos/amostragem.html">
@@ -173,6 +185,10 @@ pre > code.sourceCode > span > a:first-child::before { text-decoration: underlin
   </li>  
     </ul>
   </li>
+  <li class="nav-item">
+    <a class="nav-link" href="../referencia.html"> 
+<span class="menu-text">Catálogo de Funções</span></a>
+  </li>  
 </ul>
             <ul class="navbar-nav navbar-nav-scroll ms-auto">
   <li class="nav-item compact">
@@ -197,8 +213,8 @@ pre > code.sourceCode > span > a:first-child::before { text-decoration: underlin
 
 <header id="title-block-header" class="quarto-title-block default">
 <div class="quarto-title">
-<h1 class="title">Aprendizado de Máquina e Sobrevivência</h1>
-<p class="subtitle lead">Classificação supervisionada, modelos de Cox e curvas de Kaplan-Meier</p>
+<h1 class="title">Aprendizado de Máquina</h1>
+<p class="subtitle lead">Modelos preditivos supervisionados, florestas aleatórias, avaliação e validação cruzada</p>
 </div>
 
 
@@ -215,35 +231,62 @@ pre > code.sourceCode > span > a:first-child::before { text-decoration: underlin
 </header>
 
 
-<section id="aprendizado-de-máquina" class="level2">
-<h2 class="anchored" data-anchor-id="aprendizado-de-máquina">Aprendizado de Máquina</h2>
-<section id="classificação-supervisionada" class="level3">
-<h3 class="anchored" data-anchor-id="classificação-supervisionada">Classificação Supervisionada</h3>
-<p>Treinamento e predição com métricas completas (sensibilidade, especificidade, F1, AUC):</p>
-<div class="code-copy-outer-scaffold"><div class="sourceCode" id="cb1"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb1-1"><a href="#cb1-1" aria-hidden="true" tabindex="-1"></a><span class="co"># Ajuste do classificador</span></span>
-<span id="cb1-2"><a href="#cb1-2" aria-hidden="true" tabindex="-1"></a>modelo_ml <span class="ot">&lt;-</span> <span class="fu">classificacao_aprend_maq</span>(Species <span class="sc">~</span> ., <span class="at">dados =</span> iris, <span class="at">algoritmo =</span> <span class="st">"random_forest"</span>)</span>
-<span id="cb1-3"><a href="#cb1-3" aria-hidden="true" tabindex="-1"></a></span>
-<span id="cb1-4"><a href="#cb1-4" aria-hidden="true" tabindex="-1"></a><span class="co"># Previsão e métricas</span></span>
-<span id="cb1-5"><a href="#cb1-5" aria-hidden="true" tabindex="-1"></a>predicoes <span class="ot">&lt;-</span> <span class="fu">previsao_aprend_maq</span>(modelo_ml, <span class="at">novos_dados =</span> dados_teste)</span>
-<span id="cb1-6"><a href="#cb1-6" aria-hidden="true" tabindex="-1"></a><span class="fu">metricas_aprend_maq</span>(modelo_ml)</span></code></pre></div><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></div>
+<section id="visão-geral" class="level2">
+<h2 class="anchored" data-anchor-id="visão-geral">Visão Geral</h2>
+<p>O módulo de <strong>Aprendizado de Máquina</strong> do <code>estatR</code> fornece uma interface padronizada, fluida e em português para treinamento, avaliação e diagnóstico de modelos preditivos supervisionados (classificação e regressão).</p>
 <hr>
 </section>
+<section id="classificação-supervisionada" class="level2">
+<h2 class="anchored" data-anchor-id="classificação-supervisionada">Classificação Supervisionada</h2>
+<p>Ajuste de modelos preditivos quando a variável resposta é categórica ou binária, com cálculo automatizado de métricas de acurácia, matriz de confusão, sensibilidade, especificidade, precisão e F1-Score:</p>
+<div class="code-copy-outer-scaffold"><div class="sourceCode" id="cb1"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb1-1"><a href="#cb1-1" aria-hidden="true" tabindex="-1"></a><span class="fu">library</span>(estatR)</span>
+<span id="cb1-2"><a href="#cb1-2" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb1-3"><a href="#cb1-3" aria-hidden="true" tabindex="-1"></a><span class="co"># Ajuste do classificador com Random Forest (otimização automática de árvores)</span></span>
+<span id="cb1-4"><a href="#cb1-4" aria-hidden="true" tabindex="-1"></a>modelo_rf <span class="ot">&lt;-</span> <span class="fu">classificacao_aprend_maq</span>(</span>
+<span id="cb1-5"><a href="#cb1-5" aria-hidden="true" tabindex="-1"></a>  <span class="at">formula   =</span> Species <span class="sc">~</span> .,</span>
+<span id="cb1-6"><a href="#cb1-6" aria-hidden="true" tabindex="-1"></a>  <span class="at">dados     =</span> iris,</span>
+<span id="cb1-7"><a href="#cb1-7" aria-hidden="true" tabindex="-1"></a>  <span class="at">algoritmo =</span> <span class="st">"random_forest"</span></span>
+<span id="cb1-8"><a href="#cb1-8" aria-hidden="true" tabindex="-1"></a>)</span>
+<span id="cb1-9"><a href="#cb1-9" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb1-10"><a href="#cb1-10" aria-hidden="true" tabindex="-1"></a><span class="co"># Métricas de desempenho no treino e no teste</span></span>
+<span id="cb1-11"><a href="#cb1-11" aria-hidden="true" tabindex="-1"></a><span class="fu">metricas_aprend_maq</span>(modelo_rf)</span>
+<span id="cb1-12"><a href="#cb1-12" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb1-13"><a href="#cb1-13" aria-hidden="true" tabindex="-1"></a><span class="co"># Predição em novas amostras</span></span>
+<span id="cb1-14"><a href="#cb1-14" aria-hidden="true" tabindex="-1"></a>novos_casos <span class="ot">&lt;-</span> iris[<span class="dv">1</span><span class="sc">:</span><span class="dv">5</span>, ]</span>
+<span id="cb1-15"><a href="#cb1-15" aria-hidden="true" tabindex="-1"></a>predicoes <span class="ot">&lt;-</span> <span class="fu">previsao_aprend_maq</span>(modelo_rf, <span class="at">novos_dados =</span> novos_casos)</span></code></pre></div><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></div>
+<hr>
 </section>
-<section id="análise-de-sobrevivência" class="level2">
-<h2 class="anchored" data-anchor-id="análise-de-sobrevivência">Análise de Sobrevivência</h2>
-<section id="curvas-de-kaplan-meier" class="level3">
-<h3 class="anchored" data-anchor-id="curvas-de-kaplan-meier">Curvas de Kaplan-Meier</h3>
-<div class="code-copy-outer-scaffold"><div class="sourceCode" id="cb2"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb2-1"><a href="#cb2-1" aria-hidden="true" tabindex="-1"></a>res_sob <span class="ot">&lt;-</span> <span class="fu">analise_sobrevivencia</span>(<span class="at">tempo =</span> dados<span class="sc">$</span>tempo, <span class="at">status =</span> dados<span class="sc">$</span>evento, <span class="at">grupo =</span> dados<span class="sc">$</span>tratamento)</span>
-<span id="cb2-2"><a href="#cb2-2" aria-hidden="true" tabindex="-1"></a><span class="fu">grafico_sobrevivencia</span>(res_sob)</span></code></pre></div><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></div>
+<section id="previsão-com-aprendizado-de-máquina-regressão" class="level2">
+<h2 class="anchored" data-anchor-id="previsão-com-aprendizado-de-máquina-regressão">Previsão com Aprendizado de Máquina (Regressão)</h2>
+<p>Ajuste de algoritmos de aprendizado de máquina para predição contínua:</p>
+<div class="code-copy-outer-scaffold"><div class="sourceCode" id="cb2"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb2-1"><a href="#cb2-1" aria-hidden="true" tabindex="-1"></a><span class="co"># Treinamento com regressão</span></span>
+<span id="cb2-2"><a href="#cb2-2" aria-hidden="true" tabindex="-1"></a>modelo_reg <span class="ot">&lt;-</span> <span class="fu">previsao_aprend_maq</span>(</span>
+<span id="cb2-3"><a href="#cb2-3" aria-hidden="true" tabindex="-1"></a>  <span class="at">formula   =</span> Sepal.Length <span class="sc">~</span> Sepal.Width <span class="sc">+</span> Petal.Length,</span>
+<span id="cb2-4"><a href="#cb2-4" aria-hidden="true" tabindex="-1"></a>  <span class="at">dados     =</span> iris,</span>
+<span id="cb2-5"><a href="#cb2-5" aria-hidden="true" tabindex="-1"></a>  <span class="at">algoritmo =</span> <span class="st">"random_forest"</span></span>
+<span id="cb2-6"><a href="#cb2-6" aria-hidden="true" tabindex="-1"></a>)</span>
+<span id="cb2-7"><a href="#cb2-7" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb2-8"><a href="#cb2-8" aria-hidden="true" tabindex="-1"></a><span class="co"># Diagnóstico de resíduos e dispersão do modelo de Machine Learning</span></span>
+<span id="cb2-9"><a href="#cb2-9" aria-hidden="true" tabindex="-1"></a><span class="fu">analise_residual_aprend_maq</span>(modelo_reg)</span></code></pre></div><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></div>
+<hr>
 </section>
-<section id="regressão-de-cox" class="level3">
-<h3 class="anchored" data-anchor-id="regressão-de-cox">Regressão de Cox</h3>
-<div class="code-copy-outer-scaffold"><div class="sourceCode" id="cb3"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb3-1"><a href="#cb3-1" aria-hidden="true" tabindex="-1"></a>mod_cox <span class="ot">&lt;-</span> <span class="fu">regressao_cox</span>(<span class="at">tempo =</span> dados<span class="sc">$</span>tempo, <span class="at">status =</span> dados<span class="sc">$</span>evento, <span class="at">formula =</span> <span class="sc">~</span> idade <span class="sc">+</span> sexo <span class="sc">+</span> grupo, <span class="at">dados =</span> dados)</span>
-<span id="cb3-2"><a href="#cb3-2" aria-hidden="true" tabindex="-1"></a><span class="fu">metricas_cox</span>(mod_cox)</span>
-<span id="cb3-3"><a href="#cb3-3" aria-hidden="true" tabindex="-1"></a><span class="fu">grafico_cox</span>(mod_cox)</span></code></pre></div><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></div>
+<section id="validação-cruzada-k-fold-cross-validation" class="level2">
+<h2 class="anchored" data-anchor-id="validação-cruzada-k-fold-cross-validation">Validação Cruzada K-Fold (Cross-Validation)</h2>
+<p>Avaliação rigorosa de generalização fora da amostra com métricas fold a fold e resumo estatístico:</p>
+<div class="code-copy-outer-scaffold"><div class="sourceCode" id="cb3"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb3-1"><a href="#cb3-1" aria-hidden="true" tabindex="-1"></a><span class="co"># Validação cruzada estratificada em 5 partições</span></span>
+<span id="cb3-2"><a href="#cb3-2" aria-hidden="true" tabindex="-1"></a>cv_res <span class="ot">&lt;-</span> <span class="fu">validacao_cruzada</span>(</span>
+<span id="cb3-3"><a href="#cb3-3" aria-hidden="true" tabindex="-1"></a>  <span class="at">formula   =</span> Sepal.Length <span class="sc">~</span> Sepal.Width <span class="sc">+</span> Petal.Length,</span>
+<span id="cb3-4"><a href="#cb3-4" aria-hidden="true" tabindex="-1"></a>  <span class="at">dados     =</span> iris,</span>
+<span id="cb3-5"><a href="#cb3-5" aria-hidden="true" tabindex="-1"></a>  <span class="at">k         =</span> <span class="dv">5</span>,</span>
+<span id="cb3-6"><a href="#cb3-6" aria-hidden="true" tabindex="-1"></a>  <span class="at">tipo      =</span> <span class="st">"regressao"</span>,</span>
+<span id="cb3-7"><a href="#cb3-7" aria-hidden="true" tabindex="-1"></a>  <span class="at">algoritmo =</span> <span class="st">"linear"</span>,</span>
+<span id="cb3-8"><a href="#cb3-8" aria-hidden="true" tabindex="-1"></a>  <span class="at">grafico   =</span> <span class="cn">TRUE</span></span>
+<span id="cb3-9"><a href="#cb3-9" aria-hidden="true" tabindex="-1"></a>)</span>
+<span id="cb3-10"><a href="#cb3-10" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb3-11"><a href="#cb3-11" aria-hidden="true" tabindex="-1"></a><span class="co"># Visualizar resumo de desempenho</span></span>
+<span id="cb3-12"><a href="#cb3-12" aria-hidden="true" tabindex="-1"></a>cv_res<span class="sc">$</span>resumo</span></code></pre></div><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></div>
 
 
-</section>
 </section>
 
 </main> <!-- /main -->

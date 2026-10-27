@@ -1,0 +1,101 @@
+---
+title: "Controle Estatístico da Qualidade (CEQ)"
+subtitle: "Cartas de controle de Shewhart, regras de causas especiais e índices de capacidade (Six Sigma)"
+---
+
+## Visão Geral
+
+O módulo de **Controle Estatístico da Qualidade (CEQ)** do `estatR` oferece suporte analítico completo para monitoramento da estabilidade de processos industriais, laboratoriais e operacionais, cobrindo cartas de controle de Shewhart por variáveis e por atributos, além de cálculo rigoroso de índices de capacidade e nível Sigma.
+
+---
+
+## Cartas de Controle por Variáveis Contínuas
+
+### Carta de Valores Individuais e Amplitude Móvel (I-MR)
+Recomendada para monitoramento individual de processos onde as medições não ocorrem em subgrupos racionais ou são tomadas individualmente no tempo:
+
+```r
+library(estatR)
+
+# Geração de carta I-MR com regras de Western Electric / Nelson
+res_imr <- grafico_controle(
+  dados   = dados_medicao,
+  tipo    = "imr",
+  regras  = TRUE,
+  grafico = TRUE
+)
+
+# Acessar tabela de limites estatísticos (LSC, LM, LIC)
+res_imr$limites
+
+# Verificar se o processo está estável sob controle estatístico
+res_imr$estavel
+```
+
+### Cartas de Média e Dispersão ($\bar{X}$-R e $\bar{X}$-S)
+Para processos monitorados em subgrupos racionais de tamanho $n$:
+
+```r
+# Carta de Média e Amplitude (Xbar-R)
+res_xr <- grafico_controle(
+  dados    = dados_subgrupos,
+  tipo     = "xbar_r",
+  subgrupo = dados$lote,
+  grafico  = TRUE
+)
+
+# Carta de Média e Desvio-Padrão (Xbar-S)
+res_xs <- grafico_controle(
+  dados    = dados_subgrupos,
+  tipo     = "xbar_s",
+  subgrupo = dados$lote,
+  grafico  = TRUE
+)
+```
+
+---
+
+## Cartas de Controle por Atributos (p, np, c, u)
+
+Monitoramento de contagem de não-conformidades e produtos defeituosos:
+
+```r
+# Carta p (Fração Defeituosa com tamanho amostral)
+res_p <- grafico_controle(
+  dados           = defeitos_por_amostra,
+  tipo            = "p",
+  tamanho_amostra = tamanho_amostras,
+  grafico         = TRUE
+)
+
+# Carta c (Contagem Total de Defeitos por unidade fixa)
+res_c <- grafico_controle(
+  dados   = contagem_defeitos,
+  tipo    = "c",
+  grafico = TRUE
+)
+```
+
+---
+
+## Análise de Capacidade do Processo (Six Sigma & Cp / Cpk)
+
+Avaliação da capacidade do processo de operar dentro dos limites de tolerância da engenharia (LIE e LSE):
+
+```r
+# Avaliação de capacidade com limites e alvo
+res_cap <- capacidade_processo(
+  dados   = dados_processo,
+  lie     = 45,
+  lse     = 55,
+  alvo    = 50,
+  grafico = TRUE
+)
+
+# Índices de capacidade (Cp, Cpk, Cpm, Pp, Ppk)
+res_cap$indices
+
+# PPM e Nível Sigma
+res_cap$ppm
+res_cap$sigma_nivel
+```

@@ -1,0 +1,79 @@
+---
+title: "Transformações de Variáveis"
+subtitle: "Família de Box-Cox, Yeo-Johnson, logaritmos, normalização e seleção automática"
+---
+
+## Visão Geral
+
+O módulo de **Transformações de Variáveis** do `estatR` reúne métodos clássicos e modernos de transformação de dados para estabilização da variância, atenuação de assimetria, aproximação da normalidade e reescalonamento numérico.
+
+---
+
+## Transformação de Box-Cox com Perfil Ótimo de Verossimilhança
+
+Para dados estritamente positivos ($y > 0$), a transformação de Box & Cox (1964) estima a potência ótima $\lambda$ por Máxima Verossimilhança com intervalo de confiança e exibição gráfica padronizada com grade dupla:
+
+```r
+library(estatR)
+
+# Transformação Box-Cox em um vetor numérico
+res_bc <- transformar(
+  dados   = dados$vendas,
+  metodo  = "box_cox",
+  grafico = TRUE
+)
+
+# Extração de resultados
+res_bc$lambda                 # Lambda ótimo estimado
+res_bc$valores                # Dados transformados
+res_bc$tabela                 # Tabela com diagnóstico antes vs depois (Shapiro-Wilk)
+```
+
+---
+
+## Transformação de Yeo-Johnson para Dados com Zeros e Negativos
+
+Generalização da família de potências proposta por Yeo & Johnson (2000), aplicável diretamente a dados que contêm valores nulos ou negativos:
+
+```r
+# Transformação Yeo-Johnson
+res_yj <- transformar(
+  dados   = dados$lucro_prejuizo,
+  metodo  = "yeo_johnson",
+  grafico = TRUE
+)
+```
+
+---
+
+## Seleção Automática de Transformação Ótima
+
+Testa concorrentemente múltiplos métodos concorrentes e seleciona automaticamente aquele que maximiza o coeficiente $W$ do teste de normalidade de Shapiro-Wilk:
+
+```r
+# Seleção automática
+res_auto <- transformar(
+  dados   = dados$resposta,
+  metodo  = "auto",
+  grafico = TRUE
+)
+```
+
+---
+
+## Transformações em Data Frames (Bancos de Dados)
+
+Permite transformar simultaneamente múltiplas colunas numéricas de um banco de dados, gerando painel gráfico comparativo antes e depois:
+
+```r
+# Transformação log em colunas selecionadas
+df_transf <- transformar(
+  dados   = meubanco,
+  metodo  = "log",
+  colunas = c("renda", "gastos", "investimento"),
+  grafico = TRUE
+)
+
+# Obter o data.frame com os dados transformados
+dados_finais <- df_transf$dados_transformados
+```

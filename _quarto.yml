@@ -27,6 +27,8 @@ website:
             href: modulos/intervalos.qmd
           - text: "Probabilidade e Simulação"
             href: modulos/probabilidade.qmd
+          - text: "Transformações de Variáveis"
+            href: modulos/transformacoes.qmd
           - text: "Modelos Lineares e Regressão"
             href: modulos/regressao.qmd
           - text: "Modelos Generalizados (MLG)"
@@ -37,10 +39,16 @@ website:
             href: modulos/multivariada.qmd
           - text: "Delineamentos Experimentais"
             href: modulos/experimentos.qmd
-          - text: "Machine Learning e Sobrevivência"
+          - text: "Controle Estatístico da Qualidade"
+            href: modulos/qualidade.qmd
+          - text: "Aprendizado de Máquina"
             href: modulos/aprendizado_maquina.qmd
+          - text: "Análise de Sobrevivência"
+            href: modulos/sobrevivencia.qmd
           - text: "Amostragem Probabilística"
             href: modulos/amostragem.qmd
+      - text: "Catálogo de Funções"
+        href: referencia.qmd
     right:
       - icon: github
         href: "https://github.com/elizeumedeirosest/estatR"

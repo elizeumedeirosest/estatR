@@ -1,0 +1,66 @@
+---
+title: "Análise de Sobrevivência"
+subtitle: "Curvas de Kaplan-Meier, estimador de Nelson-Aalen, testes de Log-Rank e modelos de Cox"
+---
+
+## Visão Geral
+
+O módulo de **Análise de Sobrevivência** do `estatR` destina-se à modelagem estatística do tempo até a ocorrência de um evento de interesse (falha, óbito, cura, recidiva, descontinuação), tratando rigorosamente observações censuradas à direita.
+
+---
+
+## Curvas Não-Paramétricas (Kaplan-Meier & Nelson-Aalen)
+
+Estimação não-paramétrica da função de sobrevivência $S(t)$, risco acumulado $H(t)$, taxa de risco $h(t)$ e comparação estatística entre grupos pelo teste de Log-Rank:
+
+```r
+library(estatR)
+
+# Ajuste não-paramétrico com teste de Log-Rank
+res_sob <- analise_sobrevivencia(
+  tempo  = dados$tempo,
+  status = dados$evento,
+  grupo  = dados$tratamento
+)
+
+# Gráfico de curvas de sobrevivência e risco acumulado
+grafico_sobrevivencia(res_sob)
+```
+
+---
+
+## Modelo de Riscos Proporcionais de Cox
+
+Modelagem semi-paramétrica para avaliar o impacto de múltiplas covariáveis simultâneas com extração direta de *Hazard Ratios* (HR), intervalos de confiança e diagnóstico formal dos resíduos de Schoenfeld:
+
+```r
+# Ajuste do modelo de regressão de Cox
+mod_cox <- regressao_cox(
+  tempo   = dados$tempo,
+  status  = dados$evento,
+  formula = ~ idade + sexo + tratamento,
+  dados   = dados
+)
+
+# Métricas de ajuste e discriminação (Índice C de Harrell, AIC, BIC)
+metricas_cox(mod_cox)
+
+# Forest Plot dos Hazard Ratios com linha de referência no 1
+grafico_cox(mod_cox)
+```
+
+---
+
+## Seleção de Modelos de Cox
+
+Comparação exaustiva de combinações de covariáveis ranqueadas por critérios de informação (AIC e $\Delta\text{AIC}$):
+
+```r
+# Best Subsets para modelo de Cox
+selecao_modelos_cox(
+  tempo   = dados$tempo,
+  status  = dados$evento,
+  formula = ~ idade + sexo + dose + estagio,
+  dados   = dados
+)
+```
