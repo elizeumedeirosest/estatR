@@ -9,7 +9,7 @@ toc: false
 
 ## O que é o estatR?
 
-O **estatR** é uma camada estatística moderna para R, desenvolvida para unificar análises dispersas em um único ecossistema coerente, didático e de alto padrão editorial. O pacote nasce da necessidade prática de realizar análises completas — do diagnóstico descritivo à modelagem avançada — com sintaxe fluida, saídas legíveis no console e gráficos prontos para publicação.
+O **estatR** é uma camada estatística moderna para R, desenvolvida para unificar análises dispersas em um único ecossistema coerente, didático e de alto padrão editorial. O pacote nasce da necessidade prática de realizar análises completas — do diagnóstico descritivo ao controle estatístico de processos e modelagem avançada — com sintaxe fluida, saídas legíveis no console e gráficos prontos para publicação.
 
 ## Propósito
 
@@ -17,18 +17,21 @@ A estatística aplicada no R, em sua forma nativa, exige o domínio de dezenas d
 
 ## Módulos
 
-O pacote é organizado em **11 módulos especializados**:
+O pacote é organizado em **14 módulos especializados**:
 
 - [Diagnóstico e Descritiva](modulos/descritiva.html)
 - [Testes de Hipótese](modulos/inferencia.html)
 - [Intervalos de Confiança](modulos/intervalos.html)
 - [Probabilidade e Simulação](modulos/probabilidade.html)
+- [Transformações de Variáveis](modulos/transformacoes.html)
 - [Modelos Lineares e Regressão](modulos/regressao.html)
 - [Modelos Generalizados (MLG)](modulos/mlg.html)
 - [Séries Temporais](modulos/series_temporais.html)
 - [Análise Multivariada](modulos/multivariada.html)
 - [Delineamentos Experimentais](modulos/experimentos.html)
-- [Machine Learning e Sobrevivência](modulos/aprendizado_maquina.html)
+- [Controle Estatístico da Qualidade (CEQ)](modulos/qualidade.html)
+- [Aprendizado de Máquina](modulos/aprendizado_maquina.html)
+- [Análise de Sobrevivência](modulos/sobrevivencia.html)
 - [Amostragem Probabilística](modulos/amostragem.html)
 
 ## Código aberto

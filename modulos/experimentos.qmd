@@ -46,3 +46,29 @@ res_fat_ad <- analise_fatorial_adicional(y = dados$prod, fator_a = dados$fA, fat
 ```r
 res_split <- analise_parcela_subdividida(y = dados$prod, parcela = dados$p, subparcela = dados$sp, bloco = dados$b)
 ```
+
+
+---
+
+## Teste de Dunnett e Medidas Repetidas
+
+### Teste de Dunnett (Comparações com o Controle)
+Comparações de múltiplos tratamentos contra uma testemunha/controle com controle da taxa de erro da família e gráfico de intervalos:
+
+```r
+res_dunnett <- teste_dunnett(resp ~ trat, dados = df_exp, controle = "Testemunha")
+grafico_dunnett(res_dunnett)
+```
+
+### Análise de Medidas Repetidas no Tempo
+ANOVA de medidas repetidas intrasujeito com teste de esfericidade de Mauchly e correções de Greenhouse-Geisser e Huynh-Feldt:
+
+```r
+analise_medidas_repetidas(
+  dados    = dados_tempo,
+  resposta = "escore",
+  tempo    = "periodo",
+  sujeito  = "paciente",
+  grafico  = TRUE
+)
+```

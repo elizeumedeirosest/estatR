@@ -9,7 +9,8 @@
 [![Documentação Oficial](https://img.shields.io/badge/docs-oficial-0071e3?style=for-the-badge&logo=google-chrome&logoColor=white)](https://elizeumedeirosest.github.io/estatR) 
 [![Licença MIT](https://img.shields.io/badge/licença-MIT-10b981?style=for-the-badge)](LICENSE) 
 [![R >= 4.0](https://img.shields.io/badge/R-%3E%3D_4.0-38bdf8?style=for-the-badge&logo=R&logoColor=white)](https://cran.r-project.org/) 
-[![Funções](https://img.shields.io/badge/funções-120+-818cf8?style=for-the-badge)](https://elizeumedeirosest.github.io/estatR/reference/index.html)
+[![Módulos](https://img.shields.io/badge/módulos-14-0284c7?style=for-the-badge)](https://elizeumedeirosest.github.io/estatR/index.html) 
+[![Funções](https://img.shields.io/badge/funções-120+-818cf8?style=for-the-badge)](https://elizeumedeirosest.github.io/estatR/referencia.html)
 
 <p align="center">
   <b>Uma camada estatística moderna, didática e unificada para o ecossistema R.</b><br>
@@ -97,6 +98,12 @@ teste_mann_whitney(mtcars$mpg, mtcars$am)
 # Qui-quadrado e homogeneidade de variâncias
 teste_qui_quadrado(mtcars, cyl, am)
 teste_levene(mtcars$mpg, mtcars$am)
+
+# Teste de Equivalência (TOST - Two One-Sided Tests)
+teste_equivalencia(mtcars$mpg ~ mtcars$am, margem = 2)
+
+# Teste de McNemar para dados binários pareados (com Odds Ratio pareado)
+teste_mcnemar(dados, var_antes = Antes, var_depois = Depois)
 ```
 
 **Intervalos de Confiança**
@@ -163,6 +170,10 @@ distribuicao("f", gl1 = 2, gl2 = 15)
 distribuicao("uniforme", min = 0, max = 10)
 distribuicao("gama", forma = 2, escala = 2)
 
+# Distribuição Weibull
+distribuicao("weibull", forma = 2, escala = 1)
+prob_weibull(q = 1.5, forma = 2, escala = 1)
+
 # Painel Visual de Simulação (Lei dos Grandes Números / Convergência)
 distribuicao("exponencial", taxa = 0.5, simulacao = TRUE)
 ```
@@ -184,6 +195,31 @@ gerar_amostra(n = 1000, distribuicao = "normal", media = 50, dp = 5)
 gerar_amostra(n = 500,  distribuicao = "binomial", ensaios = 10, prob = 0.5)
 gerar_amostra(n = 1000, distribuicao = "exponencial", taxa = 0.5)
 ```
+</details>
+
+---
+
+
+<details>
+<summary><strong> Transformações de Variáveis</strong></summary>
+<br>
+
+**Família de Potências e Normalização**
+
+```r
+# Box-Cox com perfil ótimo de verossimilhança e bandas de confiança (grade dupla)
+res_bc <- transformar(dados$vendas, metodo = "box_cox")
+
+# Yeo-Johnson (para dados contendo zeros ou valores negativos)
+res_yj <- transformar(dados$lucro, metodo = "yeo_johnson")
+
+# Seleção automática da transformação ótima pelo teste de Shapiro-Wilk
+res_auto <- transformar(dados$resposta, metodo = "auto")
+
+# Transformação simultânea em colunas de um banco de dados
+df_transf <- transformar(meubanco, metodo = "log", colunas = c("renda", "gastos"))
+```
+
 </details>
 
 ---
@@ -841,6 +877,9 @@ concordancia_kappa(dados, Medico_A, Medico_B, ponderado = "quadratico")
 
 # Kappa de Fleiss (3 ou mais avaliadores)
 concordancia_kappa(matriz_avaliadores)  # Matriz de sujeitos x categorias
+
+# Coeficiente de Correlação Intraclasse (ICC - 6 modelos de Shrout & Fleiss)
+coeficiente_cor_intra_classe(matriz_avaliadores)
 ```
 
 **Concordância Contínua de Métodos (Bland-Altman)**
@@ -848,6 +887,37 @@ concordancia_kappa(matriz_avaliadores)  # Matriz de sujeitos x categorias
 ```r
 # Viés médio, limites de concordância de 95%, ICs e gráfico com grade dupla
 grafico_bland_altman(dados, metodo1 = Aparelho_A, metodo2 = Aparelho_B)
+```
+
+</details>
+
+---
+
+
+<details>
+<summary><strong> Controle Estatístico da Qualidade (CEQ & Six Sigma)</strong></summary>
+<br>
+
+**Cartas de Controle de Shewhart**
+
+```r
+# Carta de Valores Individuais e Amplitude Móvel (I-MR) com regras de Western Electric / Nelson
+res_imr <- grafico_controle(dados_processo, tipo = "imr")
+
+# Cartas de Média e Dispersão (Xbar-R e Xbar-S)
+res_xr <- grafico_controle(dados_processo, tipo = "xbar_r", subgrupo = lote)
+res_xs <- grafico_controle(dados_processo, tipo = "xbar_s", subgrupo = lote)
+
+# Cartas por atributos (p, np, c, u)
+res_p <- grafico_controle(defeitos, tipo = "p", tamanho_amostra = n_amostras)
+res_c <- grafico_controle(defeitos, tipo = "c")
+```
+
+**Capacidade do Processo (Six Sigma)**
+
+```r
+# Análise de capacidade com limites LIE, LSE e Alvo (Cp, Cpk, Cpm, Pp, Ppk, PPM e Nível Sigma)
+res_cap <- capacidade_processo(dados_processo, lie = 45, lse = 55, alvo = 50)
 ```
 
 </details>
@@ -898,6 +968,9 @@ metricas(mod_cls)
 # Compara modelos estatísticos clássicos (OLS/GLM) com modelos de ML sob Validação Cruzada (5-fold CV)
 selecao_modelos(mpg ~ wt + hp + qsec, dados = mtcars,
                 comparar_modelos = c("estatistico", "aprend_maq"), top = 5)
+
+# Validação Cruzada K-Fold com métricas fold a fold
+validacao_cruzada(mpg ~ wt + hp + qsec, dados = mtcars, k = 5, tipo = "regressao")
 ```
 
 </details>

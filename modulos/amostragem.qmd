@@ -46,3 +46,19 @@ tamanho_amostra(tipo = "proporcao", erro = 0.03, confianca = 0.95, N = 10000)
 # Média contínua
 tamanho_amostra(tipo = "media", erro = 2, dp = 15, confianca = 0.95)
 ```
+
+
+---
+
+## Poder Estatístico e Dimensionamento de Experimentos
+
+### `poder_estatistico()`
+Calcula o poder do teste ($1 - \beta$) ou o tamanho de amostra necessário para Teste T, ANOVA, Correlação e Proporção com curva gráfica de poder:
+
+```r
+# Cálculo de poder para Teste T para duas amostras
+poder_estatistico(teste = "t", n = 30, d = 0.5, sig_nivel = 0.05, grafico = TRUE)
+
+# Determinação do tamanho amostral para poder de 80%
+poder_estatistico(teste = "t", poder = 0.80, d = 0.5, sig_nivel = 0.05)
+```

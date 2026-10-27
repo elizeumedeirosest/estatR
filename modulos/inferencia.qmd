@@ -55,6 +55,21 @@ teste_kruskal(Sepal.Length ~ Species, dados = iris)
 teste_friedman(y ~ grupo | bloco, dados = dados_repetidos)
 ```
 
+
+### Teste de Equivalência (TOST)
+Procedimento de Dois Testes Unicaudais para avaliar se a diferença entre tratamentos está dentro de uma margem clinicamente aceitável:
+
+```r
+teste_equivalencia(mpg ~ am, dados = mtcars, margem = 2, grafico = TRUE)
+```
+
+### Teste de McNemar para Dados Pareados
+Avaliação de homogeneidade marginal para dados categóricos binários pareados (com cálculo de Odds Ratio pareado):
+
+```r
+teste_mcnemar(dados, var_antes = Antes, var_depois = Depois, grafico = TRUE)
+```
+
 ### Qui-Quadrado & Homocedasticidade
 
 ```r

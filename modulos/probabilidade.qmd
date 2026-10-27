@@ -24,6 +24,10 @@ distribuicao("f", gl1 = 2, gl2 = 15)
 # Distribuição Poisson
 distribuicao("poisson", lambda = 3)
 
+# Distribuição Weibull (parâmetros de forma e escala)
+distribuicao("weibull", forma = 2, escala = 1)
+
+
 # Distribuição Exponencial com simulação da Lei dos Grandes Números
 distribuicao("exponencial", taxa = 0.5, simulacao = TRUE)
 ```
@@ -46,6 +50,10 @@ prob_poisson(lambda = 2, q = 2, tipo = "menor")
 
 # Probabilidade Exponencial: P(X > 2)
 prob_exponencial(taxa = 0.5, q1 = 2, tipo = "maior")
+
+# Probabilidade Weibull: P(X <= 1.5)
+prob_weibull(q = 1.5, forma = 2, escala = 1)
+
 ```
 
 ---

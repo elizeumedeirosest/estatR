@@ -43,3 +43,24 @@ pontos_influentes(modelo)
 # Gráfico de coeficientes com intervalos de confiança
 grafico_coeficientes(modelo)
 ```
+
+
+---
+
+## Extratores Universais em Português
+
+Acesso direto e idiomático aos componentes do modelo estatístico (compatível com `lm`, `glm`, `aov` e modelos do `estatR`):
+
+```r
+# Coeficientes estimados
+coeficientes(modelo)
+
+# Resíduos do modelo
+residuos(modelo)
+
+# Valores ajustados / preditos na amostra
+valores_ajustados(modelo)
+
+# Resumo completo do modelo
+resumo(modelo)
+```

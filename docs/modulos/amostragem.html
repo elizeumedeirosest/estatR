@@ -293,6 +293,19 @@ window.Quarto = {
 <span id="cb5-3"><a href="#cb5-3" aria-hidden="true" tabindex="-1"></a></span>
 <span id="cb5-4"><a href="#cb5-4" aria-hidden="true" tabindex="-1"></a><span class="co"># Média contínua</span></span>
 <span id="cb5-5"><a href="#cb5-5" aria-hidden="true" tabindex="-1"></a><span class="fu">tamanho_amostra</span>(<span class="at">tipo =</span> <span class="st">"media"</span>, <span class="at">erro =</span> <span class="dv">2</span>, <span class="at">dp =</span> <span class="dv">15</span>, <span class="at">confianca =</span> <span class="fl">0.95</span>)</span></code></pre></div><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></div>
+<hr>
+</section>
+</section>
+<section id="poder-estatístico-e-dimensionamento-de-experimentos" class="level2">
+<h2 class="anchored" data-anchor-id="poder-estatístico-e-dimensionamento-de-experimentos">Poder Estatístico e Dimensionamento de Experimentos</h2>
+<section id="poder_estatistico" class="level3">
+<h3 class="anchored" data-anchor-id="poder_estatistico"><code>poder_estatistico()</code></h3>
+<p>Calcula o poder do teste (<span class="math inline">\(1 - \beta\)</span>) ou o tamanho de amostra necessário para Teste T, ANOVA, Correlação e Proporção com curva gráfica de poder:</p>
+<div class="code-copy-outer-scaffold"><div class="sourceCode" id="cb6"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb6-1"><a href="#cb6-1" aria-hidden="true" tabindex="-1"></a><span class="co"># Cálculo de poder para Teste T para duas amostras</span></span>
+<span id="cb6-2"><a href="#cb6-2" aria-hidden="true" tabindex="-1"></a><span class="fu">poder_estatistico</span>(<span class="at">teste =</span> <span class="st">"t"</span>, <span class="at">n =</span> <span class="dv">30</span>, <span class="at">d =</span> <span class="fl">0.5</span>, <span class="at">sig_nivel =</span> <span class="fl">0.05</span>, <span class="at">grafico =</span> <span class="cn">TRUE</span>)</span>
+<span id="cb6-3"><a href="#cb6-3" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb6-4"><a href="#cb6-4" aria-hidden="true" tabindex="-1"></a><span class="co"># Determinação do tamanho amostral para poder de 80%</span></span>
+<span id="cb6-5"><a href="#cb6-5" aria-hidden="true" tabindex="-1"></a><span class="fu">poder_estatistico</span>(<span class="at">teste =</span> <span class="st">"t"</span>, <span class="at">poder =</span> <span class="fl">0.80</span>, <span class="at">d =</span> <span class="fl">0.5</span>, <span class="at">sig_nivel =</span> <span class="fl">0.05</span>)</span></code></pre></div><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></div>
 
 
 </section>

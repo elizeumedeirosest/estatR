@@ -251,8 +251,12 @@ pre > code.sourceCode > span > a:first-child::before { text-decoration: underlin
 <span id="cb1-13"><a href="#cb1-13" aria-hidden="true" tabindex="-1"></a><span class="co"># Distribuição Poisson</span></span>
 <span id="cb1-14"><a href="#cb1-14" aria-hidden="true" tabindex="-1"></a><span class="fu">distribuicao</span>(<span class="st">"poisson"</span>, <span class="at">lambda =</span> <span class="dv">3</span>)</span>
 <span id="cb1-15"><a href="#cb1-15" aria-hidden="true" tabindex="-1"></a></span>
-<span id="cb1-16"><a href="#cb1-16" aria-hidden="true" tabindex="-1"></a><span class="co"># Distribuição Exponencial com simulação da Lei dos Grandes Números</span></span>
-<span id="cb1-17"><a href="#cb1-17" aria-hidden="true" tabindex="-1"></a><span class="fu">distribuicao</span>(<span class="st">"exponencial"</span>, <span class="at">taxa =</span> <span class="fl">0.5</span>, <span class="at">simulacao =</span> <span class="cn">TRUE</span>)</span></code></pre></div><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></div>
+<span id="cb1-16"><a href="#cb1-16" aria-hidden="true" tabindex="-1"></a><span class="co"># Distribuição Weibull (parâmetros de forma e escala)</span></span>
+<span id="cb1-17"><a href="#cb1-17" aria-hidden="true" tabindex="-1"></a><span class="fu">distribuicao</span>(<span class="st">"weibull"</span>, <span class="at">forma =</span> <span class="dv">2</span>, <span class="at">escala =</span> <span class="dv">1</span>)</span>
+<span id="cb1-18"><a href="#cb1-18" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb1-19"><a href="#cb1-19" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb1-20"><a href="#cb1-20" aria-hidden="true" tabindex="-1"></a><span class="co"># Distribuição Exponencial com simulação da Lei dos Grandes Números</span></span>
+<span id="cb1-21"><a href="#cb1-21" aria-hidden="true" tabindex="-1"></a><span class="fu">distribuicao</span>(<span class="st">"exponencial"</span>, <span class="at">taxa =</span> <span class="fl">0.5</span>, <span class="at">simulacao =</span> <span class="cn">TRUE</span>)</span></code></pre></div><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></div>
 <hr>
 </section>
 </section>
@@ -269,7 +273,10 @@ pre > code.sourceCode > span > a:first-child::before { text-decoration: underlin
 <span id="cb2-8"><a href="#cb2-8" aria-hidden="true" tabindex="-1"></a><span class="fu">prob_poisson</span>(<span class="at">lambda =</span> <span class="dv">2</span>, <span class="at">q =</span> <span class="dv">2</span>, <span class="at">tipo =</span> <span class="st">"menor"</span>)</span>
 <span id="cb2-9"><a href="#cb2-9" aria-hidden="true" tabindex="-1"></a></span>
 <span id="cb2-10"><a href="#cb2-10" aria-hidden="true" tabindex="-1"></a><span class="co"># Probabilidade Exponencial: P(X &gt; 2)</span></span>
-<span id="cb2-11"><a href="#cb2-11" aria-hidden="true" tabindex="-1"></a><span class="fu">prob_exponencial</span>(<span class="at">taxa =</span> <span class="fl">0.5</span>, <span class="at">q1 =</span> <span class="dv">2</span>, <span class="at">tipo =</span> <span class="st">"maior"</span>)</span></code></pre></div><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></div>
+<span id="cb2-11"><a href="#cb2-11" aria-hidden="true" tabindex="-1"></a><span class="fu">prob_exponencial</span>(<span class="at">taxa =</span> <span class="fl">0.5</span>, <span class="at">q1 =</span> <span class="dv">2</span>, <span class="at">tipo =</span> <span class="st">"maior"</span>)</span>
+<span id="cb2-12"><a href="#cb2-12" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb2-13"><a href="#cb2-13" aria-hidden="true" tabindex="-1"></a><span class="co"># Probabilidade Weibull: P(X &lt;= 1.5)</span></span>
+<span id="cb2-14"><a href="#cb2-14" aria-hidden="true" tabindex="-1"></a><span class="fu">prob_weibull</span>(<span class="at">q =</span> <span class="fl">1.5</span>, <span class="at">forma =</span> <span class="dv">2</span>, <span class="at">escala =</span> <span class="dv">1</span>)</span></code></pre></div><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></div>
 <hr>
 </section>
 <section id="estimação-simulação-computacional" class="level2">

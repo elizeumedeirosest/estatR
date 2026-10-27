@@ -4,14 +4,14 @@
     "href": "sobre.html",
     "title": "Sobre o estatR",
     "section": "",
-    "text": "O estatR é uma camada estatística moderna para R, desenvolvida para unificar análises dispersas em um único ecossistema coerente, didático e de alto padrão editorial. O pacote nasce da necessidade prática de realizar análises completas — do diagnóstico descritivo à modelagem avançada — com sintaxe fluida, saídas legíveis no console e gráficos prontos para publicação.\n\n\n\nA estatística aplicada no R, em sua forma nativa, exige o domínio de dezenas de pacotes com interfaces distintas. O estatR resolve isso: uma função, um resultado, uma linguagem. As saídas são formatadas automaticamente em português, com alinhamento preciso de colunas, casas decimais padronizadas e notas interpretativas embutidas — prontas para teses, artigos e relatórios corporativos.\n\n\n\nO pacote é organizado em 11 módulos especializados:\n\nDiagnóstico e Descritiva\nTestes de Hipótese\nIntervalos de Confiança\nProbabilidade e Simulação\nModelos Lineares e Regressão\nModelos Generalizados (MLG)\nSéries Temporais\nAnálise Multivariada\nDelineamentos Experimentais\nMachine Learning e Sobrevivência\nAmostragem Probabilística\n\n\n\n\nO estatR é distribuído como código aberto via GitHub. Contribuições, sugestões e relatórios de problemas são bem-vindos no repositório oficial."
+    "text": "O estatR é uma camada estatística moderna para R, desenvolvida para unificar análises dispersas em um único ecossistema coerente, didático e de alto padrão editorial. O pacote nasce da necessidade prática de realizar análises completas — do diagnóstico descritivo ao controle estatístico de processos e modelagem avançada — com sintaxe fluida, saídas legíveis no console e gráficos prontos para publicação.\n\n\n\nA estatística aplicada no R, em sua forma nativa, exige o domínio de dezenas de pacotes com interfaces distintas. O estatR resolve isso: uma função, um resultado, uma linguagem. As saídas são formatadas automaticamente em português, com alinhamento preciso de colunas, casas decimais padronizadas e notas interpretativas embutidas — prontas para teses, artigos e relatórios corporativos.\n\n\n\nO pacote é organizado em 14 módulos especializados:\n\nDiagnóstico e Descritiva\nTestes de Hipótese\nIntervalos de Confiança\nProbabilidade e Simulação\nTransformações de Variáveis\nModelos Lineares e Regressão\nModelos Generalizados (MLG)\nSéries Temporais\nAnálise Multivariada\nDelineamentos Experimentais\nControle Estatístico da Qualidade (CEQ)\nAprendizado de Máquina\nAnálise de Sobrevivência\nAmostragem Probabilística\n\n\n\n\nO estatR é distribuído como código aberto via GitHub. Contribuições, sugestões e relatórios de problemas são bem-vindos no repositório oficial."
   },
   {
     "objectID": "sobre.html#o-que-é-o-estatr",
     "href": "sobre.html#o-que-é-o-estatr",
     "title": "Sobre o estatR",
     "section": "",
-    "text": "O estatR é uma camada estatística moderna para R, desenvolvida para unificar análises dispersas em um único ecossistema coerente, didático e de alto padrão editorial. O pacote nasce da necessidade prática de realizar análises completas — do diagnóstico descritivo à modelagem avançada — com sintaxe fluida, saídas legíveis no console e gráficos prontos para publicação."
+    "text": "O estatR é uma camada estatística moderna para R, desenvolvida para unificar análises dispersas em um único ecossistema coerente, didático e de alto padrão editorial. O pacote nasce da necessidade prática de realizar análises completas — do diagnóstico descritivo ao controle estatístico de processos e modelagem avançada — com sintaxe fluida, saídas legíveis no console e gráficos prontos para publicação."
   },
   {
     "objectID": "sobre.html#propósito",
@@ -25,7 +25,7 @@
     "href": "sobre.html#módulos",
     "title": "Sobre o estatR",
     "section": "",
-    "text": "O pacote é organizado em 11 módulos especializados:\n\nDiagnóstico e Descritiva\nTestes de Hipótese\nIntervalos de Confiança\nProbabilidade e Simulação\nModelos Lineares e Regressão\nModelos Generalizados (MLG)\nSéries Temporais\nAnálise Multivariada\nDelineamentos Experimentais\nMachine Learning e Sobrevivência\nAmostragem Probabilística"
+    "text": "O pacote é organizado em 14 módulos especializados:\n\nDiagnóstico e Descritiva\nTestes de Hipótese\nIntervalos de Confiança\nProbabilidade e Simulação\nTransformações de Variáveis\nModelos Lineares e Regressão\nModelos Generalizados (MLG)\nSéries Temporais\nAnálise Multivariada\nDelineamentos Experimentais\nControle Estatístico da Qualidade (CEQ)\nAprendizado de Máquina\nAnálise de Sobrevivência\nAmostragem Probabilística"
   },
   {
     "objectID": "sobre.html#código-aberto",
@@ -203,6 +203,13 @@
     "text": "Esquemas Fatoriais e Parcelas\n\nFatorial Duplo e Adicional\n# Fatorial Duplo (Fator A x Fator B)\nres_fat &lt;- analise_fatorial_duplo(y = dados$prod, fator_a = dados$irrigacao, fator_b = dados$adubo)\ngrafico_fatorial(res_fat)\n\n# Fatorial com Testemunha Adicional\nres_fat_ad &lt;- analise_fatorial_adicional(y = dados$prod, fator_a = dados$fA, fator_b = dados$fB, testemunha = dados$test)\n\n\nParcelas Subdivididas (Split-Plot)\nres_split &lt;- analise_parcela_subdividida(y = dados$prod, parcela = dados$p, subparcela = dados$sp, bloco = dados$b)"
   },
   {
+    "objectID": "modulos/experimentos.html#teste-de-dunnett-e-medidas-repetidas",
+    "href": "modulos/experimentos.html#teste-de-dunnett-e-medidas-repetidas",
+    "title": "Planejamento e Análise de Experimentos",
+    "section": "Teste de Dunnett e Medidas Repetidas",
+    "text": "Teste de Dunnett e Medidas Repetidas\n\nTeste de Dunnett (Comparações com o Controle)\nComparações de múltiplos tratamentos contra uma testemunha/controle com controle da taxa de erro da família e gráfico de intervalos:\nres_dunnett &lt;- teste_dunnett(resp ~ trat, dados = df_exp, controle = \"Testemunha\")\ngrafico_dunnett(res_dunnett)\n\n\nAnálise de Medidas Repetidas no Tempo\nANOVA de medidas repetidas intrasujeito com teste de esfericidade de Mauchly e correções de Greenhouse-Geisser e Huynh-Feldt:\nanalise_medidas_repetidas(\n  dados    = dados_tempo,\n  resposta = \"escore\",\n  tempo    = \"periodo\",\n  sujeito  = \"paciente\",\n  grafico  = TRUE\n)"
+  },
+  {
     "objectID": "modulos/aprendizado_maquina.html",
     "href": "modulos/aprendizado_maquina.html",
     "title": "Aprendizado de Máquina",
@@ -266,6 +273,13 @@
     "text": "Dimensionamento Amostral\n\ntamanho_amostra()\nCalcula o n necessário dado erro tolerável (\\(e\\)), nível de confiança e tamanho da população:\n# Proporção (margem de 3%, 95% de confiança)\ntamanho_amostra(tipo = \"proporcao\", erro = 0.03, confianca = 0.95, N = 10000)\n\n# Média contínua\ntamanho_amostra(tipo = \"media\", erro = 2, dp = 15, confianca = 0.95)"
   },
   {
+    "objectID": "modulos/amostragem.html#poder-estatístico-e-dimensionamento-de-experimentos",
+    "href": "modulos/amostragem.html#poder-estatístico-e-dimensionamento-de-experimentos",
+    "title": "Amostragem Probabilística",
+    "section": "Poder Estatístico e Dimensionamento de Experimentos",
+    "text": "Poder Estatístico e Dimensionamento de Experimentos\n\npoder_estatistico()\nCalcula o poder do teste (\\(1 - \\beta\\)) ou o tamanho de amostra necessário para Teste T, ANOVA, Correlação e Proporção com curva gráfica de poder:\n# Cálculo de poder para Teste T para duas amostras\npoder_estatistico(teste = \"t\", n = 30, d = 0.5, sig_nivel = 0.05, grafico = TRUE)\n\n# Determinação do tamanho amostral para poder de 80%\npoder_estatistico(teste = \"t\", poder = 0.80, d = 0.5, sig_nivel = 0.05)"
+  },
+  {
     "objectID": "modulos/descritiva.html",
     "href": "modulos/descritiva.html",
     "title": "Diagnóstico e Estatística Descritiva",
@@ -319,7 +333,7 @@
     "href": "modulos/inferencia.html#testes-não-paramétricos-e-categóricos",
     "title": "Inferência e Testes de Hipótese",
     "section": "Testes Não-Paramétricos e Categóricos",
-    "text": "Testes Não-Paramétricos e Categóricos\n\nTeste de Wilcoxon & Mann-Whitney\n# Uma amostra / pareado (Wilcoxon Signed-Rank)\nteste_wilcoxon(mtcars$mpg, mu = 20, grafico = TRUE)\n\n# Duas amostras independentes (Mann-Whitney U)\nteste_mann_whitney(mpg ~ am, dados = mtcars, grafico = TRUE)\n\n\nKruskal-Wallis & Friedman\n# Grupos independentes (Kruskal-Wallis com post-hoc de Dunn)\nteste_kruskal(Sepal.Length ~ Species, dados = iris)\n\n# Medidas repetidas / blocos (Friedman)\nteste_friedman(y ~ grupo | bloco, dados = dados_repetidos)\n\n\nQui-Quadrado & Homocedasticidade\n# Qui-Quadrado de Independência\nteste_qui_quadrado(mtcars, cyl, am)\n\n# Homocedasticidade de Levene\nteste_levene(mtcars$mpg, mtcars$am)\n\n\nConcordância\n# Cohen / Fleiss Kappa\nconcordancia_kappa(avaliador1, avaliador2)\n\n# Bland-Altman\ngrafico_bland_altman(dados, metodo1 = \"termometro_A\", metodo2 = \"termometro_B\")"
+    "text": "Testes Não-Paramétricos e Categóricos\n\nTeste de Wilcoxon & Mann-Whitney\n# Uma amostra / pareado (Wilcoxon Signed-Rank)\nteste_wilcoxon(mtcars$mpg, mu = 20, grafico = TRUE)\n\n# Duas amostras independentes (Mann-Whitney U)\nteste_mann_whitney(mpg ~ am, dados = mtcars, grafico = TRUE)\n\n\nKruskal-Wallis & Friedman\n# Grupos independentes (Kruskal-Wallis com post-hoc de Dunn)\nteste_kruskal(Sepal.Length ~ Species, dados = iris)\n\n# Medidas repetidas / blocos (Friedman)\nteste_friedman(y ~ grupo | bloco, dados = dados_repetidos)\n\n\nTeste de Equivalência (TOST)\nProcedimento de Dois Testes Unicaudais para avaliar se a diferença entre tratamentos está dentro de uma margem clinicamente aceitável:\nteste_equivalencia(mpg ~ am, dados = mtcars, margem = 2, grafico = TRUE)\n\n\nTeste de McNemar para Dados Pareados\nAvaliação de homogeneidade marginal para dados categóricos binários pareados (com cálculo de Odds Ratio pareado):\nteste_mcnemar(dados, var_antes = Antes, var_depois = Depois, grafico = TRUE)\n\n\nQui-Quadrado & Homocedasticidade\n# Qui-Quadrado de Independência\nteste_qui_quadrado(mtcars, cyl, am)\n\n# Homocedasticidade de Levene\nteste_levene(mtcars$mpg, mtcars$am)\n\n\nConcordância\n# Cohen / Fleiss Kappa\nconcordancia_kappa(avaliador1, avaliador2)\n\n# Bland-Altman\ngrafico_bland_altman(dados, metodo1 = \"termometro_A\", metodo2 = \"termometro_B\")"
   },
   {
     "objectID": "modulos/mlg.html",
@@ -361,21 +375,21 @@
     "href": "modulos/probabilidade.html",
     "title": "Probabilidade, Distribuições e Simulação",
     "section": "",
-    "text": "Apresenta densidade/massa teórica, momentos teóricos (média, variância, assimetria, curtose), quantis principais e visualização gráfica com parâmetros explícitos no título:\n# Distribuição Normal com realce das áreas de 1, 2 e 3 desvios\ndistribuicao(\"normal\", media = 100, dp = 15)\n\n# Distribuição t de Student com graus de liberdade\ndistribuicao(\"t\", gl = 5)\n\n# Distribuição Qui-Quadrado\ndistribuicao(\"qui_quadrado\", gl = 3)\n\n# Distribuição F de Snedecor\ndistribuicao(\"f\", gl1 = 2, gl2 = 15)\n\n# Distribuição Poisson\ndistribuicao(\"poisson\", lambda = 3)\n\n# Distribuição Exponencial com simulação da Lei dos Grandes Números\ndistribuicao(\"exponencial\", taxa = 0.5, simulacao = TRUE)"
+    "text": "Apresenta densidade/massa teórica, momentos teóricos (média, variância, assimetria, curtose), quantis principais e visualização gráfica com parâmetros explícitos no título:\n# Distribuição Normal com realce das áreas de 1, 2 e 3 desvios\ndistribuicao(\"normal\", media = 100, dp = 15)\n\n# Distribuição t de Student com graus de liberdade\ndistribuicao(\"t\", gl = 5)\n\n# Distribuição Qui-Quadrado\ndistribuicao(\"qui_quadrado\", gl = 3)\n\n# Distribuição F de Snedecor\ndistribuicao(\"f\", gl1 = 2, gl2 = 15)\n\n# Distribuição Poisson\ndistribuicao(\"poisson\", lambda = 3)\n\n# Distribuição Weibull (parâmetros de forma e escala)\ndistribuicao(\"weibull\", forma = 2, escala = 1)\n\n\n# Distribuição Exponencial com simulação da Lei dos Grandes Números\ndistribuicao(\"exponencial\", taxa = 0.5, simulacao = TRUE)"
   },
   {
     "objectID": "modulos/probabilidade.html#painel-didático-de-distribuições",
     "href": "modulos/probabilidade.html#painel-didático-de-distribuições",
     "title": "Probabilidade, Distribuições e Simulação",
     "section": "",
-    "text": "Apresenta densidade/massa teórica, momentos teóricos (média, variância, assimetria, curtose), quantis principais e visualização gráfica com parâmetros explícitos no título:\n# Distribuição Normal com realce das áreas de 1, 2 e 3 desvios\ndistribuicao(\"normal\", media = 100, dp = 15)\n\n# Distribuição t de Student com graus de liberdade\ndistribuicao(\"t\", gl = 5)\n\n# Distribuição Qui-Quadrado\ndistribuicao(\"qui_quadrado\", gl = 3)\n\n# Distribuição F de Snedecor\ndistribuicao(\"f\", gl1 = 2, gl2 = 15)\n\n# Distribuição Poisson\ndistribuicao(\"poisson\", lambda = 3)\n\n# Distribuição Exponencial com simulação da Lei dos Grandes Números\ndistribuicao(\"exponencial\", taxa = 0.5, simulacao = TRUE)"
+    "text": "Apresenta densidade/massa teórica, momentos teóricos (média, variância, assimetria, curtose), quantis principais e visualização gráfica com parâmetros explícitos no título:\n# Distribuição Normal com realce das áreas de 1, 2 e 3 desvios\ndistribuicao(\"normal\", media = 100, dp = 15)\n\n# Distribuição t de Student com graus de liberdade\ndistribuicao(\"t\", gl = 5)\n\n# Distribuição Qui-Quadrado\ndistribuicao(\"qui_quadrado\", gl = 3)\n\n# Distribuição F de Snedecor\ndistribuicao(\"f\", gl1 = 2, gl2 = 15)\n\n# Distribuição Poisson\ndistribuicao(\"poisson\", lambda = 3)\n\n# Distribuição Weibull (parâmetros de forma e escala)\ndistribuicao(\"weibull\", forma = 2, escala = 1)\n\n\n# Distribuição Exponencial com simulação da Lei dos Grandes Números\ndistribuicao(\"exponencial\", taxa = 0.5, simulacao = TRUE)"
   },
   {
     "objectID": "modulos/probabilidade.html#cálculo-de-probabilidades-específicas",
     "href": "modulos/probabilidade.html#cálculo-de-probabilidades-específicas",
     "title": "Probabilidade, Distribuições e Simulação",
     "section": "Cálculo de Probabilidades Específicas",
-    "text": "Cálculo de Probabilidades Específicas\nCálculo com saídas estruturadas em cabeçalho, parâmetros e probabilidade associada:\n# Probabilidade Normal: P(85 &lt;= X &lt;= 115)\nprob_normal(media = 100, dp = 15, q1 = 85, q2 = 115, tipo = \"entre\")\n\n# Probabilidade Binomial: P(5 &lt;= X &lt;= 6) em 10 ensaios\nprob_binomial(ensaios = 10, prob = 0.5, q1 = 5, q2 = 6, tipo = \"entre\")\n\n# Probabilidade Poisson: P(X &lt;= 2) com lambda = 2\nprob_poisson(lambda = 2, q = 2, tipo = \"menor\")\n\n# Probabilidade Exponencial: P(X &gt; 2)\nprob_exponencial(taxa = 0.5, q1 = 2, tipo = \"maior\")"
+    "text": "Cálculo de Probabilidades Específicas\nCálculo com saídas estruturadas em cabeçalho, parâmetros e probabilidade associada:\n# Probabilidade Normal: P(85 &lt;= X &lt;= 115)\nprob_normal(media = 100, dp = 15, q1 = 85, q2 = 115, tipo = \"entre\")\n\n# Probabilidade Binomial: P(5 &lt;= X &lt;= 6) em 10 ensaios\nprob_binomial(ensaios = 10, prob = 0.5, q1 = 5, q2 = 6, tipo = \"entre\")\n\n# Probabilidade Poisson: P(X &lt;= 2) com lambda = 2\nprob_poisson(lambda = 2, q = 2, tipo = \"menor\")\n\n# Probabilidade Exponencial: P(X &gt; 2)\nprob_exponencial(taxa = 0.5, q1 = 2, tipo = \"maior\")\n\n# Probabilidade Weibull: P(X &lt;= 1.5)\nprob_weibull(q = 1.5, forma = 2, escala = 1)"
   },
   {
     "objectID": "modulos/probabilidade.html#estimação-simulação-computacional",
@@ -411,6 +425,13 @@
     "title": "Modelagem Linear e Diagnóstico Residual",
     "section": "Seleção e Validação",
     "text": "Seleção e Validação\n# R², R² ajustado, RMSE, MAE, AIC, BIC\nmetricas(modelo)\n\n# Stepwise AIC/BIC\nselecao_modelos(modelo, direcao = \"both\")\n\n# Fator de Inflação da Variância (VIF)\nmulticolinearidade(modelo)\n\n# Observações influentes e distância de Cook\npontos_influentes(modelo)\n\n# Gráfico de coeficientes com intervalos de confiança\ngrafico_coeficientes(modelo)"
+  },
+  {
+    "objectID": "modulos/regressao.html#extratores-universais-em-português",
+    "href": "modulos/regressao.html#extratores-universais-em-português",
+    "title": "Modelagem Linear e Diagnóstico Residual",
+    "section": "Extratores Universais em Português",
+    "text": "Extratores Universais em Português\nAcesso direto e idiomático aos componentes do modelo estatístico (compatível com lm, glm, aov e modelos do estatR):\n# Coeficientes estimados\ncoeficientes(modelo)\n\n# Resíduos do modelo\nresiduos(modelo)\n\n# Valores ajustados / preditos na amostra\nvalores_ajustados(modelo)\n\n# Resumo completo do modelo\nresumo(modelo)"
   },
   {
     "objectID": "modulos/sobrevivencia.html",

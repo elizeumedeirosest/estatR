@@ -264,6 +264,27 @@ pre > code.sourceCode > span > a:first-child::before { text-decoration: underlin
 <section id="parcelas-subdivididas-split-plot" class="level3">
 <h3 class="anchored" data-anchor-id="parcelas-subdivididas-split-plot">Parcelas Subdivididas (Split-Plot)</h3>
 <div class="code-copy-outer-scaffold"><div class="sourceCode" id="cb5"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb5-1"><a href="#cb5-1" aria-hidden="true" tabindex="-1"></a>res_split <span class="ot">&lt;-</span> <span class="fu">analise_parcela_subdividida</span>(<span class="at">y =</span> dados<span class="sc">$</span>prod, <span class="at">parcela =</span> dados<span class="sc">$</span>p, <span class="at">subparcela =</span> dados<span class="sc">$</span>sp, <span class="at">bloco =</span> dados<span class="sc">$</span>b)</span></code></pre></div><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></div>
+<hr>
+</section>
+</section>
+<section id="teste-de-dunnett-e-medidas-repetidas" class="level2">
+<h2 class="anchored" data-anchor-id="teste-de-dunnett-e-medidas-repetidas">Teste de Dunnett e Medidas Repetidas</h2>
+<section id="teste-de-dunnett-comparações-com-o-controle" class="level3">
+<h3 class="anchored" data-anchor-id="teste-de-dunnett-comparações-com-o-controle">Teste de Dunnett (Comparações com o Controle)</h3>
+<p>Comparações de múltiplos tratamentos contra uma testemunha/controle com controle da taxa de erro da família e gráfico de intervalos:</p>
+<div class="code-copy-outer-scaffold"><div class="sourceCode" id="cb6"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb6-1"><a href="#cb6-1" aria-hidden="true" tabindex="-1"></a>res_dunnett <span class="ot">&lt;-</span> <span class="fu">teste_dunnett</span>(resp <span class="sc">~</span> trat, <span class="at">dados =</span> df_exp, <span class="at">controle =</span> <span class="st">"Testemunha"</span>)</span>
+<span id="cb6-2"><a href="#cb6-2" aria-hidden="true" tabindex="-1"></a><span class="fu">grafico_dunnett</span>(res_dunnett)</span></code></pre></div><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></div>
+</section>
+<section id="análise-de-medidas-repetidas-no-tempo" class="level3">
+<h3 class="anchored" data-anchor-id="análise-de-medidas-repetidas-no-tempo">Análise de Medidas Repetidas no Tempo</h3>
+<p>ANOVA de medidas repetidas intrasujeito com teste de esfericidade de Mauchly e correções de Greenhouse-Geisser e Huynh-Feldt:</p>
+<div class="code-copy-outer-scaffold"><div class="sourceCode" id="cb7"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb7-1"><a href="#cb7-1" aria-hidden="true" tabindex="-1"></a><span class="fu">analise_medidas_repetidas</span>(</span>
+<span id="cb7-2"><a href="#cb7-2" aria-hidden="true" tabindex="-1"></a>  <span class="at">dados    =</span> dados_tempo,</span>
+<span id="cb7-3"><a href="#cb7-3" aria-hidden="true" tabindex="-1"></a>  <span class="at">resposta =</span> <span class="st">"escore"</span>,</span>
+<span id="cb7-4"><a href="#cb7-4" aria-hidden="true" tabindex="-1"></a>  <span class="at">tempo    =</span> <span class="st">"periodo"</span>,</span>
+<span id="cb7-5"><a href="#cb7-5" aria-hidden="true" tabindex="-1"></a>  <span class="at">sujeito  =</span> <span class="st">"paciente"</span>,</span>
+<span id="cb7-6"><a href="#cb7-6" aria-hidden="true" tabindex="-1"></a>  <span class="at">grafico  =</span> <span class="cn">TRUE</span></span>
+<span id="cb7-7"><a href="#cb7-7" aria-hidden="true" tabindex="-1"></a>)</span></code></pre></div><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></div>
 
 
 </section>

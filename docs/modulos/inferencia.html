@@ -300,21 +300,31 @@ window.Quarto = {
 <span id="cb6-4"><a href="#cb6-4" aria-hidden="true" tabindex="-1"></a><span class="co"># Medidas repetidas / blocos (Friedman)</span></span>
 <span id="cb6-5"><a href="#cb6-5" aria-hidden="true" tabindex="-1"></a><span class="fu">teste_friedman</span>(y <span class="sc">~</span> grupo <span class="sc">|</span> bloco, <span class="at">dados =</span> dados_repetidos)</span></code></pre></div><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></div>
 </section>
+<section id="teste-de-equivalência-tost" class="level3">
+<h3 class="anchored" data-anchor-id="teste-de-equivalência-tost">Teste de Equivalência (TOST)</h3>
+<p>Procedimento de Dois Testes Unicaudais para avaliar se a diferença entre tratamentos está dentro de uma margem clinicamente aceitável:</p>
+<div class="code-copy-outer-scaffold"><div class="sourceCode" id="cb7"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb7-1"><a href="#cb7-1" aria-hidden="true" tabindex="-1"></a><span class="fu">teste_equivalencia</span>(mpg <span class="sc">~</span> am, <span class="at">dados =</span> mtcars, <span class="at">margem =</span> <span class="dv">2</span>, <span class="at">grafico =</span> <span class="cn">TRUE</span>)</span></code></pre></div><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></div>
+</section>
+<section id="teste-de-mcnemar-para-dados-pareados" class="level3">
+<h3 class="anchored" data-anchor-id="teste-de-mcnemar-para-dados-pareados">Teste de McNemar para Dados Pareados</h3>
+<p>Avaliação de homogeneidade marginal para dados categóricos binários pareados (com cálculo de Odds Ratio pareado):</p>
+<div class="code-copy-outer-scaffold"><div class="sourceCode" id="cb8"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb8-1"><a href="#cb8-1" aria-hidden="true" tabindex="-1"></a><span class="fu">teste_mcnemar</span>(dados, <span class="at">var_antes =</span> Antes, <span class="at">var_depois =</span> Depois, <span class="at">grafico =</span> <span class="cn">TRUE</span>)</span></code></pre></div><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></div>
+</section>
 <section id="qui-quadrado-homocedasticidade" class="level3">
 <h3 class="anchored" data-anchor-id="qui-quadrado-homocedasticidade">Qui-Quadrado &amp; Homocedasticidade</h3>
-<div class="code-copy-outer-scaffold"><div class="sourceCode" id="cb7"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb7-1"><a href="#cb7-1" aria-hidden="true" tabindex="-1"></a><span class="co"># Qui-Quadrado de Independência</span></span>
-<span id="cb7-2"><a href="#cb7-2" aria-hidden="true" tabindex="-1"></a><span class="fu">teste_qui_quadrado</span>(mtcars, cyl, am)</span>
-<span id="cb7-3"><a href="#cb7-3" aria-hidden="true" tabindex="-1"></a></span>
-<span id="cb7-4"><a href="#cb7-4" aria-hidden="true" tabindex="-1"></a><span class="co"># Homocedasticidade de Levene</span></span>
-<span id="cb7-5"><a href="#cb7-5" aria-hidden="true" tabindex="-1"></a><span class="fu">teste_levene</span>(mtcars<span class="sc">$</span>mpg, mtcars<span class="sc">$</span>am)</span></code></pre></div><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></div>
+<div class="code-copy-outer-scaffold"><div class="sourceCode" id="cb9"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb9-1"><a href="#cb9-1" aria-hidden="true" tabindex="-1"></a><span class="co"># Qui-Quadrado de Independência</span></span>
+<span id="cb9-2"><a href="#cb9-2" aria-hidden="true" tabindex="-1"></a><span class="fu">teste_qui_quadrado</span>(mtcars, cyl, am)</span>
+<span id="cb9-3"><a href="#cb9-3" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb9-4"><a href="#cb9-4" aria-hidden="true" tabindex="-1"></a><span class="co"># Homocedasticidade de Levene</span></span>
+<span id="cb9-5"><a href="#cb9-5" aria-hidden="true" tabindex="-1"></a><span class="fu">teste_levene</span>(mtcars<span class="sc">$</span>mpg, mtcars<span class="sc">$</span>am)</span></code></pre></div><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></div>
 </section>
 <section id="concordância" class="level3">
 <h3 class="anchored" data-anchor-id="concordância">Concordância</h3>
-<div class="code-copy-outer-scaffold"><div class="sourceCode" id="cb8"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb8-1"><a href="#cb8-1" aria-hidden="true" tabindex="-1"></a><span class="co"># Cohen / Fleiss Kappa</span></span>
-<span id="cb8-2"><a href="#cb8-2" aria-hidden="true" tabindex="-1"></a><span class="fu">concordancia_kappa</span>(avaliador1, avaliador2)</span>
-<span id="cb8-3"><a href="#cb8-3" aria-hidden="true" tabindex="-1"></a></span>
-<span id="cb8-4"><a href="#cb8-4" aria-hidden="true" tabindex="-1"></a><span class="co"># Bland-Altman</span></span>
-<span id="cb8-5"><a href="#cb8-5" aria-hidden="true" tabindex="-1"></a><span class="fu">grafico_bland_altman</span>(dados, <span class="at">metodo1 =</span> <span class="st">"termometro_A"</span>, <span class="at">metodo2 =</span> <span class="st">"termometro_B"</span>)</span></code></pre></div><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></div>
+<div class="code-copy-outer-scaffold"><div class="sourceCode" id="cb10"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb10-1"><a href="#cb10-1" aria-hidden="true" tabindex="-1"></a><span class="co"># Cohen / Fleiss Kappa</span></span>
+<span id="cb10-2"><a href="#cb10-2" aria-hidden="true" tabindex="-1"></a><span class="fu">concordancia_kappa</span>(avaliador1, avaliador2)</span>
+<span id="cb10-3"><a href="#cb10-3" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb10-4"><a href="#cb10-4" aria-hidden="true" tabindex="-1"></a><span class="co"># Bland-Altman</span></span>
+<span id="cb10-5"><a href="#cb10-5" aria-hidden="true" tabindex="-1"></a><span class="fu">grafico_bland_altman</span>(dados, <span class="at">metodo1 =</span> <span class="st">"termometro_A"</span>, <span class="at">metodo2 =</span> <span class="st">"termometro_B"</span>)</span></code></pre></div><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></div>
 
 
 </section>
