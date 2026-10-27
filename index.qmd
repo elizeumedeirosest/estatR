@@ -13,7 +13,7 @@ toc: false
     <p class="hero-meta">120+ funções &nbsp;·&nbsp; 14 módulos &nbsp;·&nbsp; Código aberto</p>
     <div class="hero-actions">
       <a href="sobre.qmd" class="btn-primary">Sobre o estatR</a>
-      <a href="#modulos" class="btn-secondary">Módulos</a>
+      <a href="modulos/descritiva.qmd" class="btn-secondary">Módulos</a>
     </div>
   </div>
 </section>
