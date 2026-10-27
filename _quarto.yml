@@ -1,4 +1,4 @@
-project:
+﻿project:
   type: website
   output-dir: docs
 
@@ -47,8 +47,6 @@ website:
             href: modulos/sobrevivencia.qmd
           - text: "Amostragem Probabilística"
             href: modulos/amostragem.qmd
-      - text: "Catálogo de Funções"
-        href: referencia.qmd
     right:
       - icon: github
         href: "https://github.com/elizeumedeirosest/estatR"
