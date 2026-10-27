@@ -59,6 +59,35 @@ ul.task-list li input[type="checkbox"] {
 }</script>
 <style>html{ scroll-behavior: smooth; }</style>
 
+  <script src="https://cdnjs.cloudflare.com/polyfill/v3/polyfill.min.js?features=es6"></script>
+  <script defer="" src="https://cdn.jsdelivr.net/npm/mathjax@4/tex-chtml.js" type="text/javascript"></script>
+
+<script type="text/javascript">
+const typesetMath = (el) => {
+  if (window.MathJax) {
+    // MathJax Typeset
+    window.MathJax.typeset([el]);
+  } else if (window.katex) {
+    // KaTeX Render
+    var mathElements = el.getElementsByClassName("math");
+    var macros = [];
+    for (var i = 0; i < mathElements.length; i++) {
+      var texText = mathElements[i].firstChild;
+      if (mathElements[i].tagName == "SPAN" && texText && texText.data) {
+        window.katex.render(texText.data, mathElements[i], {
+          displayMode: mathElements[i].classList.contains('display'),
+          throwOnError: false,
+          macros: macros,
+          fleqn: false
+        });
+      }
+    }
+  }
+}
+window.Quarto = {
+  typesetMath
+};
+</script>
 
 <link rel="stylesheet" href="styles.css">
 </head>
@@ -175,6 +204,8 @@ ul.task-list li input[type="checkbox"] {
   <li><a href="#planejamento-de-experimentos-delineamentos" id="toc-planejamento-de-experimentos-delineamentos" class="nav-link" data-scroll-target="#planejamento-de-experimentos-delineamentos">Planejamento de Experimentos (Delineamentos)</a></li>
   <li><a href="#aprendizado-de-máquina-e-sobrevivência" id="toc-aprendizado-de-máquina-e-sobrevivência" class="nav-link" data-scroll-target="#aprendizado-de-máquina-e-sobrevivência">Aprendizado de Máquina e Sobrevivência</a></li>
   <li><a href="#amostragem-probabilística" id="toc-amostragem-probabilística" class="nav-link" data-scroll-target="#amostragem-probabilística">Amostragem Probabilística</a></li>
+  <li><a href="#transformações-de-variáveis" id="toc-transformações-de-variáveis" class="nav-link" data-scroll-target="#transformações-de-variáveis">Transformações de Variáveis</a></li>
+  <li><a href="#controle-estatístico-da-qualidade-ceq-six-sigma" id="toc-controle-estatístico-da-qualidade-ceq-six-sigma" class="nav-link" data-scroll-target="#controle-estatístico-da-qualidade-ceq-six-sigma">Controle Estatístico da Qualidade (CEQ &amp; Six Sigma)</a></li>
   <li><a href="#extratores-e-utilitários-de-modelos" id="toc-extratores-e-utilitários-de-modelos" class="nav-link" data-scroll-target="#extratores-e-utilitários-de-modelos">Extratores e Utilitários de Modelos</a></li>
   <li><a href="#visualização-e-gráficos-auxiliares" id="toc-visualização-e-gráficos-auxiliares" class="nav-link" data-scroll-target="#visualização-e-gráficos-auxiliares">Visualização e Gráficos Auxiliares</a></li>
   </ul>
@@ -304,6 +335,10 @@ ul.task-list li input[type="checkbox"] {
 <td style="text-align: left;"><code>matriz_correlacao()</code></td>
 <td style="text-align: left;"><strong>Matriz de Correlação com Ranking dos Maiores Pares</strong>. Gera e imprime no console a matriz de correlação completa (com p-valores em asteriscos), exibe tabelas de ranking das maiores correlações positivas e negativas com classificação qualitativa centralizada, e plota o correlograma em <code>ggplot2</code>.</td>
 </tr>
+<tr class="odd">
+<td style="text-align: left;"><code>coeficiente_cor_intra_classe()</code></td>
+<td style="text-align: left;"><strong>Coeficiente de Correlação Intraclasse (ICC)</strong>. Avalia a concordância, reprodutibilidade e confiabilidade entre múltiplos avaliadores ou métodos contínuos através dos 6 modelos de Shrout &amp; Fleiss (1979) com intervalos de confiança e classificação de Koo &amp; Li (2016).</td>
+</tr>
 </tbody>
 </table>
 </section>
@@ -379,19 +414,14 @@ ul.task-list li input[type="checkbox"] {
 <td style="text-align: left;"><strong>Teste Qui-Quadrado de Independência</strong>. Testa se duas variáveis categóricas são independentes.</td>
 </tr>
 <tr class="even">
-<td style="text-align: left;"><code>teste_levene()</code></td>
-<td style="text-align: left;"><strong>Teste de Levene (Homogeneidade de Variâncias)</strong>. Testa se dois grupos possuem variâncias iguais (homogeneidade). Auxiliar ao teste t para duas amostras.</td>
-</tr>
-<tr class="odd">
-<td style="text-align: left;"><code>concordancia_kappa()</code></td>
-<td style="text-align: left;"><strong>Análise de Concordância (Kappa de Cohen &amp; Fleiss)</strong>. Avalia a concordância e confiabilidade entre avaliadores. Calcula automaticamente o Kappa de Cohen (simples ou ponderado linear/quadrático) para 2 avaliadores, ou o Kappa de Fleiss caso haja 3 ou mais avaliadores. Classifica a qualidade da concordância segundo os critérios de Landis &amp; Koch.</td>
-</tr>
-<tr class="even">
-<td style="text-align: left;"><code>grafico_bland_altman()</code></td>
-<td style="text-align: left;"><strong>Gráfico e Diagnóstico de Bland-Altman</strong>. Avalia a concordância entre dois métodos contínuos de medição (ex: dois instrumentos, ensaio laboratorial vs teste rápido). Estima o viés médio (), limites de concordância de 95\% (), intervalos de confiança dos parâmetros e gera gráfico no padrão visual do estatR.</td>
+<td style="text-align: left;"><code>teste_mcnemar()</code></td>
+<td style="text-align: left;"><strong>Teste de McNemar para Dados Pareados</strong>. Avalia a homogeneidade marginal de variáveis categóricas binárias pareadas (antes/depois) com qui-quadrado corrigido, p-valor exato binomial e Razão de Chances Pareada (OR).</td>
 </tr>
 </tbody>
 </table>
+<div class="line-block"><code>teste_levene()</code> | <strong>Teste de Levene (Homogeneidade de Variâncias)</strong>. Testa se dois grupos possuem variâncias iguais (homogeneidade). Auxiliar ao teste t para duas amostras. |<br>
+<code>concordancia_kappa()</code> | <strong>Análise de Concordância (Kappa de Cohen &amp; Fleiss)</strong>. Avalia a concordância e confiabilidade entre avaliadores. Calcula automaticamente o Kappa de Cohen (simples ou ponderado linear/quadrático) para 2 avaliadores, ou o Kappa de Fleiss caso haja 3 ou mais avaliadores. Classifica a qualidade da concordância segundo os critérios de Landis &amp; Koch. |<br>
+<code>grafico_bland_altman()</code> | <strong>Gráfico e Diagnóstico de Bland-Altman</strong>. Avalia a concordância entre dois métodos contínuos de medição (ex: dois instrumentos, ensaio laboratorial vs teste rápido). Estima o viés médio (), limites de concordância de 95\% (), intervalos de confiança dos parâmetros e gera gráfico no padrão visual do estatR. |</div>
 </section>
 <section id="intervalos-de-confiança" class="level2">
 <h2 class="anchored" data-anchor-id="intervalos-de-confiança">Intervalos de Confiança</h2>
@@ -896,31 +926,17 @@ ul.task-list li input[type="checkbox"] {
 <td style="text-align: left;"><strong>Métricas de Desempenho para Aprendizado de Máquina</strong>. Extrai e exibe a tabela de métricas de treino e teste de um objeto de Aprendizado de Máquina (<code>estatR_aprend_maq</code>).</td>
 </tr>
 <tr class="odd">
-<td style="text-align: left;"><code>analise_sobrevivencia()</code></td>
-<td style="text-align: left;"><strong>Análise de Sobrevivência (Kaplan-Meier e Nelson-Aalen)</strong>. Ajusta e apresenta curvas de sobrevivência não-paramétricas pelos métodos de Kaplan-Meier e Nelson-Aalen / Fleming-Harrington, com cálculo de medianas de sobrevivência, intervalos de confiança, taxas de censura, tabela pontual completa com estimativas de S(t), risco acumulado H(t), taxa de risco instantâneo h(t) e densidade f(t), além de teste de Log-Rank (simples ou estratificado) para comparação de grupos.</td>
-</tr>
-<tr class="even">
-<td style="text-align: left;"><code>grafico_sobrevivencia()</code></td>
-<td style="text-align: left;"><strong>Gráfico de Curva de Sobrevivência e Funções de Risco</strong>. Gera visualizações para análise de sobrevivência em degraus ou curvas suavizadas, incluindo curva de sobrevivência S(t), risco acumulado H(t) (Nelson-Aalen), taxa de risco instantâneo h(t) (hazard rate) e densidade de falhas f(t).</td>
-</tr>
-<tr class="odd">
-<td style="text-align: left;"><code>regressao_cox()</code></td>
-<td style="text-align: left;"><strong>Regressão de Cox (Modelo de Riscos Proporcionais)</strong>. Ajusta o modelo semi-paramétrico de Cox para análise de tempo até o evento, fornecendo Hazard Ratios (HR), intervalos de confiança de 95%, estatísticas globais de qualidade de ajuste e diagnóstico formal de proporcionalidade dos riscos baseado nos resíduos de Schoenfeld.</td>
-</tr>
-<tr class="even">
-<td style="text-align: left;"><code>metricas_cox()</code></td>
-<td style="text-align: left;"><strong>Métricas de Avaliação do Modelo de Cox</strong>. Exibe e retorna as principais medidas de qualidade de ajuste, discriminação e critérios de informação para o modelo de riscos proporcionais de Cox.</td>
-</tr>
-<tr class="odd">
-<td style="text-align: left;"><code>selecao_modelos_cox()</code></td>
-<td style="text-align: left;"><strong>Seleção de Modelos de Riscos Proporcionais de Cox</strong>. Avalia todas as combinações de covariáveis para o modelo de Cox, ranqueando os melhores modelos pelos critérios de AIC, Delta AIC, pesos de Akaike e Índice C de Concordância.</td>
-</tr>
-<tr class="even">
-<td style="text-align: left;"><code>grafico_cox()</code></td>
-<td style="text-align: left;"><strong>Forest Plot dos Hazard Ratios do Modelo de Cox</strong>. Gera gráfico de Forest Plot com os Hazard Ratios pontuais e intervalos de confiança de 95%, com linha de referência em HR = 1.</td>
+<td style="text-align: left;"><code>validacao_cruzada()</code></td>
+<td style="text-align: left;"><strong>Validação Cruzada K-Fold (Cross-Validation)</strong>. Executa validação cruzada <span class="math inline">\(k\)</span>-fold estratificada ou simples para modelos de regressão ou classificação, reportando métricas fold a fold e síntese com Média <span class="math inline">\(\pm\)</span> Desvio-Padrão fora da amostra.</td>
 </tr>
 </tbody>
 </table>
+<div class="line-block"><code>analise_sobrevivencia()</code> | <strong>Análise de Sobrevivência (Kaplan-Meier e Nelson-Aalen)</strong>. Ajusta e apresenta curvas de sobrevivência não-paramétricas pelos métodos de Kaplan-Meier e Nelson-Aalen / Fleming-Harrington, com cálculo de medianas de sobrevivência, intervalos de confiança, taxas de censura, tabela pontual completa com estimativas de S(t), risco acumulado H(t), taxa de risco instantâneo h(t) e densidade f(t), além de teste de Log-Rank (simples ou estratificado) para comparação de grupos. |<br>
+<code>grafico_sobrevivencia()</code> | <strong>Gráfico de Curva de Sobrevivência e Funções de Risco</strong>. Gera visualizações para análise de sobrevivência em degraus ou curvas suavizadas, incluindo curva de sobrevivência S(t), risco acumulado H(t) (Nelson-Aalen), taxa de risco instantâneo h(t) (hazard rate) e densidade de falhas f(t). |<br>
+<code>regressao_cox()</code> | <strong>Regressão de Cox (Modelo de Riscos Proporcionais)</strong>. Ajusta o modelo semi-paramétrico de Cox para análise de tempo até o evento, fornecendo Hazard Ratios (HR), intervalos de confiança de 95%, estatísticas globais de qualidade de ajuste e diagnóstico formal de proporcionalidade dos riscos baseado nos resíduos de Schoenfeld. |<br>
+<code>metricas_cox()</code> | <strong>Métricas de Avaliação do Modelo de Cox</strong>. Exibe e retorna as principais medidas de qualidade de ajuste, discriminação e critérios de informação para o modelo de riscos proporcionais de Cox. |<br>
+<code>selecao_modelos_cox()</code> | <strong>Seleção de Modelos de Riscos Proporcionais de Cox</strong>. Avalia todas as combinações de covariáveis para o modelo de Cox, ranqueando os melhores modelos pelos critérios de AIC, Delta AIC, pesos de Akaike e Índice C de Concordância. |<br>
+<code>grafico_cox()</code> | <strong>Forest Plot dos Hazard Ratios do Modelo de Cox</strong>. Gera gráfico de Forest Plot com os Hazard Ratios pontuais e intervalos de confiança de 95%, com linha de referência em HR = 1. |</div>
 </section>
 <section id="amostragem-probabilística" class="level2">
 <h2 class="anchored" data-anchor-id="amostragem-probabilística">Amostragem Probabilística</h2>
@@ -959,6 +975,52 @@ ul.task-list li input[type="checkbox"] {
 <tr class="even">
 <td style="text-align: left;"><code>poder_estatistico()</code></td>
 <td style="text-align: left;"><strong>Cálculo de Poder Estatístico e Dimensionamento de Experimentos</strong>. Calcula o poder estatístico (1 - beta) ou o tamanho amostral necessário para testes T, ANOVA, correlação e proporção, com curva gráfica de poder.</td>
+</tr>
+</tbody>
+</table>
+</section>
+<section id="transformações-de-variáveis" class="level2">
+<h2 class="anchored" data-anchor-id="transformações-de-variáveis">Transformações de Variáveis</h2>
+<table class="caption-top table">
+<colgroup>
+<col style="width: 50%">
+<col style="width: 50%">
+</colgroup>
+<thead>
+<tr class="header">
+<th style="text-align: left;">Função</th>
+<th style="text-align: left;">Descrição</th>
+</tr>
+</thead>
+<tbody>
+<tr class="odd">
+<td style="text-align: left;"><code>transformar()</code></td>
+<td style="text-align: left;"><strong>Transformação de Variáveis e Seleção Ótima de Potência</strong>. Aplica transformações clássicas e modernas (Box-Cox, Yeo-Johnson, Log, Raiz Quadrada, Logit, Arco-Seno, Inversa, Padronização Z e Min-Max) sobre vetores ou bancos de dados com otimização de <span class="math inline">\(\lambda\)</span>, curva de log-verossimilhança e seleção automática pelo teste de Shapiro-Wilk.</td>
+</tr>
+</tbody>
+</table>
+</section>
+<section id="controle-estatístico-da-qualidade-ceq-six-sigma" class="level2">
+<h2 class="anchored" data-anchor-id="controle-estatístico-da-qualidade-ceq-six-sigma">Controle Estatístico da Qualidade (CEQ &amp; Six Sigma)</h2>
+<table class="caption-top table">
+<colgroup>
+<col style="width: 50%">
+<col style="width: 50%">
+</colgroup>
+<thead>
+<tr class="header">
+<th style="text-align: left;">Função</th>
+<th style="text-align: left;">Descrição</th>
+</tr>
+</thead>
+<tbody>
+<tr class="odd">
+<td style="text-align: left;"><code>grafico_controle()</code></td>
+<td style="text-align: left;"><strong>Gráficos de Controle de Processo (Cartas de Shewhart)</strong>. Constrói cartas de controle para variáveis contínuas (I-MR, <span class="math inline">\(\bar{X}\)</span>-R, <span class="math inline">\(\bar{X}\)</span>-S) e atributos (p, np, c, u) com regras de Western Electric / Nelson para detecção de causas especiais e visualização com grade dupla.</td>
+</tr>
+<tr class="even">
+<td style="text-align: left;"><code>capacidade_processo()</code></td>
+<td style="text-align: left;"><strong>Análise de Capacidade do Processo (Six Sigma &amp; Índices Cp/Cpk)</strong>. Avalia a conformidade com especificações de engenharia (LIE, LSE, Alvo), estimando dispersão de curto e longo prazo, índices <span class="math inline">\(C_p\)</span>, <span class="math inline">\(C_{pk}\)</span>, <span class="math inline">\(C_{pm}\)</span>, <span class="math inline">\(P_p\)</span>, <span class="math inline">\(P_{pk}\)</span>, PPM esperado/observado e nível Sigma do processo.</td>
 </tr>
 </tbody>
 </table>

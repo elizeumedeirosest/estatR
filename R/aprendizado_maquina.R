@@ -1264,3 +1264,278 @@ metricas_aprend_maq <- function(modelo) {
 
   invisible(df_comp)
 }
+
+
+
+# ── VALIDAÇÃO CRUZADA K-FOLD (CROSS-VALIDATION) ───────────────────────────────
+
+#' @title Validação Cruzada K-Fold (Cross-Validation)
+#' @description Executa procedimento de validação cruzada k-fold para modelos de regressão
+#'   ou classificação, avaliando a estabilidade e capacidade de generalização preditiva
+#'   fora da amostra com métricas detalhadas por partição (fold) e síntese global.
+#'
+#' @param formula Fórmula do modelo estatístico (ex: \code{y ~ x1 + x2}).
+#' @param dados Data frame contendo as variáveis.
+#' @param k Número de partições (folds) para a validação cruzada (padrão 5).
+#' @param tipo Tipo de tarefa preditiva: \code{"auto"} (detecta automaticamente),
+#'   \code{"regressao"} (resposta contínua) ou \code{"classificacao"} (resposta binária/categórica).
+#' @param algoritmo Algoritmo base: \code{"linear"} (regressão linear/logística clássica),
+#'   \code{"random_forest"} (floresta aleatória via ranger) ou \code{"arvore"} (árvore de decisão rpart).
+#' @param semente Semente para reprodutibilidade da divisão dos folds (padrão 42).
+#' @param grafico Lógico. Se \code{TRUE} (padrão), plota o gráfico de desempenho fold a fold.
+#'
+#' @return Objeto da classe \code{estatR_cv} contendo:
+#' \itemize{
+#'   \item \code{metricas_folds}: Tabela com as métricas avaliadas em cada fold.
+#'   \item \code{resumo}: Tabela com a média e desvio-padrão das métricas.
+#'   \item \code{grafico}: Objeto gráfico do ggplot2.
+#' }
+#' @export
+validacao_cruzada <- function(formula,
+                              dados,
+                              k         = 5,
+                              tipo      = c("auto", "regressao", "classificacao"),
+                              algoritmo = c("linear", "random_forest", "arvore"),
+                              semente   = 42,
+                              grafico   = TRUE) {
+
+  tipo      <- match.arg(tipo)
+  algoritmo <- match.arg(algoritmo)
+
+  if (missing(formula) || missing(dados)) {
+    stop("Forne\u00e7a 'formula' e 'dados'.", call. = FALSE)
+  }
+
+  resp_nome <- as.character(formula[[2]])
+  if (!resp_nome %in% names(dados)) {
+    stop(sprintf("Vari\u00e1vel resposta '%s' n\u00e3o encontrada nos dados.", resp_nome), call. = FALSE)
+  }
+
+  y_raw <- dados[[resp_nome]]
+  is_classif <- if (tipo == "auto") {
+    is.factor(y_raw) || is.character(y_raw) || (is.numeric(y_raw) && length(unique(stats::na.omit(y_raw))) == 2)
+  } else {
+    tipo == "classificacao"
+  }
+
+  # Preparar dados
+  df_limpo <- stats::na.omit(dados[, all.vars(formula), drop = FALSE])
+  N <- nrow(df_limpo)
+  if (N < k * 3) stop("Volume de dados insuficiente para o n\u00famero k de folds.", call. = FALSE)
+
+  if (is_classif) {
+    df_limpo[[resp_nome]] <- as.factor(df_limpo[[resp_nome]])
+  } else {
+    df_limpo[[resp_nome]] <- as.numeric(df_limpo[[resp_nome]])
+  }
+
+  # Sorteio dos Folds
+  if (!is.null(semente)) set.seed(semente)
+  if (is_classif) {
+    # Estratificado por classe
+    folds <- integer(N)
+    for (lvl in levels(df_limpo[[resp_nome]])) {
+      idx_lvl <- which(df_limpo[[resp_nome]] == lvl)
+      n_lvl <- length(idx_lvl)
+      folds[idx_lvl] <- sample(rep(1:k, length.out = n_lvl))
+    }
+  } else {
+    folds <- sample(rep(1:k, length.out = N))
+  }
+
+  resultados_folds <- list()
+
+  for (i in 1:k) {
+    treino <- df_limpo[folds != i, , drop = FALSE]
+    teste  <- df_limpo[folds == i, , drop = FALSE]
+    y_true <- teste[[resp_nome]]
+
+    if (!is_classif) {
+      # ── Regressão ──────────────────────────────────────────────────────────
+      if (algoritmo == "linear") {
+        mod <- stats::lm(formula, data = treino)
+        preds <- stats::predict(mod, newdata = teste)
+      } else if (algoritmo == "random_forest" && requireNamespace("ranger", quietly = TRUE)) {
+        mod <- ranger::ranger(formula, data = treino, num.trees = 150, verbose = FALSE)
+        preds <- stats::predict(mod, data = teste)$predictions
+      } else {
+        mod <- rpart::rpart(formula, data = treino)
+        preds <- stats::predict(mod, newdata = teste)
+      }
+
+      erros <- y_true - preds
+      rmse_val <- sqrt(mean(erros^2, na.rm = TRUE))
+      mae_val  <- mean(abs(erros), na.rm = TRUE)
+      ss_tot   <- sum((y_true - mean(y_true))^2)
+      ss_res   <- sum(erros^2)
+      r2_val   <- max(0, 1 - (ss_res / ss_tot))
+
+      resultados_folds[[i]] <- data.frame(
+        Fold = sprintf("Fold %d", i),
+        RMSE = rmse_val,
+        MAE  = mae_val,
+        R2   = r2_val,
+        stringsAsFactors = FALSE
+      )
+    } else {
+      # ── Classificação ───────────────────────────────────────────────────────
+      lvls <- levels(df_limpo[[resp_nome]])
+      if (algoritmo == "linear") {
+        if (length(lvls) == 2) {
+          mod <- stats::glm(formula, data = treino, family = stats::binomial)
+          probs <- stats::predict(mod, newdata = teste, type = "response")
+          preds <- factor(ifelse(probs >= 0.5, lvls[2], lvls[1]), levels = lvls)
+        } else {
+          mod <- nnet::multinom(formula, data = treino, trace = FALSE)
+          preds <- stats::predict(mod, newdata = teste)
+        }
+      } else if (algoritmo == "random_forest" && requireNamespace("ranger", quietly = TRUE)) {
+        mod <- ranger::ranger(formula, data = treino, num.trees = 150, classification = TRUE, verbose = FALSE)
+        preds <- stats::predict(mod, data = teste)$predictions
+      } else {
+        mod <- rpart::rpart(formula, data = treino, method = "class")
+        preds <- stats::predict(mod, newdata = teste, type = "class")
+      }
+
+      tab_conf <- table(factor(preds, levels = lvls), factor(y_true, levels = lvls))
+      acuracia <- sum(diag(tab_conf)) / sum(tab_conf)
+
+      if (length(lvls) == 2) {
+        sens <- if (sum(tab_conf[, 2]) > 0) tab_conf[2, 2] / sum(tab_conf[, 2]) else NA
+        esp  <- if (sum(tab_conf[, 1]) > 0) tab_conf[1, 1] / sum(tab_conf[, 1]) else NA
+        prec <- if (sum(tab_conf[2, ]) > 0) tab_conf[2, 2] / sum(tab_conf[2, ]) else NA
+        f1   <- if (!is.na(prec) && !is.na(sens) && (prec + sens) > 0) 2 * (prec * sens) / (prec + sens) else NA
+      } else {
+        sens <- NA; esp <- NA; f1 <- NA
+      }
+
+      resultados_folds[[i]] <- data.frame(
+        Fold         = sprintf("Fold %d", i),
+        Acuracia     = acuracia,
+        Sensibilidade = sens,
+        Especificidade = esp,
+        F1_Score     = f1,
+        stringsAsFactors = FALSE
+      )
+    }
+  }
+
+  df_folds <- do.call(rbind, resultados_folds)
+
+  # Resumo (Média e DP)
+  metricas_nomes <- setdiff(names(df_folds), "Fold")
+  medias <- colMeans(df_folds[, metricas_nomes, drop = FALSE], na.rm = TRUE)
+  desvios <- apply(df_folds[, metricas_nomes, drop = FALSE], 2, stats::sd, na.rm = TRUE)
+
+  df_resumo <- data.frame(
+    Metrica = metricas_nomes,
+    Media   = medias,
+    DP      = desvios,
+    stringsAsFactors = FALSE
+  )
+  rownames(df_resumo) <- NULL
+
+  # ── Saída Console ────────────────────────────────────────────────────────────
+  .print_titulo("VALIDAÇÃO CRUZADA K-FOLD (CROSS-VALIDATION)")
+
+  cat(sprintf("  Variável Resposta: %s  |  Tipo de Tarefa: %s
+",
+              resp_nome, if (is_classif) "Classificação" else "Regressão Contínua"))
+  cat(sprintf("  Algoritmo: %s  |  Número de Partinções: %d-fold CV
+",
+              toupper(algoritmo), k))
+  cat(sprintf("  Amostra Total: %d observações válidas
+
+", N))
+
+  .print_topico("DESEMPENHO POR PARTIÇÃO (FOLD A FOLD)")
+  w_cv <- c(12, rep(16, length(metricas_nomes)))
+  cat(.th_sep(sum(w_cv)), "
+")
+  cat("  ", .th_pad("Partição", w_cv[1], "left"), sep = "")
+  for (m_idx in seq_along(metricas_nomes)) {
+    cat(.th_pad(metricas_nomes[m_idx], w_cv[m_idx + 1], "center"))
+  }
+  cat("
+")
+  cat(.th_sep(sum(w_cv)), "
+")
+
+  for (i in 1:nrow(df_folds)) {
+    cat("  ", .th_pad(df_folds$Fold[i], w_cv[1], "left"), sep = "")
+    for (m_idx in seq_along(metricas_nomes)) {
+      val <- df_folds[i, metricas_nomes[m_idx]]
+      val_str <- if (metricas_nomes[m_idx] %in% c("R2", "Acuracia", "Sensibilidade", "Especificidade", "F1_Score")) {
+        sprintf("%.1f%%", val * 100)
+      } else {
+        formatC(val, format = "f", digits = 3, decimal.mark = ",")
+      }
+      cat(.th_pad(val_str, w_cv[m_idx + 1], "center"))
+    }
+    cat("
+")
+  }
+  cat(.th_sep(sum(w_cv)), "
+")
+
+  # Linha de Média ± DP
+  cat("  ", .th_pad("MÉDIA (CV)", w_cv[1], "left"), sep = "")
+  for (m_idx in seq_along(metricas_nomes)) {
+    m_val <- df_resumo$Media[m_idx]
+    dp_val <- df_resumo$DP[m_idx]
+    res_str <- if (df_resumo$Metrica[m_idx] %in% c("R2", "Acuracia", "Sensibilidade", "Especificidade", "F1_Score")) {
+      sprintf("%.1f%% (±%.1f%%)", m_val * 100, dp_val * 100)
+    } else {
+      sprintf("%.3f (±%.3f)", m_val, dp_val)
+    }
+    cat(.th_pad(res_str, w_cv[m_idx + 1], "center"))
+  }
+  cat("
+")
+  cat(.th_sep(sum(w_cv)), "
+
+")
+
+  .print_rodape()
+
+  # ── Gráfico ggplot2 ──────────────────────────────────────────────────────────
+  p_cv <- NULL
+  if (grafico) {
+    metrica_foco <- metricas_nomes[1]
+    df_plot <- data.frame(
+      Fold  = factor(df_folds$Fold, levels = df_folds$Fold),
+      Valor = df_folds[[metrica_foco]]
+    )
+    media_foco <- mean(df_plot$Valor, na.rm = TRUE)
+
+    p_cv <- ggplot2::ggplot(df_plot, ggplot2::aes(x = Fold, y = Valor)) +
+      ggplot2::geom_col(fill = "#2B5C8F", width = 0.55, alpha = 0.85) +
+      ggplot2::geom_hline(yintercept = media_foco, color = "#D90429", linetype = "dashed", linewidth = 1) +
+      ggplot2::annotate("text", x = 1, y = media_foco,
+                        label = sprintf("Média = %.3f", media_foco),
+                        color = "#D90429", fontface = "bold", vjust = -0.5, hjust = 0) +
+      ggplot2::labs(
+        title    = sprintf("Validação Cruzada: Desempenho de %s (%d Folds)", metrica_foco, k),
+        subtitle = sprintf("Modelo: %s | Algoritmo: %s", resp_nome, toupper(algoritmo)),
+        x = "Partição de Teste (Fold)", y = metrica_foco
+      )
+
+    if (exists("meu_tema", mode = "function")) {
+      p_cv <- p_cv + meu_tema(grade = "dupla")
+    } else if (exists("tema_estatR", mode = "function")) {
+      p_cv <- p_cv + tema_estatR(estilo = 1, grade = "dupla")
+    } else {
+      p_cv <- p_cv + ggplot2::theme_minimal()
+    }
+    suppressMessages(print(p_cv))
+  }
+
+  res <- list(
+    metricas_folds = df_folds,
+    resumo         = df_resumo,
+    k              = k,
+    grafico        = p_cv
+  )
+  class(res) <- c("estatR_cv", "list")
+  return(invisible(res))
+}

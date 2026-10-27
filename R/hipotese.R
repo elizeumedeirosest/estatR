@@ -129,6 +129,9 @@ teste_t_uma_amostra <- function(x, mu, hipotese = c("bilateral", "maior", "menor
   cat(.th_sep(nchar(hdr)), "\n")
   .th_nota_sig(p_val)
   cat("\n")
+  d_cohen <- if (dp > 0) abs(media - mu) / dp else 0
+  classif_d <- if (d_cohen < 0.20) "Desprezível" else if (d_cohen < 0.50) "Pequeno" else if (d_cohen < 0.80) "Médio" else "Grande"
+  cat(sprintf("  Tamanho do Efeito (d de Cohen): %.2f (%s)\n\n", d_cohen, classif_d))
 
   # Interpretação
   .print_topico("INTERPRETA\u00c7\u00c3O")
@@ -328,6 +331,12 @@ teste_t_duas_amostras <- function(x, grupo, hipotese = c("bilateral", "maior", "
   cat(.th_sep(nchar(hdr_c)), "\n")
   .th_nota_sig(p_val)
   cat("\n")
+  n1 <- length(vals1); n2 <- length(vals2)
+  s1 <- stats::sd(vals1); s2 <- stats::sd(vals2)
+  sp <- sqrt(((n1 - 1)*s1^2 + (n2 - 1)*s2^2) / (n1 + n2 - 2))
+  d_cohen <- if (sp > 0) abs(mean(vals1) - mean(vals2)) / sp else 0
+  classif_d <- if (d_cohen < 0.20) "Desprezível" else if (d_cohen < 0.50) "Pequeno" else if (d_cohen < 0.80) "Médio" else "Grande"
+  cat(sprintf("  Tamanho do Efeito (d de Cohen): %.2f (%s)\n\n", d_cohen, classif_d))
 
   # ── Interpretação ──────────────────────────────────────────────────────────
   alpha <- 1 - confianca
@@ -497,6 +506,10 @@ teste_t_pareado <- function(x, y, hipotese = c("bilateral", "maior", "menor"),
   cat(.th_sep(nchar(hdr_c)), "\n")
   .th_nota_sig(p_val)
   cat("\n")
+  sd_dif <- stats::sd(dif)
+  d_cohen <- if (sd_dif > 0) abs(media_dif) / sd_dif else 0
+  classif_d <- if (d_cohen < 0.20) "Desprezível" else if (d_cohen < 0.50) "Pequeno" else if (d_cohen < 0.80) "Médio" else "Grande"
+  cat(sprintf("  Tamanho do Efeito (d de Cohen): %.2f (%s)\n\n", d_cohen, classif_d))
 
   # Interpretação
   alpha <- 1 - confianca
@@ -620,6 +633,10 @@ teste_proporcao <- function(x, n, p0, hipotese = c("bilateral", "maior", "menor"
   cat(.th_sep(nchar(hdr_c)), "\n")
   .th_nota_sig(p_val)
   cat("\n")
+  sd_dif <- stats::sd(dif)
+  d_cohen <- if (sd_dif > 0) abs(media_dif) / sd_dif else 0
+  classif_d <- if (d_cohen < 0.20) "Desprezível" else if (d_cohen < 0.50) "Pequeno" else if (d_cohen < 0.80) "Médio" else "Grande"
+  cat(sprintf("  Tamanho do Efeito (d de Cohen): %.2f (%s)\n\n", d_cohen, classif_d))
 
   # Interpretação
   alpha <- 1 - confianca
@@ -759,6 +776,11 @@ teste_wilcoxon <- function(x, y = NULL, mu = 0, hipotese = c("bilateral", "maior
   cat(.th_sep(nchar(hdr_c)), "\n")
   .th_nota_sig(p_val)
   cat("\n")
+  n_total_tab <- sum(tab)
+  k_min <- min(nrow(tab) - 1, ncol(tab) - 1)
+  v_cramer <- if (k_min > 0 && n_total_tab > 0) sqrt(as.numeric(chi2) / (n_total_tab * k_min)) else 0
+  classif_v <- if (v_cramer < 0.10) "Desprezível" else if (v_cramer < 0.30) "Pequeno" else if (v_cramer < 0.50) "Médio" else "Grande"
+  cat(sprintf("  Tamanho do Efeito (V de Cramér): %.3f (%s)\n\n", v_cramer, classif_v))
 
   alpha <- 1 - confianca
   .print_topico("INTERPRETA\u00c7\u00c3O")
@@ -912,6 +934,11 @@ teste_mann_whitney <- function(x, grupo, hipotese = c("bilateral", "maior", "men
   cat(.th_sep(nchar(hdr_c)), "\n")
   .th_nota_sig(p_val)
   cat("\n")
+  n_total_tab <- sum(tab)
+  k_min <- min(nrow(tab) - 1, ncol(tab) - 1)
+  v_cramer <- if (k_min > 0 && n_total_tab > 0) sqrt(as.numeric(chi2) / (n_total_tab * k_min)) else 0
+  classif_v <- if (v_cramer < 0.10) "Desprezível" else if (v_cramer < 0.30) "Pequeno" else if (v_cramer < 0.50) "Médio" else "Grande"
+  cat(sprintf("  Tamanho do Efeito (V de Cramér): %.3f (%s)\n\n", v_cramer, classif_v))
 
   alpha <- 1 - confianca
   .print_topico("INTERPRETA\u00c7\u00c3O")
@@ -1038,6 +1065,11 @@ teste_qui_quadrado <- function(dados, var_x, var_y, confianca = 0.95, decimais =
   cat(.th_sep(nchar(hdr_c)), "\n")
   .th_nota_sig(p_val)
   cat("\n")
+  n_total_tab <- sum(tab)
+  k_min <- min(nrow(tab) - 1, ncol(tab) - 1)
+  v_cramer <- if (k_min > 0 && n_total_tab > 0) sqrt(as.numeric(chi2) / (n_total_tab * k_min)) else 0
+  classif_v <- if (v_cramer < 0.10) "Desprezível" else if (v_cramer < 0.30) "Pequeno" else if (v_cramer < 0.50) "Médio" else "Grande"
+  cat(sprintf("  Tamanho do Efeito (V de Cramér): %.3f (%s)\n\n", v_cramer, classif_v))
 
   alpha <- 1 - confianca
   .print_topico("INTERPRETA\u00c7\u00c3O")
@@ -1129,6 +1161,11 @@ teste_levene <- function(x, grupo, confianca = 0.95, decimais = 2, grafico = TRU
   cat(.th_sep(nchar(hdr_c)), "\n")
   .th_nota_sig(p_val)
   cat("\n")
+  n_total_tab <- sum(tab)
+  k_min <- min(nrow(tab) - 1, ncol(tab) - 1)
+  v_cramer <- if (k_min > 0 && n_total_tab > 0) sqrt(as.numeric(chi2) / (n_total_tab * k_min)) else 0
+  classif_v <- if (v_cramer < 0.10) "Desprezível" else if (v_cramer < 0.30) "Pequeno" else if (v_cramer < 0.50) "Médio" else "Grande"
+  cat(sprintf("  Tamanho do Efeito (V de Cramér): %.3f (%s)\n\n", v_cramer, classif_v))
 
   alpha <- 1 - confianca
   .print_topico("INTERPRETA\u00c7\u00c3O")
@@ -1168,4 +1205,215 @@ teste_levene <- function(x, grupo, confianca = 0.95, decimais = 2, grafico = TRU
     }, error = function(e) NULL)
   }
   invisible(list(F = f_stat, p.value = p_val))
+}
+
+
+
+# ── TESTE DE MCNEMAR PARA DADOS PAREADOS ──────────────────────────────────────
+
+#' @title Teste de McNemar para Dados Binários Pareados
+#' @description Realiza o teste de McNemar para avaliar a homogeneidade marginal de
+#'   variáveis categóricas binárias pareadas (ex.: antes/depois, teste A vs teste B no mesmo sujeito).
+#'   Calcula a estatística qui-quadrado com ou sem correção de continuidade, p-valor exato binomial
+#'   para pequenas amostras e a Razão de Chances Pareada (Odds Ratio Pareado).
+#'
+#' @param dados Data frame contendo as colunas pareadas (opcional se 'tabela' for informada).
+#' @param var_antes Nome da variável no primeiro momento / método 1 (sem aspas ou como string).
+#' @param var_depois Nome da variável no segundo momento / método 2 (sem aspas ou como string).
+#' @param tabela Matriz ou tabela 2x2 de contingência já tabulada (opcional se 'dados' for informado).
+#' @param correcao Lógico. Se TRUE (padrão), aplica a correção de continuidade de Edwards/Yates (|b - c| - 1)^2 / (b + c).
+#' @param confianca Nível de confiança para o IC do Odds Ratio pareado (padrão 0.95).
+#' @param grafico Lógico. Se TRUE (padrão), plota gráfico de concordância e transição pareada.
+#'
+#' @return Objeto da classe \code{estatR_mcnemar} contendo:
+#' \itemize{
+#'   \item \code{tabela}: Tabela de contingência 2x2.
+#'   \item \code{estatistica}: Valor de qui-quadrado de McNemar.
+#'   \item \code{p_valor}: p-valor do teste.
+#'   \item \code{odds_ratio}: Razão de chances pareada e intervalo de confiança.
+#'   \item \code{grafico}: Objeto gráfico do ggplot2.
+#' }
+#' @export
+teste_mcnemar <- function(dados       = NULL,
+                          var_antes   = NULL,
+                          var_depois  = NULL,
+                          tabela      = NULL,
+                          correcao    = TRUE,
+                          confianca   = 0.95,
+                          grafico     = TRUE) {
+
+  if (!is.null(tabela)) {
+    tab <- as.table(as.matrix(tabela))
+    if (!all(dim(tab) == c(2, 2))) stop("A 'tabela' deve ser estritamente 2x2.", call. = FALSE)
+    nome_antes <- "Momento_1"
+    nome_depois <- "Momento_2"
+  } else {
+    if (is.null(dados)) stop("Forne\u00e7a 'dados' ou uma 'tabela' 2x2.", call. = FALSE)
+    va_sub <- substitute(var_antes)
+    vd_sub <- substitute(var_depois)
+    va_nome <- as.character(va_sub)
+    vd_nome <- as.character(vd_sub)
+    if (length(va_nome) > 1 || !va_nome %in% names(dados)) {
+      va_eval <- tryCatch(eval(va_sub, parent.frame()), error = function(e) NULL)
+      if (is.character(va_eval) && length(va_eval) == 1 && va_eval %in% names(dados)) va_nome <- va_eval
+    }
+    if (length(vd_nome) > 1 || !vd_nome %in% names(dados)) {
+      vd_eval <- tryCatch(eval(vd_sub, parent.frame()), error = function(e) NULL)
+      if (is.character(vd_eval) && length(vd_eval) == 1 && vd_eval %in% names(dados)) vd_nome <- vd_eval
+    }
+    if (!va_nome %in% names(dados)) stop(sprintf("Coluna '%s' n\u00e3o encontrada.", va_nome), call. = FALSE)
+    if (!vd_nome %in% names(dados)) stop(sprintf("Coluna '%s' n\u00e3o encontrada.", vd_nome), call. = FALSE)
+
+    c_antes  <- as.factor(dados[[va_nome]])
+    c_depois <- as.factor(dados[[vd_nome]])
+    if (length(levels(c_antes)) != 2 || length(levels(c_depois)) != 2) {
+      stop("As variáveis pareadas para McNemar devem ter exatamente 2 níveis (binárias).", call. = FALSE)
+    }
+    tab <- table(c_antes, c_depois)
+    nome_antes <- va_nome
+    nome_depois <- vd_nome
+  }
+
+  a <- tab[1, 1] # Concordante 0-0 ou Sim-Sim
+  b <- tab[1, 2] # Discordante
+  c <- tab[2, 1] # Discordante
+  d <- tab[2, 2] # Concordante 1-1 ou Nao-Nao
+  n_total <- a + b + c + d
+  disc_total <- b + c
+
+  if (disc_total == 0) {
+    stop("Não há pares discordantes (b + c = 0). O teste de McNemar não se aplica.", call. = FALSE)
+  }
+
+  # Cálculo da estatística
+  if (correcao) {
+    chi2_val <- ((abs(b - c) - 1)^2) / disc_total
+  } else {
+    chi2_val <- ((b - c)^2) / disc_total
+  }
+
+  # Teste binomial exato se b + c < 25
+  uso_exato <- disc_total < 25
+  if (uso_exato) {
+    p_val <- 2 * min(stats::pbinom(min(b, c), size = disc_total, prob = 0.5),
+                     1 - stats::pbinom(max(b, c) - 1, size = disc_total, prob = 0.5))
+    p_val <- min(p_val, 1)
+  } else {
+    p_val <- 1 - stats::pchisq(chi2_val, df = 1)
+  }
+
+  # Odds Ratio Pareado (b / c)
+  or_val <- if (c > 0) b / c else Inf
+  z_crit <- stats::qnorm(1 - (1 - confianca) / 2)
+  if (b > 0 && c > 0) {
+    se_log_or <- sqrt(1/b + 1/c)
+    ic_or <- c(exp(log(or_val) - z_crit * se_log_or), exp(log(or_val) + z_crit * se_log_or))
+  } else {
+    ic_or <- c(NA_real_, NA_real_)
+  }
+
+  .print_titulo("TESTE DE MCNEMAR PARA DADOS PAREADOS")
+  cat(sprintf("  Pares Analisados: %d  |  Compara\u00e7\u00e3o: %s vs %s
+", n_total, nome_antes, nome_depois))
+  cat(sprintf("  M\u00e9todo de C\u00e1lculo: %s
+
+",
+              if (uso_exato) "Distribui\u00e7\u00e3o Binomial Exata (b + c < 25)"
+              else if (correcao) "Qui-Quadrado com Corre\u00e7\u00e3o de Continuidade (Edwards)"
+              else "Qui-Quadrado Padr\u00e3o de McNemar"))
+
+  .print_topico("TABELA DE CONTING\u00caNCIA 2\u00d72")
+  print(tab)
+  cat(sprintf("
+  * Pares Concordantes:  %d (%.1f%%)
+", a + d, 100 * (a + d) / n_total))
+  cat(sprintf("  * Pares Discordantes:  %d (%.1f%%)  [b = %d, c = %d]
+
+", disc_total, 100 * disc_total / n_total, b, c))
+
+  .print_topico("RESULTADOS ESTAT\u00cdSTICOS")
+  w_mcn <- c(18, 14, 16, 22)
+  cat(.th_sep(sum(w_mcn)), "
+")
+  cat("  ", .th_pad("\u03c7\u00b2 McNemar", w_mcn[1], "center"),
+      .th_pad("Graus Lib.", w_mcn[2], "center"),
+      .th_pad("p-valor", w_mcn[3], "center"),
+      .th_pad(sprintf("OR Pareado (IC %.0f%%)", confianca * 100), w_mcn[4], "center"), "
+", sep = "")
+  cat(.th_sep(sum(w_mcn)), "
+")
+
+  or_txt <- if (!is.na(ic_or[1])) sprintf("%.2f [%.2f; %.2f]", or_val, ic_or[1], ic_or[2]) else sprintf("%.2f", or_val)
+  cat("  ",
+      .th_pad(formatC(chi2_val, format = "f", digits = 3, decimal.mark = ","), w_mcn[1], "center"),
+      .th_pad("1", w_mcn[2], "center"),
+      .th_pad(.fmt_p(p_val), w_mcn[3], "center"),
+      .th_pad(or_txt, w_mcn[4], "center"), "
+", sep = "")
+  cat(.th_sep(sum(w_mcn)), "
+")
+  .th_nota_sig(p_val)
+  cat("
+")
+
+  # Tamanho do Efeito
+  g_val <- if (disc_total > 0) abs(b - c) / (2 * disc_total) else 0
+  cat(sprintf("  Tamanho do Efeito (g de Cohen): %.3f (%s)
+
+",
+              g_val, if (g_val < 0.05) "Desprez\u00edvel" else if (g_val < 0.15) "Pequeno" else if (g_val < 0.25) "M\u00e9dio" else "Grande"))
+
+  .print_topico("INTERPRETA\u00c7\u00c3O")
+  if (p_val < (1 - confianca)) {
+    cat(sprintf("  H\u00e1 diferen\u00e7a estatisticamente significativa entre as propor\u00e7\u00f5es marginais (p %s).
+", .fmt_p(p_val)))
+    cat(sprintf("  A mudan\u00e7a de comportamento/resposta entre %s e %s n\u00e3o \u00e9 sim\u00e9trica.
+", nome_antes, nome_depois))
+  } else {
+    cat(sprintf("  N\u00e3o h\u00e1 evid\u00eancias suficientes de mudan\u00e7a sistem\u00e1tica entre as condi\u00e7\u00f5es (p %s).
+", .fmt_p(p_val)))
+    cat("  A distribui\u00e7\u00e3o de concord\u00e2ncias e discord\u00e2ncias mant\u00e9m-se homog\u00eanea.
+")
+  }
+  .print_rodape()
+
+  p_mcn <- NULL
+  if (grafico) {
+    df_plot <- data.frame(
+      Tipo = factor(c("Concordante (0,0)", "Discordante (0,1)", "Discordante (1,0)", "Concordante (1,1)"),
+                    levels = c("Concordante (0,0)", "Discordante (0,1)", "Discordante (1,0)", "Concordante (1,1)")),
+      Frequencia = c(a, b, c, d),
+      Natureza = c("Concordância", "Discordância", "Discordância", "Concordância")
+    )
+
+    p_mcn <- ggplot2::ggplot(df_plot, ggplot2::aes(x = Tipo, y = Frequencia, fill = Natureza)) +
+      ggplot2::geom_col(width = 0.55, color = "#222222") +
+      ggplot2::scale_fill_manual(values = c("Concordância" = "#2B5C8F", "Discordância" = "#D90429")) +
+      ggplot2::geom_text(ggplot2::aes(label = sprintf("%d (%.1f%%)", Frequencia, 100 * Frequencia / n_total)),
+                         vjust = -0.4, fontface = "bold", size = 4) +
+      ggplot2::labs(
+        title    = "Teste de McNemar: Pares Concordantes vs Discordantes",
+        subtitle = sprintf("\u03c7\u00b2 = %.2f | p-valor %s | OR Pareado = %.2f", chi2_val, .fmt_p(p_val), or_val),
+        x = "Combina\u00e7\u00e3o dos Pares", y = "Frequ\u00eancia Absoluta"
+      )
+
+    if (exists("meu_tema", mode = "function")) {
+      p_mcn <- p_mcn + meu_tema(grade = "dupla")
+    } else if (exists("tema_estatR", mode = "function")) {
+      p_mcn <- p_mcn + tema_estatR(estilo = 1, grade = "dupla")
+    } else {
+      p_mcn <- p_mcn + ggplot2::theme_minimal()
+    }
+    suppressMessages(print(p_mcn))
+  }
+
+  res <- list(
+    tabela      = tab,
+    estatistica = chi2_val,
+    p_valor     = p_val,
+    odds_ratio  = list(or = or_val, ic = ic_or),
+    grafico     = p_mcn
+  )
+  class(res) <- c("estatR_mcnemar", "list")
+  return(invisible(res))
 }

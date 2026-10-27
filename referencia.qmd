@@ -33,6 +33,8 @@ Todas as funções do **estatR** seguem a convenção de retorno duplo: exibem a
 | :--- | :--- |
 | `teste_correlacao()` | **Teste de Correlação (Bivariada)**.  Realiza o teste de correlação entre duas variáveis.  |
 | `matriz_correlacao()` | **Matriz de Correlação com Ranking dos Maiores Pares**.  Gera e imprime no console a matriz de correlação completa (com p-valores em asteriscos), exibe tabelas de ranking das maiores correlações positivas e negativas com classificação qualitativa centralizada, e plota o correlograma em `ggplot2`.  |
+| `coeficiente_cor_intra_classe()` | **Coeficiente de Correlação Intraclasse (ICC)**. Avalia a concordância, reprodutibilidade e confiabilidade entre múltiplos avaliadores ou métodos contínuos através dos 6 modelos de Shrout & Fleiss (1979) com intervalos de confiança e classificação de Koo & Li (2016). |
+
 
 ## Inferência Paramétrica (Testes T e Proporção)
 
@@ -53,6 +55,8 @@ Todas as funções do **estatR** seguem a convenção de retorno duplo: exibem a
 | `teste_kruskal()` | **Teste de Kruskal-Wallis com Comparações Múltiplas (Dunn)**.  Alternativa não-paramétrica à ANOVA a um fator para comparar a distribuição de \eqn{k \ge 2}{k >= 2} grupos independentes. Caso haja significância estatística, executa automaticamente o teste post-hoc de Dunn com ajuste de p-valor (Holm, Bonferroni ou FDR) e gera gráfico de boxplot padronizado.  |
 | `teste_friedman()` | **Teste de Friedman para Medidas Repetidas / Blocos**.  Alternativa não-paramétrica à ANOVA de medidas repetidas ou blocos casualizados (DBC). Avalia se as distribuições diferem entre \eqn{k \ge 3}{k >= 3} condições ou períodos pareados. Caso significativo, executa comparações pareadas com ajuste de p-valor.  |
 | `teste_qui_quadrado()` | **Teste Qui-Quadrado de Independência**.  Testa se duas variáveis categóricas são independentes.  |
+| `teste_mcnemar()` | **Teste de McNemar para Dados Pareados**. Avalia a homogeneidade marginal de variáveis categóricas binárias pareadas (antes/depois) com qui-quadrado corrigido, p-valor exato binomial e Razão de Chances Pareada (OR). |
+
 | `teste_levene()` | **Teste de Levene (Homogeneidade de Variâncias)**.  Testa se dois grupos possuem variâncias iguais (homogeneidade). Auxiliar ao teste t para duas amostras.  |
 | `concordancia_kappa()` | **Análise de Concordância (Kappa de Cohen & Fleiss)**.  Avalia a concordância e confiabilidade entre avaliadores. Calcula automaticamente o Kappa de Cohen (simples ou ponderado linear/quadrático) para 2 avaliadores, ou o Kappa de Fleiss caso haja 3 ou mais avaliadores. Classifica a qualidade da concordância segundo os critérios de Landis & Koch.  |
 | `grafico_bland_altman()` | **Gráfico e Diagnóstico de Bland-Altman**.  Avalia a concordância entre dois métodos contínuos de medição (ex: dois instrumentos, ensaio laboratorial vs teste rápido). Estima o viés médio (\eqn{\bar{d}}{`d_barra`}), limites de concordância de 95\\% (\eqn{\bar{d} \pm 1{,}96 \cdot DP}{`d_barra +- 1.96*DP`}), intervalos de confiança dos parâmetros e gera gráfico no padrão visual do estatR.  |
@@ -189,6 +193,8 @@ Todas as funções do **estatR** seguem a convenção de retorno duplo: exibem a
 | `previsao_aprend_maq()` | **Previsão com Aprendizado de Máquina (Regressão)**.  Ajusta modelos de Aprendizado de Máquina para tarefas de regressão (variável resposta numérica contínua). Suporta múltiplos algoritmos com otimização automática de hiperparâmetros (estabilização OOB / Cross-Validation) ou parametrização manual em português.  |
 | `analise_residual_aprend_maq()` | **Análise Residual para Modelos de Aprendizado de Máquina**.  Realiza diagnóstico formal dos resíduos em modelos de regressão ajustados por Aprendizado de Máquina (`previsao_aprend_maq`). Avalia viés sistemático (média dos resíduos = 0), dispersão e casos atípicos extremos, gerando painel gráfico com grade dupla.  |
 | `metricas_aprend_maq()` | **Métricas de Desempenho para Aprendizado de Máquina**.  Extrai e exibe a tabela de métricas de treino e teste de um objeto de Aprendizado de Máquina (`estatR_aprend_maq`).  |
+| `validacao_cruzada()` | **Validação Cruzada K-Fold (Cross-Validation)**. Executa validação cruzada $k$-fold estratificada ou simples para modelos de regressão ou classificação, reportando métricas fold a fold e síntese com Média $\pm$ Desvio-Padrão fora da amostra. |
+
 | `analise_sobrevivencia()` | **Análise de Sobrevivência (Kaplan-Meier e Nelson-Aalen)**.  Ajusta e apresenta curvas de sobrevivência não-paramétricas pelos métodos de Kaplan-Meier e Nelson-Aalen / Fleming-Harrington, com cálculo de medianas de sobrevivência, intervalos de confiança, taxas de censura, tabela pontual completa com estimativas de S(t), risco acumulado H(t), taxa de risco instantâneo h(t) e densidade f(t), além de teste de Log-Rank (simples ou estratificado) para comparação de grupos.  |
 | `grafico_sobrevivencia()` | **Gráfico de Curva de Sobrevivência e Funções de Risco**.  Gera visualizações para análise de sobrevivência em degraus ou curvas suavizadas, incluindo curva de sobrevivência S(t), risco acumulado H(t) (Nelson-Aalen), taxa de risco instantâneo h(t) (hazard rate) e densidade de falhas f(t).  |
 | `regressao_cox()` | **Regressão de Cox (Modelo de Riscos Proporcionais)**.  Ajusta o modelo semi-paramétrico de Cox para análise de tempo até o evento, fornecendo Hazard Ratios (HR), intervalos de confiança de 95\%, estatísticas globais de qualidade de ajuste e diagnóstico formal de proporcionalidade dos riscos baseado nos resíduos de Schoenfeld.  |
@@ -206,6 +212,19 @@ Todas as funções do **estatR** seguem a convenção de retorno duplo: exibem a
 | `amostra_conglomerados()` | **Amostragem por Conglomerados (Clusters)**.  Seleciona aleatoriamente conglomerados (grupos inteiros) de um data.frame, retornando todos os indivÃ­duos pertencentes aos conglomerados sorteados.  |
 | `tamanho_amostra()` | **CÃ¡lculo de Tamanho Amostral Ã“timo**.  Calcula o tamanho mÃ­nimo de amostra necessÃ¡rio para estimar uma proporÃ§Ã£o ou uma mÃ©dia com nÃ­vel de confianÃ§a e margem de erro especificados.  |
 | `poder_estatistico()` | **Cálculo de Poder Estatístico e Dimensionamento de Experimentos**. Calcula o poder estatístico (1 - beta) ou o tamanho amostral necessário para testes T, ANOVA, correlação e proporção, com curva gráfica de poder. |
+
+## Transformações de Variáveis
+
+| Função | Descrição |
+| :--- | :--- |
+| `transformar()` | **Transformação de Variáveis e Seleção Ótima de Potência**. Aplica transformações clássicas e modernas (Box-Cox, Yeo-Johnson, Log, Raiz Quadrada, Logit, Arco-Seno, Inversa, Padronização Z e Min-Max) sobre vetores ou bancos de dados com otimização de $\lambda$, curva de log-verossimilhança e seleção automática pelo teste de Shapiro-Wilk. |
+
+## Controle Estatístico da Qualidade (CEQ & Six Sigma)
+
+| Função | Descrição |
+| :--- | :--- |
+| `grafico_controle()` | **Gráficos de Controle de Processo (Cartas de Shewhart)**. Constrói cartas de controle para variáveis contínuas (I-MR, $\bar{X}$-R, $\bar{X}$-S) e atributos (p, np, c, u) com regras de Western Electric / Nelson para detecção de causas especiais e visualização com grade dupla. |
+| `capacidade_processo()` | **Análise de Capacidade do Processo (Six Sigma & Índices Cp/Cpk)**. Avalia a conformidade com especificações de engenharia (LIE, LSE, Alvo), estimando dispersão de curto e longo prazo, índices $C_p$, $C_{pk}$, $C_{pm}$, $P_p$, $P_{pk}$, PPM esperado/observado e nível Sigma do processo. |
 
 ## Extratores e Utilitários de Modelos
 

@@ -68,6 +68,18 @@
   }, USE.NAMES = FALSE)
 }
 
+.th_pad <- function(s, w, align = "left") {
+  s  <- as.character(s)
+  sp <- w - nchar(s)
+  if (sp <= 0) return(s)
+  if (align == "right")  return(paste0(strrep(" ", sp), s))
+  if (align == "center") return(paste0(strrep(" ", floor(sp/2)), s, strrep(" ", ceiling(sp/2))))
+  paste0(s, strrep(" ", sp))
+}
+
+.th_sep <- function(w) paste0("  ", strrep("\u2500", w))
+
+
 #' Calcula a Moda de um vetor (numérico ou caractere/fator)
 #' @noRd
 .calcular_moda <- function(x) {

@@ -384,3 +384,223 @@ matriz_correlacao <- function(dados,
   ))
 }
 
+
+
+
+# ── COEFICIENTE DE CORRELAÇÃO INTRACLASSE (ICC) ──────────────────────────────
+
+#' @title Coeficiente de Correlação Intraclasse (ICC)
+#' @description Calcula os Coeficientes de Correlação Intraclasse (ICC) para avaliar a
+#'   concordância, reprodutibilidade e confiabilidade entre múltiplos avaliadores, juízes
+#'   ou métodos de mensuração contínua, conforme Shrout & Fleiss (1979) e McGraw & Wong (1996).
+#'
+#' @param dados Matriz ou \code{data.frame} em formato largo onde cada coluna representa um
+#'   avaliador/juiz e cada linha representa um sujeito/objeto avaliado.
+#' @param tipo Tipo de modelo de ICC a reportar: \code{"todos"} (padrão, exibe os 6 modelos clássicos),
+#'   \code{"icc1"} (1 fator aleatório), \code{"icc2"} (2 fatores aleatórios / concordância absoluta)
+#'   ou \code{"icc3"} (2 fatores mistos / consistência).
+#' @param confianca Nível de confiança para os intervalos (padrão 0.95).
+#' @param grafico Lógico. Se \code{TRUE} (padrão), exibe gráfico de perfis das medições por avaliador.
+#'
+#' @return Objeto da classe \code{estatR_icc} contendo:
+#' \itemize{
+#'   \item \code{tabela}: Tabela completa com os modelos, estimativas pontuais, IC 95%, estatística F e p-valor.
+#'   \item \code{anova}: Quadro de ANOVA da decomposição da variância (entre sujeitos, entre juízes e erro).
+#'   \item \code{grafico}: Objeto gráfico do ggplot2.
+#' }
+#' @export
+coeficiente_cor_intra_classe <- function(dados,
+                                         tipo      = c("todos", "icc1", "icc2", "icc3"),
+                                         confianca = 0.95,
+                                         grafico   = TRUE) {
+
+  tipo <- match.arg(tipo)
+
+  mat <- as.matrix(dados)
+  if (!is.numeric(mat)) stop("Os 'dados' devem ser numéricos (sujeitos nas linhas, juízes nas colunas).", call. = FALSE)
+
+  # Remover linhas com valores ausentes
+  idx_completos <- stats::complete.cases(mat)
+  mat <- mat[idx_completos, , drop = FALSE]
+
+  n <- nrow(mat) # número de sujeitos
+  k <- ncol(mat) # número de avaliadores
+
+  if (n < 3) stop("São necessários pelo menos 3 sujeitos avaliados.", call. = FALSE)
+  if (k < 2) stop("São necessários pelo menos 2 avaliadores (colunas).", call. = FALSE)
+
+  # ── Decomposição ANOVA Two-Way sem repetição ─────────────────────────────────
+  grand_mean <- mean(mat)
+  row_means  <- rowMeans(mat)
+  col_means  <- colMeans(mat)
+
+  ss_total <- sum((mat - grand_mean)^2)
+  ss_rows  <- k * sum((row_means - grand_mean)^2) # Entre sujeitos
+  ss_cols  <- n * sum((col_means - grand_mean)^2) # Entre avaliadores
+  ss_error <- ss_total - ss_rows - ss_cols        # Resíduo / Interação
+  ss_within <- ss_total - ss_rows                 # Dentro dos sujeitos
+
+  df_rows  <- n - 1
+  df_cols  <- k - 1
+  df_error <- (n - 1) * (k - 1)
+  df_within <- n * (k - 1)
+
+  ms_r <- ss_rows / df_rows
+  ms_c <- ss_cols / df_cols
+  ms_e <- max(ss_error / df_error, 1e-12)
+  ms_w <- ss_within / df_within
+
+  # ── Cálculo dos 6 Modelos de ICC (Shrout & Fleiss, 1979) ──────────────────────
+  # ICC(1,1) e ICC(1,k) - One-way random
+  icc1_1 <- (ms_r - ms_w) / (ms_r + (k - 1) * ms_w)
+  icc1_k <- (ms_r - ms_w) / ms_r
+  f1 <- ms_r / ms_w
+  p1 <- 1 - stats::pf(f1, df_rows, df_within)
+
+  f1_l <- f1 / stats::qf(1 - (1 - confianca)/2, df_rows, df_within)
+  f1_u <- f1 * stats::qf(1 - (1 - confianca)/2, df_within, df_rows)
+  ic_icc1_1 <- c((f1_l - 1)/(f1_l + k - 1), (f1_u - 1)/(f1_u + k - 1))
+  ic_icc1_k <- c(1 - 1/f1_l, 1 - 1/f1_u)
+
+  # ICC(2,1) e ICC(2,k) - Two-way random (Concordância Absoluta)
+  icc2_1 <- (ms_r - ms_e) / (ms_r + (k - 1) * ms_e + (k / n) * (ms_c - ms_e))
+  icc2_k <- (ms_r - ms_e) / (ms_r + (ms_c - ms_e) / n)
+  f2 <- ms_r / ms_e
+  p2 <- 1 - stats::pf(f2, df_rows, df_error)
+
+  # Aproximação exata F de McGraw & Wong para ICC2
+  f2_l <- f2 / stats::qf(1 - (1 - confianca)/2, df_rows, df_error)
+  f2_u <- f2 * stats::qf(1 - (1 - confianca)/2, df_error, df_rows)
+  ic_icc2_1 <- c(max(-1, (f2_l - 1)/(f2_l + k - 1)), min(1, (f2_u - 1)/(f2_u + k - 1)))
+  ic_icc2_k <- c(max(-1, 1 - 1/f2_l), min(1, 1 - 1/f2_u))
+
+  # ICC(3,1) e ICC(3,k) - Two-way mixed (Consistência)
+  icc3_1 <- (ms_r - ms_e) / (ms_r + (k - 1) * ms_e)
+  icc3_k <- (ms_r - ms_e) / ms_r
+  f3 <- ms_r / ms_e
+  p3 <- p2
+  ic_icc3_1 <- ic_icc2_1
+  ic_icc3_k <- ic_icc2_k
+
+  # Classificação qualitativa (Koo & Li, 2016)
+  classif_fn <- function(val) {
+    if (is.na(val)) return("-")
+    if (val < 0.50) "Pobre"
+    else if (val < 0.75) "Moderada"
+    else if (val < 0.90) "Boa"
+    else "Excelente"
+  }
+
+  tb_icc <- data.frame(
+    Modelo = c("ICC(1,1)", "ICC(1,k)", "ICC(2,1)", "ICC(2,k)", "ICC(3,1)", "ICC(3,k)"),
+    Tipo_Avaliacao = c("Individual", "Média Juízes", "Individual", "Média Juízes", "Individual", "Média Juízes"),
+    Natureza = c("1 Fator Aleatório", "1 Fator Aleatório",
+                 "Concordância Absoluta", "Concordância Absoluta",
+                 "Consistência Relativa", "Consistência Relativa"),
+    Estimativa = c(icc1_1, icc1_k, icc2_1, icc2_k, icc3_1, icc3_k),
+    IC_Inf = c(ic_icc1_1[1], ic_icc1_k[1], ic_icc2_1[1], ic_icc2_k[1], ic_icc3_1[1], ic_icc3_k[1]),
+    IC_Sup = c(ic_icc1_1[2], ic_icc1_k[2], ic_icc2_1[2], ic_icc2_k[2], ic_icc3_1[2], ic_icc3_k[2]),
+    F_stat = c(f1, f1, f2, f2, f3, f3),
+    p_valor = c(p1, p1, p2, p2, p3, p3),
+    Classificacao = sapply(c(icc1_1, icc1_k, icc2_1, icc2_k, icc3_1, icc3_k), classif_fn),
+    stringsAsFactors = FALSE
+  )
+
+  if (tipo != "todos") {
+    pref <- toupper(tipo)
+    tb_icc <- tb_icc[grepl(pref, tb_icc$Modelo, ignore.case = TRUE), ]
+  }
+
+  # ── Saída no console ─────────────────────────────────────────────────────────
+  .print_titulo("COEFICIENTE DE CORRELAÇÃO INTRACLASSE (ICC)")
+
+  cat(sprintf("  Sujeitos Avaliados (n): %d  |  Avaliadores/Juízes (k): %d
+", n, k))
+  cat(sprintf("  Nível de Confiança: %.0f%%
+
+", confianca * 100))
+
+  .print_topico("TABELA DE COEFICIENTES DE CONFIABILIDADE")
+  w_icc <- c(10, 14, 22, 10, 18, 12, 14)
+  cat(.th_sep(sum(w_icc)), "
+")
+  cat("  ",
+      .th_pad("Modelo", w_icc[1], "left"),
+      .th_pad("Medida", w_icc[2], "center"),
+      .th_pad("Natureza", w_icc[3], "left"),
+      .th_pad("ICC", w_icc[4], "center"),
+      .th_pad(sprintf("IC (%.0f%%)", confianca*100), w_icc[5], "center"),
+      .th_pad("p-valor", w_icc[6], "center"),
+      .th_pad("Confiabilidade", w_icc[7], "center"),
+      "
+", sep = "")
+  cat(.th_sep(sum(w_icc)), "
+")
+
+  for (i in 1:nrow(tb_icc)) {
+    ic_str <- sprintf("[%.2f; %.2f]", tb_icc$IC_Inf[i], tb_icc$IC_Sup[i])
+    cat("  ",
+        .th_pad(tb_icc$Modelo[i], w_icc[1], "left"),
+        .th_pad(tb_icc$Tipo_Avaliacao[i], w_icc[2], "center"),
+        .th_pad(tb_icc$Natureza[i], w_icc[3], "left"),
+        .th_pad(formatC(tb_icc$Estimativa[i], format = "f", digits = 3, decimal.mark = ","), w_icc[4], "center"),
+        .th_pad(ic_str, w_icc[5], "center"),
+        .th_pad(.fmt_p(tb_icc$p_valor[i]), w_icc[6], "center"),
+        .th_pad(tb_icc$Classificacao[i], w_icc[7], "center"),
+        "
+", sep = "")
+  }
+  cat(.th_sep(sum(w_icc)), "
+
+")
+
+  # Nota explicativa
+  cat("  * Critério de Koo & Li (2016): <0,50 Pobre | 0,50-0,75 Moderada | 0,75-0,90 Boa | >=0,90 Excelente.
+")
+  cat("  * Para avaliar se juízes atribuem notas idênticas, recomenda-se ICC(2,1) [Concordância Absoluta].
+")
+  .print_rodape()
+
+  p_icc <- NULL
+  if (grafico) {
+    nomes_cols <- colnames(mat)
+    if (is.null(nomes_cols)) nomes_cols <- paste0("Juiz_", 1:k)
+    df_long <- data.frame(
+      Sujeito   = rep(1:n, times = k),
+      Avaliador = factor(rep(nomes_cols, each = n), levels = nomes_cols),
+      Escore    = as.vector(mat)
+    )
+
+    p_icc <- ggplot2::ggplot(df_long, ggplot2::aes(x = Sujeito, y = Escore, color = Avaliador, group = Avaliador)) +
+      ggplot2::geom_line(linewidth = 0.9, alpha = 0.8) +
+      ggplot2::geom_point(size = 2.2) +
+      ggplot2::scale_x_continuous(breaks = seq(1, n, by = max(1, floor(n/10)))) +
+      ggplot2::labs(
+        title    = "Perfis das Medições por Avaliador",
+        subtitle = sprintf("Concordância Geral ICC(2,1) = %.3f (%s)", icc2_1, classif_fn(icc2_1)),
+        x = "Sujeito / Caso Avaliado", y = "Escore Atribuído"
+      )
+
+    if (exists("meu_tema", mode = "function")) {
+      p_icc <- p_icc + meu_tema(grade = "dupla")
+    } else if (exists("tema_estatR", mode = "function")) {
+      p_icc <- p_icc + tema_estatR(estilo = 1, grade = "dupla")
+    } else {
+      p_icc <- p_icc + ggplot2::theme_minimal()
+    }
+    suppressMessages(print(p_icc))
+  }
+
+  res <- list(
+    tabela  = tb_icc,
+    anova   = data.frame(
+      Fonte = c("Entre Sujeitos", "Entre Juízes", "Resíduo / Erro"),
+      SQ    = c(ss_rows, ss_cols, ss_error),
+      GL    = c(df_rows, df_cols, df_error),
+      QM    = c(ms_r, ms_c, ms_e)
+    ),
+    grafico = p_icc
+  )
+  class(res) <- c("estatR_icc", "list")
+  return(invisible(res))
+}
