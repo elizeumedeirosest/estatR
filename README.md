@@ -10,7 +10,7 @@
 [![Licença MIT](https://img.shields.io/badge/licença-MIT-10b981?style=for-the-badge)](LICENSE) 
 [![R >= 4.0](https://img.shields.io/badge/R-%3E%3D_4.0-38bdf8?style=for-the-badge&logo=R&logoColor=white)](https://cran.r-project.org/) 
 [![Módulos](https://img.shields.io/badge/módulos-14-0284c7?style=for-the-badge)](https://elizeumedeirosest.github.io/estatR/index.html) 
-[![Funções](https://img.shields.io/badge/funções-120+-818cf8?style=for-the-badge)](https://elizeumedeirosest.github.io/estatR/referencia.html)
+[![Funções](https://img.shields.io/badge/funções-120+-818cf8?style=for-the-badge)](https://elizeumedeirosest.github.io/estatR#modulos)
 
 <p align="center">
   <b>Uma camada estatística moderna, didática e unificada para o ecossistema R.</b><br>

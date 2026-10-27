@@ -5,7 +5,6 @@
 ^_quarto\.yml$
 ^index\.qmd$
 ^guia_rapido\.qmd$
-^referencia\.qmd$
 ^styles\.css$
 ^modulos$
 ^assets$
