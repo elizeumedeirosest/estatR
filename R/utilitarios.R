@@ -191,3 +191,65 @@
   cat(sep_linha, "\n")
   cat(sprintf("  * Função de ligação selecionada: %s\n\n", ligacao_escolhida))
 }
+
+
+# ── EXTRATORES DE MODELOS EM PORTUGUÊS ────────────────────────────────────────
+
+#' @title Coeficientes do Modelo
+#' @description Extrai os coeficientes estimados de um modelo estatístico (regressão linear, MLG, ANOVA, etc.).
+#' @param modelo Objeto de modelo ajustado.
+#' @param ... Argumentos adicionais repassados para \code{stats::coef}.
+#' @return Vetor numérico ou matriz com os coeficientes estimados.
+#' @export
+coeficientes <- function(modelo, ...) {
+  if (inherits(modelo, c("estatR_logistica", "estatR_poisson", "estatR_nb", "estatR_zeroinfl"))) {
+    return(stats::coef(modelo$modelo, ...))
+  }
+  stats::coef(modelo, ...)
+}
+
+#' @title Resíduos do Modelo
+#' @description Extrai os resíduos de um modelo ajustado.
+#' @param modelo Objeto de modelo ajustado.
+#' @param ... Argumentos adicionais repassados para \code{stats::residuals}.
+#' @return Vetor numérico com os resíduos.
+#' @export
+residuos <- function(modelo, ...) {
+  if (inherits(modelo, c("estatR_logistica", "estatR_poisson", "estatR_nb", "estatR_zeroinfl"))) {
+    return(stats::residuals(modelo$modelo, ...))
+  }
+  stats::residuals(modelo, ...)
+}
+
+#' @title Valores Ajustados do Modelo
+#' @description Extrai os valores preditos / ajustados pelo modelo sobre a amostra.
+#' @param modelo Objeto de modelo ajustado.
+#' @param ... Argumentos adicionais repassados para \code{stats::fitted}.
+#' @return Vetor numérico com os valores ajustados.
+#' @export
+#' @aliases ajustados valores_preditos
+valores_ajustados <- function(modelo, ...) {
+  if (inherits(modelo, c("estatR_logistica", "estatR_poisson", "estatR_nb", "estatR_zeroinfl"))) {
+    return(stats::fitted(modelo$modelo, ...))
+  }
+  stats::fitted(modelo, ...)
+}
+
+#' @export
+ajustados <- valores_ajustados
+
+#' @export
+valores_preditos <- valores_ajustados
+
+#' @title Resumo do Modelo
+#' @description Retorna ou exibe o resumo completo de um modelo estatístico.
+#' @param modelo Objeto de modelo ajustado.
+#' @param ... Argumentos adicionais repassados para \code{summary}.
+#' @return Objeto de resumo estatístico.
+#' @export
+resumo <- function(modelo, ...) {
+  if (inherits(modelo, c("estatR_logistica", "estatR_poisson", "estatR_nb", "estatR_zeroinfl"))) {
+    return(summary(modelo$modelo, ...))
+  }
+  summary(modelo, ...)
+}

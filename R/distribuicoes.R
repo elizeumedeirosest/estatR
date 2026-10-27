@@ -5,7 +5,7 @@
 #' @title Distribuição Estatística
 #' @description Exibe uma visão completa e pedagógica de uma distribuição de probabilidade:
 #' parâmetros, momentos teóricos, quantis-chave e gráfico ilustrativo.
-#' Suporta: "normal", "binomial", "poisson", "exponencial", "uniforme", "t", "qui_quadrado", "f", "gama".
+#' Suporta: "normal", "binomial", "poisson", "exponencial", "uniforme", "t", "qui_quadrado", "f", "gama", "weibull".
 #'
 #' @param tipo Tipo da distribuição.
 #' @param media,dp Parâmetros da Normal.
@@ -21,7 +21,7 @@
 #' @param semente Semente para reprodutibilidade da simulação.
 #' @export
 distribuicao <- function(tipo = c("normal", "binomial", "poisson", "exponencial",
-                                  "uniforme", "t", "qui_quadrado", "f", "gama"),
+                                  "uniforme", "t", "qui_quadrado", "f", "gama", "weibull"),
                          media = 0, dp = 1, n = 10, p = 0.5, lambda = 1, taxa = 1,
                          min = 0, max = 1, gl = 10, gl1 = 5, gl2 = 10,
                          forma = 2, escala = 1,
@@ -147,6 +147,18 @@ distribuicao <- function(tipo = c("normal", "binomial", "poisson", "exponencial"
     params_txt <- sprintf("  Forma (k ou \u03b1): %g    Escala (\u03b8 ou 1/\u03b2): %g\n", forma, escala)
     quantis <- qgamma(pcts, shape = forma, scale = escala)
     pdf_formula <- "f(x) = (x^(k-1) \u00d7 e^(-x/\u03b8)) / (\u03b8\u1d4f \u00d7 \u0393(k)),  x \u2265 0"
+
+  } else if (tipo == "weibull") {
+    if (forma <= 0 || escala <= 0) stop("Parâmetros 'forma' e 'escala' devem ser > 0.")
+    teo_media <- escala * gamma(1 + 1 / forma)
+    teo_var   <- escala^2 * (gamma(1 + 2 / forma) - (gamma(1 + 1 / forma))^2)
+    teo_dp    <- sqrt(teo_var)
+    teo_assim <- (gamma(1 + 3/forma)*escala^3 - 3*teo_media*teo_var - teo_media^3) / (teo_dp^3)
+    teo_curt  <- (gamma(1 + 4/forma)*escala^4 - 4*teo_media*gamma(1 + 3/forma)*escala^3 + 6*teo_media^2*teo_var + 3*teo_media^4) / (teo_var^2) - 3
+    titulo_dist <- sprintf("DISTRIBUIÇÃO WEIBULL  —  forma (k) = %g, escala (λ) = %g", forma, escala)
+    params_txt <- sprintf("  Forma (k): %g    Escala (λ): %g\n", forma, escala)
+    quantis <- stats::qweibull(pcts, shape = forma, scale = escala)
+    pdf_formula <- "f(x) = (k/λ) * (x/λ)^(k-1) * e^(-(x/λ)^k),  x ≥ 0"
   }
 
   # ── Saida Console ─────────────────────────────────────────────────────────
@@ -197,7 +209,8 @@ distribuicao <- function(tipo = c("normal", "binomial", "poisson", "exponencial"
       t           = rt(nn, df = gl),
       qui_quadrado= rchisq(nn, df = gl),
       f           = rf(nn, df1 = gl1, df2 = gl2),
-      gama        = rgamma(nn, shape = forma, scale = escala)
+      gama        = rgamma(nn, shape = forma, scale = escala),
+      weibull     = rweibull(nn, shape = forma, scale = escala)
     )
   }
   
@@ -210,6 +223,7 @@ distribuicao <- function(tipo = c("normal", "binomial", "poisson", "exponencial"
       qui_quadrado = gg + ggplot2::stat_function(fun = dchisq, args = list(df = gl), color = "#D90429", linewidth = 1),
       f = gg + ggplot2::stat_function(fun = df, args = list(df1 = gl1, df2 = gl2), color = "#D90429", linewidth = 1),
       gama = gg + ggplot2::stat_function(fun = dgamma, args = list(shape = forma, scale = escala), color = "#D90429", linewidth = 1),
+      weibull = gg + ggplot2::stat_function(fun = dweibull, args = list(shape = forma, scale = escala), color = "#D90429", linewidth = 1),
       binomial = {
         am <- .gera(nn)
         xs <- min(am):max(am)
@@ -311,7 +325,7 @@ distribuicao <- function(tipo = c("normal", "binomial", "poisson", "exponencial"
       }
       p <- .tema(p)
       
-    } else if (tipo %in% c("exponencial", "qui_quadrado", "f", "gama")) {
+    } else if (tipo %in% c("exponencial", "qui_quadrado", "f", "gama", "weibull")) {
       if (tipo == "exponencial") {
         x_max <- qexp(0.999, taxa); f_den <- function(x) dexp(x, taxa); med_x <- 1/taxa
         tit <- sprintf("Distribui\u00e7\u00e3o Exponencial  \u2014  Exp(\u03bb = %g)", taxa)
@@ -321,6 +335,11 @@ distribuicao <- function(tipo = c("normal", "binomial", "poisson", "exponencial"
       } else if (tipo == "f") {
         x_max <- qf(0.95, gl1, gl2); f_den <- function(x) df(x, gl1, gl2); med_x <- teo_media
         tit <- sprintf("Distribuição F de Snedecor  —  F(gl1 = %g, gl2 = %g)", gl1, gl2)
+      } else if (tipo == "weibull") {
+        x_max <- stats::qweibull(0.999, shape = forma, scale = escala)
+        f_den <- function(x) stats::dweibull(x, shape = forma, scale = escala)
+        med_x <- teo_media
+        tit <- sprintf("Distribui\u00e7\u00e3o Weibull  \u2014  Weibull(k = %g, \u03bb = %g)", forma, escala)
       } else {
         x_max <- qgamma(0.999, shape = forma, scale = escala); f_den <- function(x) dgamma(x, shape=forma, scale=escala); med_x <- teo_media
         tit <- sprintf("Distribui\u00e7\u00e3o Gama  \u2014  Gama(\u03b1 = %g, \u03b8 = %g)", forma, escala)

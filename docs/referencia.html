@@ -175,6 +175,7 @@ ul.task-list li input[type="checkbox"] {
   <li><a href="#planejamento-de-experimentos-delineamentos" id="toc-planejamento-de-experimentos-delineamentos" class="nav-link" data-scroll-target="#planejamento-de-experimentos-delineamentos">Planejamento de Experimentos (Delineamentos)</a></li>
   <li><a href="#aprendizado-de-máquina-e-sobrevivência" id="toc-aprendizado-de-máquina-e-sobrevivência" class="nav-link" data-scroll-target="#aprendizado-de-máquina-e-sobrevivência">Aprendizado de Máquina e Sobrevivência</a></li>
   <li><a href="#amostragem-probabilística" id="toc-amostragem-probabilística" class="nav-link" data-scroll-target="#amostragem-probabilística">Amostragem Probabilística</a></li>
+  <li><a href="#extratores-e-utilitários-de-modelos" id="toc-extratores-e-utilitários-de-modelos" class="nav-link" data-scroll-target="#extratores-e-utilitários-de-modelos">Extratores e Utilitários de Modelos</a></li>
   <li><a href="#visualização-e-gráficos-auxiliares" id="toc-visualização-e-gráficos-auxiliares" class="nav-link" data-scroll-target="#visualização-e-gráficos-auxiliares">Visualização e Gráficos Auxiliares</a></li>
   </ul>
 </nav>
@@ -441,7 +442,7 @@ ul.task-list li input[type="checkbox"] {
 <tbody>
 <tr class="odd">
 <td style="text-align: left;"><code>distribuicao()</code></td>
-<td style="text-align: left;"><strong>Distribuição Estatística</strong>. Exibe uma visão completa e pedagógica de uma distribuição de probabilidade: parâmetros, momentos teóricos, quantis-chave e gráfico ilustrativo. Suporta: ‘normal’, ‘binomial’, ‘poisson’, ‘exponencial’, ‘uniforme’, ‘t’, ‘qui_quadrado’, ‘f’, ‘gama’.</td>
+<td style="text-align: left;"><strong>Distribuição Estatística</strong>. Exibe uma visão completa e pedagógica de uma distribuição de probabilidade: parâmetros, momentos teóricos, quantis-chave e gráfico ilustrativo. Suporta: ‘normal’, ‘binomial’, ‘poisson’, ‘exponencial’, ‘uniforme’, ‘t’, ‘qui_quadrado’, ‘f’, ‘gama’, ‘weibull’.</td>
 </tr>
 <tr class="even">
 <td style="text-align: left;"><code>prob_normal()</code></td>
@@ -460,6 +461,10 @@ ul.task-list li input[type="checkbox"] {
 <td style="text-align: left;"><strong>Probabilidade da Distribuição Exponencial</strong>. Calcula a probabilidade para uma distribuição Exponencial e plota a curva com área sombreada.</td>
 </tr>
 <tr class="even">
+<td style="text-align: left;"><code>prob_weibull()</code></td>
+<td style="text-align: left;"><strong>Probabilidade da Distribuição Weibull</strong>. Calcula a probabilidade para uma distribuição Weibull contínua e exibe curva gráfica com área sombreada.</td>
+</tr>
+<tr class="odd">
 <td style="text-align: left;"><code>gerar_amostra()</code></td>
 <td style="text-align: left;"><strong>Gerador de Amostras de Distribuições</strong>. Gera um conjunto de dados aleatórios baseado em distribuições teóricas e plota o histograma. Gera um conjunto de dados aleatórios baseado em distribuições teóricas e plota o histograma.</td>
 </tr>
@@ -954,6 +959,39 @@ ul.task-list li input[type="checkbox"] {
 <tr class="even">
 <td style="text-align: left;"><code>poder_estatistico()</code></td>
 <td style="text-align: left;"><strong>Cálculo de Poder Estatístico e Dimensionamento de Experimentos</strong>. Calcula o poder estatístico (1 - beta) ou o tamanho amostral necessário para testes T, ANOVA, correlação e proporção, com curva gráfica de poder.</td>
+</tr>
+</tbody>
+</table>
+</section>
+<section id="extratores-e-utilitários-de-modelos" class="level2">
+<h2 class="anchored" data-anchor-id="extratores-e-utilitários-de-modelos">Extratores e Utilitários de Modelos</h2>
+<table class="caption-top table">
+<colgroup>
+<col style="width: 50%">
+<col style="width: 50%">
+</colgroup>
+<thead>
+<tr class="header">
+<th style="text-align: left;">Função</th>
+<th style="text-align: left;">Descrição</th>
+</tr>
+</thead>
+<tbody>
+<tr class="odd">
+<td style="text-align: left;"><code>coeficientes()</code></td>
+<td style="text-align: left;"><strong>Coeficientes do Modelo</strong>. Extrai coeficientes estimados de modelos lineares, MLG (logística, Poisson, binomial negativa, etc.) ou delineamentos experimentais. Equivalente ao <code>coef()</code>.</td>
+</tr>
+<tr class="even">
+<td style="text-align: left;"><code>residuos()</code></td>
+<td style="text-align: left;"><strong>Resíduos do Modelo</strong>. Extrai resíduos ordinários ou padronizados de modelos ajustados no estatR. Equivalente ao <code>residuals()</code>.</td>
+</tr>
+<tr class="odd">
+<td style="text-align: left;"><code>valores_ajustados()</code></td>
+<td style="text-align: left;"><strong>Valores Preditos / Ajustados</strong>. Extrai as predições na amostra de modelos estatísticos ajustados. Aliases: <code>ajustados()</code>, <code>valores_preditos()</code>. Equivalente ao <code>fitted()</code>.</td>
+</tr>
+<tr class="even">
+<td style="text-align: left;"><code>resumo()</code></td>
+<td style="text-align: left;"><strong>Resumo do Modelo</strong>. Exibe e retorna a síntese estruturada completa do modelo estatístico subjacente. Equivalente ao <code>summary()</code>.</td>
 </tr>
 </tbody>
 </table>

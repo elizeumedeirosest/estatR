@@ -6,7 +6,7 @@
 \usage{
 distribuicao(
   tipo = c("normal", "binomial", "poisson", "exponencial", "uniforme", "t",
-    "qui_quadrado", "f", "gama"),
+    "qui_quadrado", "f", "gama", "weibull"),
   media = 0,
   dp = 1,
   n = 10,
@@ -54,5 +54,5 @@ distribuicao(
 \description{
 Exibe uma visão completa e pedagógica de uma distribuição de probabilidade:
 parâmetros, momentos teóricos, quantis-chave e gráfico ilustrativo.
-Suporta: "normal", "binomial", "poisson", "exponencial", "uniforme", "t", "qui_quadrado", "f", "gama".
+Suporta: "normal", "binomial", "poisson", "exponencial", "uniforme", "t", "qui_quadrado", "f", "gama", "weibull".
 }

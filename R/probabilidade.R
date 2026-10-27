@@ -1,4 +1,4 @@
-﻿#' @title Probabilidade da Distribuição Normal
+#' @title Probabilidade da Distribuição Normal
 #' @description Calcula a probabilidade para uma distribuição Normal e gera o gráfico com a área sombreada.
 #' @param media Média teórica da distribuição.
 #' @param dp Desvio-padrão teórico.
@@ -467,6 +467,109 @@ prob_exponencial <- function(taxa = 1, q1 = NULL, q2 = NULL,
       p <- p + ggplot2::theme_minimal()
     }
 
+    suppressMessages(print(p))
+  }
+
+  invisible(prob)
+}
+
+
+# ── DISTRIBUIÇÃO WEIBULL ──────────────────────────────────────────────────────
+
+#' @title Cálculo de Probabilidade na Distribuição Weibull
+#' @description Calcula a probabilidade acumulada ou em intervalo para a distribuição Weibull
+#'   (amplamente utilizada em engenharia de confiabilidade, tempo de vida e controle de processos),
+#'   com gráfico de densidade e área sombreada.
+#' @param q Quantil de interesse.
+#' @param forma Parâmetro de forma (k > 0, shape).
+#' @param escala Parâmetro de escala (lambda > 0, scale, padrão 1).
+#' @param tipo Tipo de cálculo: \code{"abaixo"} (P(X <= q)), \code{"acima"} (P(X > q)) ou \code{"entre"}.
+#' @param q1,q2 Limites inferior e superior quando \code{tipo = "entre"}.
+#' @param grafico Lógico. Se TRUE, plota a curva de densidade com a região sombreada.
+#' @return Retorna invisivelmente a probabilidade calculada.
+#' @title Probabilidade da Distribuição Weibull
+#' @description Calcula probabilidades associadas à distribuição Weibull contínua e exibe curva gráfica com área sombreada.
+#' @param q Quantil de referência para cálculos de probabilidade unica (abaixo ou acima).
+#' @param forma Parâmetro de forma (shape, k > 0). Padrão 1.5.
+#' @param escala Parâmetro de escala (scale, lambda > 0). Padrão 1.0.
+#' @param tipo Tipo de probabilidade: "abaixo" (P(X <= q)), "acima" (P(X > q)) ou "entre" (P(q1 <= X <= q2)).
+#' @param q1 Primeiro quantil para tipo = "entre".
+#' @param q2 Segundo quantil para tipo = "entre".
+#' @param grafico Lógico. Se TRUE (padrão), plota a densidade teórica com a área sombreada.
+#' @return Invisível, o valor numérico da probabilidade calculada.
+#' @export
+prob_weibull <- function(q = NULL, forma = 1.5, escala = 1,
+                         tipo = c("abaixo", "acima", "entre"),
+                         q1 = NULL, q2 = NULL,
+                         grafico = TRUE) {
+  tipo <- match.arg(tipo)
+  if (forma <= 0) stop("O parâmetro 'forma' (shape) deve ser estritamente positivo (> 0).")
+  if (escala <= 0) stop("O parâmetro 'escala' (scale) deve ser estritamente positivo (> 0).")
+
+  if (tipo == "entre") {
+    if (is.null(q1) || is.null(q2)) stop("Para tipo = 'entre', informe 'q1' e 'q2'.")
+    if (q1 > q2) { tmp <- q1; q1 <- q2; q2 <- tmp }
+    p_inf <- stats::pweibull(q1, shape = forma, scale = escala)
+    p_sup <- stats::pweibull(q2, shape = forma, scale = escala)
+    prob  <- p_sup - p_inf
+    label_calc <- sprintf("P(%.2f <= X <= %.2f)", q1, q2)
+    x_corte <- c(q1, q2)
+  } else if (tipo == "acima") {
+    if (is.null(q)) stop("Informe 'q' para o cálculo.")
+    prob <- 1 - stats::pweibull(q, shape = forma, scale = escala)
+    label_calc <- sprintf("P(X > %.2f)", q)
+    x_corte <- q
+  } else {
+    if (is.null(q)) stop("Informe 'q' para o cálculo.")
+    prob <- stats::pweibull(q, shape = forma, scale = escala)
+    label_calc <- sprintf("P(X <= %.2f)", q)
+    x_corte <- q
+  }
+
+  teo_media <- escala * gamma(1 + 1 / forma)
+  teo_var   <- escala^2 * (gamma(1 + 2 / forma) - (gamma(1 + 1 / forma))^2)
+  teo_dp    <- sqrt(teo_var)
+
+  .print_titulo("DISTRIBUIÇÃO WEIBULL")
+  cat(sprintf("  Parâmetros: Forma (k) = %.2f  |  Escala (λ) = %.2f\n", forma, escala))
+  cat(sprintf("  Média Teórica: %.3f  |  Desvio-Padrão: %.3f\n\n", teo_media, teo_dp))
+
+  .print_topico("PROBABILIDADE CALCULADA")
+  cat(sprintf("  %s = %.4f (%.2f%%)\n\n", label_calc, prob, prob * 100))
+  .print_rodape()
+
+  if (grafico) {
+    x_max <- stats::qweibull(0.999, shape = forma, scale = escala)
+    x_seq <- seq(0, max(x_max, max(x_corte) * 1.2), length.out = 400)
+    df_curve <- data.frame(x = x_seq, y = stats::dweibull(x_seq, shape = forma, scale = escala))
+
+    if (tipo == "entre") {
+      df_poly <- df_curve[df_curve$x >= q1 & df_curve$x <= q2, ]
+      df_poly <- rbind(data.frame(x = q1, y = 0), df_poly, data.frame(x = q2, y = 0))
+    } else if (tipo == "acima") {
+      df_poly <- df_curve[df_curve$x >= q, ]
+      df_poly <- rbind(data.frame(x = q, y = 0), df_poly, data.frame(x = df_poly$x[nrow(df_poly)], y = 0))
+    } else {
+      df_poly <- df_curve[df_curve$x <= q, ]
+      df_poly <- rbind(data.frame(x = 0, y = 0), df_poly, data.frame(x = q, y = 0))
+    }
+
+    p <- ggplot2::ggplot(df_curve, ggplot2::aes(x = x, y = y)) +
+      ggplot2::geom_line(color = "#333333", linewidth = 1) +
+      ggplot2::geom_polygon(data = df_poly, ggplot2::aes(x = x, y = y), fill = "#0099FF", alpha = 0.5) +
+      ggplot2::labs(
+        title    = sprintf("Distribuição Weibull (Forma = %.2f, Escala = %.2f)", forma, escala),
+        subtitle = sprintf("%s = %.2f%%", label_calc, prob * 100),
+        x = "x (Tempo até o evento / Resposta)", y = "Densidade"
+      )
+
+    if (exists("meu_tema", mode = "function")) {
+      p <- p + meu_tema(grade = "dupla")
+    } else if (exists("tema_estatR", mode = "function")) {
+      p <- p + tema_estatR(estilo = 1, grade = "dupla")
+    } else {
+      p <- p + ggplot2::theme_minimal()
+    }
     suppressMessages(print(p))
   }
 

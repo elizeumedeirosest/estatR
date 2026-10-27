@@ -70,11 +70,12 @@ Todas as funções do **estatR** seguem a convenção de retorno duplo: exibem a
 
 | Função | Descrição |
 | :--- | :--- |
-| `distribuicao()` | **Distribuição Estatística**.  Exibe uma visão completa e pedagógica de uma distribuição de probabilidade: parâmetros, momentos teóricos, quantis-chave e gráfico ilustrativo. Suporta: 'normal', 'binomial', 'poisson', 'exponencial', 'uniforme', 't', 'qui_quadrado', 'f', 'gama'.  |
+| `distribuicao()` | **Distribuição Estatística**.  Exibe uma visão completa e pedagógica de uma distribuição de probabilidade: parâmetros, momentos teóricos, quantis-chave e gráfico ilustrativo. Suporta: 'normal', 'binomial', 'poisson', 'exponencial', 'uniforme', 't', 'qui_quadrado', 'f', 'gama', 'weibull'.  |
 | `prob_normal()` | **Probabilidade da Distribuição Normal**.  Calcula a probabilidade para uma distribuição Normal e gera o gráfico com a área sombreada.  |
 | `prob_binomial()` | **Probabilidade da Distribuição Binomial**.  Calcula a probabilidade para uma distribuição Binomial e plota as barras.  |
 | `prob_poisson()` | **Probabilidade da Distribuição Poisson**.  Calcula a probabilidade para uma distribuição Poisson e plota as barras.  |
 | `prob_exponencial()` | **Probabilidade da Distribuição Exponencial**.  Calcula a probabilidade para uma distribuição Exponencial e plota a curva com área sombreada.  |
+| `prob_weibull()` | **Probabilidade da Distribuição Weibull**. Calcula a probabilidade para uma distribuição Weibull contínua e exibe curva gráfica com área sombreada. |
 | `gerar_amostra()` | **Gerador de Amostras de Distribuições**.  Gera um conjunto de dados aleatórios baseado em distribuições teóricas e plota o histograma.  Gera um conjunto de dados aleatórios baseado em distribuições teóricas e plota o histograma.  |
 
 ## Estimação de Parâmetros e Simulação
@@ -205,6 +206,15 @@ Todas as funções do **estatR** seguem a convenção de retorno duplo: exibem a
 | `amostra_conglomerados()` | **Amostragem por Conglomerados (Clusters)**.  Seleciona aleatoriamente conglomerados (grupos inteiros) de um data.frame, retornando todos os indivÃ­duos pertencentes aos conglomerados sorteados.  |
 | `tamanho_amostra()` | **CÃ¡lculo de Tamanho Amostral Ã“timo**.  Calcula o tamanho mÃ­nimo de amostra necessÃ¡rio para estimar uma proporÃ§Ã£o ou uma mÃ©dia com nÃ­vel de confianÃ§a e margem de erro especificados.  |
 | `poder_estatistico()` | **Cálculo de Poder Estatístico e Dimensionamento de Experimentos**. Calcula o poder estatístico (1 - beta) ou o tamanho amostral necessário para testes T, ANOVA, correlação e proporção, com curva gráfica de poder. |
+
+## Extratores e Utilitários de Modelos
+
+| Função | Descrição |
+| :--- | :--- |
+| `coeficientes()` | **Coeficientes do Modelo**. Extrai coeficientes estimados de modelos lineares, MLG (logística, Poisson, binomial negativa, etc.) ou delineamentos experimentais. Equivalente ao `coef()`. |
+| `residuos()` | **Resíduos do Modelo**. Extrai resíduos ordinários ou padronizados de modelos ajustados no estatR. Equivalente ao `residuals()`. |
+| `valores_ajustados()` | **Valores Preditos / Ajustados**. Extrai as predições na amostra de modelos estatísticos ajustados. Aliases: `ajustados()`, `valores_preditos()`. Equivalente ao `fitted()`. |
+| `resumo()` | **Resumo do Modelo**. Exibe e retorna a síntese estruturada completa do modelo estatístico subjacente. Equivalente ao `summary()`. |
 
 ## Visualização e Gráficos Auxiliares
 
