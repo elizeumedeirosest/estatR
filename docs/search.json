@@ -427,20 +427,6 @@
     "text": "Amostragem Probabilística\n\n\n\n\n\n\n\nFunção\nDescrição\n\n\n\n\namostra_aleatoria()\nAmostragem AleatÃ³ria Simples (AAS). Seleciona uma amostra aleatÃ³ria simples de um conjunto de dados ou vetor, com ou sem reposiÃ§Ã£o.\n\n\namostra_estratificada()\nAmostragem Estratificada. Seleciona uma amostra estratificada de um data.frame, com suporte a trÃªs tipos de alocaÃ§Ã£o.\n\n\namostra_sistematica()\nAmostragem SistemÃ¡tica. Seleciona uma amostra sistemÃ¡tica a cada salto de k elementos a partir de um ponto inicial sorteado aleatoriamente.\n\n\namostra_conglomerados()\nAmostragem por Conglomerados (Clusters). Seleciona aleatoriamente conglomerados (grupos inteiros) de um data.frame, retornando todos os indivÃ­duos pertencentes aos conglomerados sorteados.\n\n\ntamanho_amostra()\nCÃ¡lculo de Tamanho Amostral Ã“timo. Calcula o tamanho mÃ­nimo de amostra necessÃ¡rio para estimar uma proporÃ§Ã£o ou uma mÃ©dia com nÃ­vel de confianÃ§a e margem de erro especificados.\n\n\npoder_estatistico()\nCálculo de Poder Estatístico e Dimensionamento de Experimentos. Calcula o poder estatístico (1 - beta) ou o tamanho amostral necessário para testes T, ANOVA, correlação e proporção, com curva gráfica de poder."
   },
   {
-    "objectID": "referencia.html#visualização-e-gráficos-auxiliares",
-    "href": "referencia.html#visualização-e-gráficos-auxiliares",
-    "title": "Catálogo de Funções",
-    "section": "Visualização e Gráficos Auxiliares",
-    "text": "Visualização e Gráficos Auxiliares\n\n\n\n\n\n\n\nFunção\nDescrição\n\n\n\n\ntema_estatR()\nTema Padronizado do estatR. Aplica formatação limpa e profissional aos gráficos do ggplot2.\n\n\npaleta_estatR()\nPaleta de Cores do estatR. Aplica paletas de cores padronizadas aos gráficos ggplot2.\n\n\ngrafico_boxplot()\nGráfico de Boxplot Avançado. Cria um boxplot completo com opções de violino, dispersão, detecção de outliers, médias e personalização visual."
-  },
-  {
-    "objectID": "referencia.html#extratores-e-utilitários-de-modelos",
-    "href": "referencia.html#extratores-e-utilitários-de-modelos",
-    "title": "Catálogo de Funções",
-    "section": "Extratores e Utilitários de Modelos",
-    "text": "Extratores e Utilitários de Modelos\n\n\n\n\n\n\n\nFunção\nDescrição\n\n\n\n\ncoeficientes()\nCoeficientes do Modelo. Extrai coeficientes estimados de modelos lineares, MLG (logística, Poisson, binomial negativa, etc.) ou delineamentos experimentais. Equivalente ao coef().\n\n\nresiduos()\nResíduos do Modelo. Extrai resíduos ordinários ou padronizados de modelos ajustados no estatR. Equivalente ao residuals().\n\n\nvalores_ajustados()\nValores Preditos / Ajustados. Extrai as predições na amostra de modelos estatísticos ajustados. Aliases: ajustados(), valores_preditos(). Equivalente ao fitted().\n\n\nresumo()\nResumo do Modelo. Exibe e retorna a síntese estruturada completa do modelo estatístico subjacente. Equivalente ao summary()."
-  },
-  {
     "objectID": "referencia.html#transformações-de-variáveis",
     "href": "referencia.html#transformações-de-variáveis",
     "title": "Catálogo de Funções",
@@ -453,5 +439,19 @@
     "title": "Catálogo de Funções",
     "section": "Controle Estatístico da Qualidade (CEQ & Six Sigma)",
     "text": "Controle Estatístico da Qualidade (CEQ & Six Sigma)\n\n\n\n\n\n\n\nFunção\nDescrição\n\n\n\n\ngrafico_controle()\nGráficos de Controle de Processo (Cartas de Shewhart). Constrói cartas de controle para variáveis contínuas (I-MR, \\(\\bar{X}\\)-R, \\(\\bar{X}\\)-S) e atributos (p, np, c, u) com regras de Western Electric / Nelson para detecção de causas especiais e visualização com grade dupla.\n\n\ncapacidade_processo()\nAnálise de Capacidade do Processo (Six Sigma & Índices Cp/Cpk). Avalia a conformidade com especificações de engenharia (LIE, LSE, Alvo), estimando dispersão de curto e longo prazo, índices \\(C_p\\), \\(C_{pk}\\), \\(C_{pm}\\), \\(P_p\\), \\(P_{pk}\\), PPM esperado/observado e nível Sigma do processo."
+  },
+  {
+    "objectID": "referencia.html#extratores-e-utilitários-de-modelos",
+    "href": "referencia.html#extratores-e-utilitários-de-modelos",
+    "title": "Catálogo de Funções",
+    "section": "Extratores e Utilitários de Modelos",
+    "text": "Extratores e Utilitários de Modelos\n\n\n\n\n\n\n\nFunção\nDescrição\n\n\n\n\ncoeficientes()\nCoeficientes do Modelo. Extrai coeficientes estimados de modelos lineares, MLG (logística, Poisson, binomial negativa, etc.) ou delineamentos experimentais. Equivalente ao coef().\n\n\nresiduos()\nResíduos do Modelo. Extrai resíduos ordinários ou padronizados de modelos ajustados no estatR. Equivalente ao residuals().\n\n\nvalores_ajustados()\nValores Preditos / Ajustados. Extrai as predições na amostra de modelos estatísticos ajustados. Aliases: ajustados(), valores_preditos(). Equivalente ao fitted().\n\n\nresumo()\nResumo do Modelo. Exibe e retorna a síntese estruturada completa do modelo estatístico subjacente. Equivalente ao summary()."
+  },
+  {
+    "objectID": "referencia.html#visualização-e-gráficos-auxiliares",
+    "href": "referencia.html#visualização-e-gráficos-auxiliares",
+    "title": "Catálogo de Funções",
+    "section": "Visualização e Gráficos Auxiliares",
+    "text": "Visualização e Gráficos Auxiliares\n\n\n\n\n\n\n\nFunção\nDescrição\n\n\n\n\ntema_estatR()\nTema Padronizado do estatR. Aplica formatação limpa e profissional aos gráficos do ggplot2.\n\n\npaleta_estatR()\nPaleta de Cores do estatR. Aplica paletas de cores padronizadas aos gráficos ggplot2.\n\n\ngrafico_boxplot()\nGráfico de Boxplot Avançado. Cria um boxplot completo com opções de violino, dispersão, detecção de outliers, médias e personalização visual."
   }
 ]
