@@ -39,7 +39,8 @@ meu_tema <- function(fonte = "Segoe UI", estilo = 2, escala = 1, inclinar = FALS
 
   eixo_valor <- if (y_continua && !x_continua) "y"
                 else if (x_continua && !y_continua) "x"
-                else return("y")
+                else if (x_continua && y_continua) "dupla"
+                else "y"
 
   tem_flip <- inherits(plot$coordinates, "CoordFlip")
   if (tem_flip) {

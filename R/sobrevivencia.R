@@ -310,6 +310,9 @@ analise_sobrevivencia <- function(tempo,
     sub_df$taxa_risco      <- ifelse(dt > 0, sub_df$eventos / (sub_df$em_risco * dt), 0)
     sub_df$densidade       <- ifelse(dt > 0, (surv_prev - sub_df$sobrevivencia) / dt, 0)
     sub_df$risco_acumulado <- sub_df$cumhaz
+    # Trata NAs nos intervalos de confiança quando sobrevivência atinge zero
+    sub_df$ic_inf          <- pmax(0, pmin(1, ifelse(is.na(sub_df$ic_inf), sub_df$sobrevivencia, sub_df$ic_inf)))
+    sub_df$ic_sup          <- pmax(0, pmin(1, ifelse(is.na(sub_df$ic_sup), sub_df$sobrevivencia, sub_df$ic_sup)))
     pontos_por_grupo[[grp]] <- sub_df
   }
   df_curva <- do.call(rbind, pontos_por_grupo)
@@ -494,6 +497,27 @@ print.estatR_sobrevivencia <- function(x, ...) {
 # GRÁFICO DE SOBREVIVÊNCIA E FUNÇÕES DE RISCO
 # ─────────────────────────────────────────────────────────────────────────────
 
+# Função auxiliar para gerar degraus perfeitos para geom_ribbon em curvas de sobrevivência
+.degraus_ribbon <- function(df) {
+  grps <- unique(df$grupo)
+  res <- lapply(grps, function(g) {
+    sub_df <- df[df$grupo == g, ]
+    n <- nrow(sub_df)
+    if (n <= 1) return(sub_df)
+    t_dup   <- c(sub_df$tempo[1], rep(sub_df$tempo[-1], each = 2))
+    inf_dup <- c(rep(sub_df$ic_inf[-n], each = 2), sub_df$ic_inf[n])
+    sup_dup <- c(rep(sub_df$ic_sup[-n], each = 2), sub_df$ic_sup[n])
+    data.frame(
+      tempo  = t_dup,
+      ic_inf = pmax(0, inf_dup),
+      ic_sup = pmin(1, sup_dup),
+      grupo  = g,
+      stringsAsFactors = FALSE
+    )
+  })
+  do.call(rbind, res)
+}
+
 #' @title Gráfico de Curva de Sobrevivência e Funções de Risco
 #' @description Gera visualizações para análise de sobrevivência em degraus ou curvas suavizadas,
 #'   incluindo curva de sobrevivência S(t), risco acumulado H(t) (Nelson-Aalen), taxa de risco
@@ -570,28 +594,56 @@ grafico_sobrevivencia <- function(modelo,
     df_plot <- rbind(do.call(rbind, p0_list), df_curva)
     df_plot <- df_plot[order(df_plot$grupo, df_plot$tempo), ]
 
+    max_t <- max(df_plot$tempo, na.rm = TRUE)
+    tempos_quebras <- pretty(c(0, max_t), n = 6)
+    max_t_eixo <- max(tempos_quebras)
+    if (max_t_eixo < max_t) max_t_eixo <- max_t * 1.05
+
+    exp_x <- ggplot2::expansion(mult = c(0.025, 0.04))
+
     if (tem_grupo) {
       p_curva <- ggplot2::ggplot(df_plot, ggplot2::aes(x = tempo, y = sobrevivencia, color = grupo, fill = grupo))
     } else {
       p_curva <- ggplot2::ggplot(df_plot, ggplot2::aes(x = tempo, y = sobrevivencia))
     }
 
+    # Bandas de confiança em degrau com transparência interior e bordas escuras nítidas
     if (isTRUE(conf_int)) {
+      df_ribbon <- .degraus_ribbon(df_plot)
       if (tem_grupo) {
-        p_curva <- p_curva + ggplot2::geom_ribbon(ggplot2::aes(ymin = ic_inf, ymax = ic_sup), alpha = 0.15, linetype = 0)
+        p_curva <- p_curva +
+          ggplot2::geom_ribbon(
+            data = df_ribbon,
+            ggplot2::aes(x = tempo, ymin = ic_inf, ymax = ic_sup, fill = grupo),
+            alpha = 0.20,
+            inherit.aes = FALSE,
+            show.legend = FALSE
+          ) +
+          ggplot2::geom_step(ggplot2::aes(y = ic_sup, color = grupo), linewidth = 0.5, alpha = 0.9, show.legend = FALSE) +
+          ggplot2::geom_step(ggplot2::aes(y = ic_inf, color = grupo), linewidth = 0.5, alpha = 0.9, show.legend = FALSE)
       } else {
-        p_curva <- p_curva + ggplot2::geom_ribbon(ggplot2::aes(ymin = ic_inf, ymax = ic_sup), fill = "#2166AC", alpha = 0.18, linetype = 0)
+        p_curva <- p_curva +
+          ggplot2::geom_ribbon(
+            data = df_ribbon,
+            ggplot2::aes(x = tempo, ymin = ic_inf, ymax = ic_sup),
+            fill = "#2166AC",
+            alpha = 0.20,
+            inherit.aes = FALSE,
+            show.legend = FALSE
+          ) +
+          ggplot2::geom_step(ggplot2::aes(y = ic_sup), color = "#2166AC", linewidth = 0.5, alpha = 0.9) +
+          ggplot2::geom_step(ggplot2::aes(y = ic_inf), color = "#2166AC", linewidth = 0.5, alpha = 0.9)
       }
     }
 
     if (tem_grupo) {
       p_curva <- p_curva +
-        ggplot2::geom_step(linewidth = 0.9) +
+        ggplot2::geom_step(linewidth = 1.1) +
         ggplot2::scale_color_manual(values = cores) +
         ggplot2::scale_fill_manual(values = cores)
     } else {
       p_curva <- p_curva +
-        ggplot2::geom_step(color = "#2166AC", linewidth = 0.95)
+        ggplot2::geom_step(color = "#2166AC", linewidth = 1.1)
     }
 
     df_cens <- df_plot[df_plot$censuras > 0, ]
@@ -608,16 +660,30 @@ grafico_sobrevivencia <- function(modelo,
     }
 
     met_label <- if (modelo$metodo == "nelson-aalen") "Nelson-Aalen / Fleming-Harrington" else "Kaplan-Meier"
+
+    labs_args <- list(
+      title    = sprintf("Curva de Sobrevivência (%s)", met_label),
+      subtitle = sub_txt,
+      x        = sprintf("Tempo (%s)", modelo$nomes$tempo),
+      y        = "Probabilidade de Sobrevivência S(t)"
+    )
+    if (tem_grupo) {
+      labs_args$color <- if (modelo$tem_grupo) modelo$nomes$grupo else "Grupo"
+      labs_args$fill  <- if (modelo$tem_grupo) modelo$nomes$grupo else "Grupo"
+    }
+
     p_curva <- p_curva +
-      ggplot2::scale_y_continuous(labels = function(x) paste0(round(x * 100), "%"),
-                                  limits = c(0, 1.02), breaks = seq(0, 1, 0.2)) +
-      ggplot2::labs(
-        title    = sprintf("Curva de Sobrevivência (%s)", met_label),
-        subtitle = sub_txt,
-        x        = sprintf("Tempo (%s)", modelo$nomes$tempo),
-        y        = "Probabilidade de Sobrevivência S(t)",
-        color    = if (modelo$tem_grupo) modelo$nomes$grupo else "Grupo",
-        fill     = if (modelo$tem_grupo) modelo$nomes$grupo else "Grupo"
+      do.call(ggplot2::labs, labs_args) +
+      ggplot2::scale_x_continuous(
+        breaks = tempos_quebras,
+        limits = c(0, max_t_eixo),
+        expand = exp_x
+      ) +
+      ggplot2::scale_y_continuous(
+        labels = function(x) paste0(round(x * 100), "%"),
+        limits = c(0, 1.02),
+        breaks = seq(0, 1, 0.2),
+        expand = ggplot2::expansion(mult = c(0.005, 0.02))
       ) +
       tema_fn
 
@@ -625,11 +691,7 @@ grafico_sobrevivencia <- function(modelo,
       return(p_curva)
     }
 
-    # Tabela de indivíduos em risco (Risk Table)
-    max_t <- max(df_plot$tempo, na.rm = TRUE)
-    tempos_quebras <- pretty(c(0, max_t), n = 5)
-    tempos_quebras <- tempos_quebras[tempos_quebras <= max_t]
-
+    # Tabela de indivíduos em risco (Risk Table) perfeitamente alinhada
     grps_lista <- if (tem_grupo) unique(df_plot$grupo) else "Global"
     linhas_risco <- list()
     for (g in grps_lista) {
@@ -645,17 +707,34 @@ grafico_sobrevivencia <- function(modelo,
     }
     df_risco <- do.call(rbind, linhas_risco)
 
-    p_risco <- ggplot2::ggplot(df_risco, ggplot2::aes(x = tempo, y = grupo, label = em_risco)) +
-      ggplot2::geom_text(size = 3.3, fontface = "bold", color = "gray20") +
-      ggplot2::scale_x_continuous(limits = ggplot2::layer_scales(p_curva)$x$range$range, breaks = tempos_quebras) +
-      ggplot2::labs(x = sprintf("Tempo (%s)", modelo$nomes$tempo), y = "") +
+    if (tem_grupo) {
+      p_risco <- ggplot2::ggplot(df_risco, ggplot2::aes(x = tempo, y = grupo, label = em_risco, color = grupo)) +
+        ggplot2::geom_text(size = 3.6, fontface = "bold", show.legend = FALSE) +
+        ggplot2::scale_color_manual(values = cores)
+    } else {
+      p_risco <- ggplot2::ggplot(df_risco, ggplot2::aes(x = tempo, y = grupo, label = em_risco)) +
+        ggplot2::geom_text(size = 3.6, fontface = "bold", color = "#2166AC")
+    }
+
+    p_risco <- p_risco +
+      ggplot2::scale_x_continuous(
+        breaks = tempos_quebras,
+        limits = c(0, max_t_eixo),
+        expand = exp_x
+      ) +
+      ggplot2::labs(x = sprintf("Tempo (%s)", modelo$nomes$tempo), y = "Em risco") +
       tema_fn +
       ggplot2::theme(
-        panel.grid.major = ggplot2::element_blank(),
-        panel.grid.minor = ggplot2::element_blank(),
-        axis.text.y      = ggplot2::element_text(face = "bold", color = "gray20"),
-        axis.ticks.y     = ggplot2::element_blank(),
-        plot.margin      = ggplot2::margin(t = 0, r = 10, b = 10, l = 10)
+        panel.grid.major.y = ggplot2::element_blank(),
+        panel.grid.minor.y = ggplot2::element_blank(),
+        panel.grid.major.x = ggplot2::element_line(color = "gray92", linewidth = 0.4),
+        panel.grid.minor.x = ggplot2::element_blank(),
+        axis.text.y        = ggplot2::element_text(face = "bold", size = 11),
+        axis.text.x        = ggplot2::element_text(size = 11),
+        axis.title.x       = ggplot2::element_text(size = 12),
+        axis.title.y       = ggplot2::element_text(face = "bold", size = 10, color = "gray30"),
+        axis.ticks.y       = ggplot2::element_blank(),
+        plot.margin        = ggplot2::margin(t = 2, r = 10, b = 10, l = 10)
       )
 
     p_curva_sem_x <- p_curva +
@@ -666,7 +745,7 @@ grafico_sobrevivencia <- function(modelo,
         plot.margin  = ggplot2::margin(t = 10, r = 10, b = 0, l = 10)
       )
 
-    return(patchwork::wrap_plots(p_curva_sem_x, p_risco, ncol = 1, heights = c(3.8, 1)))
+    return(patchwork::wrap_plots(p_curva_sem_x, p_risco, ncol = 1, heights = c(3.5, 1), guides = "collect"))
   }
 
   # =========================================================================
