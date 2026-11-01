@@ -10,7 +10,10 @@ transformar(
     "raiz_cubica", "arco_seno", "logit", "inversa", "padronizacao", "minmax"),
   lambda = NULL,
   colunas = NULL,
-  grafico = TRUE
+  grafico = TRUE,
+  objetivo = c("normalidade", "assimetria", "homocedasticidade", "residuos_modelo",
+    "interpretabilidade"),
+  modelo = NULL
 )
 }
 \arguments{

@@ -1,4 +1,4 @@
-﻿# ==============================================================================
+# ==============================================================================
 # MÓDULO: SÉRIES TEMPORAIS
 # Análise, Decomposição, Estacionariedade, Autocorrelação, Previsão e Seleção
 # ==============================================================================
@@ -830,7 +830,7 @@ previsao_serie <- function(serie, horizonte = 12, frequencia = 12,
 #'
 #' @return Retorna invisivelmente um data frame com o ranking completo e as métricas calculadas.
 #' @export
-selecao_modelos_serie <- function(serie, h = 12, frequencia = 12,
+selecao_modelos_serie <- function(serie, h = "auto", frequencia = 12,
                                   familia = c("todas", "suavizacao", "estocastica", "decomposicao"),
                                   top = 5,
                                   ordenar_por = c("RMSE", "sMAPE", "UMBRAE", "AICc", "BIC")) {
@@ -841,10 +841,42 @@ selecao_modelos_serie <- function(serie, h = 12, frequencia = 12,
   ts_serie <- .extrair_serie_temporal(serie, frequencia = frequencia)
   n_total  <- length(ts_serie)
   freq_ef  <- stats::frequency(ts_serie)
-
-  if (n_total <= h + 4) {
-    stop(sprintf("A s\u00e9rie cont\u00e9m %d observa\u00e7\u00f5es, o que \u00e9 insuficiente para uma divis\u00e3o de teste h = %d (m\u00ednimo: %d).",
-                 n_total, h, h + 5))
+  h_auto_selecionado <- FALSE
+  if (identical(h, "auto") || (is.character(h) && h == "auto")) {
+    h_auto_selecionado <- TRUE
+    candidatos_h <- if (freq_ef == 12) {
+      c(3, 6, 9, 12)
+    } else if (freq_ef == 4) {
+      c(2, 4, 6, 8)
+    } else if (freq_ef == 7) {
+      c(4, 7, 14, 21)
+    } else {
+      unique(pmax(2, c(floor(freq_ef / 2), freq_ef, floor(freq_ef * 1.5), freq_ef * 2)))
+    }
+    candidatos_h <- candidatos_h[n_total > (candidatos_h + 5)]
+    if (length(candidatos_h) == 0) candidatos_h <- min(freq_ef, max(2, n_total - 6))
+    melhor_h    <- candidatos_h[1]
+    melhor_aicc <- Inf
+    for (cand_h in candidatos_h) {
+      n_tr <- n_total - cand_h
+      y_tr <- stats::ts(as.numeric(ts_serie)[1:n_tr], start = stats::start(ts_serie), frequency = freq_ef)
+      aiccs <- numeric()
+      m_e <- tryCatch(forecast::ets(y_tr), error = function(e) NULL)
+      if (!is.null(m_e) && !is.null(m_e$aicc) && !is.na(m_e$aicc)) aiccs <- c(aiccs, m_e$aicc)
+      m_a <- tryCatch(forecast::auto.arima(y_tr, seasonal = (freq_ef > 1), stepwise = TRUE, approximation = TRUE), error = function(e) NULL)
+      if (!is.null(m_a) && !is.null(m_a$aicc) && !is.na(m_a$aicc)) aiccs <- c(aiccs, m_a$aicc)
+      med_aicc <- if (length(aiccs) > 0) mean(aiccs) else Inf
+      if (med_aicc < melhor_aicc) {
+        melhor_aicc <- med_aicc
+        melhor_h    <- cand_h
+      }
+    }
+    h <- melhor_h
+  } else {
+    h <- as.integer(h)
+    if (n_total <= h + 4) {
+      stop(sprintf("A série contém %d observações, o que é insuficiente para uma divisão de teste h = %d (mínimo: %d).", n_total, h, h + 5))
+    }
   }
 
   # Divisão Treino e Teste (Holdout out-of-sample)
@@ -1064,6 +1096,9 @@ selecao_modelos_serie <- function(serie, h = 12, frequencia = 12,
   cat(sprintf("  Amostra Total:    %d observa\u00e7\u00f5es\n", n_total))
   cat(sprintf("  Treino (In-Sample):   %d per\u00edodos\n", n_treino))
   cat(sprintf("  Valida\u00e7\u00e3o (Holdout):  %d per\u00edodos (h)\n", h))
+  if (isTRUE(h_auto_selecionado)) {
+    cat(sprintf("  Horizonte selecionado automaticamente via AICc: h = %d\n", h))
+  }
   cat(sprintf("  Fam\u00edlia Avaliada:   %s\n", if (familia == "todas") "Todas as Fam\u00edlias" else df_top$Familia[1]))
   cat(sprintf("  Crit\u00e9rio de Ordem:   %s (Menor \u00e9 melhor)\n\n", ordenar_por))
 

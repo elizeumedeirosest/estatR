@@ -31,24 +31,29 @@
 #' }
 #' @export
 transformar <- function(dados,
-                        metodo  = c("auto", "box_cox", "yeo_johnson", "log", "log10",
-                                    "raiz_quadrada", "raiz_cubica", "arco_seno",
-                                    "logit", "inversa", "padronizacao", "minmax"),
-                        lambda  = NULL,
-                        colunas = NULL,
-                        grafico = TRUE) {
+                        metodo   = c("auto", "box_cox", "yeo_johnson", "log", "log10",
+                                     "raiz_quadrada", "raiz_cubica", "arco_seno",
+                                     "logit", "inversa", "padronizacao", "minmax"),
+                        lambda   = NULL,
+                        colunas  = NULL,
+                        grafico  = TRUE,
+                        objetivo = c("normalidade", "assimetria", "homocedasticidade",
+                                     "residuos_modelo", "interpretabilidade"),
+                        modelo   = NULL) {
 
-  metodo <- match.arg(metodo)
+  metodo   <- match.arg(metodo)
+  objetivo <- match.arg(objetivo)
 
   # ── Caso 1: Entrada como Data Frame ──────────────────────────────────────────
   if (is.data.frame(dados)) {
     return(.transformar_df(dados, metodo = metodo, lambda = lambda,
-                           colunas = colunas, grafico = grafico))
+                           colunas = colunas, grafico = grafico,
+                           objetivo = objetivo, modelo = modelo))
   }
 
   # ── Caso 2: Entrada como Vetor ───────────────────────────────────────────────
   if (!is.numeric(dados)) {
-    stop("O argumento 'dados' deve ser um vetor num\u00e9rico ou data.frame.", call. = FALSE)
+    stop("O argumento 'dados' deve ser um vetor numérico ou data.frame.", call. = FALSE)
   }
 
   nome_var <- deparse(substitute(dados))
@@ -56,13 +61,12 @@ transformar <- function(dados,
   if (nchar(nome_var) > 25 || grepl("c\\(", nome_var)) nome_var <- "Variavel"
 
   res_vetor <- .transformar_vetor(dados, metodo = metodo, lambda = lambda,
-                                  nome_var = nome_var, grafico = grafico)
+                                  nome_var = nome_var, grafico = grafico,
+                                  objetivo = objetivo, modelo = modelo)
   return(invisible(res_vetor))
 }
 
-
-# ── Função interna para transformar vetor ──────────────────────────────────────
-.transformar_vetor <- function(x, metodo, lambda = NULL, nome_var = "Y", grafico = TRUE) {
+.transformar_vetor <- function(x, metodo, lambda = NULL, nome_var = "Y", grafico = TRUE, objetivo = "normalidade", modelo = NULL) {
   x_orig <- x
   idx_val <- !is.na(x)
   y <- x[idx_val]
@@ -84,37 +88,76 @@ transformar <- function(dados,
 
   # ── Seleção Automática ───────────────────────────────────────────────────────
   if (metodo == "auto") {
-    candidatos <- c("box_cox", "yeo_johnson", "log", "raiz_quadrada", "inversa")
-    melhor_w <- if (!is.na(sw_antes$statistic)) sw_antes$statistic else -Inf
-    melhor_m <- "original"
-    melhor_y <- y
-    melhor_lam <- NULL
+    if (objetivo == "interpretabilidade") {
+      candidatos <- c("log", "raiz_quadrada", "padronizacao", "minmax")
+    } else {
+      candidatos <- c("box_cox", "yeo_johnson", "log", "raiz_quadrada", "inversa")
+    }
+
+    calc_escore <- function(v_y, mod_ref) {
+      if (objetivo %in% c("normalidade", "interpretabilidade")) {
+        sw <- tryCatch(stats::shapiro.test(v_y), error = function(e) NULL)
+        if (!is.null(sw) && !is.na(sw$statistic)) sw$statistic else -Inf
+      } else if (objetivo == "assimetria") {
+        m <- mean(v_y); s <- stats::sd(v_y)
+        if (is.na(s) || s == 0) -Inf else -abs(mean((v_y - m)^3) / (s^3))
+      } else if (objetivo == "homocedasticidade") {
+        mod_p <- tryCatch(stats::lm(v_y ~ seq_along(v_y)), error = function(e) NULL)
+        if (is.null(mod_p)) -Inf else {
+          cr <- tryCatch(abs(stats::cor(abs(stats::residuals(mod_p)), stats::fitted(mod_p), method = "spearman")), error = function(e) NA)
+          if (is.na(cr)) -Inf else -cr
+        }
+      } else if (objetivo == "residuos_modelo") {
+        if (!is.null(mod_ref) && inherits(mod_ref, "lm")) {
+          d_mod <- mod_ref$model
+          r_nm  <- all.vars(stats::formula(mod_ref))[1]
+          if (r_nm %in% names(d_mod) && nrow(d_mod) == length(v_y)) {
+            d_mod[[r_nm]] <- v_y
+            m_nv <- tryCatch(stats::update(mod_ref, data = d_mod), error = function(e) NULL)
+            if (!is.null(m_nv)) {
+              sw_r <- tryCatch(stats::shapiro.test(stats::residuals(m_nv)), error = function(e) NULL)
+              if (!is.null(sw_r) && !is.na(sw_r$statistic)) sw_r$statistic else -Inf
+            } else -Inf
+          } else -Inf
+        } else {
+          sw <- tryCatch(stats::shapiro.test(v_y), error = function(e) NULL)
+          if (!is.null(sw) && !is.na(sw$statistic)) sw$statistic else -Inf
+        }
+      } else {
+        -Inf
+      }
+    }
+
+    melhor_escore <- calc_escore(y, modelo)
+    melhor_m      <- "original"
+    melhor_y      <- y
+    melhor_lam    <- NULL
 
     for (cand in candidatos) {
       tentativa <- tryCatch(.executar_transf(y, cand, lambda = NULL), error = function(e) NULL)
       if (!is.null(tentativa)) {
-        sw_t <- tryCatch(stats::shapiro.test(tentativa$y_transf), error = function(e) NULL)
-        if (!is.null(sw_t) && !is.na(sw_t$statistic) && sw_t$statistic > melhor_w) {
-          melhor_w <- sw_t$statistic
-          melhor_m <- cand
-          melhor_y <- tentativa$y_transf
-          melhor_lam <- tentativa$lambda
+        esc_t <- calc_escore(tentativa$y_transf, modelo)
+        if (!is.na(esc_t) && esc_t > melhor_escore) {
+          melhor_escore <- esc_t
+          melhor_m      <- cand
+          melhor_y      <- tentativa$y_transf
+          melhor_lam    <- tentativa$lambda
         }
       }
     }
 
     if (melhor_m == "original") {
       metodo_aplicado <- "original"
-      y_transf <- y
-      formula_txt <- "y (sem altera\u00e7\u00e3o)"
+      y_transf        <- y
+      formula_txt     <- "y (sem alteração)"
     } else {
       metodo_aplicado <- melhor_m
-      lambda_usado <- melhor_lam
-      exec <- .executar_transf(y, metodo_aplicado, lambda = lambda_usado)
-      y_transf <- exec$y_transf
-      formula_txt <- exec$formula_txt
-      perfil_bc <- exec$perfil_bc
-      ic_lambda <- exec$ic_lambda
+      lambda_usado    <- melhor_lam
+      exec            <- .executar_transf(y, metodo_aplicado, lambda = lambda_usado)
+      y_transf        <- exec$y_transf
+      formula_txt     <- exec$formula_txt
+      perfil_bc       <- exec$perfil_bc
+      ic_lambda       <- exec$ic_lambda
     }
   } else {
     exec <- .executar_transf(y, metodo, lambda = lambda)
@@ -149,6 +192,14 @@ transformar <- function(dados,
 
   cat(sprintf("  Vari\u00e1vel: %s  |  Observa\u00e7\u00f5es: %d (V\u00e1lidas: %d)\n", nome_var, n_total, n_validos))
   cat(sprintf("  M\u00e9todo Selecionado: %s\n", toupper(metodo_aplicado)))
+  nome_obj <- switch(objetivo,
+    "normalidade"        = "Normalidade (Shapiro-Wilk)",
+    "assimetria"         = "Assimetria Mínima",
+    "homocedasticidade"  = "Homocedasticidade",
+    "residuos_modelo"    = "Normalidade dos Resíduos do Modelo",
+    "interpretabilidade" = "Interpretabilidade (Métodos Diretos)"
+  )
+  cat(sprintf("  Critério Seleção:    %s\n", nome_obj))
   cat(sprintf("  Express\u00e3o Aplicada:  y* = %s\n\n", formula_txt))
 
   if (!is.null(lambda_usado) && !is.null(ic_lambda)) {
@@ -453,7 +504,7 @@ transformar <- function(dados,
 
 
 # ── Caso Data Frame ────────────────────────────────────────────────────────────
-.transformar_df <- function(dados, metodo, lambda, colunas, grafico) {
+.transformar_df <- function(dados, metodo, lambda = NULL, colunas = NULL, grafico = TRUE, objetivo = "normalidade", modelo = NULL) {
   df_transf <- dados
   num_cols <- names(dados)[sapply(dados, is.numeric)]
 
@@ -467,7 +518,7 @@ transformar <- function(dados,
 
   for (col in num_cols) {
     vec <- dados[[col]]
-    res_v <- .transformar_vetor(vec, metodo = metodo, lambda = lambda, nome_var = col, grafico = FALSE)
+    res_v <- .transformar_vetor(vec, metodo = metodo, lambda = lambda, nome_var = col, grafico = FALSE, objetivo = objetivo, modelo = modelo)
     df_transf[[col]] <- res_v$dados_transformados
     tabelas_list[[col]] <- res_v$tabela
     if (!is.null(res_v$grafico)) lista_plots[[col]] <- res_v$grafico

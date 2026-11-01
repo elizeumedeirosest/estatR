@@ -45,15 +45,15 @@ regressao_linear <- function(formula, dados, grafico = TRUE, ...) {
   # ── 4. Helpers ────────────────────────────────────────────────────────────
   fmt_p <- function(p) {
     if (is.na(p)) return("NA")
-    if (p < 0.001) return("< 0.001")
+    if (p < 0.001) return("< 0,001")
     formatC(p, format = "f", digits = 3, decimal.mark = ",")
   }
 
   asterisk <- function(p) {
     if (is.na(p)) return("")
-    if (p < 0.01) return("***")
-    if (p < 0.05) return("**")
-    if (p < 0.10) return("*")
+    if (p < 0.001) return("***")
+    if (p < 0.01) return("**")
+    if (p < 0.05) return("*")
     return("")
   }
 
@@ -138,7 +138,7 @@ regressao_linear <- function(formula, dados, grafico = TRUE, ...) {
 
   cat(sep_line(w_total), "\n")
   cat("  Notas:\n")
-  cat("  Signific\u00e2ncia: *** p < 0.01   ** p < 0.05   * p < 0.10\n\n")
+  cat("  Signific\u00e2ncia: *** p < 0,001   ** p < 0,01   * p < 0,05\n\n")
 
   # ── 7. Coeficientes ───────────────────────────────────────────────────────
   .print_topico("COEFICIENTES DO MODELO")
@@ -181,7 +181,7 @@ regressao_linear <- function(formula, dados, grafico = TRUE, ...) {
 
   cat(sep_line(w_coef), "\n")
   cat("  Notas:\n")
-  cat("  Signific\u00e2ncia: *** p < 0.01   ** p < 0.05   * p < 0.10\n")
+  cat("  Signific\u00e2ncia: *** p < 0,001   ** p < 0,01   * p < 0,05\n")
   if (tem_vif)
     cat("  VIF: Valores > 5 indicam multicolinearidade moderada; > 10 grave.\n")
   cat("\n")

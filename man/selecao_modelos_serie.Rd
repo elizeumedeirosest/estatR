@@ -6,7 +6,7 @@
 \usage{
 selecao_modelos_serie(
   serie,
-  h = 12,
+  h = "auto",
   frequencia = 12,
   familia = c("todas", "suavizacao", "estocastica", "decomposicao"),
   top = 5,

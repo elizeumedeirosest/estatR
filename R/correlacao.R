@@ -31,13 +31,13 @@ teste_correlacao <- function(dados, var1, var2, metodo = c("pearson", "spearman"
   
   formata_p <- function(p) {
     if (is.na(p)) return("NA")
-    if (p < 0.001) return("< 0.001")
+    if (p < 0.001) return("< 0,001")
     return(formatC(p, format = "f", digits = 3, decimal.mark = ","))
   }
   asterisk <- function(p) {
-    if (is.na(p) || p >= 0.10) return("")
-    if (p < 0.01) return("***")
-    if (p < 0.05) return("**")
+    if (is.na(p) || p >= 0.05) return("")
+    if (p < 0.001) return("***")
+    if (p < 0.01) return("**")
     return("*")
   }
   centraliza <- function(val, w) {
@@ -68,7 +68,7 @@ teste_correlacao <- function(dados, var1, var2, metodo = c("pearson", "spearman"
                 sprintf("%s = %.3f", simbolo, r), centraliza(paste(formata_p(p), asterisk(p)), 20)))
   }
   cat("  ", strrep("\u2500", 63), "\n", sep = "")
-  if (p < 0.10) cat("  Signific\u00e2ncia: *** p < 0.01   ** p < 0.05   * p < 0.10\n")
+  if (p < 0.05) cat("  Notas:\n  Signific\u00e2ncia: *** p < 0,001   ** p < 0,01   * p < 0,05\n")
   cat("\n")
   
   .print_topico("INTERPRETA\u00c7\u00c3O")
@@ -171,9 +171,9 @@ matriz_correlacao <- function(dados,
   }
   
   asterisk <- function(p) {
-    if (is.na(p) || p >= 0.10) return("")
-    if (p < 0.01) return("***")
-    if (p < 0.05) return("**")
+    if (is.na(p) || p >= 0.05) return("")
+    if (p < 0.001) return("***")
+    if (p < 0.01) return("**")
     return("*")
   }
   
@@ -354,7 +354,7 @@ matriz_correlacao <- function(dados,
     }
     
     cat("  Notas:\n")
-    cat("  Signific\u00e2ncia: *** p < 0,01   ** p < 0,05   * p < 0,10\n")
+    cat("  Signific\u00e2ncia: *** p < 0,001   ** p < 0,01   * p < 0,05\n")
     cat("  Classifica\u00e7\u00e3o (|r|): 0,90\u20131,00 (Alt\u00edssima); 0,70\u20130,89 (Alta);\n")
     cat("                       0,40\u20130,69 (Moderada); 0,20\u20130,39 (Fraca); 0,00\u20130,19 (Muito Fraca).\n\n")
   }

@@ -196,3 +196,183 @@ dividir_dados <- function(dados, proporcao = 0.8, estrato = NULL,
 
   invisible(list(treino = treino, teste = teste))
 }
+
+# ─────────────────────────────────────────────────────────────────────────────
+# COMPARAÇÃO E RANQUEAMENTO UNIFICADO DE MODELOS
+# ─────────────────────────────────────────────────────────────────────────────
+
+#' @title Comparacao e Ranqueamento Unificado de Modelos
+#' @description Compara dois ou mais modelos estatisticos ajustados,
+#'   organizando um ranking pelo criterio escolhido (AICc, AIC, BIC, RMSE ou R2),
+#'   incluindo Delta-AIC e Pesos de Akaike.
+#'
+#' @param ... Dois ou mais modelos ajustados ou uma lista de modelos.
+#' @param criterio Criterio de ordenacao: 'aicc' (padrao), 'aic', 'bic', 'rmse' ou 'r2'.
+#' @param nomes Vetor opcional com nomes descritivos para os modelos.
+#' @return Objeto invisivel da classe estatR_comparacao_modelos.
+#' @export
+comparar_modelos <- function(..., criterio = c("aicc", "aic", "bic", "rmse", "r2"), nomes = NULL) {
+  criterio <- match.arg(criterio)
+  args <- list(...)
+
+  # Suporte a passagem de lista unica de modelos
+  if (length(args) == 1L && is.list(args[[1]]) && !inherits(args[[1]], c("lm", "glm", "coxph", "Arima", "ets"))) {
+    modelos <- args[[1]]
+    nomes_arg <- names(modelos)
+  } else {
+    modelos <- args
+    nomes_arg <- as.character(match.call(expand.dots = FALSE)$...)
+  }
+
+  if (length(modelos) < 2L) {
+    stop("Informe pelo menos 2 modelos para realizar a comparacao.", call. = FALSE)
+  }
+
+  if (!is.null(nomes) && length(nomes) == length(modelos)) {
+    nomes_modelos <- nomes
+  } else if (!is.null(nomes_arg) && all(nzchar(nomes_arg))) {
+    nomes_modelos <- nomes_arg
+  } else {
+    nomes_modelos <- paste0("Modelo_", seq_along(modelos))
+  }
+
+  # Extracao de metricas de cada modelo
+  linhas_info <- list()
+  for (i in seq_along(modelos)) {
+    m <- modelos[[i]]
+    # Caso venha de estatR com $modelo embutido
+    if (is.list(m) && !is.null(m$modelo)) m_core <- m$modelo else m_core <- m
+
+    ll   <- tryCatch(as.numeric(stats::logLik(m_core)), error = function(e) NA_real_)
+    aic  <- tryCatch(stats::AIC(m_core), error = function(e) if (!is.null(m_core$aic)) m_core$aic else NA_real_)
+    bic  <- tryCatch(stats::BIC(m_core), error = function(e) if (!is.null(m_core$bic)) m_core$bic else NA_real_)
+    k_p  <- tryCatch(attr(stats::logLik(m_core), "df"), error = function(e) length(stats::coef(m_core)))
+    if (is.null(k_p) || length(k_p) == 0L || is.na(k_p)) k_p <- 2L
+
+    res  <- tryCatch(as.numeric(stats::residuals(m_core)), error = function(e) NULL)
+    n_obs <- if (!is.null(res)) length(res[!is.na(res)]) else tryCatch(stats::nobs(m_core), error = function(e) 100L)
+
+    aicc <- if (!is.na(aic) && !is.na(k_p) && (n_obs - k_p - 1L) > 0) {
+      aic + (2 * k_p * (k_p + 1L)) / (n_obs - k_p - 1L)
+    } else aic
+
+    rmse <- if (!is.null(res)) sqrt(mean(res^2, na.rm = TRUE)) else NA_real_
+
+    r2 <- tryCatch({
+      s <- summary(m_core)
+      if (!is.null(s$r.squared)) s$r.squared
+      else if (!is.null(s$pseudo.r.squared)) s$pseudo.r.squared
+      else NA_real_
+    }, error = function(e) NA_real_)
+
+    linhas_info[[i]] <- list(
+      Modelo = nomes_modelos[i],
+      k      = as.integer(k_p),
+      LogLik = ll,
+      AIC    = aic,
+      AICc   = aicc,
+      BIC    = bic,
+      RMSE   = rmse,
+      R2     = r2
+    )
+  }
+
+  df_comp <- do.call(rbind.data.frame, linhas_info)
+
+  # Ordenacao
+  decrescente <- (criterio == "r2")
+  col_ord <- switch(criterio,
+    "aicc" = "AICc", "aic" = "AIC", "bic" = "BIC",
+    "rmse" = "RMSE", "r2" = "R2"
+  )
+
+  ord_idx <- order(df_comp[[col_ord]], decreasing = decrescente, na.last = TRUE)
+  df_comp <- df_comp[ord_idx, ]
+
+  # Delta AICc e Pesos de Akaike
+  if (all(!is.na(df_comp$AICc))) {
+    min_aicc <- min(df_comp$AICc, na.rm = TRUE)
+    df_comp$Delta_AICc <- df_comp$AICc - min_aicc
+    w_raw <- exp(-0.5 * df_comp$Delta_AICc)
+    df_comp$Peso_Akaike <- w_raw / sum(w_raw)
+  } else {
+    df_comp$Delta_AICc  <- NA_real_
+    df_comp$Peso_Akaike <- NA_real_
+  }
+
+  df_comp$Ranking <- paste0(seq_len(nrow(df_comp)), "º")
+
+  # Formatacao para impressao
+  pad <- function(s, w, align = "left") {
+    s <- as.character(s)
+    sp <- w - nchar(s)
+    if (sp <= 0) return(s)
+    if (align == "right") return(paste0(strrep(" ", sp), s))
+    if (align == "center") return(paste0(strrep(" ", floor(sp/2)), s, strrep(" ", ceiling(sp/2))))
+    paste0(s, strrep(" ", sp))
+  }
+  sep_l <- function(w) paste0("  ", strrep("─", w))
+
+  .print_titulo("COMPARAÇÃO E RANQUEAMENTO DE MODELOS")
+  cat(sprintf("  Quantidade de Modelos: %d\n", nrow(df_comp)))
+  cat(sprintf("  Critério de Seleção:  %s (%s)\n\n", toupper(criterio), if (decrescente) "Maior é melhor" else "Menor é melhor"))
+
+  .print_topico(sprintf("RANKING GERAL (Ordenado por %s)", toupper(criterio)))
+
+  w_cols <- c(rank = 7, mod = 20, k = 5, aicc = 10, bic = 10, delta = 10, peso = 10, rmse = 10)
+  w_total <- sum(w_cols) + length(w_cols) - 1
+
+  hdr_txt <- paste0(
+    pad("Rank",   w_cols["rank"],  "center"),
+    pad("Modelo", w_cols["mod"],   "left"),
+    pad("k",      w_cols["k"],     "center"),
+    pad("AICc",   w_cols["aicc"],  "center"),
+    pad("BIC",    w_cols["bic"],   "center"),
+    pad("Δ AICc",w_cols["delta"], "center"),
+    pad("Peso Wi",w_cols["peso"],  "center"),
+    pad("RMSE",   w_cols["rmse"],  "center")
+  )
+
+  cat(sep_l(w_total), "\n")
+  cat("  ", hdr_txt, "\n", sep = "")
+  cat(sep_l(w_total), "\n")
+
+  for (r in seq_len(nrow(df_comp))) {
+    aicc_s  <- if (is.na(df_comp$AICc[r])) "-" else .fmt_num(df_comp$AICc[r], 1)
+    bic_s   <- if (is.na(df_comp$BIC[r])) "-" else .fmt_num(df_comp$BIC[r], 1)
+    delta_s <- if (is.na(df_comp$Delta_AICc[r])) "-" else .fmt_num(df_comp$Delta_AICc[r], 2)
+    peso_s  <- if (is.na(df_comp$Peso_Akaike[r])) "-" else sprintf("%.1f%%", df_comp$Peso_Akaike[r] * 100)
+    rmse_s  <- if (is.na(df_comp$RMSE[r])) "-" else .fmt_num(df_comp$RMSE[r], 3)
+
+    cat("  ",
+        pad(df_comp$Ranking[r], w_cols["rank"],  "center"),
+        pad(df_comp$Modelo[r],  w_cols["mod"],   "left"),
+        pad(df_comp$k[r],       w_cols["k"],     "center"),
+        pad(aicc_s,             w_cols["aicc"],  "center"),
+        pad(bic_s,              w_cols["bic"],   "center"),
+        pad(delta_s,            w_cols["delta"], "center"),
+        pad(peso_s,             w_cols["peso"],  "center"),
+        pad(rmse_s,             w_cols["rmse"],  "center"),
+        "\n", sep = "")
+  }
+  cat(sep_l(w_total), "\n\n")
+
+  .print_topico("INTERPRETAÇÃO")
+  melhor_mod <- df_comp$Modelo[1]
+  cat(sprintf("  O modelo '%s' apresentou o melhor desempenho segundo o critério %s.\n", melhor_mod, toupper(criterio)))
+  if (!is.na(df_comp$Peso_Akaike[1])) {
+    cat(sprintf("  A probabilidade de '%s' ser o melhor modelo entre os avaliados é de %.1f%% (Peso de Akaike).\n",
+                melhor_mod, df_comp$Peso_Akaike[1] * 100))
+  }
+  cat("  Modelos com Δ AICc < 2 possuem suporte substancial; Δ AICc > 10 não possuem suporte.\n\n")
+  .print_rodape()
+
+  res <- list(
+    ranking     = df_comp,
+    melhor      = melhor_mod,
+    criterio    = criterio,
+    modelos     = modelos
+  )
+  class(res) <- c("estatR_comparacao_modelos", "list")
+  invisible(res)
+}

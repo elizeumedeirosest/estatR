@@ -1,4 +1,4 @@
-﻿# ─────────────────────────────────────────────────────────────────────────────
+# ─────────────────────────────────────────────────────────────────────────────
 # MÓDULO: PLANEJAMENTO E ANÁLISE DE EXPERIMENTOS (DIC)
 # ─────────────────────────────────────────────────────────────────────────────
 
@@ -3470,4 +3470,166 @@ grafico_dunnett <- function(modelo, cor_sig = "#0099FF", cor_ns = "gray40") {
 #' @export
 plot.estatR_dunnett <- function(x, ...) {
   print(grafico_dunnett(x, ...))
+}
+
+# ─────────────────────────────────────────────────────────────────────────────
+# CROQUI EXPERIMENTAL (PLANEJAMENTO E CASUALIZAÇÃO)
+# ─────────────────────────────────────────────────────────────────────────────
+
+#' @title Croqui de Planejamento Experimental
+#' @description Gera a planta baixa (croqui) e a casualizacao de parcelas para
+#'   experimentos em Delineamento Inteiramente Casualizado (DIC),
+#'   Delineamento em Blocos Casualizados (DBC) ou Quadrado Latino (DQL).
+#'
+#' @param tratamentos Vetor de nomes de tratamentos ou numero inteiro com a quantidade.
+#'   Se omitido ou inteiro, gera automaticamente nomes como T1, T2... ou A1, A2...
+#' @param repeticoes Numero de repeticoes por tratamento (para DIC/DBC) ou blocos.
+#' @param delineamento Tipo de delineamento: 'dic', 'dbc' ou 'dql'.
+#' @param fatorial Vetor com os niveis dos fatores (ex: c(2, 3) para fatorial 2x3).
+#' @param nome_experimento Titulo descritivo do experimento.
+#' @param semente Semente para garantia de reprodutibilidade da casualizacao.
+#' @param grafico Logico. Se TRUE (padrao), exibe o croqui usando meu_tema(estilo = 3).
+#' @return Objeto da classe estatR_croqui contendo a tabela de parcelas,
+#'   o mapa do croqui e o grafico gerado.
+#' @export
+croqui_experimental <- function(tratamentos = NULL,
+                                repeticoes = 3,
+                                delineamento = c("dic", "dbc", "dql"),
+                                fatorial = NULL,
+                                nome_experimento = NULL,
+                                semente = NULL,
+                                grafico = TRUE) {
+
+  delineamento <- match.arg(delineamento)
+  if (!is.null(semente)) set.seed(semente)
+
+  # 1. Definicao dos tratamentos
+  if (!is.null(fatorial)) {
+    letras <- LETTERS[1:length(fatorial)]
+    fatores_list <- list()
+    for (k in seq_along(fatorial)) {
+      fatores_list[[k]] <- paste0(letras[k], seq_len(fatorial[k]))
+    }
+    grid_fat <- expand.grid(fatores_list, stringsAsFactors = FALSE)
+    trats <- apply(grid_fat, 1, paste0, collapse = "")
+  } else if (is.null(tratamentos)) {
+    trats <- paste0("T", 1:4)
+  } else if (is.numeric(tratamentos) && length(tratamentos) == 1L) {
+    trats <- paste0("T", seq_len(tratamentos))
+  } else {
+    trats <- as.character(tratamentos)
+  }
+
+  k_trats <- length(trats)
+
+  # 2. Casualizacao conforme o delineamento
+  if (delineamento == "dic") {
+    n_total <- k_trats * repeticoes
+    trats_expand <- rep(trats, each = repeticoes)
+    sorteio <- sample(trats_expand)
+
+    n_cols <- repeticoes
+    n_lins <- k_trats
+
+    df_croqui <- data.frame(
+      Parcela    = seq_len(n_total),
+      Linha      = rep(seq_len(n_lins), each = n_cols),
+      Coluna     = rep(seq_len(n_cols), times = n_lins),
+      Tratamento = sorteio,
+      stringsAsFactors = FALSE
+    )
+    nome_del <- "Delineamento Inteiramente Casualizado (DIC)"
+
+  } else if (delineamento == "dbc") {
+    n_blocos <- repeticoes
+    list_blocos <- list()
+    for (b in seq_len(n_blocos)) {
+      trats_b <- sample(trats)
+      list_blocos[[b]] <- data.frame(
+        Bloco      = paste0("Bloco ", b),
+        Linha      = b,
+        Coluna     = seq_along(trats_b),
+        Tratamento = trats_b,
+        stringsAsFactors = FALSE
+      )
+    }
+    df_croqui <- do.call(rbind, list_blocos)
+    df_croqui$Parcela <- seq_len(nrow(df_croqui))
+    nome_del <- "Delineamento em Blocos Casualizados (DBC)"
+
+  } else { # dql
+    p_dql <- k_trats
+    M <- matrix(0L, nrow = p_dql, ncol = p_dql)
+    for (i in 1:p_dql) {
+      for (j in 1:p_dql) {
+        M[i, j] <- ((i + j - 2) %% p_dql) + 1L
+      }
+    }
+    ord_lin <- sample(p_dql)
+    ord_col <- sample(p_dql)
+    M <- M[ord_lin, ord_col]
+    trats_dql <- trats[M]
+
+    df_croqui <- data.frame(
+      Parcela    = seq_len(p_dql * p_dql),
+      Linha      = rep(seq_len(p_dql), each = p_dql),
+      Coluna     = rep(seq_len(p_dql), times = p_dql),
+      Tratamento = as.character(trats_dql),
+      stringsAsFactors = FALSE
+    )
+    nome_del <- "Delineamento em Quadrado Latino (DQL)"
+  }
+
+  # 3. Grafico do croqui com meu_tema(estilo = 3)
+  p_croqui <- NULL
+  if (isTRUE(grafico)) {
+    titulo_graf <- if (!is.null(nome_experimento)) nome_experimento else paste0("Croqui Experimental: ", nome_del)
+    subt_graf <- sprintf("%d Tratamentos | %d Parcelas no total", k_trats, nrow(df_croqui))
+
+    p_croqui <- ggplot2::ggplot(df_croqui, ggplot2::aes(x = Coluna, y = Linha)) +
+      ggplot2::geom_tile(ggplot2::aes(fill = Tratamento), color = "black", linewidth = 0.8, alpha = 0.85) +
+      ggplot2::geom_text(ggplot2::aes(label = paste0("P.", Parcela, "\n", Tratamento)),
+                         fontface = "bold", size = 4.2, color = "#111111") +
+      ggplot2::scale_y_reverse(breaks = sort(unique(df_croqui$Linha))) +
+      ggplot2::scale_x_continuous(breaks = sort(unique(df_croqui$Coluna))) +
+      ggplot2::scale_fill_brewer(palette = "Pastel1") +
+      ggplot2::labs(
+        title    = titulo_graf,
+        subtitle = subt_graf,
+        x        = if (delineamento == "dbc") "Posicao dentro do Bloco" else "Coluna / Faixa",
+        y        = if (delineamento == "dbc") "Bloco" else "Linha / Canteiro"
+      )
+
+    if (exists("meu_tema", mode = "function")) {
+      p_croqui <- p_croqui + meu_tema(estilo = 3)
+    } else {
+      p_croqui <- p_croqui + ggplot2::theme_void()
+    }
+    print(p_croqui)
+  }
+
+  # 4. Saida no Console
+  .print_titulo("PLANEJAMENTO EXPERIMENTAL: CROQUI DE CAMPO")
+  cat(sprintf("  Delineamento:      %s\n", nome_del))
+  if (!is.null(nome_experimento)) cat(sprintf("  Experimento:       %s\n", nome_experimento))
+  cat(sprintf("  Nº de Tratamentos: %d (%s)\n", k_trats, paste(trats, collapse = ", ")))
+  cat(sprintf("  Nº de Parcelas:    %d parcelas experimentais\n", nrow(df_croqui)))
+  if (!is.null(semente)) cat(sprintf("  Semente Aleatoria: %d (Reprodutivel)\n\n", semente)) else cat("\n")
+
+  .print_topico("DISTRIBUICAO DAS PARCELAS")
+  print(df_croqui, row.names = FALSE)
+  cat("\n")
+  .print_rodape()
+
+  res <- list(
+    croqui           = df_croqui,
+    delineamento     = delineamento,
+    tratamentos      = trats,
+    n_tratamentos    = k_trats,
+    n_parcelas       = nrow(df_croqui),
+    grafico          = p_croqui,
+    nome_experimento = nome_experimento
+  )
+  class(res) <- c("estatR_croqui", "list")
+  invisible(res)
 }

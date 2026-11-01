@@ -1033,7 +1033,7 @@ print.estatR_cox <- function(x, ...) {
                 cov_s, b_s, ep_s, hr_s, ic_s, z_s, pv_s))
   }
   cat("  ────────────────────────────────────────────────────────────────────────────── \n")
-  cat("  * Significância: *** p < 0.001, ** p < 0.01, * p < 0.05, . p < 0.10\n\n")
+  cat("  Notas:\n  Significância: *** p < 0,001   ** p < 0,01   * p < 0,05\n\n")
 
   # 2. QUALIDADE DE AJUSTE GLOBAL
   .print_topico("AVALIAÇÃO GLOBAL DO MODELO")
