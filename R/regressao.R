@@ -1,4 +1,4 @@
-﻿#' @title Regressão Linear Simples e Múltipla
+#' @title Regressão Linear Simples e Múltipla
 #' @description Ajusta um modelo de regressão linear e retorna uma saída formatada com
 #'   ANOVA, coeficientes (com IC 95% e VIF), ajuste do modelo e interpretação automática.
 #' @param formula Fórmula do modelo (ex: \code{y ~ x} ou \code{y ~ x1 + x2})
@@ -460,6 +460,7 @@ metricas <- function(modelo, corte_prob = 0.5) {
     }
   }
   if (inherits(modelo, c("estatR_cox", "coxph"))) return(metricas_cox(modelo))
+
   if (inherits(modelo, "betareg"))                return(metricas_beta(modelo))
   if (inherits(modelo, "negbin"))                 return(metricas_binomial_negativa(modelo))
   if (inherits(modelo, c("forecast", "previsao_serie", "Arima", "ets", "HoltWinters", "stlm"))) {
@@ -547,6 +548,12 @@ metricas <- function(modelo, corte_prob = 0.5) {
 #' @return Retorna invisivelmente uma lista com os objetos dos testes estatísticos realizados.
 #' @export
 analise_residual <- function(modelo, grafico = TRUE) {
+  # Suporte a Regressão Espacial
+  if (inherits(modelo, "estatR_regressao_espacial")) {
+    if (exists("analise_residual_espacial", mode = "function")) {
+      return(analise_residual_espacial(modelo, grafico = grafico))
+    }
+  }
   # Suporte a Modelos Inflados de Zero (zeroinfl: ZIP e ZINB)
   if (inherits(modelo, "zeroinfl") && !is.null(modelo$dist)) {
     if (modelo$dist == "poisson" && exists(".analise_residual_poisson_iz", mode = "function")) {
