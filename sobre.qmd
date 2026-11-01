@@ -17,13 +17,13 @@ A estatística aplicada no R, em sua forma nativa, exige o domínio de dezenas d
 
 ## Módulos
 
-O pacote é organizado em **17 módulos especializados**:
+O pacote é organizado em **16 módulos especializados**:
 
 - [Diagnóstico e Descritiva](modulos/descritiva.html)
 - [Testes de Hipótese](modulos/inferencia.html)
 - [Intervalos de Confiança](modulos/intervalos.html)
 - [Probabilidade e Simulação](modulos/probabilidade.html)
-- [Transformações de Variáveis](modulos/transformacoes.html)
+- [Engenharia de Variáveis](modulos/engenharia_variaveis.html)
 - [Modelos Lineares e Regressão](modulos/regressao.html)
 - [Modelos Generalizados (MLG)](modulos/mlg.html)
 - [Séries Temporais](modulos/series_temporais.html)
@@ -33,7 +33,6 @@ O pacote é organizado em **17 módulos especializados**:
 - [Aprendizado de Máquina](modulos/aprendizado_maquina.html)
 - [Análise de Sobrevivência](modulos/sobrevivencia.html)
 - [Amostragem Probabilística](modulos/amostragem.html)
-- [Imputação e Validação de Dados](modulos/imputacao.html)
 - [Estatística Espacial](modulos/espacial.html)
 - [Processos Estocásticos](modulos/estocastico.html)
 

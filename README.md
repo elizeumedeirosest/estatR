@@ -201,10 +201,36 @@ gerar_amostra(n = 1000, distribuicao = "exponencial", taxa = 0.5)
 
 
 <details>
-<summary><strong> Transformações de Variáveis</strong></summary>
+<summary><strong> Engenharia de Variáveis (Validação, Imputação e Transformação)</strong></summary>
 <br>
 
-**Família de Potências e Normalização**
+**1. Validação de Dados por Fórmulas Declarativas**
+
+```r
+# Auditoria de regras lógicas com relatório de linhas violadas
+validar_dados(dados,
+  idade ~ entre(0, 120),
+  cpf   ~ sem_nulos(),
+  grupo ~ niveis_permitidos(c("A", "B", "C")),
+  email ~ padrao("^.+@.+\..+$")
+)
+```
+
+**2. Imputação Estatística e por ML (17 Métodos)**
+
+```r
+# Imputação pela média, mediana, moda (geral ou agrupada)
+imputar(dados, metodo = "media")
+imputar(dados, metodo = "mediana_grupo", grupo = "regiao")
+
+# Imputação temporal (LOCF, NOCB, interpolação linear e spline)
+imputar(dados_ts, metodo = "locf")
+
+# Imputação avançada (Regressão multivariada, k-NN e MICE)
+imputar(dados, metodo = "knn", k = 5)
+```
+
+**3. Transformações de Variáveis Clássicas e por Objetivos**
 
 ```r
 # Box-Cox com perfil ótimo de verossimilhança e bandas de confiança (grade dupla)
@@ -213,8 +239,10 @@ res_bc <- transformar(dados$vendas, metodo = "box_cox")
 # Yeo-Johnson (para dados contendo zeros ou valores negativos)
 res_yj <- transformar(dados$lucro, metodo = "yeo_johnson")
 
-# Seleção automática da transformação ótima pelo teste de Shapiro-Wilk
-res_auto <- transformar(dados$resposta, metodo = "auto")
+# Seleção automática guiada por objetivos específicos
+res_norm  <- transformar(dados$resposta, metodo = "auto", objetivo = "normalidade")
+res_assim <- transformar(dados$renda,    metodo = "auto", objetivo = "assimetria")
+res_homo  <- transformar(dados$producao, metodo = "auto", objetivo = "homocedasticidade", grupo = dados$lote)
 
 # Transformação simultânea em colunas de um banco de dados
 df_transf <- transformar(meubanco, metodo = "log", colunas = c("renda", "gastos"))
@@ -1033,37 +1061,6 @@ validacao_cruzada(mpg ~ wt + hp + qsec, dados = mtcars, k = 5, tipo = "regressao
 ---
 ---
 
-<details>
-<summary><strong> Imputação e Validação de Dados</strong></summary>
-<br>
-
-**Imputação Estatística com 17 Métodos**
-
-```r
-# Imputação pela média, mediana, moda (geral ou agrupada)
-imputar(dados, metodo = "media")
-imputar(dados, metodo = "mediana_grupo", grupo = "regiao")
-
-# Imputação temporal (LOCF, NOCB, interpolação linear e spline)
-imputar(dados_ts, metodo = "locf")
-
-# Imputação avançada (Regressão multivariada, k-NN e MICE)
-imputar(dados, metodo = "knn", k = 5)
-```
-
-**Validação e Integridade de Dados por Fórmula**
-
-```r
-# Verificação de regras lógicas e diagnóstico de linhas violadas
-validar_dados(dados,
-  idade ~ entre(0, 120),
-  cpf   ~ sem_nulos(),
-  grupo ~ niveis_permitidos(c("A", "B", "C")),
-  email ~ padrao("^.+@.+\\..+$")
-)
-```
-
-</details>
 
 ---
 

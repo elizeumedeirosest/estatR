@@ -7,7 +7,7 @@
 <meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=yes">
 
 
-<title>Imputação e Validação de Dados – estatR</title>
+<title>Engenharia de Variáveis – estatR</title>
 <style>
 /* Default styles provided by pandoc.
 ** See https://pandoc.org/MANUAL.html#variables-for-html for config info.
@@ -91,6 +91,35 @@ pre > code.sourceCode > span > a:first-child::before { text-decoration: underlin
 }</script>
 <style>html{ scroll-behavior: smooth; }</style>
 
+  <script src="https://cdnjs.cloudflare.com/polyfill/v3/polyfill.min.js?features=es6"></script>
+  <script defer="" src="https://cdn.jsdelivr.net/npm/mathjax@3/es5/tex-chtml-full.js" type="text/javascript"></script>
+
+<script type="text/javascript">
+const typesetMath = (el) => {
+  if (window.MathJax) {
+    // MathJax Typeset
+    window.MathJax.typeset([el]);
+  } else if (window.katex) {
+    // KaTeX Render
+    var mathElements = el.getElementsByClassName("math");
+    var macros = [];
+    for (var i = 0; i < mathElements.length; i++) {
+      var texText = mathElements[i].firstChild;
+      if (mathElements[i].tagName == "SPAN" && texText && texText.data) {
+        window.katex.render(texText.data, mathElements[i], {
+          displayMode: mathElements[i].classList.contains('display'),
+          throwOnError: false,
+          macros: macros,
+          fleqn: false
+        });
+      }
+    }
+  }
+}
+window.Quarto = {
+  typesetMath
+};
+</script>
 
 <link rel="stylesheet" href="../styles.css">
 </head>
@@ -141,8 +170,8 @@ pre > code.sourceCode > span > a:first-child::before { text-decoration: underlin
  <span class="dropdown-text">Probabilidade e Simulação</span></a>
   </li>  
         <li>
-    <a class="dropdown-item" href="../modulos/transformacoes.html">
- <span class="dropdown-text">Transformações de Variáveis</span></a>
+    <a class="dropdown-item" href="../modulos/engenharia_variaveis.html">
+ <span class="dropdown-text">Engenharia de Variáveis</span></a>
   </li>  
         <li>
     <a class="dropdown-item" href="../modulos/regressao.html">
@@ -181,10 +210,6 @@ pre > code.sourceCode > span > a:first-child::before { text-decoration: underlin
  <span class="dropdown-text">Amostragem Probabilística</span></a>
   </li>  
         <li>
-    <a class="dropdown-item" href="../modulos/imputacao.html">
- <span class="dropdown-text">Imputação e Validação</span></a>
-  </li>  
-        <li>
     <a class="dropdown-item" href="../modulos/espacial.html">
  <span class="dropdown-text">Estatística Espacial</span></a>
   </li>  
@@ -218,8 +243,8 @@ pre > code.sourceCode > span > a:first-child::before { text-decoration: underlin
 
 <header id="title-block-header" class="quarto-title-block default">
 <div class="quarto-title">
-<h1 class="title">Imputação e Validação de Dados</h1>
-<p class="subtitle lead">17 Métodos de Imputação de NAs e Regras de Validação com Fórmulas</p>
+<h1 class="title">Engenharia de Variáveis</h1>
+<p class="subtitle lead">Validação de consistência, 17 métodos de imputação e transformações guiadas por objetivos</p>
 </div>
 
 
@@ -236,39 +261,116 @@ pre > code.sourceCode > span > a:first-child::before { text-decoration: underlin
 </header>
 
 
-<p>O módulo de <strong>Imputação e Validação de Dados</strong> do <code>estatR</code> reúne ferramentas essenciais de engenharia e saneamento de variáveis para preparação prévia de dados analíticos.</p>
-<hr>
-<section id="imputação-de-dados-imputar" class="level2">
-<h2 class="anchored" data-anchor-id="imputação-de-dados-imputar">1. Imputação de Dados (<code>imputar()</code>)</h2>
-<p>Oferece 17 estratégias completas de imputação estatística para substituir valores ausentes (<code>NA</code>) com relatório comparativo de diagnóstico:</p>
-<ul>
-<li><strong>Medidas Centrais Gerais</strong>: <code>media</code>, <code>mediana</code>, <code>moda</code>, <code>min</code>, <code>max</code></li>
-<li><strong>Medidas Centrais Agrupadas</strong>: <code>media_grupo</code>, <code>mediana_grupo</code>, <code>moda_grupo</code>, <code>min_grupo</code>, <code>max_grupo</code></li>
-<li><strong>Séries Temporais</strong>: <code>locf</code> (Last Observation Carried Forward), <code>nocb</code> (Next Observation Carried Backward), <code>interpolacao_linear</code>, <code>interpolacao_spline</code></li>
-<li><strong>Modelagem e Machine Learning</strong>: <code>regressao</code> (linear multivariada), <code>knn</code> (k-vizinhos mais próximos normalizado), <code>mice</code> (imputação múltipla)</li>
-</ul>
-<div class="code-copy-outer-scaffold"><div class="sourceCode" id="cb1"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb1-1"><a href="#cb1-1" aria-hidden="true" tabindex="-1"></a><span class="fu">library</span>(estatR)</span>
-<span id="cb1-2"><a href="#cb1-2" aria-hidden="true" tabindex="-1"></a></span>
-<span id="cb1-3"><a href="#cb1-3" aria-hidden="true" tabindex="-1"></a><span class="co"># Imputação por média de grupo</span></span>
-<span id="cb1-4"><a href="#cb1-4" aria-hidden="true" tabindex="-1"></a>dados_limpos <span class="ot">&lt;-</span> <span class="fu">imputar</span>(dados, <span class="at">metodo =</span> <span class="st">"media_grupo"</span>, <span class="at">grupo =</span> <span class="st">"regiao"</span>)</span>
-<span id="cb1-5"><a href="#cb1-5" aria-hidden="true" tabindex="-1"></a></span>
-<span id="cb1-6"><a href="#cb1-6" aria-hidden="true" tabindex="-1"></a><span class="co"># Imputação k-NN multivariada</span></span>
-<span id="cb1-7"><a href="#cb1-7" aria-hidden="true" tabindex="-1"></a>dados_knn <span class="ot">&lt;-</span> <span class="fu">imputar</span>(dados, <span class="at">metodo =</span> <span class="st">"knn"</span>, <span class="at">k =</span> <span class="dv">5</span>)</span></code></pre></div><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></div>
+<section id="visão-geral" class="level2">
+<h2 class="anchored" data-anchor-id="visão-geral">Visão Geral</h2>
+<p>O módulo de <strong>Engenharia de Variáveis</strong> do <code>estatR</code> consolida em um único fluxo de trabalho as três etapas essenciais para o pré-processamento e saneamento analítico de dados:</p>
+<ol type="1">
+<li><strong>Validação e Integridade</strong>: Auditoria e regras de consistência expressas de forma declarativa por fórmulas.</li>
+<li><strong>Imputação de Dados Ausentes</strong>: 17 estratégias estatísticas e de machine learning para tratamento rigoroso de <code>NA</code>.</li>
+<li><strong>Transformações Numéricas</strong>: Famílias Box-Cox, Yeo-Johnson, logarítmica e transformações direcionadas por objetivos específicos (normalidade, assimetria, homocedasticidade, interpretabilidade e resíduos).</li>
+</ol>
 <hr>
 </section>
 <section id="validação-e-integridade-de-dados-validar_dados" class="level2">
-<h2 class="anchored" data-anchor-id="validação-e-integridade-de-dados-validar_dados">2. Validação e Integridade de Dados (<code>validar_dados()</code>)</h2>
-<p>Permite expressar regras de integridade de forma limpa usando a sintaxe de fórmula (<code>variavel ~ regra</code>):</p>
-<div class="code-copy-outer-scaffold"><div class="sourceCode" id="cb2"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb2-1"><a href="#cb2-1" aria-hidden="true" tabindex="-1"></a>resultado <span class="ot">&lt;-</span> <span class="fu">validar_dados</span>(dados,</span>
-<span id="cb2-2"><a href="#cb2-2" aria-hidden="true" tabindex="-1"></a>  idade   <span class="sc">~</span> <span class="fu">entre</span>(<span class="dv">0</span>, <span class="dv">120</span>),</span>
-<span id="cb2-3"><a href="#cb2-3" aria-hidden="true" tabindex="-1"></a>  cpf     <span class="sc">~</span> <span class="fu">sem_nulos</span>(),</span>
-<span id="cb2-4"><a href="#cb2-4" aria-hidden="true" tabindex="-1"></a>  grupo   <span class="sc">~</span> <span class="fu">niveis_permitidos</span>(<span class="fu">c</span>(<span class="st">"Controle"</span>, <span class="st">"Tratamento_A"</span>, <span class="st">"Tratamento_B"</span>)),</span>
-<span id="cb2-5"><a href="#cb2-5" aria-hidden="true" tabindex="-1"></a>  salario <span class="sc">~</span> <span class="fu">maior_que</span>(<span class="dv">0</span>),</span>
-<span id="cb2-6"><a href="#cb2-6" aria-hidden="true" tabindex="-1"></a>  email   <span class="sc">~</span> <span class="fu">padrao</span>(<span class="st">"^.+@.+</span><span class="sc">\\</span><span class="st">..+$"</span>)</span>
-<span id="cb2-7"><a href="#cb2-7" aria-hidden="true" tabindex="-1"></a>)</span></code></pre></div><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></div>
-<p>Exibe a tabela formatada no console com o número de violações por variável e a lista das linhas afetadas.</p>
+<h2 class="anchored" data-anchor-id="validação-e-integridade-de-dados-validar_dados">1. Validação e Integridade de Dados (<code>validar_dados()</code>)</h2>
+<p>A função <code>validar_dados()</code> audita conjuntos de dados segundo regras lógicas expressas na sintaxe natural de fórmulas (<code>variavel ~ regra()</code>). Exibe no console uma tabela formatada com o status de conformidade, número de violações e as linhas exatas afetadas.</p>
+<div class="code-copy-outer-scaffold"><div class="sourceCode" id="cb1"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb1-1"><a href="#cb1-1" aria-hidden="true" tabindex="-1"></a><span class="fu">library</span>(estatR)</span>
+<span id="cb1-2"><a href="#cb1-2" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb1-3"><a href="#cb1-3" aria-hidden="true" tabindex="-1"></a><span class="co"># Validação com múltiplas regras declarativas</span></span>
+<span id="cb1-4"><a href="#cb1-4" aria-hidden="true" tabindex="-1"></a>resultado <span class="ot">&lt;-</span> <span class="fu">validar_dados</span>(dados,</span>
+<span id="cb1-5"><a href="#cb1-5" aria-hidden="true" tabindex="-1"></a>  idade   <span class="sc">~</span> <span class="fu">entre</span>(<span class="dv">0</span>, <span class="dv">120</span>),</span>
+<span id="cb1-6"><a href="#cb1-6" aria-hidden="true" tabindex="-1"></a>  cpf     <span class="sc">~</span> <span class="fu">sem_nulos</span>(),</span>
+<span id="cb1-7"><a href="#cb1-7" aria-hidden="true" tabindex="-1"></a>  grupo   <span class="sc">~</span> <span class="fu">niveis_permitidos</span>(<span class="fu">c</span>(<span class="st">"Controle"</span>, <span class="st">"Tratamento_A"</span>, <span class="st">"Tratamento_B"</span>)),</span>
+<span id="cb1-8"><a href="#cb1-8" aria-hidden="true" tabindex="-1"></a>  salario <span class="sc">~</span> <span class="fu">maior_que</span>(<span class="dv">0</span>),</span>
+<span id="cb1-9"><a href="#cb1-9" aria-hidden="true" tabindex="-1"></a>  email   <span class="sc">~</span> <span class="fu">padrao</span>(<span class="st">"^.+@.+</span><span class="sc">\\</span><span class="st">..+$"</span>)</span>
+<span id="cb1-10"><a href="#cb1-10" aria-hidden="true" tabindex="-1"></a>)</span>
+<span id="cb1-11"><a href="#cb1-11" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb1-12"><a href="#cb1-12" aria-hidden="true" tabindex="-1"></a><span class="co"># Consulta de linhas com inconsistências</span></span>
+<span id="cb1-13"><a href="#cb1-13" aria-hidden="true" tabindex="-1"></a>resultado<span class="sc">$</span>valido               <span class="co"># TRUE se o banco estiver 100% conforme</span></span>
+<span id="cb1-14"><a href="#cb1-14" aria-hidden="true" tabindex="-1"></a>resultado<span class="sc">$</span>n_total_violacoes    <span class="co"># Total de violações encontradas</span></span>
+<span id="cb1-15"><a href="#cb1-15" aria-hidden="true" tabindex="-1"></a>resultado<span class="sc">$</span>linhas_afetadas_total <span class="co"># Vetor com os índices das linhas problemáticas</span></span></code></pre></div><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></div>
+<section id="regras-disponíveis" class="level3">
+<h3 class="anchored" data-anchor-id="regras-disponíveis">Regras Disponíveis</h3>
+<ul>
+<li><code>entre(min, max)</code>: Valores no intervalo fechado <span class="math inline">\([min, max]\)</span>.</li>
+<li><code>maior_que(x)</code> e <code>menor_que(x)</code>: Limiares numéricos estritos.</li>
+<li><code>sem_nulos()</code>: Verifica ausência de valores <code>NA</code>.</li>
+<li><code>sem_duplicatas()</code>: Identifica duplicidades na coluna.</li>
+<li><code>niveis_permitidos(v)</code>: Restringe categorias a um conjunto permitido.</li>
+<li><code>padrao(regex)</code>: Validação por expressão regular (e-mail, CEP, etc.).</li>
+<li><code>tipo_numerico()</code> e <code>tipo_texto()</code>: Verificação de tipo de dado.</li>
+<li><code>comprimento_entre(a, b)</code>: Contagem de caracteres em textos.</li>
+</ul>
+<hr>
+</section>
+</section>
+<section id="imputação-de-dados-ausentes-imputar" class="level2">
+<h2 class="anchored" data-anchor-id="imputação-de-dados-ausentes-imputar">2. Imputação de Dados Ausentes (<code>imputar()</code>)</h2>
+<p>Disponibiliza <strong>17 métodos de imputação</strong> de valores ausentes com relatório de diagnóstico antes vs.&nbsp;depois:</p>
+<ul>
+<li><strong>Medidas Centrais Globais</strong>: <code>media</code>, <code>mediana</code>, <code>moda</code>, <code>min</code>, <code>max</code></li>
+<li><strong>Medidas Centrais por Agrupamento</strong>: <code>media_grupo</code>, <code>mediana_grupo</code>, <code>moda_grupo</code>, <code>min_grupo</code>, <code>max_grupo</code></li>
+<li><strong>Séries Temporais e Dados Longitudinais</strong>: <code>locf</code> (<em>Last Observation Carried Forward</em>), <code>nocb</code> (<em>Next Observation Carried Backward</em>), <code>interpolacao_linear</code>, <code>interpolacao_spline</code></li>
+<li><strong>Modelagem e Machine Learning</strong>: <code>regressao</code> (linear multivariada com base nas demais colunas), <code>knn</code> (k-vizinhos mais próximos com distância euclidiana normalizada) e <code>mice</code> (imputação múltipla por equações encadeadas)</li>
+</ul>
+<div class="code-copy-outer-scaffold"><div class="sourceCode" id="cb2"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb2-1"><a href="#cb2-1" aria-hidden="true" tabindex="-1"></a><span class="co"># Imputação por média condicionada ao grupo</span></span>
+<span id="cb2-2"><a href="#cb2-2" aria-hidden="true" tabindex="-1"></a>dados_limpos <span class="ot">&lt;-</span> <span class="fu">imputar</span>(dados, <span class="at">metodo =</span> <span class="st">"media_grupo"</span>, <span class="at">grupo =</span> <span class="st">"regiao"</span>)</span>
+<span id="cb2-3"><a href="#cb2-3" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb2-4"><a href="#cb2-4" aria-hidden="true" tabindex="-1"></a><span class="co"># Imputação k-NN multivariada (k = 5 vizinhos)</span></span>
+<span id="cb2-5"><a href="#cb2-5" aria-hidden="true" tabindex="-1"></a>dados_knn <span class="ot">&lt;-</span> <span class="fu">imputar</span>(dados, <span class="at">metodo =</span> <span class="st">"knn"</span>, <span class="at">k =</span> <span class="dv">5</span>)</span>
+<span id="cb2-6"><a href="#cb2-6" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb2-7"><a href="#cb2-7" aria-hidden="true" tabindex="-1"></a><span class="co"># Acesso ao data frame imputado e relatório</span></span>
+<span id="cb2-8"><a href="#cb2-8" aria-hidden="true" tabindex="-1"></a>df_final  <span class="ot">&lt;-</span> dados_knn<span class="sc">$</span>dados_imputados</span>
+<span id="cb2-9"><a href="#cb2-9" aria-hidden="true" tabindex="-1"></a>relatorio <span class="ot">&lt;-</span> dados_knn<span class="sc">$</span>relatorio</span></code></pre></div><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></div>
+<hr>
+</section>
+<section id="transformações-de-variáveis-transformar" class="level2">
+<h2 class="anchored" data-anchor-id="transformações-de-variáveis-transformar">3. Transformações de Variáveis (<code>transformar()</code>)</h2>
+<p>Reúne transformações clássicas e modernas com seleção automática e <strong>orientação por objetivos analíticos</strong>:</p>
+<section id="métodos-clássicos" class="level3">
+<h3 class="anchored" data-anchor-id="métodos-clássicos">Métodos Clássicos</h3>
+<ul>
+<li><strong>Box-Cox (<code>"box_cox"</code>)</strong>: Para dados positivos (<span class="math inline">\(y &gt; 0\)</span>), estima <span class="math inline">\(\lambda\)</span> ótimo por Máxima Verossimilhança com intervalo de confiança e curva de perfil.</li>
+<li><strong>Yeo-Johnson (<code>"yeo_johnson"</code>)</strong>: Suporta valores positivos, nulos e negativos.</li>
+<li><strong>Logarítmica, Raiz Quadrada e Potências</strong>: <code>log</code>, <code>log10</code>, <code>raiz_quadrada</code>, <code>potencia</code>, <code>inversa</code>.</li>
+<li><strong>Específicas para Proporções</strong>: <code>logit</code> e <code>arco_seno</code>.</li>
+</ul>
+<div class="code-copy-outer-scaffold"><div class="sourceCode" id="cb3"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb3-1"><a href="#cb3-1" aria-hidden="true" tabindex="-1"></a><span class="co"># Transformação Box-Cox em vetor</span></span>
+<span id="cb3-2"><a href="#cb3-2" aria-hidden="true" tabindex="-1"></a>res_bc <span class="ot">&lt;-</span> <span class="fu">transformar</span>(dados<span class="sc">$</span>vendas, <span class="at">metodo =</span> <span class="st">"box_cox"</span>, <span class="at">grafico =</span> <span class="cn">TRUE</span>)</span>
+<span id="cb3-3"><a href="#cb3-3" aria-hidden="true" tabindex="-1"></a>res_bc<span class="sc">$</span>lambda    <span class="co"># Potência ótima estimada</span></span>
+<span id="cb3-4"><a href="#cb3-4" aria-hidden="true" tabindex="-1"></a>res_bc<span class="sc">$</span>valores   <span class="co"># Vetor transformado</span></span></code></pre></div><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></div>
+</section>
+<section id="transformações-guiadas-por-objetivo-objetivo" class="level3">
+<h3 class="anchored" data-anchor-id="transformações-guiadas-por-objetivo-objetivo">Transformações Guiadas por Objetivo (<code>objetivo</code>)</h3>
+<p>Permite escolher a transformação que melhor atende à finalidade da análise:</p>
+<div class="code-copy-outer-scaffold"><div class="sourceCode" id="cb4"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb4-1"><a href="#cb4-1" aria-hidden="true" tabindex="-1"></a><span class="co"># Otimiza para maximizar a normalidade (critério de Shapiro-Wilk)</span></span>
+<span id="cb4-2"><a href="#cb4-2" aria-hidden="true" tabindex="-1"></a>res_norm <span class="ot">&lt;-</span> <span class="fu">transformar</span>(dados<span class="sc">$</span>resposta, <span class="at">metodo =</span> <span class="st">"auto"</span>, <span class="at">objetivo =</span> <span class="st">"normalidade"</span>)</span>
+<span id="cb4-3"><a href="#cb4-3" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb4-4"><a href="#cb4-4" aria-hidden="true" tabindex="-1"></a><span class="co"># Otimiza para redução de assimetria (|skewness| -&gt; 0)</span></span>
+<span id="cb4-5"><a href="#cb4-5" aria-hidden="true" tabindex="-1"></a>res_assim <span class="ot">&lt;-</span> <span class="fu">transformar</span>(dados<span class="sc">$</span>renda, <span class="at">metodo =</span> <span class="st">"auto"</span>, <span class="at">objetivo =</span> <span class="st">"assimetria"</span>)</span>
+<span id="cb4-6"><a href="#cb4-6" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb4-7"><a href="#cb4-7" aria-hidden="true" tabindex="-1"></a><span class="co"># Otimiza estabilização da variância para homogeneidade entre grupos</span></span>
+<span id="cb4-8"><a href="#cb4-8" aria-hidden="true" tabindex="-1"></a>res_homo <span class="ot">&lt;-</span> <span class="fu">transformar</span>(dados<span class="sc">$</span>producao, <span class="at">metodo =</span> <span class="st">"auto"</span>, <span class="at">objetivo =</span> <span class="st">"homocedasticidade"</span>, <span class="at">grupo =</span> dados<span class="sc">$</span>lote)</span>
+<span id="cb4-9"><a href="#cb4-9" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb4-10"><a href="#cb4-10" aria-hidden="true" tabindex="-1"></a><span class="co"># Prioriza interpretabilidade (log natural, raiz ou inversa)</span></span>
+<span id="cb4-11"><a href="#cb4-11" aria-hidden="true" tabindex="-1"></a>res_interp <span class="ot">&lt;-</span> <span class="fu">transformar</span>(dados<span class="sc">$</span>custo, <span class="at">metodo =</span> <span class="st">"auto"</span>, <span class="at">objetivo =</span> <span class="st">"interpretabilidade"</span>)</span></code></pre></div><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></div>
+</section>
+<section id="aplicação-em-bancos-de-dados-completos" class="level3">
+<h3 class="anchored" data-anchor-id="aplicação-em-bancos-de-dados-completos">Aplicação em Bancos de Dados Completos</h3>
+<p>A função aceita data frames completos com seleção de múltiplas colunas:</p>
+<div class="code-copy-outer-scaffold"><div class="sourceCode" id="cb5"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb5-1"><a href="#cb5-1" aria-hidden="true" tabindex="-1"></a><span class="co"># Transforma simultaneamente múltiplas colunas</span></span>
+<span id="cb5-2"><a href="#cb5-2" aria-hidden="true" tabindex="-1"></a>df_transf <span class="ot">&lt;-</span> <span class="fu">transformar</span>(</span>
+<span id="cb5-3"><a href="#cb5-3" aria-hidden="true" tabindex="-1"></a>  <span class="at">dados   =</span> meubanco,</span>
+<span id="cb5-4"><a href="#cb5-4" aria-hidden="true" tabindex="-1"></a>  <span class="at">metodo  =</span> <span class="st">"log"</span>,</span>
+<span id="cb5-5"><a href="#cb5-5" aria-hidden="true" tabindex="-1"></a>  <span class="at">colunas =</span> <span class="fu">c</span>(<span class="st">"renda"</span>, <span class="st">"gastos"</span>, <span class="st">"investimento"</span>),</span>
+<span id="cb5-6"><a href="#cb5-6" aria-hidden="true" tabindex="-1"></a>  <span class="at">grafico =</span> <span class="cn">TRUE</span></span>
+<span id="cb5-7"><a href="#cb5-7" aria-hidden="true" tabindex="-1"></a>)</span>
+<span id="cb5-8"><a href="#cb5-8" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb5-9"><a href="#cb5-9" aria-hidden="true" tabindex="-1"></a><span class="co"># Extração do data frame transformado</span></span>
+<span id="cb5-10"><a href="#cb5-10" aria-hidden="true" tabindex="-1"></a>banco_pronto <span class="ot">&lt;-</span> df_transf<span class="sc">$</span>dados_transformados</span></code></pre></div><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></div>
 
 
+</section>
 </section>
 
 </main> <!-- /main -->

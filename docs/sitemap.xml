@@ -2,27 +2,23 @@
 <urlset xmlns="http://www.sitemaps.org/schemas/sitemap/0.9">
   <url>
     <loc>https://elizeumedeirosest.github.io/estatR/sobre.html</loc>
-    <lastmod>2026-11-01T19:16:06.857Z</lastmod>
+    <lastmod>2026-11-01T23:44:56.835Z</lastmod>
   </url>
   <url>
-    <loc>https://elizeumedeirosest.github.io/estatR/modulos/sobrevivencia.html</loc>
-    <lastmod>2026-10-27T02:10:32.311Z</lastmod>
+    <loc>https://elizeumedeirosest.github.io/estatR/modulos/series_temporais.html</loc>
+    <lastmod>2026-10-26T18:39:00.561Z</lastmod>
   </url>
   <url>
-    <loc>https://elizeumedeirosest.github.io/estatR/modulos/regressao.html</loc>
-    <lastmod>2026-11-01T22:52:32.724Z</lastmod>
+    <loc>https://elizeumedeirosest.github.io/estatR/modulos/qualidade.html</loc>
+    <lastmod>2026-10-27T02:10:43.041Z</lastmod>
   </url>
   <url>
-    <loc>https://elizeumedeirosest.github.io/estatR/modulos/probabilidade.html</loc>
-    <lastmod>2026-10-27T02:18:34.089Z</lastmod>
+    <loc>https://elizeumedeirosest.github.io/estatR/modulos/multivariada.html</loc>
+    <lastmod>2026-11-01T22:52:32.727Z</lastmod>
   </url>
   <url>
-    <loc>https://elizeumedeirosest.github.io/estatR/modulos/mlg.html</loc>
-    <lastmod>2026-10-26T18:38:45.262Z</lastmod>
-  </url>
-  <url>
-    <loc>https://elizeumedeirosest.github.io/estatR/modulos/inferencia.html</loc>
-    <lastmod>2026-10-27T02:18:34.089Z</lastmod>
+    <loc>https://elizeumedeirosest.github.io/estatR/modulos/intervalos.html</loc>
+    <lastmod>2026-10-26T18:38:13.406Z</lastmod>
   </url>
   <url>
     <loc>https://elizeumedeirosest.github.io/estatR/modulos/experimentos.html</loc>
@@ -33,47 +29,47 @@
     <lastmod>2026-11-01T18:46:52.744Z</lastmod>
   </url>
   <url>
-    <loc>https://elizeumedeirosest.github.io/estatR/modulos/aprendizado_maquina.html</loc>
-    <lastmod>2026-10-27T02:10:23.615Z</lastmod>
-  </url>
-  <url>
-    <loc>https://elizeumedeirosest.github.io/estatR/index.html</loc>
-    <lastmod>2026-11-01T19:16:25.166Z</lastmod>
+    <loc>https://elizeumedeirosest.github.io/estatR/modulos/descritiva.html</loc>
+    <lastmod>2026-10-26T18:37:55.590Z</lastmod>
   </url>
   <url>
     <loc>https://elizeumedeirosest.github.io/estatR/modulos/amostragem.html</loc>
     <lastmod>2026-10-27T02:18:34.089Z</lastmod>
   </url>
   <url>
-    <loc>https://elizeumedeirosest.github.io/estatR/modulos/descritiva.html</loc>
-    <lastmod>2026-10-26T18:37:55.590Z</lastmod>
+    <loc>https://elizeumedeirosest.github.io/estatR/index.html</loc>
+    <lastmod>2026-11-01T23:44:56.834Z</lastmod>
+  </url>
+  <url>
+    <loc>https://elizeumedeirosest.github.io/estatR/modulos/aprendizado_maquina.html</loc>
+    <lastmod>2026-10-27T02:10:23.615Z</lastmod>
+  </url>
+  <url>
+    <loc>https://elizeumedeirosest.github.io/estatR/modulos/engenharia_variaveis.html</loc>
+    <lastmod>2026-11-01T23:44:14.583Z</lastmod>
   </url>
   <url>
     <loc>https://elizeumedeirosest.github.io/estatR/modulos/estocastico.html</loc>
     <lastmod>2026-11-01T18:47:01.158Z</lastmod>
   </url>
   <url>
-    <loc>https://elizeumedeirosest.github.io/estatR/modulos/imputacao.html</loc>
-    <lastmod>2026-11-01T18:47:10.400Z</lastmod>
+    <loc>https://elizeumedeirosest.github.io/estatR/modulos/inferencia.html</loc>
+    <lastmod>2026-10-27T02:18:34.089Z</lastmod>
   </url>
   <url>
-    <loc>https://elizeumedeirosest.github.io/estatR/modulos/intervalos.html</loc>
-    <lastmod>2026-10-26T18:38:13.406Z</lastmod>
+    <loc>https://elizeumedeirosest.github.io/estatR/modulos/mlg.html</loc>
+    <lastmod>2026-10-26T18:38:45.262Z</lastmod>
   </url>
   <url>
-    <loc>https://elizeumedeirosest.github.io/estatR/modulos/multivariada.html</loc>
-    <lastmod>2026-11-01T22:52:32.727Z</lastmod>
+    <loc>https://elizeumedeirosest.github.io/estatR/modulos/probabilidade.html</loc>
+    <lastmod>2026-10-27T02:18:34.089Z</lastmod>
   </url>
   <url>
-    <loc>https://elizeumedeirosest.github.io/estatR/modulos/qualidade.html</loc>
-    <lastmod>2026-10-27T02:10:43.041Z</lastmod>
+    <loc>https://elizeumedeirosest.github.io/estatR/modulos/regressao.html</loc>
+    <lastmod>2026-11-01T22:52:32.724Z</lastmod>
   </url>
   <url>
-    <loc>https://elizeumedeirosest.github.io/estatR/modulos/series_temporais.html</loc>
-    <lastmod>2026-10-26T18:39:00.561Z</lastmod>
-  </url>
-  <url>
-    <loc>https://elizeumedeirosest.github.io/estatR/modulos/transformacoes.html</loc>
-    <lastmod>2026-10-27T02:10:52.568Z</lastmod>
+    <loc>https://elizeumedeirosest.github.io/estatR/modulos/sobrevivencia.html</loc>
+    <lastmod>2026-10-27T02:10:32.311Z</lastmod>
   </url>
 </urlset>

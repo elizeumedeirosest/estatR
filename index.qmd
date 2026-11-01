@@ -53,10 +53,10 @@ toc: false
         <div class="module-link">Ver módulo →</div>
       </a>
 
-      <a href="modulos/transformacoes.qmd" class="module-card">
-        <div class="module-icon"><i class="bi bi-sliders"></i></div>
-        <div class="module-title">Transformações de Variáveis</div>
-        <div class="module-desc">Box-Cox com bandas de confiança, Yeo-Johnson, família de potências e seleção automática.</div>
+      <a href="modulos/engenharia_variaveis.qmd" class="module-card">
+        <div class="module-icon"><i class="bi bi-tools"></i></div>
+        <div class="module-title">Engenharia de Variáveis</div>
+        <div class="module-desc">Validação por fórmula, 17 métodos de imputação e transformações guiadas por objetivos.</div>
         <div class="module-link">Ver módulo →</div>
       </a>
 
@@ -123,12 +123,6 @@ toc: false
         <div class="module-link">Ver módulo →</div>
       </a>
 
-      <a href="modulos/imputacao.qmd" class="module-card">
-        <div class="module-icon"><i class="bi bi-magic"></i></div>
-        <div class="module-title">Imputação &amp; Validação</div>
-        <div class="module-desc">17 métodos de imputação de NAs e regras declarativas de validação de dados por fórmula.</div>
-        <div class="module-link">Ver módulo →</div>
-      </a>
 
       <a href="modulos/espacial.qmd" class="module-card">
         <div class="module-icon"><i class="bi bi-geo-alt"></i></div>

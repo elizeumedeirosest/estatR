@@ -1,0 +1,123 @@
+---
+title: "Engenharia de Variáveis"
+subtitle: "Validação de consistência, 17 métodos de imputação e transformações guiadas por objetivos"
+---
+
+## Visão Geral
+
+O módulo de **Engenharia de Variáveis** do `estatR` consolida em um único fluxo de trabalho as três etapas essenciais para o pré-processamento e saneamento analítico de dados:
+
+1. **Validação e Integridade**: Auditoria e regras de consistência expressas de forma declarativa por fórmulas.
+2. **Imputação de Dados Ausentes**: 17 estratégias estatísticas e de machine learning para tratamento rigoroso de `NA`.
+3. **Transformações Numéricas**: Famílias Box-Cox, Yeo-Johnson, logarítmica e transformações direcionadas por objetivos específicos (normalidade, assimetria, homocedasticidade, interpretabilidade e resíduos).
+
+---
+
+## 1. Validação e Integridade de Dados (`validar_dados()`)
+
+A função `validar_dados()` audita conjuntos de dados segundo regras lógicas expressas na sintaxe natural de fórmulas (`variavel ~ regra()`). Exibe no console uma tabela formatada com o status de conformidade, número de violações e as linhas exatas afetadas.
+
+```r
+library(estatR)
+
+# Validação com múltiplas regras declarativas
+resultado <- validar_dados(dados,
+  idade   ~ entre(0, 120),
+  cpf     ~ sem_nulos(),
+  grupo   ~ niveis_permitidos(c("Controle", "Tratamento_A", "Tratamento_B")),
+  salario ~ maior_que(0),
+  email   ~ padrao("^.+@.+\\..+$")
+)
+
+# Consulta de linhas com inconsistências
+resultado$valido               # TRUE se o banco estiver 100% conforme
+resultado$n_total_violacoes    # Total de violações encontradas
+resultado$linhas_afetadas_total # Vetor com os índices das linhas problemáticas
+```
+
+### Regras Disponíveis
+- `entre(min, max)`: Valores no intervalo fechado $[min, max]$.
+- `maior_que(x)` e `menor_que(x)`: Limiares numéricos estritos.
+- `sem_nulos()`: Verifica ausência de valores `NA`.
+- `sem_duplicatas()`: Identifica duplicidades na coluna.
+- `niveis_permitidos(v)`: Restringe categorias a um conjunto permitido.
+- `padrao(regex)`: Validação por expressão regular (e-mail, CEP, etc.).
+- `tipo_numerico()` e `tipo_texto()`: Verificação de tipo de dado.
+- `comprimento_entre(a, b)`: Contagem de caracteres em textos.
+
+---
+
+## 2. Imputação de Dados Ausentes (`imputar()`)
+
+Disponibiliza **17 métodos de imputação** de valores ausentes com relatório de diagnóstico antes vs. depois:
+
+* **Medidas Centrais Globais**: `media`, `mediana`, `moda`, `min`, `max`
+* **Medidas Centrais por Agrupamento**: `media_grupo`, `mediana_grupo`, `moda_grupo`, `min_grupo`, `max_grupo`
+* **Séries Temporais e Dados Longitudinais**: `locf` (*Last Observation Carried Forward*), `nocb` (*Next Observation Carried Backward*), `interpolacao_linear`, `interpolacao_spline`
+* **Modelagem e Machine Learning**: `regressao` (linear multivariada com base nas demais colunas), `knn` (k-vizinhos mais próximos com distância euclidiana normalizada) e `mice` (imputação múltipla por equações encadeadas)
+
+```r
+# Imputação por média condicionada ao grupo
+dados_limpos <- imputar(dados, metodo = "media_grupo", grupo = "regiao")
+
+# Imputação k-NN multivariada (k = 5 vizinhos)
+dados_knn <- imputar(dados, metodo = "knn", k = 5)
+
+# Acesso ao data frame imputado e relatório
+df_final  <- dados_knn$dados_imputados
+relatorio <- dados_knn$relatorio
+```
+
+---
+
+## 3. Transformações de Variáveis (`transformar()`)
+
+Reúne transformações clássicas e modernas com seleção automática e **orientação por objetivos analíticos**:
+
+### Métodos Clássicos
+- **Box-Cox (`"box_cox"`)**: Para dados positivos ($y > 0$), estima $\lambda$ ótimo por Máxima Verossimilhança com intervalo de confiança e curva de perfil.
+- **Yeo-Johnson (`"yeo_johnson"`)**: Suporta valores positivos, nulos e negativos.
+- **Logarítmica, Raiz Quadrada e Potências**: `log`, `log10`, `raiz_quadrada`, `potencia`, `inversa`.
+- **Específicas para Proporções**: `logit` e `arco_seno`.
+
+```r
+# Transformação Box-Cox em vetor
+res_bc <- transformar(dados$vendas, metodo = "box_cox", grafico = TRUE)
+res_bc$lambda    # Potência ótima estimada
+res_bc$valores   # Vetor transformado
+```
+
+### Transformações Guiadas por Objetivo (`objetivo`)
+
+Permite escolher a transformação que melhor atende à finalidade da análise:
+
+```r
+# Otimiza para maximizar a normalidade (critério de Shapiro-Wilk)
+res_norm <- transformar(dados$resposta, metodo = "auto", objetivo = "normalidade")
+
+# Otimiza para redução de assimetria (|skewness| -> 0)
+res_assim <- transformar(dados$renda, metodo = "auto", objetivo = "assimetria")
+
+# Otimiza estabilização da variância para homogeneidade entre grupos
+res_homo <- transformar(dados$producao, metodo = "auto", objetivo = "homocedasticidade", grupo = dados$lote)
+
+# Prioriza interpretabilidade (log natural, raiz ou inversa)
+res_interp <- transformar(dados$custo, metodo = "auto", objetivo = "interpretabilidade")
+```
+
+### Aplicação em Bancos de Dados Completos
+
+A função aceita data frames completos com seleção de múltiplas colunas:
+
+```r
+# Transforma simultaneamente múltiplas colunas
+df_transf <- transformar(
+  dados   = meubanco,
+  metodo  = "log",
+  colunas = c("renda", "gastos", "investimento"),
+  grafico = TRUE
+)
+
+# Extração do data frame transformado
+banco_pronto <- df_transf$dados_transformados
+```

@@ -5,7 +5,7 @@
 #' produz saídas no console com formatação profissional em português, gráficos
 #' editoriais automáticos com grade dupla e retorno estruturado para manipulação direta.
 #'
-#' @section Módulos Disponíveis (17 Módulos Especializados):
+#' @section Módulos Disponíveis (16 Módulos Especializados):
 #'
 #' \strong{1. 📊 Diagnóstico e Estatística Descritiva}
 #' \itemize{
@@ -44,7 +44,12 @@
 #'   \item \code{\link{bootstrap}}, \code{\link{simular_tcl}}, \code{\link{monte_carlo}} — Reamostragem computacional e simulação.
 #' }
 #'
-#' \strong{5. 🎛️ Transformações de Variáveis}
+#' \strong{5. 🛠️ Engenharia de Variáveis (Validação, Imputação e Transformação)}
+#' \itemize{
+#'   \item \code{\link{validar_dados}} — Validação de consistência e regras de integridade por fórmulas declarativas.
+#'   \item \code{\link{imputar}} — 17 métodos de imputação estatística e por Machine Learning para valores ausentes.
+#'   \item \code{\link{transformar}} — Famílias Box-Cox, Yeo-Johnson e transformações direcionadas por objetivos (normalidade, assimetria, homocedasticidade, etc.).
+#' }
 #' \itemize{
 #'   \item \code{\link{transformar}} — Família de potências de Box-Cox com intervalo de confiança de lambda, Yeo-Johnson, Log, Raiz, Logit, Arco-Seno, Padronização e seleção automática ("auto") por Shapiro-Wilk.
 #' }
@@ -122,20 +127,18 @@
 #'   \item \code{\link{tamanho_amostra}} — Dimensionamento ótimo de amostra.
 #'   \item \code{\link{poder_estatistico}} — Cálculo de poder (1 - beta) e curvas de poder para testes estatísticos.
 #' }
-#'
-#' \strong{15. 🧹 Imputação e Validação de Dados}
 #' \itemize{
 #'   \item \code{\link{imputar}} — 17 métodos de imputação estatística de dados ausentes (média, mediana, moda, LOCF, NOCB, interpolação, regressão, k-NN e MICE).
 #'   \item \code{\link{validar_dados}} — Validação de integridade de dados por fórmula (entre, sem_nulos, niveis_permitidos, padrao regex, etc.).
 #' }
 #'
-#' \strong{16. 🗺️ Estatística Espacial}
+#' \strong{15. 🗺️ Estatística Espacial}
 #' \itemize{
 #'   \item \code{\link{analise_autocorrelacao}} — Índice de Moran Global (teste pseudo-p Monte Carlo) e Moran Local (LISA) com diagrama de dispersão e quadrantes.
 #'   \item \code{\link{regressao_espacial}} — Modelos de regressão espacial autorregressivo (SAR / Spatial Lag) e com erro espacial (SEM / Spatial Error).
 #' }
 #'
-#' \strong{17. 🎲 Processos Estocásticos}
+#' \strong{16. 🎲 Processos Estocásticos}
 #' \itemize{
 #'   \item \code{\link{cadeia_markov}} — Cadeias de Markov em tempo discreto, matriz de transição, distribuição estacionária de longo prazo e simulação de trajetórias.
 #'   \item \code{\link{passeio_aleatorio}} — Simulação de trajetórias de passeio aleatório unidimensional com barreiras de absorção e tempos de ruína.

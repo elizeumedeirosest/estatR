@@ -27,8 +27,8 @@ website:
             href: modulos/intervalos.qmd
           - text: "Probabilidade e Simulação"
             href: modulos/probabilidade.qmd
-          - text: "Transformações de Variáveis"
-            href: modulos/transformacoes.qmd
+          - text: "Engenharia de Variáveis"
+            href: modulos/engenharia_variaveis.qmd
           - text: "Modelos Lineares e Regressão"
             href: modulos/regressao.qmd
           - text: "Modelos Generalizados (MLG)"
@@ -47,8 +47,6 @@ website:
             href: modulos/sobrevivencia.qmd
           - text: "Amostragem Probabilística"
             href: modulos/amostragem.qmd
-          - text: "Imputação e Validação"
-            href: modulos/imputacao.qmd
           - text: "Estatística Espacial"
             href: modulos/espacial.qmd
           - text: "Processos Estocásticos"
