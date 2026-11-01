@@ -9,6 +9,7 @@ teste_qui_quadrado(
   var_x,
   var_y,
   confianca = 0.95,
+  formato = c("resumo", "completo"),
   decimais = 2,
   grafico = TRUE
 )

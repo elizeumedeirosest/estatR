@@ -1,4 +1,4 @@
-﻿# ─────────────────────────────────────────────────────────────────────────────
+# ─────────────────────────────────────────────────────────────────────────────
 # MÓDULO: TESTES DE HIPÓTESE
 # ─────────────────────────────────────────────────────────────────────────────
 
@@ -16,9 +16,9 @@
 }
 
 .th_asterisk <- function(p) {
-  if (is.na(p) || p >= 0.10) return("")
-  if (p < 0.01) return("***")
-  if (p < 0.05) return("**")
+  if (is.na(p) || p >= 0.05) return("")
+  if (p < 0.001) return("***")
+  if (p < 0.01)  return("**")
   return("*")
 }
 
@@ -34,10 +34,11 @@
 .th_sep <- function(w) paste0("  ", strrep("\u2500", w))
 
 .th_nota_sig <- function(p) {
-  if (!is.na(p) && p < 0.10)
-    cat("  Signific\u00e2ncia: *** p < 0.01   ** p < 0.05   * p < 0.10\n")
+  if (!is.na(p) && p < 0.05) {
+    cat("  Notas:\n")
+    cat("  Significância: *** p < 0,001   ** p < 0,01   * p < 0,05\n")
+  }
 }
-
 .th_hipotese_labels <- function(hipotese, param = "\u03bc", ref = NULL, g1 = NULL, g2 = NULL) {
   op_h1 <- switch(hipotese,
     bilateral = "\u2260",
@@ -67,10 +68,11 @@
 #' @return Retorna invisivelmente o objeto do teste (\code{htest}).
 #' @export
 teste_t_uma_amostra <- function(x, mu, hipotese = c("bilateral", "maior", "menor"),
-                                 confianca = 0.95, decimais = 2, grafico = TRUE) {
+                                 confianca = 0.95,
+                                 formato = c("resumo", "completo"),
+                                 decimais = 2, grafico = TRUE) {
   hipotese <- match.arg(hipotese)
-  if (!is.numeric(x)) stop("'x' deve ser um vetor num\u00e9rico.")
-
+  formato  <- match.arg(formato)
   alt_r <- switch(hipotese, bilateral = "two.sided", maior = "greater", menor = "less")
 
   var_expr <- deparse(substitute(x))
@@ -131,7 +133,15 @@ teste_t_uma_amostra <- function(x, mu, hipotese = c("bilateral", "maior", "menor
   cat("\n")
   d_cohen <- if (dp > 0) abs(media - mu) / dp else 0
   classif_d <- if (d_cohen < 0.20) "Desprezível" else if (d_cohen < 0.50) "Pequeno" else if (d_cohen < 0.80) "Médio" else "Grande"
-  cat(sprintf("  Tamanho do Efeito (d de Cohen): %.2f (%s)\n\n", d_cohen, classif_d))
+  se_d <- sqrt(1/n + (d_cohen^2)/(2 * n))
+  ic_d <- c(d_cohen - 1.96 * se_d, d_cohen + 1.96 * se_d)
+  if (formato == "completo") {
+    cat(sprintf("  Tamanho do Efeito (d de Cohen): %.2f (%s) [IC 95%%: %.2f a %.2f]\n", d_cohen, classif_d, max(0, ic_d[1]), ic_d[2]))
+    pot_est <- tryCatch(stats::power.t.test(n = n, d = d_cohen, sig.level = 1 - confianca, type = "one.sample")$power, error = function(e) NA_real_)
+    if (!is.na(pot_est)) cat(sprintf("  Poder Estatístico Observado (1 - β): %.1f%%\n\n", pot_est * 100)) else cat("\n")
+  } else {
+    cat(sprintf("  Tamanho do Efeito (d de Cohen): %.2f (%s)\n\n", d_cohen, classif_d))
+  }
 
   # Interpretação
   .print_topico("INTERPRETA\u00c7\u00c3O")
@@ -225,8 +235,10 @@ teste_t_uma_amostra <- function(x, mu, hipotese = c("bilateral", "maior", "menor
 #' @export
 teste_t_duas_amostras <- function(x, grupo, hipotese = c("bilateral", "maior", "menor"),
                                    variancia_igual = FALSE, confianca = 0.95,
+                                   formato = c("resumo", "completo"),
                                    decimais = 2, grafico = TRUE) {
   hipotese <- match.arg(hipotese)
+  formato  <- match.arg(formato)
 
   # NSE: aceita data.frame + nome de coluna sem aspas
   grupo_sub  <- substitute(grupo)
@@ -336,7 +348,16 @@ teste_t_duas_amostras <- function(x, grupo, hipotese = c("bilateral", "maior", "
   sp <- sqrt(((n1 - 1)*s1^2 + (n2 - 1)*s2^2) / (n1 + n2 - 2))
   d_cohen <- if (sp > 0) abs(mean(vals1) - mean(vals2)) / sp else 0
   classif_d <- if (d_cohen < 0.20) "Desprezível" else if (d_cohen < 0.50) "Pequeno" else if (d_cohen < 0.80) "Médio" else "Grande"
-  cat(sprintf("  Tamanho do Efeito (d de Cohen): %.2f (%s)\n\n", d_cohen, classif_d))
+  se_d <- sqrt((n1 + n2)/(n1 * n2) + (d_cohen^2)/(2 * (n1 + n2)))
+  ic_d <- c(d_cohen - 1.96 * se_d, d_cohen + 1.96 * se_d)
+  if (formato == "completo") {
+    cat(sprintf("  Tamanho do Efeito (d de Cohen): %.2f (%s) [IC 95%%: %.2f a %.2f]\n", d_cohen, classif_d, max(0, ic_d[1]), ic_d[2]))
+    # Potência estimada
+    pot_est <- tryCatch(stats::power.t.test(n = min(n1, n2), d = d_cohen, sig.level = 1 - confianca)$power, error = function(e) NA_real_)
+    if (!is.na(pot_est)) cat(sprintf("  Poder Estatístico Observado (1 - β): %.1f%%\n\n", pot_est * 100)) else cat("\n")
+  } else {
+    cat(sprintf("  Tamanho do Efeito (d de Cohen): %.2f (%s)\n\n", d_cohen, classif_d))
+  }
 
   # ── Interpretação ──────────────────────────────────────────────────────────
   alpha <- 1 - confianca
@@ -426,10 +447,11 @@ teste_t_duas_amostras <- function(x, grupo, hipotese = c("bilateral", "maior", "
 #' @return Retorna invisivelmente o objeto do teste (\code{htest}).
 #' @export
 teste_t_pareado <- function(x, y, hipotese = c("bilateral", "maior", "menor"),
-                             confianca = 0.95, decimais = 2, grafico = TRUE) {
+                             confianca = 0.95,
+                             formato = c("resumo", "completo"),
+                             decimais = 2, grafico = TRUE) {
   hipotese <- match.arg(hipotese)
-  if (!is.numeric(x) || !is.numeric(y)) stop("'x' e 'y' devem ser vetores num\u00e9ricos.")
-  if (length(x) != length(y)) stop("'x' e 'y' devem ter o mesmo comprimento.")
+  formato  <- match.arg(formato)
 
   x_expr <- deparse(substitute(x)); x_nome <- sub(".*\\$", "", x_expr)
   y_expr <- deparse(substitute(y)); y_nome <- sub(".*\\$", "", y_expr)
@@ -509,7 +531,16 @@ teste_t_pareado <- function(x, y, hipotese = c("bilateral", "maior", "menor"),
   sd_dif <- stats::sd(dif)
   d_cohen <- if (sd_dif > 0) abs(media_dif) / sd_dif else 0
   classif_d <- if (d_cohen < 0.20) "Desprezível" else if (d_cohen < 0.50) "Pequeno" else if (d_cohen < 0.80) "Médio" else "Grande"
-  cat(sprintf("  Tamanho do Efeito (d de Cohen): %.2f (%s)\n\n", d_cohen, classif_d))
+  n_par <- length(dif_c)
+  se_d <- sqrt(1/n_par + (d_cohen^2)/(2 * n_par))
+  ic_d <- c(d_cohen - 1.96 * se_d, d_cohen + 1.96 * se_d)
+  if (formato == "completo") {
+    cat(sprintf("  Tamanho do Efeito (d de Cohen): %.2f (%s) [IC 95%%: %.2f a %.2f]\n", d_cohen, classif_d, max(0, ic_d[1]), ic_d[2]))
+    pot_est <- tryCatch(stats::power.t.test(n = n_par, d = d_cohen, sig.level = 1 - confianca, type = "paired")$power, error = function(e) NA_real_)
+    if (!is.na(pot_est)) cat(sprintf("  Poder Estatístico Observado (1 - β): %.1f%%\n\n", pot_est * 100)) else cat("\n")
+  } else {
+    cat(sprintf("  Tamanho do Efeito (d de Cohen): %.2f (%s)\n\n", d_cohen, classif_d))
+  }
 
   # Interpretação
   alpha <- 1 - confianca
@@ -724,8 +755,12 @@ teste_proporcao <- function(x, n, p0, hipotese = c("bilateral", "maior", "menor"
 #' @param decimais Casas decimais para exibição (padrão \code{2}).
 #' @return Retorna invisivelmente o objeto do teste (\code{htest}).
 #' @export
-teste_wilcoxon <- function(x, y = NULL, mu = 0, hipotese = c("bilateral", "maior", "menor"), confianca = 0.95, decimais = 2, grafico = TRUE) {
+teste_wilcoxon <- function(x, y = NULL, mu = 0, hipotese = c("bilateral", "maior", "menor"),
+                           confianca = 0.95,
+                           formato = c("resumo", "completo"),
+                           decimais = 2, grafico = TRUE) {
   hipotese <- match.arg(hipotese)
+  formato  <- match.arg(formato)
   alt_r    <- switch(hipotese, bilateral = "two.sided", maior = "greater", menor = "less")
 
   x_expr <- deparse(substitute(x)); x_nome <- sub(".*\\$", "", x_expr)
@@ -776,11 +811,19 @@ teste_wilcoxon <- function(x, y = NULL, mu = 0, hipotese = c("bilateral", "maior
   cat(.th_sep(nchar(hdr_c)), "\n")
   .th_nota_sig(p_val)
   cat("\n")
-  n_total_tab <- sum(tab)
-  k_min <- min(nrow(tab) - 1, ncol(tab) - 1)
-  v_cramer <- if (k_min > 0 && n_total_tab > 0) sqrt(as.numeric(chi2) / (n_total_tab * k_min)) else 0
-  classif_v <- if (v_cramer < 0.10) "Desprezível" else if (v_cramer < 0.30) "Pequeno" else if (v_cramer < 0.50) "Médio" else "Grande"
-  cat(sprintf("  Tamanho do Efeito (V de Cramér): %.3f (%s)\n\n", v_cramer, classif_v))
+  n_wx <- if (pareado) length(x[!is.na(x) & !is.na(y)]) else length(x[!is.na(x)])
+  z_approx <- abs(stats::qnorm(p_val / 2))
+  if (is.infinite(z_approx) || is.na(z_approx)) z_approx <- 0
+  r_efeito <- if (n_wx > 0) z_approx / sqrt(n_wx) else 0
+  classif_r <- if (r_efeito < 0.10) "Desprezível" else if (r_efeito < 0.30) "Pequeno" else if (r_efeito < 0.50) "Médio" else "Grande"
+  se_r <- if (n_wx > 3) 1 / sqrt(n_wx - 3) else 0.1
+  ic_r <- c(max(0, r_efeito - 1.96 * se_r), min(1, r_efeito + 1.96 * se_r))
+  if (formato == "completo") {
+    cat(sprintf("  Tamanho do Efeito (r de Wilcoxon): %.3f (%s) [IC 95%%: %.3f a %.3f]\n", r_efeito, classif_r, ic_r[1], ic_r[2]))
+    cat(sprintf("  Z aproximado: %.3f   |   N efetivo: %d\n\n", z_approx, n_wx))
+  } else {
+    cat(sprintf("  Tamanho do Efeito (r de Wilcoxon): %.3f (%s)\n\n", r_efeito, classif_r))
+  }
 
   alpha <- 1 - confianca
   .print_topico("INTERPRETA\u00c7\u00c3O")
@@ -862,9 +905,12 @@ teste_wilcoxon <- function(x, y = NULL, mu = 0, hipotese = c("bilateral", "maior
 #' @param decimais Casas decimais para exibição (padrão \code{2}).
 #' @return Retorna invisivelmente o objeto do teste (\code{htest}).
 #' @export
-teste_mann_whitney <- function(x, grupo, hipotese = c("bilateral", "maior", "menor"), confianca = 0.95, decimais = 2, grafico = TRUE) {
+teste_mann_whitney <- function(x, grupo, hipotese = c("bilateral", "maior", "menor"),
+                               confianca = 0.95,
+                               formato = c("resumo", "completo"),
+                               decimais = 2, grafico = TRUE) {
   hipotese <- match.arg(hipotese)
-
+  formato  <- match.arg(formato)
   grupo_sub  <- substitute(grupo)
   grupo_nome <- sub(".*\\$", "", deparse(grupo_sub))
   x_expr     <- deparse(substitute(x))
@@ -934,11 +980,22 @@ teste_mann_whitney <- function(x, grupo, hipotese = c("bilateral", "maior", "men
   cat(.th_sep(nchar(hdr_c)), "\n")
   .th_nota_sig(p_val)
   cat("\n")
-  n_total_tab <- sum(tab)
-  k_min <- min(nrow(tab) - 1, ncol(tab) - 1)
-  v_cramer <- if (k_min > 0 && n_total_tab > 0) sqrt(as.numeric(chi2) / (n_total_tab * k_min)) else 0
-  classif_v <- if (v_cramer < 0.10) "Desprezível" else if (v_cramer < 0.30) "Pequeno" else if (v_cramer < 0.50) "Médio" else "Grande"
-  cat(sprintf("  Tamanho do Efeito (V de Cramér): %.3f (%s)\n\n", v_cramer, classif_v))
+  n_mw <- length(vals1) + length(vals2)
+  z_approx <- abs(stats::qnorm(p_val / 2))
+  if (is.infinite(z_approx) || is.na(z_approx)) z_approx <- 0
+  r_efeito <- if (n_mw > 0) z_approx / sqrt(n_mw) else 0
+  classif_r <- if (r_efeito < 0.10) "Desprezível" else if (r_efeito < 0.30) "Pequeno" else if (r_efeito < 0.50) "Médio" else "Grande"
+  # Correlação Rank-Biserial: r_rb = 1 - 2*U / (n1 * n2)
+  u1 <- as.numeric(W)
+  r_rb <- 1 - (2 * u1) / (length(vals1) * length(vals2))
+  se_r <- if (n_mw > 3) 1 / sqrt(n_mw - 3) else 0.1
+  ic_r <- c(max(0, r_efeito - 1.96 * se_r), min(1, r_efeito + 1.96 * se_r))
+  if (formato == "completo") {
+    cat(sprintf("  Tamanho do Efeito (r): %.3f (%s) [IC 95%%: %.3f a %.3f]\n", r_efeito, classif_r, ic_r[1], ic_r[2]))
+    cat(sprintf("  Rank-Biserial (r_rb): %.3f   |   Z aproximado: %.3f\n\n", r_rb, z_approx))
+  } else {
+    cat(sprintf("  Tamanho do Efeito (r): %.3f (%s)\n\n", r_efeito, classif_r))
+  }
 
   alpha <- 1 - confianca
   .print_topico("INTERPRETA\u00c7\u00c3O")
@@ -1014,9 +1071,12 @@ teste_mann_whitney <- function(x, grupo, hipotese = c("bilateral", "maior", "men
 #' @param decimais Casas decimais para exibição (padrão \code{2}).
 #' @return Retorna invisivelmente o objeto do teste (\code{htest}).
 #' @export
-teste_qui_quadrado <- function(dados, var_x, var_y, confianca = 0.95, decimais = 2, grafico = TRUE) {
-  vx_sub  <- substitute(var_x)
-  vy_sub  <- substitute(var_y)
+teste_qui_quadrado <- function(dados, var_x, var_y, confianca = 0.95,
+                               formato = c("resumo", "completo"),
+                               decimais = 2, grafico = TRUE) {
+  formato  <- match.arg(formato)
+  vx_sub   <- substitute(var_x)
+  vy_sub   <- substitute(var_y)
   vx_nome <- as.character(vx_sub)
   vy_nome <- as.character(vy_sub)
   if (length(vx_nome) > 1 || !vx_nome %in% names(dados)) {
@@ -1069,7 +1129,17 @@ teste_qui_quadrado <- function(dados, var_x, var_y, confianca = 0.95, decimais =
   k_min <- min(nrow(tab) - 1, ncol(tab) - 1)
   v_cramer <- if (k_min > 0 && n_total_tab > 0) sqrt(as.numeric(chi2) / (n_total_tab * k_min)) else 0
   classif_v <- if (v_cramer < 0.10) "Desprezível" else if (v_cramer < 0.30) "Pequeno" else if (v_cramer < 0.50) "Médio" else "Grande"
-  cat(sprintf("  Tamanho do Efeito (V de Cramér): %.3f (%s)\n\n", v_cramer, classif_v))
+  se_v <- if (n_total_tab > 1) sqrt((1 - v_cramer^2) / n_total_tab) else 0.05
+  ic_v <- c(max(0, v_cramer - 1.96 * se_v), min(1, v_cramer + 1.96 * se_v))
+  if (formato == "completo") {
+    cat(sprintf("  Tamanho do Efeito (V de Cramér): %.3f (%s) [IC 95%%: %.3f a %.3f]\n", v_cramer, classif_v, ic_v[1], ic_v[2]))
+    # Poder post-hoc usando distribuição qui-quadrado não-central
+    q_crit <- stats::qchisq(confianca, df = gl)
+    poder_chi <- 1 - stats::pchisq(q_crit, df = gl, ncp = as.numeric(chi2))
+    cat(sprintf("  Poder Estatístico Observado (1 - β): %.1f%%\n\n", poder_chi * 100))
+  } else {
+    cat(sprintf("  Tamanho do Efeito (V de Cramér): %.3f (%s)\n\n", v_cramer, classif_v))
+  }
 
   alpha <- 1 - confianca
   .print_topico("INTERPRETA\u00c7\u00c3O")

@@ -547,8 +547,16 @@ metricas <- function(modelo, corte_prob = 0.5) {
 #' @param grafico Lógico. Se TRUE, exibe o painel gráfico de diagnóstico dos resíduos.
 #' @return Retorna invisivelmente uma lista com os objetos dos testes estatísticos realizados.
 #' @export
-analise_residual <- function(modelo, grafico = TRUE) {
+analise_residual <- function(modelo, grafico = TRUE, simulacao = FALSE, n_sim = 250) {
   # Suporte a Regressão Espacial
+  # Diagnóstico Residual por Simulação (estilo DHARMa para GLM / Contagem ou sob demanda)
+  if (isTRUE(simulacao)) {
+    return(.analise_residual_simulada(modelo, n_sim = n_sim, grafico = grafico))
+  }
+  # Suporte a Modelos Lineares Mistos
+  if (inherits(modelo, "estatR_regressao_mista")) {
+    if (!is.null(modelo$modelo_lme4)) modelo <- modelo$modelo_lme4
+  }
   if (inherits(modelo, "estatR_regressao_espacial")) {
     if (exists("analise_residual_espacial", mode = "function")) {
       return(analise_residual_espacial(modelo, grafico = grafico))
@@ -642,12 +650,24 @@ analise_residual <- function(modelo, grafico = TRUE) {
 
   # 2. Homocedasticidade (Breusch-Pagan, base R)
   res_sq       <- res^2
-  dados_modelo <- modelo$model
-  bp_mod       <- lm(res_sq ~ ., data = dados_modelo[, -1, drop = FALSE])
-  r2_bp        <- summary(bp_mod)$r.squared
-  bp_stat      <- n * r2_bp
-  df_bp        <- length(modelo$coefficients) - 1
-  p_bp         <- pchisq(bp_stat, df_bp, lower.tail = FALSE)
+  dados_modelo <- if (inherits(modelo, "merMod")) stats::model.frame(modelo) else modelo$model
+  if (is.null(dados_modelo)) dados_modelo <- tryCatch(stats::model.frame(modelo), error = function(e) NULL)
+  if (!is.null(dados_modelo) && ncol(dados_modelo) > 1) {
+    # Remove termos com barra se presentes (efeitos aleatorios)
+    vars_pred <- names(dados_modelo)[-1]
+    vars_pred <- vars_pred[!grepl("\\|", vars_pred)]
+    sub_dados <- dados_modelo[, vars_pred, drop = FALSE]
+    # Converte fatores para evitar singularidades
+    bp_mod  <- tryCatch(stats::lm(res_sq ~ ., data = sub_dados), error = function(e) NULL)
+    r2_bp   <- if (!is.null(bp_mod)) summary(bp_mod)$r.squared else 0
+    bp_stat <- n * r2_bp
+    n_coef  <- if (inherits(modelo, "merMod")) length(lme4::fixef(modelo)) else length(modelo$coefficients)
+    df_bp   <- max(1, n_coef - 1)
+    p_bp    <- stats::pchisq(bp_stat, df_bp, lower.tail = FALSE)
+  } else {
+    bp_stat <- 0
+    p_bp    <- 1
+  }
 
   # 3. Independência (Durbin-Watson, base R)
   diff_res <- diff(res)
@@ -1476,4 +1496,255 @@ multicolinearidade <- function(modelo, grafico = FALSE) {
   }
 
   invisible(tabela_vif)
+}
+
+
+# ==============================================================================
+# DIAGNÓSTICO RESIDUAL POR SIMULAÇÃO (ESTILO DHARMA)
+# ==============================================================================
+
+.analise_residual_simulada <- function(modelo, n_sim = 250, grafico = TRUE) {
+  # Extração da resposta observada
+  y_obs <- tryCatch({
+    if (!is.null(modelo$y)) modelo$y else stats::model.response(stats::model.frame(modelo))
+  }, error = function(e) NULL)
+
+  if (is.null(y_obs)) {
+    stop("Não foi possível extrair a variável resposta do modelo para o diagnóstico por simulação.")
+  }
+
+  n <- length(y_obs)
+
+  # Simulação condicional das respostas sob o modelo ajustado
+  sims <- tryCatch(stats::simulate(modelo, nsim = n_sim), error = function(e) NULL)
+  if (is.null(sims)) {
+    # Fallback para GLM de contagem e gaussian
+    mu_hat <- stats::fitted(modelo)
+    sim_mat <- matrix(0, nrow = n, ncol = n_sim)
+    fam_nm <- if (!is.null(modelo$family)) modelo$family$family else "gaussian"
+    for (s in seq_len(n_sim)) {
+      if (grepl("poisson", fam_nm, ignore.case = TRUE)) {
+        sim_mat[, s] <- stats::rpois(n, lambda = pmax(mu_hat, 1e-6))
+      } else if (grepl("binomial", fam_nm, ignore.case = TRUE)) {
+        sim_mat[, s] <- stats::rbinom(n, size = 1, prob = pmax(pmin(mu_hat, 1 - 1e-6), 1e-6))
+      } else {
+        sig <- stats::sd(stats::residuals(modelo))
+        sim_mat[, s] <- stats::rnorm(n, mean = mu_hat, sd = sig)
+      }
+    }
+  } else {
+    sim_mat <- as.matrix(sims)
+  }
+
+  # Cálculo dos resíduos empíricos acumulados uniformes (com randomização de empates)
+  u_res <- numeric(n)
+  for (i in seq_len(n)) {
+    menores <- sum(sim_mat[i, ] < y_obs[i])
+    iguais  <- sum(sim_mat[i, ] == y_obs[i])
+    u_res[i] <- (menores + 0.5 * iguais) / n_sim
+  }
+  # Previne valores exatamente em 0 ou 1
+  u_res <- pmax(pmin(u_res, 1 - 1/(2 * n_sim)), 1/(2 * n_sim))
+
+  # 1. Teste de Kolmogorov-Smirnov para Uniformidade dos Resíduos
+  ks_res <- suppressWarnings(stats::ks.test(u_res, "punif"))
+  .fmt_f_loc <- function(x, d = 3) {
+    if (is.na(x)) return("-")
+    formatC(x, format = "f", digits = d, decimal.mark = ",")
+  }
+  stat_ks <- sprintf("D = %-9s", .fmt_f_loc(as.numeric(ks_res$statistic), 3))
+  p_ks    <- ks_res$p.value
+
+  # 2. Teste de Sobredispersão (Razão de Variâncias e Qui-Quadrado empírico)
+  res_pearson <- tryCatch(stats::residuals(modelo, type = "pearson"), error = function(e) (y_obs - stats::fitted(modelo)))
+  var_obs <- stats::var(res_pearson)
+  sim_vars <- apply(sim_mat, 2, function(col_s) {
+    mu_s <- stats::fitted(modelo)
+    stats::var((col_s - mu_s) / sqrt(pmax(mu_s, 1e-4)))
+  })
+  media_sim_var <- mean(sim_vars, na.rm = TRUE)
+  if (is.na(media_sim_var) || media_sim_var == 0) media_sim_var <- 1
+  ratio_disp <- var_obs / media_sim_var
+  p_disp <- mean(sim_vars >= var_obs)
+  p_disp <- 2 * min(p_disp, 1 - p_disp)
+  p_disp <- min(1, p_disp)
+  stat_disp <- sprintf("χ² / Razão = %-5s", .fmt_f_loc(ratio_disp, 2))
+
+  # 3. Teste de Excesso de Zeros
+  prop_zeros_obs <- mean(y_obs == 0)
+  prop_zeros_sim <- colMeans(sim_mat == 0)
+  p_zeros <- mean(prop_zeros_sim >= prop_zeros_obs)
+  p_zeros <- 2 * min(p_zeros, 1 - p_zeros)
+  p_zeros <- min(1, p_zeros)
+  stat_zeros <- sprintf("Prop = %-5s%%", .fmt_f_loc(prop_zeros_obs * 100, 1))
+
+  formata_p <- function(p) {
+    if (is.na(p)) return("-")
+    if (p < 0.001) return("< 0,001 ***")
+    ast <- if (p < 0.01) " **" else if (p < 0.05) " *" else ""
+    paste0(formatC(p, format = "f", digits = 3, decimal.mark = ","), ast)
+  }
+
+  linha <- paste0(strrep("─", 60), "
+")
+
+  if (exists(".print_titulo", mode = "function")) {
+    .print_titulo("DIAGNÓSTICO RESIDUAL POR SIMULAÇÃO")
+  } else {
+    cat("
+── DIAGNÓSTICO RESIDUAL POR SIMULAÇÃO ──
+")
+  }
+
+  cat(sprintf("  Amostra Válida (N):   %d observações
+", n))
+  cat(sprintf("  Simulações Geradas:   %d réplicas empíricas
+", n_sim))
+  cat(sprintf("  Método Diagnóstico:   Resíduos Quantílicos Escalonados U(0,1)
+
+"))
+
+  cat(sprintf("  %-26s %-18s %s
+", "Pressuposto", "Estatística", "p-valor"))
+  cat("  ", linha, sep = "")
+  cat(sprintf("  %-26s %-18s %s
+", "Uniformidade (KS)", stat_ks, formata_p(p_ks)))
+  cat(sprintf("  %-26s %-18s %s
+", "Sobredispersão", stat_disp, formata_p(p_disp)))
+  cat(sprintf("  %-26s %-18s %s
+", "Excesso de Zeros", stat_zeros, formata_p(p_zeros)))
+  cat("  ", linha, sep = "")
+  cat("  Notas:
+")
+  cat("  Significância: *** p < 0,001   ** p < 0,01   * p < 0,05
+
+")
+
+  if (exists(".print_topico", mode = "function")) {
+    .print_topico("INTERPRETAÇÃO DO DIAGNÓSTICO")
+  } else {
+    cat("  ▶ INTERPRETAÇÃO DO DIAGNÓSTICO
+")
+  }
+
+  cor_ok   <- "[1;32m"
+  cor_erro <- "[1;31m"
+  reset    <- "[0m"
+
+  if (p_ks < 0.05) {
+    cat(sprintf("  %s[!]%s O teste de Kolmogorov-Smirnov rejeitou a hipótese de uniformidade
+    (p = %s). A distribuição empírica dos resíduos difere da esperada pelo modelo.
+
+",
+                cor_erro, reset, formata_p(p_ks)))
+  } else {
+    cat(sprintf("  %s[✓]%s Os resíduos simulados seguem distribuição conforme a especificação do modelo (p = %s).
+
+",
+                cor_ok, reset, formata_p(p_ks)))
+  }
+
+  if (p_disp < 0.05) {
+    cat(sprintf("  %s[!]%s Sobredispersão detectada (Razão = %.2f, p = %s).
+    A variância empírica excede a variância teórica postulada pela família do modelo.
+
+",
+                cor_erro, reset, ratio_disp, formata_p(p_disp)))
+  } else {
+    cat(sprintf("  %s[✓]%s Sem evidências de sobre ou subdispersão (Razão = %.2f, p = %s).
+    A dispersão observada é plenamente compatível com as réplicas simuladas.
+
+",
+                cor_ok, reset, ratio_disp, formata_p(p_disp)))
+  }
+
+  if (p_zeros < 0.05) {
+    cat(sprintf("  %s[!]%s Excesso ou déficit de zeros detectado (Prop. Observada = %.1f%%, p = %s).
+    Recomenda-se avaliar modelos com inflação de zeros (ZIP ou ZINB).
+
+",
+                cor_erro, reset, prop_zeros_obs * 100, formata_p(p_zeros)))
+  } else {
+    cat(sprintf("  %s[✓]%s A proporção de zeros observada (%.1f%%) é compatível com o processo gerador do modelo (p = %s).
+
+",
+                cor_ok, reset, prop_zeros_obs * 100, formata_p(p_zeros)))
+  }
+
+  if (exists(".print_rodape", mode = "function")) {
+    .print_rodape()
+  } else {
+    cat("──────────────────────────────────────────────────────────────────────────────
+")
+  }
+
+  # Painel Gráfico 4-em-1
+  if (isTRUE(grafico)) {
+    tryCatch({
+      df_diag <- data.frame(
+        Ajustados = stats::fitted(modelo),
+        Residuos  = u_res,
+        Index     = seq_len(n)
+      )
+
+      # 1. QQ-plot uniforme
+      q_teor <- stats::qunif(ppoints(n))
+      q_amost <- sort(u_res)
+      df_qq <- data.frame(Teorico = q_teor, Amostral = q_amost)
+
+      p1 <- ggplot2::ggplot(df_qq, ggplot2::aes(x = Teorico, y = Amostral)) +
+        ggplot2::geom_point(color = "#1D3557", alpha = 0.7, size = 1.8) +
+        ggplot2::geom_abline(intercept = 0, slope = 1, color = "#E63946", linewidth = 0.9, linetype = "dashed") +
+        ggplot2::labs(title = "QQ-Plot dos Resíduos Simulados", x = "Quantis Teóricos U(0,1)", y = "Quantis Amostrais")
+
+      # 2. Resíduos vs Ajustados com quantis horizontais
+      p2 <- ggplot2::ggplot(df_diag, ggplot2::aes(x = Ajustados, y = Residuos)) +
+        ggplot2::geom_point(color = "#1D3557", alpha = 0.6, size = 1.8) +
+        ggplot2::geom_hline(yintercept = 0.50, color = "#E63946", linewidth = 0.8) +
+        ggplot2::geom_hline(yintercept = c(0.25, 0.75), color = "gray50", linetype = "dashed") +
+        ggplot2::labs(title = "Resíduos vs Valores Preditos", x = "Valores Ajustados", y = "Resíduo Escalonado U(0,1)")
+
+      # 3. Histograma dos Resíduos Empíricos
+      p3 <- ggplot2::ggplot(df_diag, ggplot2::aes(x = Residuos)) +
+        ggplot2::geom_histogram(ggplot2::aes(y = ggplot2::after_stat(density)), bins = 15, fill = "#1D3557", alpha = 0.45, color = "white") +
+        ggplot2::geom_hline(yintercept = 1, color = "#E63946", linetype = "dashed", linewidth = 0.8) +
+        ggplot2::labs(title = "Histograma dos Resíduos", x = "Resíduo Escalonado U(0,1)", y = "Densidade")
+
+      # 4. Distribuição Simulada da Frequência de Zeros
+      df_zeros <- data.frame(Prop_Zeros = prop_zeros_sim * 100)
+      p4 <- ggplot2::ggplot(df_zeros, ggplot2::aes(x = Prop_Zeros)) +
+        ggplot2::geom_histogram(bins = 15, fill = "#457B9D", alpha = 0.5, color = "white") +
+        ggplot2::geom_vline(xintercept = prop_zeros_obs * 100, color = "#E63946", linewidth = 1.1) +
+        ggplot2::labs(title = "Diagnóstico de Zeros", x = "Proporção de Zeros (%)", y = "Frequência Simulada")
+
+      if (exists("meu_tema", mode = "function")) {
+        p1 <- p1 + meu_tema(); p2 <- p2 + meu_tema()
+        p3 <- p3 + meu_tema(); p4 <- p4 + meu_tema()
+      } else if (exists("tema_estatR", mode = "function")) {
+        p1 <- p1 + tema_estatR(estilo = 2); p2 <- p2 + tema_estatR(estilo = 2)
+        p3 <- p3 + tema_estatR(estilo = 2); p4 <- p4 + tema_estatR(estilo = 2)
+      } else {
+        p1 <- p1 + ggplot2::theme_minimal(); p2 <- p2 + ggplot2::theme_minimal()
+        p3 <- p3 + ggplot2::theme_minimal(); p4 <- p4 + ggplot2::theme_minimal()
+      }
+
+      if (requireNamespace("patchwork", quietly = TRUE)) {
+        painel <- (p1 | p2) / (p3 | p4)
+        print(painel)
+      } else {
+        print(p1)
+      }
+    }, error = function(e) NULL)
+  }
+
+  res_diag <- list(
+    residuos_simulados = u_res,
+    teste_uniformidade = ks_res,
+    razao_dispersao    = ratio_disp,
+    p_dispersao        = p_disp,
+    prop_zeros_obs     = prop_zeros_obs,
+    p_zeros            = p_zeros,
+    n_sim              = n_sim
+  )
+  invisible(res_diag)
 }

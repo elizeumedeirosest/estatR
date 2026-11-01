@@ -253,7 +253,17 @@ predicao(modelo2, data.frame(wt = 2.5, hp = 110), intervalo = "predicao")
 # Métricas e diagnóstico de resíduos polimórfico
 metricas(modelo1)
 analise_residual(modelo1)
+analise_residual(mod_mlg, simulacao = TRUE) # Diagnóstico por simulação empírica (DHARMa-style)
 grafico_coeficientes(modelo1)
+
+# Predição Conformal (Intervalos Preditivos com Cobertura Garantida)
+predicao_conformal(modelo1, nivel = 0.95)
+
+# Regressão Quantílica (Modelagem em múltiplos quantis e mediana)
+regressao_quantilica(mpg ~ wt + hp, dados = mtcars, quantis = c(0.10, 0.25, 0.50, 0.75, 0.90))
+
+# Modelos Lineares Mistos e Hierárquicos (Efeitos Fixos, Aleatórios e ICC)
+regressao_mista(Reaction ~ Days + (1 | Subject), dados = lme4::sleepstudy)
 
 # Diagnóstico de Alavancagem e Pontos Influentes (Cook, Leverage, DFFITS e reajuste comparativo)
 pontos_influentes(modelo1)
@@ -405,6 +415,27 @@ screeplot_acp(modelo_acp)
 
 # Biplot com grupos e elipses de confiança
 biplot_acp(modelo_acp, grupo = mtcars$cyl, elipses = TRUE)
+```
+
+**Análise de Correspondência Simples (CA) e Múltipla (MCA)**
+
+```r
+# Análise de Correspondência Simples (tabela de contingência ou 2 fatores)
+tab_corresp <- apply(HairEyeColor, c(1, 2), sum)
+res_ca <- analise_correspondencia(tab_corresp)
+biplot_correspondencia(res_ca)
+
+# Análise de Correspondência Múltipla (MCA com Ajuste de Benzécri)
+res_mca <- analise_correspondencia_multipla(df_categorico, ajuste_benzecri = TRUE)
+biplot_mca(res_mca)
+```
+
+**Agrupamento para Dados Mistos (Gower + PAM)**
+
+```r
+# Cluster com variáveis numéricas e qualitativas simultaneamente
+res_misto <- cluster_misto(banco_misto, k = 3)
+plot_cluster_misto(res_misto)
 ```
 
 **Análise Fatorial Exploratória (AFE)**

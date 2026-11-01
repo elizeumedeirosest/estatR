@@ -63,3 +63,66 @@ biplot_lda(res_lda)
 res_manova <- analise_manova(cbind(Sepal.Length, Sepal.Width) ~ Species, dados = iris)
 plot_manova(res_manova)
 ```
+
+
+---
+
+## Análise de Correspondência Simples (CA)
+
+```r
+# A partir de uma tabela de contingência
+tab <- apply(HairEyeColor, c(1, 2), sum)
+res_ca <- analise_correspondencia(tab)
+
+# A partir de um data frame com duas variáveis categóricas
+res_ca2 <- analise_correspondencia(banco, var1 = Regiao, var2 = Porte)
+
+# Acesso aos resultados
+res_ca$chi2           # χ², graus de liberdade e p-valor
+res_ca$inercia_total  # Inércia total da tabela
+res_ca$autovalores    # Variância explicada por dimensão
+res_ca$coords_linhas  # Coordenadas principais das categorias de linha
+res_ca$coords_colunas # Coordenadas principais das categorias de coluna
+
+# Mapa perceptual simétrico
+biplot_correspondencia(res_ca)
+```
+
+---
+
+## Análise de Correspondência Múltipla (MCA)
+
+```r
+# MCA com correção de Benzécri para 3+ variáveis qualitativas
+res_mca <- analise_correspondencia_multipla(
+  banco_categorico,
+  variaveis = c("Escolaridade", "Renda", "Regiao"),
+  ajuste_benzecri = TRUE
+)
+
+# Resultados
+res_mca$autovalores         # Inércia bruta e ajustada por dimensão
+res_mca$coords_categorias   # Coordenadas de cada categoria no espaço reduzido
+res_mca$coords_individuos   # Projeção dos indivíduos nas dimensões
+
+# Mapa de categorias
+biplot_mca(res_mca)
+```
+
+---
+
+## Agrupamento para Dados Mistos (Gower + PAM)
+
+```r
+# Cluster com variáveis numéricas e categóricas simultaneamente
+res_misto <- cluster_misto(banco_misto, k = 3)
+
+# Resultados
+res_misto$clusters             # Vetor de classificação por observação
+res_misto$silhueta$global      # Silhueta média global
+res_misto$silhueta$por_grupo   # Silhueta por cluster
+res_misto$perfil_numerico      # Média das variáveis numéricas por grupo
+
+# Projeção bidimensional (PCoA)
+plot_cluster_misto(res_misto)
+```

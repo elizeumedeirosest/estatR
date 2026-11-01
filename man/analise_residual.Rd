@@ -4,7 +4,7 @@
 \alias{analise_residual}
 \title{Análise Residual}
 \usage{
-analise_residual(modelo, grafico = TRUE)
+analise_residual(modelo, grafico = TRUE, simulacao = FALSE, n_sim = 250)
 }
 \arguments{
 \item{modelo}{Objeto de modelo ajustado do tipo \code{lm}, \code{glm}, \code{aov},

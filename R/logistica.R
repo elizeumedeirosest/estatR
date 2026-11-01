@@ -280,7 +280,8 @@ regressao_logistica <- function(formula, dados, ligacao = "logit",
   aj_row("AICc",  sprintf("%.2f", aicc_val))
   aj_row("BIC",   sprintf("%.2f", bic_val))
   cat(aj_sep, "\n")
-  cat("  Significância: *** p < 0,01   ** p < 0,05   * p < 0,10\n\n")
+  cat("  Notas:\n")
+  cat("  Signific\u00e2ncia: *** p < 0,001   ** p < 0,01   * p < 0,05\n\n")
 
   .print_topico("MÉTRICAS DE PERFORMANCE")
   cat(aj_sep, "\n")
@@ -375,7 +376,7 @@ regressao_logistica <- function(formula, dados, ligacao = "logit",
   }
   cat(.sep_log(w_coef), "\n")
   cat("  Notas:\n")
-  cat("  Significância: *** p < 0,01   ** p < 0,05   * p < 0,10\n")
+  cat("  Signific\u00e2ncia: *** p < 0,001   ** p < 0,01   * p < 0,05\n\n")
   cat("  OR > 1: aumenta as chances de sucesso. OR < 1: reduz as chances.\n\n")
 
   .print_topico("INTERPRETAÇÃO")
@@ -549,7 +550,8 @@ regressao_logistica <- function(formula, dados, ligacao = "logit",
   aj_row("AICc", sprintf("%.2f", aicc_val))
   aj_row("BIC",  sprintf("%.2f", bic_val))
   cat(aj_sep, "\n")
-  cat("  Significância: *** p < 0,01   ** p < 0,05   * p < 0,10\n\n")
+  cat("  Notas:\n")
+  cat("  Signific\u00e2ncia: *** p < 0,001   ** p < 0,01   * p < 0,05\n\n")
 
   # ── Coeficientes por categoria ─────────────────────────────────────────────
   vnames <- c("(Intercepto)", x_names)
@@ -725,7 +727,8 @@ regressao_logistica <- function(formula, dados, ligacao = "logit",
   aj_row("AICc", sprintf("%.2f", aicc_val))
   aj_row("BIC",  sprintf("%.2f", bic_val))
   cat(aj_sep, "\n")
-  cat("  Significância: *** p < 0,01   ** p < 0,05   * p < 0,10\n\n")
+  cat("  Notas:\n")
+  cat("  Signific\u00e2ncia: *** p < 0,001   ** p < 0,01   * p < 0,05\n\n")
 
   # ── Coeficientes dos Preditores ────────────────────────────────────────────
   .print_topico("COEFICIENTES DOS PREDITORES (Odds Ratio Acumulados)")

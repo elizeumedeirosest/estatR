@@ -286,9 +286,62 @@ pre > code.sourceCode > span > a:first-child::before { text-decoration: underlin
 <span id="cb5-5"><a href="#cb5-5" aria-hidden="true" tabindex="-1"></a><span class="co"># MANOVA</span></span>
 <span id="cb5-6"><a href="#cb5-6" aria-hidden="true" tabindex="-1"></a>res_manova <span class="ot">&lt;-</span> <span class="fu">analise_manova</span>(<span class="fu">cbind</span>(Sepal.Length, Sepal.Width) <span class="sc">~</span> Species, <span class="at">dados =</span> iris)</span>
 <span id="cb5-7"><a href="#cb5-7" aria-hidden="true" tabindex="-1"></a><span class="fu">plot_manova</span>(res_manova)</span></code></pre></div><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></div>
-
-
+<hr>
 </section>
+</section>
+<section id="análise-de-correspondência-simples-ca" class="level2">
+<h2 class="anchored" data-anchor-id="análise-de-correspondência-simples-ca">Análise de Correspondência Simples (CA)</h2>
+<div class="code-copy-outer-scaffold"><div class="sourceCode" id="cb6"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb6-1"><a href="#cb6-1" aria-hidden="true" tabindex="-1"></a><span class="co"># A partir de uma tabela de contingência</span></span>
+<span id="cb6-2"><a href="#cb6-2" aria-hidden="true" tabindex="-1"></a>tab <span class="ot">&lt;-</span> <span class="fu">apply</span>(HairEyeColor, <span class="fu">c</span>(<span class="dv">1</span>, <span class="dv">2</span>), sum)</span>
+<span id="cb6-3"><a href="#cb6-3" aria-hidden="true" tabindex="-1"></a>res_ca <span class="ot">&lt;-</span> <span class="fu">analise_correspondencia</span>(tab)</span>
+<span id="cb6-4"><a href="#cb6-4" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb6-5"><a href="#cb6-5" aria-hidden="true" tabindex="-1"></a><span class="co"># A partir de um data frame com duas variáveis categóricas</span></span>
+<span id="cb6-6"><a href="#cb6-6" aria-hidden="true" tabindex="-1"></a>res_ca2 <span class="ot">&lt;-</span> <span class="fu">analise_correspondencia</span>(banco, <span class="at">var1 =</span> Regiao, <span class="at">var2 =</span> Porte)</span>
+<span id="cb6-7"><a href="#cb6-7" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb6-8"><a href="#cb6-8" aria-hidden="true" tabindex="-1"></a><span class="co"># Acesso aos resultados</span></span>
+<span id="cb6-9"><a href="#cb6-9" aria-hidden="true" tabindex="-1"></a>res_ca<span class="sc">$</span>chi2           <span class="co"># χ², graus de liberdade e p-valor</span></span>
+<span id="cb6-10"><a href="#cb6-10" aria-hidden="true" tabindex="-1"></a>res_ca<span class="sc">$</span>inercia_total  <span class="co"># Inércia total da tabela</span></span>
+<span id="cb6-11"><a href="#cb6-11" aria-hidden="true" tabindex="-1"></a>res_ca<span class="sc">$</span>autovalores    <span class="co"># Variância explicada por dimensão</span></span>
+<span id="cb6-12"><a href="#cb6-12" aria-hidden="true" tabindex="-1"></a>res_ca<span class="sc">$</span>coords_linhas  <span class="co"># Coordenadas principais das categorias de linha</span></span>
+<span id="cb6-13"><a href="#cb6-13" aria-hidden="true" tabindex="-1"></a>res_ca<span class="sc">$</span>coords_colunas <span class="co"># Coordenadas principais das categorias de coluna</span></span>
+<span id="cb6-14"><a href="#cb6-14" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb6-15"><a href="#cb6-15" aria-hidden="true" tabindex="-1"></a><span class="co"># Mapa perceptual simétrico</span></span>
+<span id="cb6-16"><a href="#cb6-16" aria-hidden="true" tabindex="-1"></a><span class="fu">biplot_correspondencia</span>(res_ca)</span></code></pre></div><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></div>
+<hr>
+</section>
+<section id="análise-de-correspondência-múltipla-mca" class="level2">
+<h2 class="anchored" data-anchor-id="análise-de-correspondência-múltipla-mca">Análise de Correspondência Múltipla (MCA)</h2>
+<div class="code-copy-outer-scaffold"><div class="sourceCode" id="cb7"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb7-1"><a href="#cb7-1" aria-hidden="true" tabindex="-1"></a><span class="co"># MCA com correção de Benzécri para 3+ variáveis qualitativas</span></span>
+<span id="cb7-2"><a href="#cb7-2" aria-hidden="true" tabindex="-1"></a>res_mca <span class="ot">&lt;-</span> <span class="fu">analise_correspondencia_multipla</span>(</span>
+<span id="cb7-3"><a href="#cb7-3" aria-hidden="true" tabindex="-1"></a>  banco_categorico,</span>
+<span id="cb7-4"><a href="#cb7-4" aria-hidden="true" tabindex="-1"></a>  <span class="at">variaveis =</span> <span class="fu">c</span>(<span class="st">"Escolaridade"</span>, <span class="st">"Renda"</span>, <span class="st">"Regiao"</span>),</span>
+<span id="cb7-5"><a href="#cb7-5" aria-hidden="true" tabindex="-1"></a>  <span class="at">ajuste_benzecri =</span> <span class="cn">TRUE</span></span>
+<span id="cb7-6"><a href="#cb7-6" aria-hidden="true" tabindex="-1"></a>)</span>
+<span id="cb7-7"><a href="#cb7-7" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb7-8"><a href="#cb7-8" aria-hidden="true" tabindex="-1"></a><span class="co"># Resultados</span></span>
+<span id="cb7-9"><a href="#cb7-9" aria-hidden="true" tabindex="-1"></a>res_mca<span class="sc">$</span>autovalores         <span class="co"># Inércia bruta e ajustada por dimensão</span></span>
+<span id="cb7-10"><a href="#cb7-10" aria-hidden="true" tabindex="-1"></a>res_mca<span class="sc">$</span>coords_categorias   <span class="co"># Coordenadas de cada categoria no espaço reduzido</span></span>
+<span id="cb7-11"><a href="#cb7-11" aria-hidden="true" tabindex="-1"></a>res_mca<span class="sc">$</span>coords_individuos   <span class="co"># Projeção dos indivíduos nas dimensões</span></span>
+<span id="cb7-12"><a href="#cb7-12" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb7-13"><a href="#cb7-13" aria-hidden="true" tabindex="-1"></a><span class="co"># Mapa de categorias</span></span>
+<span id="cb7-14"><a href="#cb7-14" aria-hidden="true" tabindex="-1"></a><span class="fu">biplot_mca</span>(res_mca)</span></code></pre></div><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></div>
+<hr>
+</section>
+<section id="agrupamento-para-dados-mistos-gower-pam" class="level2">
+<h2 class="anchored" data-anchor-id="agrupamento-para-dados-mistos-gower-pam">Agrupamento para Dados Mistos (Gower + PAM)</h2>
+<div class="code-copy-outer-scaffold"><div class="sourceCode" id="cb8"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb8-1"><a href="#cb8-1" aria-hidden="true" tabindex="-1"></a><span class="co"># Cluster com variáveis numéricas e categóricas simultaneamente</span></span>
+<span id="cb8-2"><a href="#cb8-2" aria-hidden="true" tabindex="-1"></a>res_misto <span class="ot">&lt;-</span> <span class="fu">cluster_misto</span>(banco_misto, <span class="at">k =</span> <span class="dv">3</span>)</span>
+<span id="cb8-3"><a href="#cb8-3" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb8-4"><a href="#cb8-4" aria-hidden="true" tabindex="-1"></a><span class="co"># Resultados</span></span>
+<span id="cb8-5"><a href="#cb8-5" aria-hidden="true" tabindex="-1"></a>res_misto<span class="sc">$</span>clusters             <span class="co"># Vetor de classificação por observação</span></span>
+<span id="cb8-6"><a href="#cb8-6" aria-hidden="true" tabindex="-1"></a>res_misto<span class="sc">$</span>silhueta<span class="sc">$</span>global      <span class="co"># Silhueta média global</span></span>
+<span id="cb8-7"><a href="#cb8-7" aria-hidden="true" tabindex="-1"></a>res_misto<span class="sc">$</span>silhueta<span class="sc">$</span>por_grupo   <span class="co"># Silhueta por cluster</span></span>
+<span id="cb8-8"><a href="#cb8-8" aria-hidden="true" tabindex="-1"></a>res_misto<span class="sc">$</span>perfil_numerico      <span class="co"># Média das variáveis numéricas por grupo</span></span>
+<span id="cb8-9"><a href="#cb8-9" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb8-10"><a href="#cb8-10" aria-hidden="true" tabindex="-1"></a><span class="co"># Projeção bidimensional (PCoA)</span></span>
+<span id="cb8-11"><a href="#cb8-11" aria-hidden="true" tabindex="-1"></a><span class="fu">plot_cluster_misto</span>(res_misto)</span></code></pre></div><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></div>
+
+
 </section>
 
 </main> <!-- /main -->

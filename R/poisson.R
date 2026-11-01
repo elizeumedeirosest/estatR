@@ -159,7 +159,7 @@ regressao_poisson <- function(formula, dados, ligacao = "log", grafico = TRUE) {
   }
   cat(sep_coef, "\n")
   cat("  Notas:\n")
-  cat("  Signific\u00e2ncia: *** p < 0,01   ** p < 0,05   * p < 0,10\n")
+  cat("  Signific\u00e2ncia: *** p < 0,001   ** p < 0,01   * p < 0,05\n\n")
   cat("  IRR > 1: aumenta a contagem esperada. IRR < 1: reduz a contagem esperada.\n\n")
   
   # INTERPRETACAO

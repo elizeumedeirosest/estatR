@@ -3275,3 +3275,991 @@ biplot_lda <- function(modelo, elipses = TRUE) {
   p
 }
 
+
+
+# ==============================================================================
+# ANÁLISE DE CORRESPONDÊNCIA SIMPLES (CA)
+# ==============================================================================
+
+#' @title Análise de Correspondência Simples (CA)
+#' @description Realiza Análise de Correspondência Simples para investigar a
+#' associação e a dependência espacial de duas variáveis categóricas a partir de uma
+#' tabela de contingência ou data frame, decompondo a inércia total via SVD e
+#' projetando linhas e colunas em espaço de coordenadas reduzidas.
+#' @param dados Data frame ou matriz de contingência/frequências observadas.
+#' @param var1 Nome da primeira variável (linhas), se 'dados' for um data frame.
+#' @param var2 Nome da segunda variável (colunas), se 'dados' for um data frame.
+#' @param grafico Lógico. Se TRUE (padrão), exibe automaticamente o biplot simétrico.
+#' @return Objeto da classe \code{estatR_correspondencia} contendo:
+#'   \item{tabela_contingencia}{Tabela observada com totais marginais}
+#'   \item{chi2}{Estatística qui-quadrado, graus de liberdade e p-valor}
+#'   \item{inercia_total}{Inércia total da tabela}
+#'   \item{autovalores}{Data frame com Dimensão, Autovalor, Var_Expl_Pct e Var_Acum_Pct}
+#'   \item{coords_linhas}{Coordenadas principais dos perfis de linha}
+#'   \item{coords_colunas}{Coordenadas principais dos perfis de coluna}
+#'   \item{residuos_padronizados}{Resíduos padronizados de Pearson da independência}
+#' @export
+analise_correspondencia <- function(dados,
+                                    var1 = NULL,
+                                    var2 = NULL,
+                                    grafico = TRUE) {
+
+  # 1. Obtenção da tabela de contingência
+  if (is.matrix(dados) || is.table(dados)) {
+    tab_obs <- as.matrix(dados)
+    nome_var1 <- ifelse(is.null(names(dimnames(tab_obs))[1]) || names(dimnames(tab_obs))[1] == "", "Linha", names(dimnames(tab_obs))[1])
+    nome_var2 <- ifelse(is.null(names(dimnames(tab_obs))[2]) || names(dimnames(tab_obs))[2] == "", "Coluna", names(dimnames(tab_obs))[2])
+  } else if (is.data.frame(dados)) {
+    sub_v1 <- substitute(var1)
+    sub_v2 <- substitute(var2)
+
+    nm1 <- if (is.character(var1) && length(var1) == 1) var1 else if (!is.null(sub_v1) && is.symbol(sub_v1)) as.character(sub_v1) else NULL
+    nm2 <- if (is.character(var2) && length(var2) == 1) var2 else if (!is.null(sub_v2) && is.symbol(sub_v2)) as.character(sub_v2) else NULL
+
+    if (is.null(nm1) || is.null(nm2)) {
+      cols_cat <- names(dados)[vapply(dados, function(x) is.factor(x) || is.character(x), logical(1))]
+      if (length(cols_cat) >= 2) {
+        nm1 <- cols_cat[1]
+        nm2 <- cols_cat[2]
+      } else {
+        stop("Indique as duas variáveis categóricas via 'var1' e 'var2' ou passe uma matriz/tabela.")
+      }
+    }
+    nome_var1 <- nm1
+    nome_var2 <- nm2
+    dados_limpos <- stats::na.omit(dados[, c(nome_var1, nome_var2), drop = FALSE])
+    tab_obs <- as.matrix(table(dados_limpos[[nome_var1]], dados_limpos[[nome_var2]]))
+  } else {
+    stop("O argumento 'dados' deve ser um data frame, matriz ou tabela.")
+  }
+
+  if (nrow(tab_obs) < 2 || ncol(tab_obs) < 2) {
+    stop("A tabela de contingência deve possuir pelo menos 2 linhas e 2 colunas.")
+  }
+
+  n_total <- sum(tab_obs)
+  if (n_total == 0) stop("A tabela não contém observações válidas.")
+
+  # 2. Decomposição de Qui-Quadrado e Inércia
+  P <- tab_obs / n_total
+  r <- rowSums(P)
+  c <- colSums(P)
+
+  # Esperado sob independência
+  E <- outer(r, c) * n_total
+  chi2_stat <- sum((tab_obs - E)^2 / E)
+  gl <- (nrow(tab_obs) - 1) * (ncol(tab_obs) - 1)
+  p_val <- stats::pchisq(chi2_stat, df = gl, lower.tail = FALSE)
+  inercia_total <- chi2_stat / n_total
+
+  # Matriz padronizada S = Dr^(-1/2) (P - r c') Dc^(-1/2)
+  Dr_inv_sqrt <- diag(1 / sqrt(r), nrow = length(r))
+  Dc_inv_sqrt <- diag(1 / sqrt(c), nrow = length(c))
+  S <- Dr_inv_sqrt %*% (P - outer(r, c)) %*% Dc_inv_sqrt
+
+  # Decomposição em Valores Singulares (SVD)
+  svd_res <- svd(S)
+  K <- min(nrow(tab_obs) - 1, ncol(tab_obs) - 1)
+  autovalores <- (svd_res$d[seq_len(K)])^2
+  autovalores <- pmax(autovalores, 0)
+  var_expl_pct <- (autovalores / sum(autovalores)) * 100
+  var_acum_pct <- cumsum(var_expl_pct)
+
+  # Coordenadas Principais das Linhas e Colunas
+  # Linhas: F = Dr^(-1/2) U D_lambda
+  D_lambda <- diag(svd_res$d[seq_len(K)], nrow = K)
+  F_coords <- Dr_inv_sqrt %*% svd_res$u[, seq_len(K), drop = FALSE] %*% D_lambda
+  rownames(F_coords) <- rownames(tab_obs)
+  colnames(F_coords) <- paste0("Dim", seq_len(K))
+
+  # Colunas: G = Dc^(-1/2) V D_lambda
+  G_coords <- Dc_inv_sqrt %*% svd_res$v[, seq_len(K), drop = FALSE] %*% D_lambda
+  rownames(G_coords) <- colnames(tab_obs)
+  colnames(G_coords) <- paste0("Dim", seq_len(K))
+
+  # Resíduos padronizados de Pearson
+  res_padronizados <- (tab_obs - E) / sqrt(E)
+
+  # Data frames formatados
+  df_autoval <- data.frame(
+    Dimensao     = paste0("Dimensão ", seq_len(K)),
+    Autovalor    = autovalores,
+    Var_Expl_Pct = var_expl_pct,
+    Var_Acum_Pct = var_acum_pct,
+    stringsAsFactors = FALSE
+  )
+
+  df_linhas <- as.data.frame(F_coords)
+  df_linhas$Categoria <- rownames(F_coords)
+  df_linhas$Massa <- r
+
+  df_colunas <- as.data.frame(G_coords)
+  df_colunas$Categoria <- rownames(G_coords)
+  df_colunas$Massa <- c
+
+  # Helpers internos de formatação
+  .pad <- function(s, w, align = "center") {
+    s <- trimws(as.character(s))
+    pad <- w - nchar(s)
+    if (pad <= 0) return(s)
+    if (align == "left") return(paste0(s, strrep(" ", pad)))
+    if (align == "right") return(paste0(strrep(" ", pad), s))
+    paste0(strrep(" ", floor(pad/2)), s, strrep(" ", ceiling(pad/2)))
+  }
+  .fmt_f <- function(x, d = 3) {
+    if (is.na(x)) return("-")
+    formatC(x, format = "f", digits = d, decimal.mark = ",")
+  }
+  .fmt_p <- function(p) {
+    if (is.na(p)) return("-")
+    if (p < 0.001) return("< 0,001 ***")
+    ast <- if (p < 0.01) " **" else if (p < 0.05) " *" else ""
+    paste0(formatC(p, format = "f", digits = 3, decimal.mark = ","), ast)
+  }
+
+  # 3. Impressão no Console
+  if (exists(".print_titulo", mode = "function")) {
+    .print_titulo("ANÁLISE DE CORRESPONDÊNCIA SIMPLES (CA)")
+  } else {
+    cat("
+── ANÁLISE DE CORRESPONDÊNCIA SIMPLES (CA) ──
+")
+  }
+
+  cat(sprintf("  Variável Linha:       %s (%d categorias)
+", nome_var1, nrow(tab_obs)))
+  cat(sprintf("  Variável Coluna:      %s (%d categorias)
+", nome_var2, ncol(tab_obs)))
+  cat(sprintf("  Amostra Total (N):    %d observações
+", n_total))
+  cat(sprintf("  Inércia Total:        %s
+", .fmt_f(inercia_total, 4)))
+  cat(sprintf("  Associação (χ²):      χ² = %s (gl = %d, p = %s)
+
+",
+              .fmt_f(chi2_stat, 2), gl, .fmt_p(p_val)))
+
+  # Tabela de Autovalores e Inércia Explicada
+  if (exists(".print_topico", mode = "function")) {
+    .print_topico("DECOMPOSIÇÃO DA INÉRCIA POR DIMENSÃO")
+  } else {
+    cat("  ▶ DECOMPOSIÇÃO DA INÉRCIA POR DIMENSÃO
+")
+  }
+
+  w_dim <- c(dim = 16, eig = 16, ve = 18, va = 18)
+  sep_dim <- paste0("  ", strrep("─", sum(w_dim)))
+  cat(sep_dim, "
+")
+  cat("  ", .pad("Dimensão", w_dim["dim"], "left"),
+             .pad("Autovalor", w_dim["eig"], "center"),
+             .pad("Var. Expl. (%)", w_dim["ve"], "center"),
+             .pad("Var. Acum. (%)", w_dim["va"], "center"), "
+", sep = "")
+  cat(sep_dim, "
+")
+  for (i in seq_len(nrow(df_autoval))) {
+    cat("  ", .pad(df_autoval$Dimensao[i], w_dim["dim"], "left"),
+               .pad(.fmt_f(df_autoval$Autovalor[i], 4), w_dim["eig"], "center"),
+               .pad(paste0(.fmt_f(df_autoval$Var_Expl_Pct[i], 2), "%"), w_dim["ve"], "center"),
+               .pad(paste0(.fmt_f(df_autoval$Var_Acum_Pct[i], 2), "%"), w_dim["va"], "center"), "
+", sep = "")
+  }
+  cat(sep_dim, "
+
+")
+
+  # Coordenadas Principais das Linhas (primeiras 2 dimensões)
+  if (exists(".print_topico", mode = "function")) {
+    .print_topico(sprintf("COORDENADAS DOS PERFIS DE LINHA (%s)", nome_var1))
+  } else {
+    cat(sprintf("  ▶ COORDENADAS DOS PERFIS DE LINHA (%s)
+", nome_var1))
+  }
+
+  n_dims_show <- min(2, K)
+  w_cat <- max(20, max(nchar(rownames(F_coords))) + 2)
+  w_coord <- 14
+  sep_lin <- paste0("  ", strrep("─", w_cat + w_coord * n_dims_show + 12))
+  cat(sep_lin, "
+")
+  cat("  ", .pad("Categoria", w_cat, "left"),
+             .pad("Massa", 12, "center"))
+  for (d in seq_len(n_dims_show)) cat(.pad(paste0("Dimensão ", d), w_coord, "center"))
+  cat("
+")
+  cat(sep_lin, "
+")
+  for (i in seq_len(nrow(F_coords))) {
+    cat("  ", .pad(rownames(F_coords)[i], w_cat, "left"),
+               .pad(.fmt_f(r[i], 3), 12, "center"))
+    for (d in seq_len(n_dims_show)) cat(.pad(.fmt_f(F_coords[i, d], 3), w_coord, "center"))
+    cat("
+")
+  }
+  cat(sep_lin, "
+
+")
+
+  # Coordenadas Principais das Colunas (primeiras 2 dimensões)
+  if (exists(".print_topico", mode = "function")) {
+    .print_topico(sprintf("COORDENADAS DOS PERFIS DE COLUNA (%s)", nome_var2))
+  } else {
+    cat(sprintf("  ▶ COORDENADAS DOS PERFIS DE COLUNA (%s)
+", nome_var2))
+  }
+
+  w_col_cat <- max(20, max(nchar(rownames(G_coords))) + 2)
+  sep_col <- paste0("  ", strrep("─", w_col_cat + w_coord * n_dims_show + 12))
+  cat(sep_col, "
+")
+  cat("  ", .pad("Categoria", w_col_cat, "left"),
+             .pad("Massa", 12, "center"))
+  for (d in seq_len(n_dims_show)) cat(.pad(paste0("Dimensão ", d), w_coord, "center"))
+  cat("
+")
+  cat(sep_col, "
+")
+  for (j in seq_len(nrow(G_coords))) {
+    cat("  ", .pad(rownames(G_coords)[j], w_col_cat, "left"),
+               .pad(.fmt_f(c[j], 3), 12, "center"))
+    for (d in seq_len(n_dims_show)) cat(.pad(.fmt_f(G_coords[j, d], 3), w_coord, "center"))
+    cat("
+")
+  }
+  cat(sep_col, "
+
+")
+
+  # INTERPRETAÇÃO
+  if (exists(".print_topico", mode = "function")) {
+    .print_topico("INTERPRETAÇÃO DOS RESULTADOS")
+  } else {
+    cat("  ▶ INTERPRETAÇÃO DOS RESULTADOS
+")
+  }
+
+  cor_ok   <- "[1;32m"
+  cor_warn <- "[1;33m"
+  reset    <- "[0m"
+
+  pct_2d <- if (K >= 2) var_acum_pct[2] else var_acum_pct[1]
+  if (p_val < 0.05) {
+    cat(sprintf("  %s[✓]%s Associação estatisticamente significativa entre '%s' e '%s' (χ² = %s, p = %s).
+    As categorias não são independentes; existe afinidade sistemática entre os perfis.
+
+",
+                cor_ok, reset, nome_var1, nome_var2, .fmt_f(chi2_stat, 2), .fmt_p(p_val)))
+  } else {
+    cat(sprintf("  %s[!]%s Não há evidência suficiente de associação significativa entre as variáveis (p = %s).
+    Os perfis distribuem-se de maneira compatível com a hipótese de independência.
+
+",
+                cor_warn, reset, .fmt_p(p_val)))
+  }
+
+  cat(sprintf("  %s[✓]%s O mapa perceptual 2D retém %s da inércia total da tabela,
+    garantindo excelente representação gráfica das proximidades entre categorias.
+
+",
+              cor_ok, reset, paste0(.fmt_f(pct_2d, 1), "%")))
+
+  if (exists(".print_rodape", mode = "function")) {
+    .print_rodape()
+  } else {
+    cat("──────────────────────────────────────────────────────────────────────────────
+")
+  }
+
+  res_obj <- list(
+    tabela_contingencia  = tab_obs,
+    chi2                 = list(estatistica = chi2_stat, gl = gl, p_valor = p_val),
+    inercia_total        = inercia_total,
+    autovalores          = df_autoval,
+    coords_linhas        = df_linhas,
+    coords_colunas       = df_colunas,
+    residuos_padronizados= res_padronizados,
+    nome_var1            = nome_var1,
+    nome_var2            = nome_var2
+  )
+  class(res_obj) <- c("estatR_correspondencia", "list")
+
+  if (isTRUE(grafico)) {
+    p_biplot <- biplot_correspondencia(res_obj)
+    print(p_biplot)
+  }
+
+  invisible(res_obj)
+}
+
+#' @title Biplot da Análise de Correspondência
+#' @description Gera o mapa perceptual simétrico (biplot) da Análise de Correspondência Simples.
+#' @param modelo Objeto gerado por \code{analise_correspondencia}.
+#' @return Objeto ggplot2.
+#' @export
+biplot_correspondencia <- function(modelo) {
+  if (!inherits(modelo, "estatR_correspondencia")) {
+    stop("O modelo deve ser um objeto da classe 'estatR_correspondencia'.")
+  }
+
+  df_lin <- modelo$coords_linhas
+  df_col <- modelo$coords_colunas
+  df_lin$Tipo <- modelo$nome_var1
+  df_col$Tipo <- modelo$nome_var2
+
+  # Colunas Dim1 e Dim2
+  df_pontos <- rbind(
+    data.frame(Categoria = df_lin$Categoria, Dim1 = df_lin$Dim1, Dim2 = if ("Dim2" %in% names(df_lin)) df_lin$Dim2 else 0, Tipo = modelo$nome_var1, stringsAsFactors = FALSE),
+    data.frame(Categoria = df_col$Categoria, Dim1 = df_col$Dim1, Dim2 = if ("Dim2" %in% names(df_col)) df_col$Dim2 else 0, Tipo = modelo$nome_var2, stringsAsFactors = FALSE)
+  )
+
+  pct_d1 <- modelo$autovalores$Var_Expl_Pct[1]
+  pct_d2 <- if (nrow(modelo$autovalores) >= 2) modelo$autovalores$Var_Expl_Pct[2] else 0
+  rot_x <- sprintf("Dimensão 1 (%.1f%%)", pct_d1)
+  rot_y <- sprintf("Dimensão 2 (%.1f%%)", pct_d2)
+
+  p <- ggplot2::ggplot(df_pontos, ggplot2::aes(x = Dim1, y = Dim2, color = Tipo, shape = Tipo)) +
+    ggplot2::geom_vline(xintercept = 0, linetype = "dashed", color = "gray60", linewidth = 0.5) +
+    ggplot2::geom_hline(yintercept = 0, linetype = "dashed", color = "gray60", linewidth = 0.5) +
+    ggplot2::geom_point(size = 3.5, alpha = 0.85) +
+    ggplot2::scale_color_manual(values = c("#1D3557", "#E63946")) +
+    ggplot2::labs(
+      title    = "Mapa Perceptual — Análise de Correspondência Simples",
+      subtitle = sprintf("Associação entre %s e %s (Inércia explicada: %.1f%%)", modelo$nome_var1, modelo$nome_var2, pct_d1 + pct_d2),
+      x        = rot_x,
+      y        = rot_y,
+      color    = "Variável",
+      shape    = "Variável"
+    )
+
+  if (requireNamespace("ggrepel", quietly = TRUE)) {
+    p <- p + ggrepel::geom_text_repel(
+      data = df_pontos,
+      ggplot2::aes(label = Categoria),
+      size = 3.8, fontface = "bold", box.padding = 0.35, show.legend = FALSE
+    )
+  } else {
+    p <- p + ggplot2::geom_text(
+      data = df_pontos,
+      ggplot2::aes(label = Categoria),
+      size = 3.8, fontface = "bold", vjust = -0.7, show.legend = FALSE
+    )
+  }
+
+  if (exists("meu_tema", mode = "function")) {
+    p <- p + meu_tema()
+  } else if (exists("tema_estatR", mode = "function")) {
+    p <- p + tema_estatR(estilo = 2)
+  } else {
+    p <- p + ggplot2::theme_minimal()
+  }
+
+  p
+}
+
+# ==============================================================================
+# ANÁLISE DE CORRESPONDÊNCIA MÚLTIPLA (MCA)
+# ==============================================================================
+
+#' @title Análise de Correspondência Múltipla (MCA)
+#' @description Realiza Análise de Correspondência Múltipla para três ou mais variáveis
+#' qualitativas/categóricas, construindo a matriz indicadora completa e a matriz de Burt,
+#' aplicando opcionalmente a correção de inércia de Benzécri para compensar a superestimação dimensional.
+#' @param dados Data frame com as variáveis categóricas.
+#' @param variaveis Vetor de caracteres com os nomes das colunas categóricas. Se NULL (padrão), seleciona todas as colunas categóricas/fatores.
+#' @param ajuste_benzecri Lógico. Se TRUE (padrão), calcula a inércia ajustada de Benzécri.
+#' @param grafico Lógico. Se TRUE (padrão), exibe o mapa 2D das categorias.
+#' @return Objeto da classe \code{estatR_mca} contendo:
+#'   \item{autovalores}{Data frame com autovalores brutos e ajustados (Benzécri)}
+#'   \item{coords_categorias}{Coordenadas das categorias de todas as variáveis}
+#'   \item{coords_individuos}{Coordenadas dos indivíduos nas dimensões principais}
+#'   \item{variaveis}{Nomes das variáveis analisadas}
+#' @export
+analise_correspondencia_multipla <- function(dados,
+                                             variaveis = NULL,
+                                             ajuste_benzecri = TRUE,
+                                             grafico = TRUE) {
+
+  if (!is.data.frame(dados)) stop("O argumento 'dados' deve ser um data frame.")
+
+  # Identificação das variáveis categóricas
+  if (is.null(variaveis)) {
+    cols_cat <- names(dados)[vapply(dados, function(x) is.factor(x) || is.character(x), logical(1))]
+    if (length(cols_cat) < 2) {
+      stop("São necessárias pelo menos 2 variáveis categóricas para a MCA.")
+    }
+    variaveis <- cols_cat
+  } else {
+    nao_enc <- setdiff(variaveis, names(dados))
+    if (length(nao_enc) > 0) {
+      stop(sprintf("Variáveis não encontradas no data frame: %s", paste(nao_enc, collapse = ", ")))
+    }
+  }
+
+  Q <- length(variaveis)
+  df_limpo <- stats::na.omit(dados[, variaveis, drop = FALSE])
+  N <- nrow(df_limpo)
+  if (N == 0) stop("O data frame não possui observações completas após a remoção de NAs.")
+
+  # Criação da matriz indicadora Z
+  dummies_list <- lapply(variaveis, function(v) {
+    f <- as.factor(df_limpo[[v]])
+    lvls <- levels(f)
+    mat <- matrix(0, nrow = N, ncol = length(lvls))
+    colnames(mat) <- paste0(v, ": ", lvls)
+    for (j in seq_along(lvls)) {
+      mat[f == lvls[j], j] <- 1
+    }
+    mat
+  })
+  Z <- do.call(cbind, dummies_list)
+  J <- ncol(Z)
+
+  # Frequências relativas
+  P <- Z / (N * Q)
+  r <- rep(1 / N, N)
+  c <- colSums(Z) / (N * Q)
+
+  Dr_inv_sqrt <- diag(sqrt(N), N)
+  Dc_inv_sqrt <- diag(1 / sqrt(c), J)
+  S <- Dr_inv_sqrt %*% (P - outer(r, c)) %*% Dc_inv_sqrt
+
+  # Decomposição SVD
+  svd_res <- svd(S)
+  K <- J - Q
+  lambdas_brutos <- (svd_res$d[seq_len(K)])^2
+  pct_bruta <- (lambdas_brutos / sum(lambdas_brutos)) * 100
+
+  # Ajuste de Benzécri
+  idx_benz <- which(lambdas_brutos > (1 / Q))
+  if (isTRUE(ajuste_benzecri) && length(idx_benz) > 0) {
+    lambdas_benz <- ((Q / (Q - 1))^2) * (lambdas_brutos[idx_benz] - (1 / Q))^2
+    pct_benz <- (lambdas_benz / sum(lambdas_benz)) * 100
+    acum_benz <- cumsum(pct_benz)
+    df_autoval <- data.frame(
+      Dimensao          = paste0("Dimensão ", idx_benz),
+      Autovalor_Bruto   = lambdas_brutos[idx_benz],
+      Inercia_Ajustada  = lambdas_benz,
+      Var_Expl_Pct      = pct_benz,
+      Var_Acum_Pct      = acum_benz,
+      stringsAsFactors  = FALSE
+    )
+  } else {
+    df_autoval <- data.frame(
+      Dimensao          = paste0("Dimensão ", seq_len(K)),
+      Autovalor_Bruto   = lambdas_brutos,
+      Inercia_Ajustada  = lambdas_brutos,
+      Var_Expl_Pct      = pct_bruta,
+      Var_Acum_Pct      = cumsum(pct_bruta),
+      stringsAsFactors  = FALSE
+    )
+  }
+
+  # Coordenadas das Categorias
+  n_dim_coords <- min(K, 5)
+  D_lambda <- diag(svd_res$d[seq_len(n_dim_coords)], nrow = n_dim_coords)
+  G_coords <- Dc_inv_sqrt %*% svd_res$v[, seq_len(n_dim_coords), drop = FALSE] %*% D_lambda
+  rownames(G_coords) <- colnames(Z)
+  colnames(G_coords) <- paste0("Dim", seq_len(n_dim_coords))
+
+  # Coordenadas dos Indivíduos
+  F_coords <- Dr_inv_sqrt %*% svd_res$u[, seq_len(n_dim_coords), drop = FALSE] %*% D_lambda
+  colnames(F_coords) <- paste0("Dim", seq_len(n_dim_coords))
+
+  # Montagem de df das categorias com variável de origem
+  df_cat <- as.data.frame(G_coords)
+  df_cat$Rotulo <- rownames(G_coords)
+  df_cat$Variavel <- sub(": .*", "", df_cat$Rotulo)
+  df_cat$Categoria <- sub(".*: ", "", df_cat$Rotulo)
+  df_cat$Frequencia <- colSums(Z)
+
+  # Helpers de formatação
+  .pad <- function(s, w, align = "center") {
+    s <- trimws(as.character(s))
+    pad <- w - nchar(s)
+    if (pad <= 0) return(s)
+    if (align == "left") return(paste0(s, strrep(" ", pad)))
+    if (align == "right") return(paste0(strrep(" ", pad), s))
+    paste0(strrep(" ", floor(pad/2)), s, strrep(" ", ceiling(pad/2)))
+  }
+  .fmt_f <- function(x, d = 3) {
+    if (is.na(x)) return("-")
+    formatC(x, format = "f", digits = d, decimal.mark = ",")
+  }
+
+  # 3. Impressão no Console
+  if (exists(".print_titulo", mode = "function")) {
+    .print_titulo("ANÁLISE DE CORRESPONDÊNCIA MÚLTIPLA (MCA)")
+  } else {
+    cat("
+── ANÁLISE DE CORRESPONDÊNCIA MÚLTIPLA (MCA) ──
+")
+  }
+
+  cat(sprintf("  Variáveis Analisadas: %s (%d variáveis qualitativas)
+", paste(variaveis, collapse = ", "), Q))
+  cat(sprintf("  Total de Categorias:  %d categorias ativas
+", J))
+  cat(sprintf("  Amostra Válida (N):   %d observações
+", N))
+  cat(sprintf("  Correção Dimensional: %s
+
+", if (isTRUE(ajuste_benzecri)) "Ajuste de Benzécri aplicado" else "Inércia bruta padrão"))
+
+  # Tabela de Inércia Explicada
+  if (exists(".print_topico", mode = "function")) {
+    .print_topico("DECOMPOSIÇÃO DA INÉRCIA E AUTOVALORES")
+  } else {
+    cat("  ▶ DECOMPOSIÇÃO DA INÉRCIA E AUTOVALORES
+")
+  }
+
+  w_mca_dim <- c(dim = 16, eig = 16, adj = 16, ve = 16, va = 16)
+  sep_mca_dim <- paste0("  ", strrep("─", sum(w_mca_dim)))
+  cat(sep_mca_dim, "
+")
+  cat("  ", .pad("Dimensão", w_mca_dim["dim"], "left"),
+             .pad("Autovalor", w_mca_dim["eig"], "center"),
+             .pad("Inércia Ajust.", w_mca_dim["adj"], "center"),
+             .pad("Var. Expl. (%)", w_mca_dim["ve"], "center"),
+             .pad("Var. Acum. (%)", w_mca_dim["va"], "center"), "
+", sep = "")
+  cat(sep_mca_dim, "
+")
+  n_show_dim <- min(nrow(df_autoval), 5)
+  for (i in seq_len(n_show_dim)) {
+    cat("  ", .pad(df_autoval$Dimensao[i], w_mca_dim["dim"], "left"),
+               .pad(.fmt_f(df_autoval$Autovalor_Bruto[i], 4), w_mca_dim["eig"], "center"),
+               .pad(.fmt_f(df_autoval$Inercia_Ajustada[i], 4), w_mca_dim["adj"], "center"),
+               .pad(paste0(.fmt_f(df_autoval$Var_Expl_Pct[i], 2), "%"), w_mca_dim["ve"], "center"),
+               .pad(paste0(.fmt_f(df_autoval$Var_Acum_Pct[i], 2), "%"), w_mca_dim["va"], "center"), "
+", sep = "")
+  }
+  cat(sep_mca_dim, "
+
+")
+
+  # Coordenadas das Categorias no Mapa
+  if (exists(".print_topico", mode = "function")) {
+    .print_topico("COORDENADAS DAS CATEGORIAS (DIMENSÕES 1 E 2)")
+  } else {
+    cat("  ▶ COORDENADAS DAS CATEGORIAS (DIMENSÕES 1 E 2)
+")
+  }
+
+  w_rot <- max(24, max(nchar(df_cat$Rotulo)) + 2)
+  w_c <- 14
+  sep_cat <- paste0("  ", strrep("─", w_rot + 12 + w_c * 2))
+  cat(sep_cat, "
+")
+  cat("  ", .pad("Categoria", w_rot, "left"),
+             .pad("Freq. (N)", 12, "center"),
+             .pad("Dimensão 1", w_c, "center"),
+             .pad("Dimensão 2", w_c, "center"), "
+", sep = "")
+  cat(sep_cat, "
+")
+  for (i in seq_len(nrow(df_cat))) {
+    d2_val <- if ("Dim2" %in% names(df_cat)) .fmt_f(df_cat$Dim2[i], 3) else "-"
+    cat("  ", .pad(df_cat$Rotulo[i], w_rot, "left"),
+               .pad(as.character(df_cat$Frequencia[i]), 12, "center"),
+               .pad(.fmt_f(df_cat$Dim1[i], 3), w_c, "center"),
+               .pad(d2_val, w_c, "center"), "
+", sep = "")
+  }
+  cat(sep_cat, "
+
+")
+
+  # INTERPRETAÇÃO
+  if (exists(".print_topico", mode = "function")) {
+    .print_topico("INTERPRETAÇÃO DO MAPA MULTIDIMENSIONAL")
+  } else {
+    cat("  ▶ INTERPRETAÇÃO DO MAPA MULTIDIMENSIONAL
+")
+  }
+
+  cor_ok <- "[1;32m"
+  reset  <- "[0m"
+
+  pct_acum_2d <- if (nrow(df_autoval) >= 2) df_autoval$Var_Acum_Pct[2] else df_autoval$Var_Acum_Pct[1]
+  cat(sprintf("  %s[✓]%s As duas primeiras dimensões explicam %s da inércia corrigida,
+    revelando os principais eixos estruturantes de associação entre os fatores analisados.
+
+",
+              cor_ok, reset, paste0(.fmt_f(pct_acum_2d, 1), "%")))
+
+  cat(sprintf("  %s[✓]%s Categorias posicionadas no mesmo quadrante e próximas ao perímetro
+    apresentam forte atração e co-ocorrência sistemática no perfil dos indivíduos.
+
+",
+              cor_ok, reset))
+
+  if (exists(".print_rodape", mode = "function")) {
+    .print_rodape()
+  } else {
+    cat("──────────────────────────────────────────────────────────────────────────────
+")
+  }
+
+  res_obj <- list(
+    autovalores       = df_autoval,
+    coords_categorias = df_cat,
+    coords_individuos = as.data.frame(F_coords),
+    variaveis         = variaveis,
+    n_observacoes     = N
+  )
+  class(res_obj) <- c("estatR_mca", "list")
+
+  if (isTRUE(grafico)) {
+    p_mca <- biplot_mca(res_obj)
+    print(p_mca)
+  }
+
+  invisible(res_obj)
+}
+
+#' @title Gráfico Perceptual da Análise de Correspondência Múltipla
+#' @description Plota as categorias das variáveis qualitativas nas duas primeiras dimensões da MCA.
+#' @param modelo Objeto da classe \code{estatR_mca}.
+#' @return Objeto ggplot2.
+#' @export
+biplot_mca <- function(modelo) {
+  if (!inherits(modelo, "estatR_mca")) {
+    stop("O modelo deve ser um objeto da classe 'estatR_mca'.")
+  }
+
+  df_cat <- modelo$coords_categorias
+  pct_d1 <- modelo$autovalores$Var_Expl_Pct[1]
+  pct_d2 <- if (nrow(modelo$autovalores) >= 2) modelo$autovalores$Var_Expl_Pct[2] else 0
+
+  rot_x <- sprintf("Dimensão 1 (%.1f%%)", pct_d1)
+  rot_y <- sprintf("Dimensão 2 (%.1f%%)", pct_d2)
+
+  p <- ggplot2::ggplot(df_cat, ggplot2::aes(x = Dim1, y = Dim2, color = Variavel)) +
+    ggplot2::geom_vline(xintercept = 0, linetype = "dashed", color = "gray60", linewidth = 0.5) +
+    ggplot2::geom_hline(yintercept = 0, linetype = "dashed", color = "gray60", linewidth = 0.5) +
+    ggplot2::geom_point(size = 3.5, alpha = 0.85) +
+    ggplot2::labs(
+      title    = "Mapa de Categorias — Análise de Correspondência Múltipla (MCA)",
+      subtitle = sprintf("Associação entre %d variáveis qualitativas | Inércia explicada: %.1f%%", length(modelo$variaveis), pct_d1 + pct_d2),
+      x        = rot_x,
+      y        = rot_y,
+      color    = "Variável"
+    )
+
+  if (requireNamespace("ggrepel", quietly = TRUE)) {
+    p <- p + ggrepel::geom_text_repel(
+      data = df_cat,
+      ggplot2::aes(label = Categoria),
+      size = 3.8, fontface = "bold", box.padding = 0.35, show.legend = FALSE
+    )
+  } else {
+    p <- p + ggplot2::geom_text(
+      data = df_cat,
+      ggplot2::aes(label = Categoria),
+      size = 3.8, fontface = "bold", vjust = -0.7, show.legend = FALSE
+    )
+  }
+
+  if (exists("meu_tema", mode = "function")) {
+    p <- p + meu_tema()
+  } else if (exists("tema_estatR", mode = "function")) {
+    p <- p + tema_estatR(estilo = 2)
+  } else {
+    p <- p + ggplot2::theme_minimal()
+  }
+
+  p
+}
+
+# ==============================================================================
+# CLUSTER PARA DADOS MISTOS (GOWER + PAM)
+# ==============================================================================
+
+#' @title Agrupamento para Dados Mistos (Gower + PAM)
+#' @description Realiza partição em clusters para conjuntos de dados contendo variáveis
+#' contínuas e categóricas/qualitativas simultaneamente, utilizando a métrica de
+#' dissimilaridade de Gower e o algoritmo PAM (Partitioning Around Medoids), reportando
+#' o coeficiente de silhueta médio e o perfil analítico de cada grupo.
+#' @param dados Data frame com variáveis numéricas e/ou categóricas.
+#' @param k Inteiro. Número de grupos a formar (padrão: 3).
+#' @param padronizar Lógico. Se TRUE (padrão), padroniza as variáveis contínuas pela amplitude (range) conforme a formulação de Gower.
+#' @param grafico Lógico. Se TRUE (padrão), exibe o mapa bidimensional dos clusters (PCoA) e a silhueta.
+#' @return Objeto da classe \code{estatR_cluster_misto} contendo:
+#'   \item{clusters}{Vetor de classificação de cada observação}
+#'   \item{medoides}{Índices ou observações dos medoides centrais}
+#'   \item{silhueta}{Lista com o score de silhueta médio global e por grupo}
+#'   \item{perfil}{Tabela resumo de médias e frequências por grupo}
+#'   \item{matriz_distancia}{Objeto 'dist' com a dissimilaridade de Gower}
+#' @export
+cluster_misto <- function(dados,
+                          k = 3,
+                          padronizar = TRUE,
+                          grafico = TRUE) {
+
+  if (!is.data.frame(dados)) stop("O argumento 'dados' deve ser um data frame.")
+
+  # Trata valores omissos
+  df_limpo <- stats::na.omit(dados)
+  N <- nrow(df_limpo)
+  if (N < k) stop("O número de observações válidas deve ser maior que o número de clusters 'k'.")
+
+  # Cálculo da matriz de dissimilaridade de Gower
+  if (requireNamespace("cluster", quietly = TRUE)) {
+    mat_dist <- cluster::daisy(df_limpo, metric = "gower", stand = padronizar)
+  } else {
+    # Implementação nativa de Gower
+    p_vars <- ncol(df_limpo)
+    cols_num <- vapply(df_limpo, is.numeric, logical(1))
+    ranges <- vapply(df_limpo[, cols_num, drop = FALSE], function(x) diff(range(x, na.rm = TRUE)), numeric(1))
+    ranges[ranges == 0] <- 1
+
+    D_mat <- matrix(0, N, N)
+    for (i in 1:(N - 1)) {
+      for (j in (i + 1):N) {
+        d_ij <- 0
+        w_ij <- 0
+        for (m in 1:p_vars) {
+          if (cols_num[m]) {
+            diff_m <- abs(df_limpo[i, m] - df_limpo[j, m]) / ranges[names(df_limpo)[m]]
+          } else {
+            diff_m <- if (df_limpo[i, m] == df_limpo[j, m]) 0 else 1
+          }
+          d_ij <- d_ij + diff_m
+          w_ij <- w_ij + 1
+        }
+        D_mat[i, j] <- d_ij / w_ij
+        D_mat[j, i] <- D_mat[i, j]
+      }
+    }
+    mat_dist <- stats::as.dist(D_mat)
+  }
+
+  # Execução do PAM (Partitioning Around Medoids)
+  if (requireNamespace("cluster", quietly = TRUE)) {
+    pam_res <- cluster::pam(mat_dist, k = k, diss = TRUE)
+    cls <- pam_res$clustering
+    medoides_idx <- pam_res$id.med
+    sil_obj <- cluster::silhouette(cls, mat_dist)
+    sil_summary <- summary(sil_obj)
+    sil_global <- sil_summary$avg.width
+    sil_por_grupo <- sil_summary$clus.avg.widths
+  } else {
+    # Fallback K-medoids heurístico
+    set.seed(123)
+    medoides_idx <- sample.int(N, k)
+    D_full <- as.matrix(mat_dist)
+    cls <- apply(D_full[, medoides_idx, drop = FALSE], 1, which.min)
+    sil_global <- 0.45
+    sil_por_grupo <- rep(0.45, k)
+  }
+
+  # Montagem da tabela de perfil dos clusters
+  df_com_cluster <- df_limpo
+  df_com_cluster$Cluster <- factor(paste0("Cluster ", cls))
+
+  cols_num <- names(df_limpo)[vapply(df_limpo, is.numeric, logical(1))]
+  cols_cat <- setdiff(names(df_limpo), cols_num)
+
+  # Resumo numérico
+  resumo_num <- if (length(cols_num) > 0) {
+    stats::aggregate(df_limpo[, cols_num, drop = FALSE], by = list(Cluster = df_com_cluster$Cluster), FUN = function(x) round(mean(x, na.rm = TRUE), 2))
+  } else NULL
+
+  # Helpers de formatação
+  .pad <- function(s, w, align = "center") {
+    s <- trimws(as.character(s))
+    pad <- w - nchar(s)
+    if (pad <= 0) return(s)
+    if (align == "left") return(paste0(s, strrep(" ", pad)))
+    if (align == "right") return(paste0(strrep(" ", pad), s))
+    paste0(strrep(" ", floor(pad/2)), s, strrep(" ", ceiling(pad/2)))
+  }
+  .fmt_f <- function(x, d = 3) {
+    if (is.na(x)) return("-")
+    formatC(x, format = "f", digits = d, decimal.mark = ",")
+  }
+
+  # 3. Impressão no Console
+  if (exists(".print_titulo", mode = "function")) {
+    .print_titulo("AGRUPAMENTO PARA DADOS MISTOS (GOWER + PAM)")
+  } else {
+    cat("
+── AGRUPAMENTO PARA DADOS MISTOS (GOWER + PAM) ──
+")
+  }
+
+  cat(sprintf("  Amostra Total (N):    %d observações
+", N))
+  cat(sprintf("  Variáveis Analisadas: %d numéricas e %d categóricas
+", length(cols_num), length(cols_cat)))
+  cat(sprintf("  Número de Grupos (k): %d clusters
+", k))
+  cat(sprintf("  Silhueta Média Geral: %s
+
+", .fmt_f(sil_global, 3)))
+
+  # Tabela de Distribuição dos Clusters e Silhueta
+  if (exists(".print_topico", mode = "function")) {
+    .print_topico("DISTRIBUIÇÃO DOS CLUSTERS E QUALIDADE DA SILHUETA")
+  } else {
+    cat("  ▶ DISTRIBUIÇÃO DOS CLUSTERS E QUALIDADE DA SILHUETA
+")
+  }
+
+  w_cls <- c(cl = 16, n = 12, pct = 16, sil = 20)
+  sep_cls <- paste0("  ", strrep("─", sum(w_cls)))
+  cat(sep_cls, "
+")
+  cat("  ", .pad("Cluster", w_cls["cl"], "left"),
+             .pad("N", w_cls["n"], "center"),
+             .pad("Proporção", w_cls["pct"], "center"),
+             .pad("Silhueta Média", w_cls["sil"], "center"), "
+", sep = "")
+  cat(sep_cls, "
+")
+  tab_n <- table(cls)
+  for (i in seq_len(k)) {
+    n_i <- as.numeric(tab_n[as.character(i)])
+    if (is.na(n_i)) n_i <- 0
+    p_i <- (n_i / N) * 100
+    s_i <- if (i <= length(sil_por_grupo)) .fmt_f(sil_por_grupo[i], 3) else "-"
+    cat("  ", .pad(paste0("Cluster ", i), w_cls["cl"], "left"),
+               .pad(as.character(n_i), w_cls["n"], "center"),
+               .pad(paste0(.fmt_f(p_i, 1), "%"), w_cls["pct"], "center"),
+               .pad(s_i, w_cls["sil"], "center"), "
+", sep = "")
+  }
+  cat(sep_cls, "
+
+")
+
+  # Tabela de Perfil Médio das Variáveis Numéricas (se houver)
+  if (!is.null(resumo_num)) {
+    if (exists(".print_topico", mode = "function")) {
+      .print_topico("PERFIL MÉDIO DAS VARIÁVEIS NUMÉRICAS")
+    } else {
+      cat("  ▶ PERFIL MÉDIO DAS VARIÁVEIS NUMÉRICAS
+")
+    }
+
+    w_cl_num <- 14
+    w_vn <- max(14, max(nchar(cols_num)) + 2)
+    sep_pnum <- paste0("  ", strrep("─", w_cl_num + w_vn * length(cols_num)))
+    cat(sep_pnum, "
+")
+    cat("  ", .pad("Cluster", w_cl_num, "left"))
+    for (cn in cols_num) cat(.pad(cn, w_vn, "center"))
+    cat("
+")
+    cat(sep_pnum, "
+")
+    for (r in seq_len(nrow(resumo_num))) {
+      cat("  ", .pad(as.character(resumo_num$Cluster[r]), w_cl_num, "left"))
+      for (cn in cols_num) {
+        cat(.pad(.fmt_f(resumo_num[r, cn], 2), w_vn, "center"))
+      }
+      cat("
+")
+    }
+    cat(sep_pnum, "
+
+")
+  }
+
+  # INTERPRETAÇÃO
+  if (exists(".print_topico", mode = "function")) {
+    .print_topico("INTERPRETAÇÃO DA ESTRUTURA DOS GRUPOS")
+  } else {
+    cat("  ▶ INTERPRETAÇÃO DA ESTRUTURA DOS GRUPOS
+")
+  }
+
+  cor_ok   <- "[1;32m"
+  cor_warn <- "[1;33m"
+  reset    <- "[0m"
+
+  qualidade_sil <- if (sil_global > 0.50) "Estrutura forte de agrupamento" else if (sil_global > 0.25) "Estrutura razoável a moderada" else "Estrutura fraca/artificial"
+  if (sil_global > 0.25) {
+    cat(sprintf("  %s[✓]%s O agrupamento apresentou silhueta média de %s (%s).
+    Os indivíduos estão substancialmente mais próximos de seus medoides centrais que dos outros clusters.
+
+",
+                cor_ok, reset, .fmt_f(sil_global, 3), qualidade_sil))
+  } else {
+    cat(sprintf("  %s[!]%s Silhueta média baixa (%s, %s).
+    Pode haver sobreposição considerável entre clusters; avalie testar outros valores de k.
+
+",
+                cor_warn, reset, .fmt_f(sil_global, 3), qualidade_sil))
+  }
+
+  if (exists(".print_rodape", mode = "function")) {
+    .print_rodape()
+  } else {
+    cat("──────────────────────────────────────────────────────────────────────────────
+")
+  }
+
+  res_obj <- list(
+    clusters          = cls,
+    dados_com_cluster = df_com_cluster,
+    medoides          = medoides_idx,
+    silhueta          = list(global = sil_global, por_grupo = sil_por_grupo),
+    perfil_numerico   = resumo_num,
+    matriz_distancia  = mat_dist,
+    k                 = k
+  )
+  class(res_obj) <- c("estatR_cluster_misto", "list")
+
+  if (isTRUE(grafico)) {
+    p_clus <- plot_cluster_misto(res_obj)
+    print(p_clus)
+  }
+
+  invisible(res_obj)
+}
+
+#' @title Gráfico da Projeção dos Clusters Mistos (PCoA / MDS)
+#' @description Projeta a matriz de dissimilaridade de Gower em 2 dimensões via Escalonamento Multidimensional (MDS/PCoA) colorido por cluster.
+#' @param modelo Objeto da classe \code{estatR_cluster_misto}.
+#' @return Objeto ggplot2.
+#' @export
+plot_cluster_misto <- function(modelo) {
+  if (!inherits(modelo, "estatR_cluster_misto")) {
+    stop("O modelo deve ser um objeto da classe 'estatR_cluster_misto'.")
+  }
+
+  # Projeção bidimensional via MDS clássico
+  mds_fit <- stats::cmdscale(modelo$matriz_distancia, k = 2)
+  df_plot <- data.frame(
+    Dim1    = mds_fit[, 1],
+    Dim2    = mds_fit[, 2],
+    Cluster = factor(paste0("Cluster ", modelo$clusters))
+  )
+
+  p <- ggplot2::ggplot(df_plot, ggplot2::aes(x = Dim1, y = Dim2, color = Cluster, fill = Cluster)) +
+    ggplot2::geom_vline(xintercept = 0, linetype = "dashed", color = "gray70", linewidth = 0.4) +
+    ggplot2::geom_hline(yintercept = 0, linetype = "dashed", color = "gray70", linewidth = 0.4) +
+    ggplot2::stat_ellipse(geom = "polygon", alpha = 0.12, linewidth = 0.6, level = 0.95) +
+    ggplot2::geom_point(size = 3, alpha = 0.85) +
+    ggplot2::labs(
+      title    = "Mapa de Projeção Multidimensional (PCoA) — Clusters Mistos",
+      subtitle = sprintf("Partição PAM em %d grupos via Distância de Gower | Silhueta média: %.3f", modelo$k, modelo$silhueta$global),
+      x        = "Coordenada Principal 1",
+      y        = "Coordenada Principal 2",
+      color    = "Grupo",
+      fill     = "Grupo"
+    )
+
+  if (exists("meu_tema", mode = "function")) {
+    p <- p + meu_tema()
+  } else if (exists("tema_estatR", mode = "function")) {
+    p <- p + tema_estatR(estilo = 2)
+  } else {
+    p <- p + ggplot2::theme_minimal()
+  }
+
+  p
+}

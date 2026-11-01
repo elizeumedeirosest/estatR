@@ -9,6 +9,7 @@ teste_mann_whitney(
   grupo,
   hipotese = c("bilateral", "maior", "menor"),
   confianca = 0.95,
+  formato = c("resumo", "completo"),
   decimais = 2,
   grafico = TRUE
 )

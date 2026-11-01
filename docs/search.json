@@ -105,6 +105,34 @@
     "text": "Extratores Universais em Português\nAcesso direto e idiomático aos componentes do modelo estatístico (compatível com lm, glm, aov e modelos do estatR):\n# Coeficientes estimados\ncoeficientes(modelo)\n\n# Resíduos do modelo\nresiduos(modelo)\n\n# Valores ajustados / preditos na amostra\nvalores_ajustados(modelo)\n\n# Resumo completo do modelo\nresumo(modelo)"
   },
   {
+    "objectID": "modulos/regressao.html#diagnóstico-residual-por-simulação",
+    "href": "modulos/regressao.html#diagnóstico-residual-por-simulação",
+    "title": "Modelagem Linear e Diagnóstico Residual",
+    "section": "Diagnóstico Residual por Simulação",
+    "text": "Diagnóstico Residual por Simulação\nDisponível via simulacao = TRUE em analise_residual() para qualquer modelo GLM (Poisson, Binomial Negativa, ZIP, Logística, Beta). Gera resíduos quantílicos escalonados U(0,1) e compara com simulações empíricas do próprio modelo — sem pressupor normalidade.\nmod_poi &lt;- regressao_poisson(acidentes ~ distancia + idade, dados = df)\nanalise_residual(mod_poi, simulacao = TRUE, n_sim = 500)\n# Testa: Uniformidade (KS), Sobredispersão e Excesso de Zeros\n# Painel com 4 gráficos diagnósticos"
+  },
+  {
+    "objectID": "modulos/regressao.html#predição-conformal",
+    "href": "modulos/regressao.html#predição-conformal",
+    "title": "Modelagem Linear e Diagnóstico Residual",
+    "section": "Predição Conformal",
+    "text": "Predição Conformal\n# Intervalos preditivos com garantia matemática de cobertura (95% exato)\nmodelo_lm &lt;- regressao_linear(mpg ~ wt + hp, dados = mtcars)\nres_conf &lt;- predicao_conformal(modelo_lm, nivel = 0.95, metodo = \"split\")\n\n# Compara amplitude média e cobertura empírica: Conformal vs Clássico\nres_conf$predicoes       # Data frame com intervalos por observação\nres_conf$raio_conformal  # Raio do envelope conformal"
+  },
+  {
+    "objectID": "modulos/regressao.html#regressão-quantílica",
+    "href": "modulos/regressao.html#regressão-quantílica",
+    "title": "Modelagem Linear e Diagnóstico Residual",
+    "section": "Regressão Quantílica",
+    "text": "Regressão Quantílica\n# Estima os efeitos para múltiplos quantis condicionais\nres_rq &lt;- regressao_quantilica(\n  salario ~ experiencia + escolaridade,\n  dados     = df,\n  quantis   = c(0.10, 0.25, 0.50, 0.75, 0.90),\n  metodo_ep = \"bootstrap\",   # ou \"assintotico\"\n  n_boot    = 500\n)\n\n# Extração dos resultados\nres_rq$coeficientes[[\"tau_0.5\"]]  # Coeficientes da mediana (τ = 0.50)\nres_rq$matriz_coeficientes        # Todos os coeficientes por quantil"
+  },
+  {
+    "objectID": "modulos/regressao.html#modelos-lineares-mistos-e-hierárquicos",
+    "href": "modulos/regressao.html#modelos-lineares-mistos-e-hierárquicos",
+    "title": "Modelagem Linear e Diagnóstico Residual",
+    "section": "Modelos Lineares Mistos e Hierárquicos",
+    "text": "Modelos Lineares Mistos e Hierárquicos\n# Modelo de intercepto aleatório por grupo (lme4)\nres_misto &lt;- regressao_mista(\n  Reaction ~ Days + (1 | Subject),\n  dados   = lme4::sleepstudy,\n  familia = \"gaussian\",\n  metodo  = \"REML\"  # ou \"ML\"\n)\n\n# Extração\nres_misto$efeitos_fixos      # Coeficientes + IC + p-valor sem coluna Sig. separada\nres_misto$efeitos_aleatorios # Variâncias e DPs dos componentes aleatórios\nres_misto$icc                # ICC calculado: variância_grupo / (variância_grupo + variância_resid)\n\n# Visualização: Caterpillar plot dos BLUPs\nplot_regressao_mista(res_misto)"
+  },
+  {
     "objectID": "modulos/probabilidade.html",
     "href": "modulos/probabilidade.html",
     "title": "Probabilidade, Distribuições e Simulação",
@@ -432,6 +460,27 @@
     "title": "Análise Multivariada e Agrupamento",
     "section": "Técnicas Supervisionadas",
     "text": "Técnicas Supervisionadas\n\nAnálise Discriminante Linear (LDA) & MANOVA\n# Discriminante com biplot de separação\nres_lda &lt;- analise_discriminante(Species ~ ., dados = iris)\nbiplot_lda(res_lda)\n\n# MANOVA\nres_manova &lt;- analise_manova(cbind(Sepal.Length, Sepal.Width) ~ Species, dados = iris)\nplot_manova(res_manova)"
+  },
+  {
+    "objectID": "modulos/multivariada.html#análise-de-correspondência-simples-ca",
+    "href": "modulos/multivariada.html#análise-de-correspondência-simples-ca",
+    "title": "Análise Multivariada e Agrupamento",
+    "section": "Análise de Correspondência Simples (CA)",
+    "text": "Análise de Correspondência Simples (CA)\n# A partir de uma tabela de contingência\ntab &lt;- apply(HairEyeColor, c(1, 2), sum)\nres_ca &lt;- analise_correspondencia(tab)\n\n# A partir de um data frame com duas variáveis categóricas\nres_ca2 &lt;- analise_correspondencia(banco, var1 = Regiao, var2 = Porte)\n\n# Acesso aos resultados\nres_ca$chi2           # χ², graus de liberdade e p-valor\nres_ca$inercia_total  # Inércia total da tabela\nres_ca$autovalores    # Variância explicada por dimensão\nres_ca$coords_linhas  # Coordenadas principais das categorias de linha\nres_ca$coords_colunas # Coordenadas principais das categorias de coluna\n\n# Mapa perceptual simétrico\nbiplot_correspondencia(res_ca)"
+  },
+  {
+    "objectID": "modulos/multivariada.html#análise-de-correspondência-múltipla-mca",
+    "href": "modulos/multivariada.html#análise-de-correspondência-múltipla-mca",
+    "title": "Análise Multivariada e Agrupamento",
+    "section": "Análise de Correspondência Múltipla (MCA)",
+    "text": "Análise de Correspondência Múltipla (MCA)\n# MCA com correção de Benzécri para 3+ variáveis qualitativas\nres_mca &lt;- analise_correspondencia_multipla(\n  banco_categorico,\n  variaveis = c(\"Escolaridade\", \"Renda\", \"Regiao\"),\n  ajuste_benzecri = TRUE\n)\n\n# Resultados\nres_mca$autovalores         # Inércia bruta e ajustada por dimensão\nres_mca$coords_categorias   # Coordenadas de cada categoria no espaço reduzido\nres_mca$coords_individuos   # Projeção dos indivíduos nas dimensões\n\n# Mapa de categorias\nbiplot_mca(res_mca)"
+  },
+  {
+    "objectID": "modulos/multivariada.html#agrupamento-para-dados-mistos-gower-pam",
+    "href": "modulos/multivariada.html#agrupamento-para-dados-mistos-gower-pam",
+    "title": "Análise Multivariada e Agrupamento",
+    "section": "Agrupamento para Dados Mistos (Gower + PAM)",
+    "text": "Agrupamento para Dados Mistos (Gower + PAM)\n# Cluster com variáveis numéricas e categóricas simultaneamente\nres_misto &lt;- cluster_misto(banco_misto, k = 3)\n\n# Resultados\nres_misto$clusters             # Vetor de classificação por observação\nres_misto$silhueta$global      # Silhueta média global\nres_misto$silhueta$por_grupo   # Silhueta por cluster\nres_misto$perfil_numerico      # Média das variáveis numéricas por grupo\n\n# Projeção bidimensional (PCoA)\nplot_cluster_misto(res_misto)"
   },
   {
     "objectID": "modulos/qualidade.html",

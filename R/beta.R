@@ -1,4 +1,4 @@
-#' @title Regressao Beta
+﻿#' @title Regressao Beta
 #' @description Ajusta um modelo de regressao Beta para variaveis respostas
 #' que sao proporcoes ou taxas estritamente no intervalo (0, 1).
 #' Apresenta estatisticas de ajuste, parametro de precisao (phi), coeficientes,
@@ -154,8 +154,8 @@ regressao_beta <- function(formula, dados, grafico = TRUE) {
   }
   cat(sep_coef, "\n")
   cat("  Notas:\n")
-  cat("  Significância: *** p < 0,01   ** p < 0,05   * p < 0,10\n")
-  cat("  *OR: Odds Ratio (Razão de Chances) da proporção esperada (exp(beta)).\n\n")
+  cat("  Signific\u00e2ncia: *** p < 0,001   ** p < 0,01   * p < 0,05\n")
+  cat("  *OR: Odds Ratio (Raz\u00e3o de Chances) da propor\u00e7\u00e3o esperada (exp(beta)).\n\n")
   
   # INTERPRETACAO
   if (exists(".print_topico", mode = "function")) .print_topico("INTERPRETAÇÃO")

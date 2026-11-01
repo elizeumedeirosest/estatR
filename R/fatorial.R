@@ -511,7 +511,8 @@ print.estatR_fatorial <- function(x, ...) {
     cat(sprintf("  %-30s %4s   %10s   %10s   %8s %11s\n", f_str, gl_s, sq_s, qm_s, fc_s, pv_s))
   }
   cat("  ────────────────────────────────────────────────────────────────────────────── \n")
-  cat("  * Significância: *** p < 0.001, ** p < 0.01, * p < 0.05, . p < 0.10\n\n")
+  cat("  Notas:\n")
+  cat("  Significância: *** p < 0,001   ** p < 0,01   * p < 0,05\n\n")
 
   # 2. PARÂMETROS
   .print_topico("PARÂMETROS EXPERIMENTAIS")
@@ -553,7 +554,8 @@ print.estatR_fatorial <- function(x, ...) {
                   .fmt_p_dic(d$p_valor)))
     }
     cat("  ─────────────────────────────────────────────────────── \n")
-    cat("  * Significância: *** p < 0.001, ** p < 0.01, * p < 0.05, . p < 0.10\n\n")
+  cat("  Notas:\n")
+  cat("  Significância: *** p < 0,001   ** p < 0,01   * p < 0,05\n\n")
 
     .print_topico(sprintf("DESDOBRAMENTO DE %s DENTRO DE %s",
                           toupper(x$nomes$fator2), toupper(x$nomes$fator1)))
@@ -568,7 +570,8 @@ print.estatR_fatorial <- function(x, ...) {
                   .fmt_p_dic(d$p_valor)))
     }
     cat("  ─────────────────────────────────────────────────────── \n")
-    cat("  * Significância: *** p < 0.001, ** p < 0.01, * p < 0.05, . p < 0.10\n\n")
+  cat("  Notas:\n")
+  cat("  Significância: *** p < 0,001   ** p < 0,01   * p < 0,05\n\n")
 
     # Tabela matricial de médias com letras combinadas
     .print_topico(sprintf("MÉDIAS POR COMBINAÇÃO — %s × %s (Teste: %s)",

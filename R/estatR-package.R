@@ -53,7 +53,10 @@
 #' \itemize{
 #'   \item \code{\link{regressao_linear}} — Regressão linear simples e múltipla com ANOVA, coeficientes, VIF e interpretação.
 #'   \item \code{\link{coeficientes}}, \code{\link{residuos}}, \code{\link{valores_ajustados}}, \code{\link{resumo}} — Extratores universais de modelos em português.
-#'   \item \code{\link{analise_residual}} — Diagnóstico residual formal (Normalidade, Homocedasticidade, Independência).
+#'   \item \code{\link{analise_residual}} — Diagnóstico residual formal (Normalidade, Homocedasticidade, Independência) e diagnósticos residuais por simulação empírica (DHARMa-style) com \code{simulacao = TRUE}.
+#'   \item \code{\link{predicao_conformal}} — Intervalos de predição conformalizados com garantia matemática de cobertura exata sem premissas distributivas.
+#'   \item \code{\link{regressao_quantilica}} — Regressão quantílica para análise do impacto das covariáveis ao longo de toda a distribuição condicional.
+#'   \item \code{\link{regressao_mista}} — Modelos lineares mistos e hierárquicos para dados agrupados/multinível com cálculo e interpretação do ICC.
 #'   \item \code{\link{metricas}}, \code{\link{selecao_modelos}}, \code{\link{predicao}} — Avaliação, Best Subsets e intervalos de predição.
 #'   \item \code{\link{multicolinearidade}}, \code{\link{pontos_influentes}}, \code{\link{grafico_coeficientes}} — Diagnóstico de alavancagem e Forest Plot.
 #'   \item \code{\link{comparar_modelos}} — Ranqueamento de modelos por AICc, BIC, Delta-AICc e Pesos de Akaike.
@@ -80,6 +83,9 @@
 #'   \item \code{\link{analise_fatorial}}, \code{\link{biplot_fatorial}} — Análise Fatorial Exploratória (AFE).
 #'   \item \code{\link{cluster_kmeans}}, \code{\link{cluster_hierarquico}}, \code{\link{dendrograma}} — Agrupamentos com silhueta e cotovelo.
 #'   \item \code{\link{analise_discriminante}}, \code{\link{analise_manova}} — LDA/QDA e MANOVA com teste M de Box.
+#'   \item \code{\link{analise_correspondencia}}, \code{\link{biplot_correspondencia}} — Análise de Correspondência Simples (CA) e mapas perceptuais simétricos.
+#'   \item \code{\link{analise_correspondencia_multipla}}, \code{\link{biplot_mca}} — Análise de Correspondência Múltipla (MCA) com correção dimensional de Benzécri.
+#'   \item \code{\link{cluster_misto}}, \code{\link{plot_cluster_misto}} — Agrupamento para dados com variáveis numéricas e categóricas via dissimilaridade de Gower e PAM.
 #' }
 #'
 #' \strong{10. 🧪 Delineamentos Experimentais}

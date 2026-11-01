@@ -286,6 +286,61 @@ pre > code.sourceCode > span > a:first-child::before { text-decoration: underlin
 <span id="cb4-9"><a href="#cb4-9" aria-hidden="true" tabindex="-1"></a></span>
 <span id="cb4-10"><a href="#cb4-10" aria-hidden="true" tabindex="-1"></a><span class="co"># Resumo completo do modelo</span></span>
 <span id="cb4-11"><a href="#cb4-11" aria-hidden="true" tabindex="-1"></a><span class="fu">resumo</span>(modelo)</span></code></pre></div><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></div>
+<hr>
+</section>
+<section id="diagnóstico-residual-por-simulação" class="level2">
+<h2 class="anchored" data-anchor-id="diagnóstico-residual-por-simulação">Diagnóstico Residual por Simulação</h2>
+<p>Disponível via <code>simulacao = TRUE</code> em <code>analise_residual()</code> para qualquer modelo GLM (Poisson, Binomial Negativa, ZIP, Logística, Beta). Gera resíduos quantílicos escalonados U(0,1) e compara com simulações empíricas do próprio modelo — sem pressupor normalidade.</p>
+<div class="code-copy-outer-scaffold"><div class="sourceCode" id="cb5"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb5-1"><a href="#cb5-1" aria-hidden="true" tabindex="-1"></a>mod_poi <span class="ot">&lt;-</span> <span class="fu">regressao_poisson</span>(acidentes <span class="sc">~</span> distancia <span class="sc">+</span> idade, <span class="at">dados =</span> df)</span>
+<span id="cb5-2"><a href="#cb5-2" aria-hidden="true" tabindex="-1"></a><span class="fu">analise_residual</span>(mod_poi, <span class="at">simulacao =</span> <span class="cn">TRUE</span>, <span class="at">n_sim =</span> <span class="dv">500</span>)</span>
+<span id="cb5-3"><a href="#cb5-3" aria-hidden="true" tabindex="-1"></a><span class="co"># Testa: Uniformidade (KS), Sobredispersão e Excesso de Zeros</span></span>
+<span id="cb5-4"><a href="#cb5-4" aria-hidden="true" tabindex="-1"></a><span class="co"># Painel com 4 gráficos diagnósticos</span></span></code></pre></div><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></div>
+<hr>
+</section>
+<section id="predição-conformal" class="level2">
+<h2 class="anchored" data-anchor-id="predição-conformal">Predição Conformal</h2>
+<div class="code-copy-outer-scaffold"><div class="sourceCode" id="cb6"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb6-1"><a href="#cb6-1" aria-hidden="true" tabindex="-1"></a><span class="co"># Intervalos preditivos com garantia matemática de cobertura (95% exato)</span></span>
+<span id="cb6-2"><a href="#cb6-2" aria-hidden="true" tabindex="-1"></a>modelo_lm <span class="ot">&lt;-</span> <span class="fu">regressao_linear</span>(mpg <span class="sc">~</span> wt <span class="sc">+</span> hp, <span class="at">dados =</span> mtcars)</span>
+<span id="cb6-3"><a href="#cb6-3" aria-hidden="true" tabindex="-1"></a>res_conf <span class="ot">&lt;-</span> <span class="fu">predicao_conformal</span>(modelo_lm, <span class="at">nivel =</span> <span class="fl">0.95</span>, <span class="at">metodo =</span> <span class="st">"split"</span>)</span>
+<span id="cb6-4"><a href="#cb6-4" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb6-5"><a href="#cb6-5" aria-hidden="true" tabindex="-1"></a><span class="co"># Compara amplitude média e cobertura empírica: Conformal vs Clássico</span></span>
+<span id="cb6-6"><a href="#cb6-6" aria-hidden="true" tabindex="-1"></a>res_conf<span class="sc">$</span>predicoes       <span class="co"># Data frame com intervalos por observação</span></span>
+<span id="cb6-7"><a href="#cb6-7" aria-hidden="true" tabindex="-1"></a>res_conf<span class="sc">$</span>raio_conformal  <span class="co"># Raio do envelope conformal</span></span></code></pre></div><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></div>
+<hr>
+</section>
+<section id="regressão-quantílica" class="level2">
+<h2 class="anchored" data-anchor-id="regressão-quantílica">Regressão Quantílica</h2>
+<div class="code-copy-outer-scaffold"><div class="sourceCode" id="cb7"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb7-1"><a href="#cb7-1" aria-hidden="true" tabindex="-1"></a><span class="co"># Estima os efeitos para múltiplos quantis condicionais</span></span>
+<span id="cb7-2"><a href="#cb7-2" aria-hidden="true" tabindex="-1"></a>res_rq <span class="ot">&lt;-</span> <span class="fu">regressao_quantilica</span>(</span>
+<span id="cb7-3"><a href="#cb7-3" aria-hidden="true" tabindex="-1"></a>  salario <span class="sc">~</span> experiencia <span class="sc">+</span> escolaridade,</span>
+<span id="cb7-4"><a href="#cb7-4" aria-hidden="true" tabindex="-1"></a>  <span class="at">dados     =</span> df,</span>
+<span id="cb7-5"><a href="#cb7-5" aria-hidden="true" tabindex="-1"></a>  <span class="at">quantis   =</span> <span class="fu">c</span>(<span class="fl">0.10</span>, <span class="fl">0.25</span>, <span class="fl">0.50</span>, <span class="fl">0.75</span>, <span class="fl">0.90</span>),</span>
+<span id="cb7-6"><a href="#cb7-6" aria-hidden="true" tabindex="-1"></a>  <span class="at">metodo_ep =</span> <span class="st">"bootstrap"</span>,   <span class="co"># ou "assintotico"</span></span>
+<span id="cb7-7"><a href="#cb7-7" aria-hidden="true" tabindex="-1"></a>  <span class="at">n_boot    =</span> <span class="dv">500</span></span>
+<span id="cb7-8"><a href="#cb7-8" aria-hidden="true" tabindex="-1"></a>)</span>
+<span id="cb7-9"><a href="#cb7-9" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb7-10"><a href="#cb7-10" aria-hidden="true" tabindex="-1"></a><span class="co"># Extração dos resultados</span></span>
+<span id="cb7-11"><a href="#cb7-11" aria-hidden="true" tabindex="-1"></a>res_rq<span class="sc">$</span>coeficientes[[<span class="st">"tau_0.5"</span>]]  <span class="co"># Coeficientes da mediana (τ = 0.50)</span></span>
+<span id="cb7-12"><a href="#cb7-12" aria-hidden="true" tabindex="-1"></a>res_rq<span class="sc">$</span>matriz_coeficientes        <span class="co"># Todos os coeficientes por quantil</span></span></code></pre></div><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></div>
+<hr>
+</section>
+<section id="modelos-lineares-mistos-e-hierárquicos" class="level2">
+<h2 class="anchored" data-anchor-id="modelos-lineares-mistos-e-hierárquicos">Modelos Lineares Mistos e Hierárquicos</h2>
+<div class="code-copy-outer-scaffold"><div class="sourceCode" id="cb8"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb8-1"><a href="#cb8-1" aria-hidden="true" tabindex="-1"></a><span class="co"># Modelo de intercepto aleatório por grupo (lme4)</span></span>
+<span id="cb8-2"><a href="#cb8-2" aria-hidden="true" tabindex="-1"></a>res_misto <span class="ot">&lt;-</span> <span class="fu">regressao_mista</span>(</span>
+<span id="cb8-3"><a href="#cb8-3" aria-hidden="true" tabindex="-1"></a>  Reaction <span class="sc">~</span> Days <span class="sc">+</span> (<span class="dv">1</span> <span class="sc">|</span> Subject),</span>
+<span id="cb8-4"><a href="#cb8-4" aria-hidden="true" tabindex="-1"></a>  <span class="at">dados   =</span> lme4<span class="sc">::</span>sleepstudy,</span>
+<span id="cb8-5"><a href="#cb8-5" aria-hidden="true" tabindex="-1"></a>  <span class="at">familia =</span> <span class="st">"gaussian"</span>,</span>
+<span id="cb8-6"><a href="#cb8-6" aria-hidden="true" tabindex="-1"></a>  <span class="at">metodo  =</span> <span class="st">"REML"</span>  <span class="co"># ou "ML"</span></span>
+<span id="cb8-7"><a href="#cb8-7" aria-hidden="true" tabindex="-1"></a>)</span>
+<span id="cb8-8"><a href="#cb8-8" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb8-9"><a href="#cb8-9" aria-hidden="true" tabindex="-1"></a><span class="co"># Extração</span></span>
+<span id="cb8-10"><a href="#cb8-10" aria-hidden="true" tabindex="-1"></a>res_misto<span class="sc">$</span>efeitos_fixos      <span class="co"># Coeficientes + IC + p-valor sem coluna Sig. separada</span></span>
+<span id="cb8-11"><a href="#cb8-11" aria-hidden="true" tabindex="-1"></a>res_misto<span class="sc">$</span>efeitos_aleatorios <span class="co"># Variâncias e DPs dos componentes aleatórios</span></span>
+<span id="cb8-12"><a href="#cb8-12" aria-hidden="true" tabindex="-1"></a>res_misto<span class="sc">$</span>icc                <span class="co"># ICC calculado: variância_grupo / (variância_grupo + variância_resid)</span></span>
+<span id="cb8-13"><a href="#cb8-13" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb8-14"><a href="#cb8-14" aria-hidden="true" tabindex="-1"></a><span class="co"># Visualização: Caterpillar plot dos BLUPs</span></span>
+<span id="cb8-15"><a href="#cb8-15" aria-hidden="true" tabindex="-1"></a><span class="fu">plot_regressao_mista</span>(res_misto)</span></code></pre></div><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></div>
 
 
 </section>

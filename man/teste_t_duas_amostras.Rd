@@ -10,6 +10,7 @@ teste_t_duas_amostras(
   hipotese = c("bilateral", "maior", "menor"),
   variancia_igual = FALSE,
   confianca = 0.95,
+  formato = c("resumo", "completo"),
   decimais = 2,
   grafico = TRUE
 )

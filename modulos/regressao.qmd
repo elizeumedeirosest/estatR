@@ -64,3 +64,72 @@ valores_ajustados(modelo)
 # Resumo completo do modelo
 resumo(modelo)
 ```
+
+
+---
+
+## Diagnóstico Residual por Simulação
+
+Disponível via `simulacao = TRUE` em `analise_residual()` para qualquer modelo GLM (Poisson, Binomial Negativa, ZIP, Logística, Beta). Gera resíduos quantílicos escalonados U(0,1) e compara com simulações empíricas do próprio modelo — sem pressupor normalidade.
+
+```r
+mod_poi <- regressao_poisson(acidentes ~ distancia + idade, dados = df)
+analise_residual(mod_poi, simulacao = TRUE, n_sim = 500)
+# Testa: Uniformidade (KS), Sobredispersão e Excesso de Zeros
+# Painel com 4 gráficos diagnósticos
+```
+
+---
+
+## Predição Conformal
+
+```r
+# Intervalos preditivos com garantia matemática de cobertura (95% exato)
+modelo_lm <- regressao_linear(mpg ~ wt + hp, dados = mtcars)
+res_conf <- predicao_conformal(modelo_lm, nivel = 0.95, metodo = "split")
+
+# Compara amplitude média e cobertura empírica: Conformal vs Clássico
+res_conf$predicoes       # Data frame com intervalos por observação
+res_conf$raio_conformal  # Raio do envelope conformal
+```
+
+---
+
+## Regressão Quantílica
+
+```r
+# Estima os efeitos para múltiplos quantis condicionais
+res_rq <- regressao_quantilica(
+  salario ~ experiencia + escolaridade,
+  dados     = df,
+  quantis   = c(0.10, 0.25, 0.50, 0.75, 0.90),
+  metodo_ep = "bootstrap",   # ou "assintotico"
+  n_boot    = 500
+)
+
+# Extração dos resultados
+res_rq$coeficientes[["tau_0.5"]]  # Coeficientes da mediana (τ = 0.50)
+res_rq$matriz_coeficientes        # Todos os coeficientes por quantil
+```
+
+---
+
+## Modelos Lineares Mistos e Hierárquicos
+
+```r
+# Modelo de intercepto aleatório por grupo (lme4)
+res_misto <- regressao_mista(
+  Reaction ~ Days + (1 | Subject),
+  dados   = lme4::sleepstudy,
+  familia = "gaussian",
+  metodo  = "REML"  # ou "ML"
+)
+
+# Extração
+res_misto$efeitos_fixos      # Coeficientes + IC + p-valor sem coluna Sig. separada
+res_misto$efeitos_aleatorios # Variâncias e DPs dos componentes aleatórios
+res_misto$icc                # ICC calculado: variância_grupo / (variância_grupo + variância_resid)
+
+# Visualização: Caterpillar plot dos BLUPs
+plot_regressao_mista(res_misto)
+```

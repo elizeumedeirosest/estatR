@@ -1,4 +1,4 @@
-#' @title Regressao Gama
+﻿#' @title Regressao Gama
 #' @description Ajusta um modelo de regressao Gama para variaveis
 #' contínuas e estritamente positivas, geralmente com forte assimetria à direita.
 #' Apresenta estatisticas de ajuste, parametro de forma, coeficientes (como multiplicadores da média)
@@ -151,7 +151,7 @@ regressao_gama <- function(formula, dados, ligacao = "log", grafico = TRUE) {
   }
   cat(sep_coef, "\n")
   cat("  Notas:\n")
-  cat("  Significância: *** p < 0,01   ** p < 0,05   * p < 0,10\n")
+  cat("  Signific\u00e2ncia: *** p < 0,001   ** p < 0,01   * p < 0,05\n\n")
   cat("  *Mult(Exp): Multiplicador da média esperada = exp(Estimativa).\n\n")
   
   if (exists(".print_topico", mode = "function")) .print_topico("INTERPRETAÇÃO")
