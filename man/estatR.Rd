@@ -11,7 +11,7 @@ análises estatísticas do R. Pensado para ensino, pesquisa acadêmica e ciênci
 produz saídas no console com formatação profissional em português, gráficos
 editoriais automáticos com grade dupla e retorno estruturado para manipulação direta.
 }
-\section{Módulos Disponíveis (14 Módulos Especializados)}{
+\section{Módulos Disponíveis (17 Módulos Especializados)}{
 
 
 \strong{1. 📊 Diagnóstico e Estatística Descritiva}
@@ -63,6 +63,7 @@ editoriais automáticos com grade dupla e retorno estruturado para manipulação
 \item \code{\link{analise_residual}} — Diagnóstico residual formal (Normalidade, Homocedasticidade, Independência).
 \item \code{\link{metricas}}, \code{\link{selecao_modelos}}, \code{\link{predicao}} — Avaliação, Best Subsets e intervalos de predição.
 \item \code{\link{multicolinearidade}}, \code{\link{pontos_influentes}}, \code{\link{grafico_coeficientes}} — Diagnóstico de alavancagem e Forest Plot.
+\item \code{\link{comparar_modelos}} — Ranqueamento de modelos por AICc, BIC, Delta-AICc e Pesos de Akaike.
 }
 
 \strong{7. 📊 Modelos Lineares Generalizados (MLG)}
@@ -93,6 +94,7 @@ editoriais automáticos com grade dupla e retorno estruturado para manipulação
 \item \code{\link{analise_dic}}, \code{\link{analise_dbc}}, \code{\link{analise_dql}} — Delineamentos clássicos com Tukey, Scott-Knott, Dunnett e regressão polinomial.
 \item \code{\link{analise_fatorial_duplo}}, \code{\link{analise_fatorial_adicional}}, \code{\link{analise_parcela_subdividida}} — Esquemas fatoriais e Split-Plot.
 \item \code{\link{analise_medidas_repetidas}} — ANOVA de medidas repetidas com teste de Mauchly e correções GG/HF.
+\item \code{\link{croqui_experimental}} — Planejamento de campo, casualização e mapa de parcelas para DIC, DBC, DQL e fatoriais com tema limpo.
 \item \code{\link{teste_dunnett}}, \code{\link{grafico_dunnett}} — Comparações múltiplas contra controle/testemunha.
 }
 
@@ -120,6 +122,24 @@ editoriais automáticos com grade dupla e retorno estruturado para manipulação
 \item \code{\link{amostra_aleatoria}}, \code{\link{amostra_estratificada}}, \code{\link{amostra_sistematica}}, \code{\link{amostra_conglomerados}} — Planos amostrais probabilísticos.
 \item \code{\link{tamanho_amostra}} — Dimensionamento ótimo de amostra.
 \item \code{\link{poder_estatistico}} — Cálculo de poder (1 - beta) e curvas de poder para testes estatísticos.
+}
+
+\strong{15. 🧹 Imputação e Validação de Dados}
+\itemize{
+\item \code{\link{imputar}} — 17 métodos de imputação estatística de dados ausentes (média, mediana, moda, LOCF, NOCB, interpolação, regressão, k-NN e MICE).
+\item \code{\link{validar_dados}} — Validação de integridade de dados por fórmula (entre, sem_nulos, niveis_permitidos, padrao regex, etc.).
+}
+
+\strong{16. 🗺️ Estatística Espacial}
+\itemize{
+\item \code{\link{analise_autocorrelacao}} — Índice de Moran Global (teste pseudo-p Monte Carlo) e Moran Local (LISA) com diagrama de dispersão e quadrantes.
+\item \code{\link{regressao_espacial}} — Modelos de regressão espacial autorregressivo (SAR / Spatial Lag) e com erro espacial (SEM / Spatial Error).
+}
+
+\strong{17. 🎲 Processos Estocásticos}
+\itemize{
+\item \code{\link{cadeia_markov}} — Cadeias de Markov em tempo discreto, matriz de transição, distribuição estacionária de longo prazo e simulação de trajetórias.
+\item \code{\link{passeio_aleatorio}} — Simulação de trajetórias de passeio aleatório unidimensional com barreiras de absorção e tempos de ruína.
 }
 }
 
