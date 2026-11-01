@@ -34,17 +34,11 @@ toc: false
 
       <a href="modulos/inferencia.qmd" class="module-card">
         <div class="module-icon"><i class="bi bi-bullseye"></i></div>
-        <div class="module-title">Testes de Hipótese</div>
-        <div class="module-desc">Testes paramétricos e não-paramétricos com tamanhos de efeito e interpretação automática.</div>
+        <div class="module-title">Inferência Estatística</div>
+        <div class="module-desc">Testes de hipótese paramétricos e não-paramétricos, Welch, TOST e intervalos de confiança.</div>
         <div class="module-link">Ver módulo →</div>
       </a>
 
-      <a href="modulos/intervalos.qmd" class="module-card">
-        <div class="module-icon"><i class="bi bi-rulers"></i></div>
-        <div class="module-title">Intervalos de Confiança</div>
-        <div class="module-desc">Construção e interpretação de intervalos para médias, proporções e variâncias.</div>
-        <div class="module-link">Ver módulo →</div>
-      </a>
 
       <a href="modulos/probabilidade.qmd" class="module-card">
         <div class="module-icon"><i class="bi bi-bell"></i></div>
@@ -62,17 +56,11 @@ toc: false
 
       <a href="modulos/regressao.qmd" class="module-card">
         <div class="module-icon"><i class="bi bi-graph-up"></i></div>
-        <div class="module-title">Modelos Lineares &amp; Regressão</div>
-        <div class="module-desc">Regressão múltipla com diagnóstico residual rigoroso e extratores em português.</div>
+        <div class="module-title">Modelagem e Regressão</div>
+        <div class="module-desc">Regressão múltipla, GLMs (Logística, Poisson, Gama, Beta), modelos mistos e predição conformal.</div>
         <div class="module-link">Ver módulo →</div>
       </a>
 
-      <a href="modulos/mlg.qmd" class="module-card">
-        <div class="module-icon"><i class="bi bi-bar-chart-steps"></i></div>
-        <div class="module-title">Modelos Generalizados (MLG)</div>
-        <div class="module-desc">Logística, Poisson, Binomial Negativa, Gama e Beta com Odds Ratio e IRR.</div>
-        <div class="module-link">Ver módulo →</div>
-      </a>
 
       <a href="modulos/series_temporais.qmd" class="module-card">
         <div class="module-icon"><i class="bi bi-activity"></i></div>

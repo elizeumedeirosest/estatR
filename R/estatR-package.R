@@ -5,7 +5,7 @@
 #' produz saídas no console com formatação profissional em português, gráficos
 #' editoriais automáticos com grade dupla e retorno estruturado para manipulação direta.
 #'
-#' @section Módulos Disponíveis (16 Módulos Especializados):
+#' @section Módulos Disponíveis (14 Módulos Especializados):
 #'
 #' \strong{1. 📊 Diagnóstico e Estatística Descritiva}
 #' \itemize{
@@ -17,25 +17,24 @@
 #'   \item \code{\link{outliers}} — Detecção e identificação de anomalias pelo método IQR.
 #' }
 #'
-#' \strong{2. 🎯 Testes de Hipótese e Inferência}
+#' \strong{2. 🎯 Inferência Estatística (Testes de Hipótese e Intervalos de Confiança)}
 #' \itemize{
-#'   \item \code{\link{teste_t_uma_amostra}}, \code{\link{teste_t_duas_amostras}}, \code{\link{teste_t_pareado}} — Testes t de Student e Welch com tamanho de efeito (d de Cohen).
+#'   \item \code{\link{ic_media}}, \code{\link{ic_proporcao}}, \code{\link{ic_variancia}}, \code{\link{ic_diferenca_medias}} — Estimação intervalar com representação em régua.
+#'   \item \code{\link{teste_t_uma_amostra}}, \code{\link{teste_t_duas_amostras}}, \code{\link{teste_t_pareado}} — Testes t de Student e Welch com tamanho de efeito (d de Cohen), IC e poder observado no modo completo.
 #'   \item \code{\link{teste_proporcao}} — Teste Z de proporção amostral.
-#'   \item \code{\link{teste_equivalencia}} — Procedimento de Dois Testes Unicaudais (TOST) para equivalência clínica/estatística.
-#'   \item \code{\link{teste_mcnemar}} — Teste de McNemar para dados categóricos binários pareados com Odds Ratio pareado.
-#'   \item \code{\link{teste_wilcoxon}}, \code{\link{teste_mann_whitney}} — Alternativas não-paramétricas para 1 e 2 amostras.
-#'   \item \code{\link{teste_kruskal}}, \code{\link{teste_friedman}} — Comparações não-paramétricas para múltiplos grupos ou medidas repetidas.
-#'   \item \code{\link{teste_qui_quadrado}} — Qui-quadrado de independência com tamanho de efeito (V de Cramér).
-#'   \item \code{\link{teste_levene}} — Teste de homogeneidade de variâncias.
-#'   \item \code{\link{concordancia_kappa}}, \code{\link{grafico_bland_altman}} — Confiabilidade entre avaliadores e concordância contínua.
+#'   \item \code{\link{teste_equivalencia}} — Procedimento de Dois Testes Unicaudais (TOST) para equivalência prática.
+#'   \item \code{\link{teste_mcnemar}} — Teste de McNemar para pares binários com Odds Ratio pareado.
+#'   \item \code{\link{teste_wilcoxon}}, \code{\link{teste_mann_whitney}} — Alternativas não-paramétricas com tamanho de efeito r e rank-biserial.
+#'   \item \code{\link{teste_kruskal}}, \code{\link{teste_friedman}} — Comparações não-paramétricas para múltiplos grupos ou blocos.
+#'   \item \code{\link{teste_qui_quadrado}} — Qui-quadrado de independência com V de Cramér e poder post-hoc.
+#'   \item \code{\link{teste_levene}} — Homogeneidade de variâncias.
+#'   \item \code{\link{concordancia_kappa}}, \code{\link{grafico_bland_altman}} — Confiabilidade e concordância.
 #' }
-#'
-#' \strong{3. 📏 Intervalos de Confiança}
 #' \itemize{
 #'   \item \code{\link{ic_media}}, \code{\link{ic_proporcao}}, \code{\link{ic_variancia}}, \code{\link{ic_diferenca_medias}} — Estimativas intervalares formais.
 #' }
 #'
-#' \strong{4. 🎲 Probabilidade e Simulação}
+#' \strong{3. 🎲 Probabilidade e Simulação}
 #' \itemize{
 #'   \item \code{\link{distribuicao}} — Painel completo de distribuições (Normal, t, F, Chi², Poisson, Binomial, Weibull, Gama, etc.).
 #'   \item \code{\link{prob_normal}}, \code{\link{prob_binomial}}, \code{\link{prob_poisson}}, \code{\link{prob_exponencial}}, \code{\link{prob_weibull}} — Cálculo exato de probabilidades com curvas sombreadas.
@@ -44,30 +43,26 @@
 #'   \item \code{\link{bootstrap}}, \code{\link{simular_tcl}}, \code{\link{monte_carlo}} — Reamostragem computacional e simulação.
 #' }
 #'
-#' \strong{5. 🛠️ Engenharia de Variáveis (Validação, Imputação e Transformação)}
+#' \strong{4. 🛠️ Engenharia de Variáveis (Validação, Imputação e Transformação)}
 #' \itemize{
 #'   \item \code{\link{validar_dados}} — Validação de consistência e regras de integridade por fórmulas declarativas.
 #'   \item \code{\link{imputar}} — 17 métodos de imputação estatística e por Machine Learning para valores ausentes.
 #'   \item \code{\link{transformar}} — Famílias Box-Cox, Yeo-Johnson e transformações direcionadas por objetivos (normalidade, assimetria, homocedasticidade, etc.).
-#' }
-#' \itemize{
-#'   \item \code{\link{transformar}} — Família de potências de Box-Cox com intervalo de confiança de lambda, Yeo-Johnson, Log, Raiz, Logit, Arco-Seno, Padronização e seleção automática ("auto") por Shapiro-Wilk.
-#' }
 #'
-#' \strong{6. 📈 Modelos Lineares e Regressão}
+#' \strong{5. 📈 Modelagem e Regressão (Linear, Generalizada e Hierárquica)}
 #' \itemize{
-#'   \item \code{\link{regressao_linear}} — Regressão linear simples e múltipla com ANOVA, coeficientes, VIF e interpretação.
+#'   \item \code{\link{regressao_linear}} — Regressão linear simples e múltipla com ANOVA, coeficientes, VIF e diagnóstico.
+#'   \item \code{\link{regressao_mlg}} — Ajuste flexível para Binomial, Poisson, Quasipoisson, Gama, Gaussiana, Binomial Negativa e Beta.
+#'   \item \code{\link{regressao_logistica}}, \code{\link{odds_ratio}} — Modelos logísticos com cutoff ótimo de Youden e Razões de Chances.
+#'   \item \code{\link{regressao_poisson}}, \code{\link{regressao_binomial_negativa}}, \code{\link{irr}} — Modelos de contagem e Razões de Taxas de Incidência.
+#'   \item \code{\link{regressao_gama}}, \code{\link{regressao_beta}} — Modelos para respostas positivas assimétricas e taxas contínuas em (0, 1).
+#'   \item \code{\link{regressao_mista}}, \code{\link{plot_regressao_mista}} — Modelos hierárquicos/mistos com cálculo e interpretação do ICC e BLUPs.
+#'   \item \code{\link{regressao_quantilica}}, \code{\link{plot_regressao_quantilica}} — Regressão quantílica em múltiplos quantis condicionais com bootstrap.
+#'   \item \code{\link{predicao_conformal}}, \code{\link{plot_conformal}} — Intervalos preditivos conformalizados com cobertura exata.
+#'   \item \code{\link{analise_residual}} — Diagnóstico residual clássico e por simulação empírica (DHARMa-style) com \code{simulacao = TRUE}.
 #'   \item \code{\link{coeficientes}}, \code{\link{residuos}}, \code{\link{valores_ajustados}}, \code{\link{resumo}} — Extratores universais de modelos em português.
-#'   \item \code{\link{analise_residual}} — Diagnóstico residual formal (Normalidade, Homocedasticidade, Independência) e diagnósticos residuais por simulação empírica (DHARMa-style) com \code{simulacao = TRUE}.
-#'   \item \code{\link{predicao_conformal}} — Intervalos de predição conformalizados com garantia matemática de cobertura exata sem premissas distributivas.
-#'   \item \code{\link{regressao_quantilica}} — Regressão quantílica para análise do impacto das covariáveis ao longo de toda a distribuição condicional.
-#'   \item \code{\link{regressao_mista}} — Modelos lineares mistos e hierárquicos para dados agrupados/multinível com cálculo e interpretação do ICC.
-#'   \item \code{\link{metricas}}, \code{\link{selecao_modelos}}, \code{\link{predicao}} — Avaliação, Best Subsets e intervalos de predição.
-#'   \item \code{\link{multicolinearidade}}, \code{\link{pontos_influentes}}, \code{\link{grafico_coeficientes}} — Diagnóstico de alavancagem e Forest Plot.
-#'   \item \code{\link{comparar_modelos}} — Ranqueamento de modelos por AICc, BIC, Delta-AICc e Pesos de Akaike.
+#'   \item \code{\link{metricas}}, \code{\link{selecao_modelos}}, \code{\link{predicao}}, \code{\link{comparar_modelos}} — Avaliação, seleção e ranqueamento Akaike.
 #' }
-#'
-#' \strong{7. 📊 Modelos Lineares Generalizados (MLG)}
 #' \itemize{
 #'   \item \code{\link{regressao_mlg}} — Ajuste flexível para Binomial, Poisson, Quasipoisson, Gama, Gaussiana, Binomial Negativa e Beta.
 #'   \item \code{\link{regressao_logistica}}, \code{\link{odds_ratio}} — Modelos logísticos (binário, multinomial, ordinal) e Razões de Chances.
@@ -75,14 +70,14 @@
 #'   \item \code{\link{regressao_gama}}, \code{\link{regressao_beta}} — Modelos para dados assimétricos estritos e taxas no intervalo (0, 1).
 #' }
 #'
-#' \strong{8. 📉 Séries Temporais}
+#' \strong{6. 📉 Séries Temporais}
 #' \itemize{
 #'   \item \code{\link{analise_serie}}, \code{\link{teste_estacionariedade}} — Decomposição temporal e testes ADF/KPSS.
 #'   \item \code{\link{previsao_serie}}, \code{\link{previsao_serie_aprend_maq}} — Suavização exponencial e previsão com Machine Learning.
 #'   \item \code{\link{grafico_autocorrelacao}}, \code{\link{selecao_modelos_serie}} — FAC/FACP e ranking fora da amostra.
 #' }
 #'
-#' \strong{9. 🧬 Análise Multivariada e Agrupamento}
+#' \strong{7. 🧬 Análise Multivariada e Agrupamento}
 #' \itemize{
 #'   \item \code{\link{acp}}, \code{\link{biplot_acp}}, \code{\link{screeplot_acp}} — Análise de Componentes Principais com KMO e Bartlett.
 #'   \item \code{\link{analise_fatorial}}, \code{\link{biplot_fatorial}} — Análise Fatorial Exploratória (AFE).
@@ -93,7 +88,7 @@
 #'   \item \code{\link{cluster_misto}}, \code{\link{plot_cluster_misto}} — Agrupamento para dados com variáveis numéricas e categóricas via dissimilaridade de Gower e PAM.
 #' }
 #'
-#' \strong{10. 🧪 Delineamentos Experimentais}
+#' \strong{8. 🧪 Delineamentos Experimentais}
 #' \itemize{
 #'   \item \code{\link{analise_dic}}, \code{\link{analise_dbc}}, \code{\link{analise_dql}} — Delineamentos clássicos com Tukey, Scott-Knott, Dunnett e regressão polinomial.
 #'   \item \code{\link{analise_fatorial_duplo}}, \code{\link{analise_fatorial_adicional}}, \code{\link{analise_parcela_subdividida}} — Esquemas fatoriais e Split-Plot.
@@ -102,26 +97,26 @@
 #'   \item \code{\link{teste_dunnett}}, \code{\link{grafico_dunnett}} — Comparações múltiplas contra controle/testemunha.
 #' }
 #'
-#' \strong{11. 🛡️ Controle Estatístico da Qualidade (CEQ & Six Sigma)}
+#' \strong{9. 🛡️ Controle Estatístico da Qualidade (CEQ & Six Sigma)}
 #' \itemize{
 #'   \item \code{\link{grafico_controle}} — Cartas de Shewhart (I-MR, Xbar-R, Xbar-S, p, np, c, u) com regras de Western Electric / Nelson.
 #'   \item \code{\link{capacidade_processo}} — Análise de capacidade e desempenho (Cp, Cpk, Cpm, Pp, Ppk, PPM e nível Sigma).
 #' }
 #'
-#' \strong{12. 🤖 Aprendizado de Máquina (Machine Learning)}
+#' \strong{10. 🤖 Aprendizado de Máquina (Machine Learning)}
 #' \itemize{
 #'   \item \code{\link{classificacao_aprend_maq}}, \code{\link{previsao_aprend_maq}} — Treinamento supervisionado com Random Forest e métricas completas.
 #'   \item \code{\link{validacao_cruzada}} — Validação cruzada K-Fold para regressão e classificação com avaliação fora da amostra.
 #'   \item \code{\link{analise_residual_aprend_maq}} — Diagnóstico residual para modelos de Machine Learning.
 #' }
 #'
-#' \strong{13. ⏱️ Análise de Sobrevivência}
+#' \strong{11. ⏱️ Análise de Sobrevivência}
 #' \itemize{
 #'   \item \code{\link{analise_sobrevivencia}}, \code{\link{grafico_sobrevivencia}} — Curvas de Kaplan-Meier, risco de Nelson-Aalen e teste de Log-Rank.
 #'   \item \code{\link{regressao_cox}}, \code{\link{metricas_cox}}, \code{\link{selecao_modelos_cox}}, \code{\link{grafico_cox}} — Modelo de Cox, resíduos de Schoenfeld e Forest Plot de Hazard Ratios.
 #' }
 #'
-#' \strong{14. 👥 Amostragem Probabilística}
+#' \strong{12. 👥 Amostragem Probabilística}
 #' \itemize{
 #'   \item \code{\link{amostra_aleatoria}}, \code{\link{amostra_estratificada}}, \code{\link{amostra_sistematica}}, \code{\link{amostra_conglomerados}} — Planos amostrais probabilísticos.
 #'   \item \code{\link{tamanho_amostra}} — Dimensionamento ótimo de amostra.
@@ -132,13 +127,13 @@
 #'   \item \code{\link{validar_dados}} — Validação de integridade de dados por fórmula (entre, sem_nulos, niveis_permitidos, padrao regex, etc.).
 #' }
 #'
-#' \strong{15. 🗺️ Estatística Espacial}
+#' \strong{13. 🗺️ Estatística Espacial}
 #' \itemize{
 #'   \item \code{\link{analise_autocorrelacao}} — Índice de Moran Global (teste pseudo-p Monte Carlo) e Moran Local (LISA) com diagrama de dispersão e quadrantes.
 #'   \item \code{\link{regressao_espacial}} — Modelos de regressão espacial autorregressivo (SAR / Spatial Lag) e com erro espacial (SEM / Spatial Error).
 #' }
 #'
-#' \strong{16. 🎲 Processos Estocásticos}
+#' \strong{14. 🎲 Processos Estocásticos}
 #' \itemize{
 #'   \item \code{\link{cadeia_markov}} — Cadeias de Markov em tempo discreto, matriz de transição, distribuição estacionária de longo prazo e simulação de trajetórias.
 #'   \item \code{\link{passeio_aleatorio}} — Simulação de trajetórias de passeio aleatório unidimensional com barreiras de absorção e tempos de ruína.

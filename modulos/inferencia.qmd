@@ -1,91 +1,128 @@
 ---
-title: "Inferência e Testes de Hipótese"
-subtitle: "Testes paramétricos e não-paramétricos com saídas didáticas e gráficos editoriais"
+title: "Inferência Estatística"
+subtitle: "Testes de hipótese paramétricos e não-paramétricos e estimação intervalar com saídas didáticas"
 ---
 
-## Testes Paramétricos
+## Visão Geral
+
+O módulo de **Inferência Estatística** do `estatR` reúne as duas vertentes complementares da inferência frequentista clássica: **Intervalos de Confiança** e **Testes de Hipótese**. Todas as funções geram saídas formatadas em português, verificação automática de pressupostos, cálculo de tamanho de efeito e gráficos editoriais automáticos.
+
+---
+
+## 1. Intervalos de Confiança (Estimação Intervalar)
+
+### Intervalo para a Média
+Calcula o IC exato baseado na distribuição t de Student (ou normal):
+
+```r
+library(estatR)
+
+# IC de 95% para a média
+ic_media(mtcars$mpg, confianca = 0.95, grafico = TRUE)
+
+# IC de 99%
+ic_media(mtcars$mpg, confianca = 0.99)
+```
+
+### Intervalo para Proporções
+Método de Wilson com correção de continuidade:
+
+```r
+# 87 sucessos em 300 tentativas
+ic_proporcao(x = 87, n = 300, confianca = 0.95, grafico = TRUE)
+```
+
+### Intervalo para a Variância e Desvio Padrão
+Baseado na distribuição $\chi^2$, fornece os limites de confiança para $\sigma^2$ e $\sigma$:
+
+```r
+ic_variancia(mtcars$mpg, confianca = 0.95, grafico = TRUE)
+```
+
+### Intervalo para Diferença entre Médias
+Suporta variâncias iguais (Student agrupado) ou desiguais (Welch-Satterthwaite):
+
+```r
+ic_diferenca_medias(mtcars$mpg, mtcars$am, confianca = 0.95, grafico = TRUE)
+```
+
+---
+
+## 2. Testes de Hipótese Paramétricos
+
+Todas as funções de teste suportam `formato = c("resumo", "completo")`. No modo `"completo"`, fornecem intervalo de confiança do tamanho de efeito e o poder estatístico observado ($1 - \beta$).
 
 ### Teste T para Uma Amostra
 Compara a média amostral com um valor de referência populacional ($\mu_0$):
 
 ```r
-teste_t_uma_amostra(mtcars$mpg, mu = 20, grafico = TRUE)
+teste_t_uma_amostra(mtcars$mpg, mu = 20, formato = "completo", grafico = TRUE)
 ```
 
 ### Teste T para Duas Amostras Independentes
-Avalia diferença entre grupos com verificação automática de homocedasticidade (Welch por padrão):
+Avalia a diferença entre dois grupos independentes com correção de Welch por padrão:
 
 ```r
-teste_t_duas_amostras(mpg ~ am, dados = mtcars, grafico = TRUE)
+teste_t_duas_amostras(mpg ~ am, dados = mtcars, formato = "completo", grafico = TRUE)
 ```
 
 ### Teste T Pareado
+Para observações emparelhadas (antes vs. depois):
 
 ```r
-teste_t_pareado(dados$antes, dados$depois, grafico = TRUE)
+teste_t_pareado(dados$antes, dados$depois, formato = "completo", grafico = TRUE)
 ```
 
-### Teste de Proporção
+### Teste Z de Proporção Amostral
 
 ```r
 teste_proporcao(x = 87, n = 300, p0 = 0.25)
 ```
 
+### Teste de Equivalência Clínica (TOST)
+Dois Testes Unicaudais (*Two One-Sided Tests*) para demonstrar equivalência prática dentro de uma margem $[-\Delta, +\Delta]$:
+
+```r
+teste_equivalencia(medicamento_teste, medicamento_referencia, margem = 2.0)
+```
+
 ---
 
-## Testes Não-Paramétricos e Categóricos
+## 3. Testes Não-Paramétricos e Categóricos
 
-### Teste de Wilcoxon & Mann-Whitney
+### Testes de Wilcoxon & Mann-Whitney
+Alternativas robustas para distribuições não-normais com cálculo do tamanho de efeito $r$:
 
 ```r
-# Uma amostra / pareado (Wilcoxon Signed-Rank)
-teste_wilcoxon(mtcars$mpg, mu = 20, grafico = TRUE)
+# Uma amostra ou pareado (Wilcoxon Signed-Rank)
+teste_wilcoxon(mtcars$mpg, mu = 20, formato = "completo", grafico = TRUE)
 
-# Duas amostras independentes (Mann-Whitney U)
-teste_mann_whitney(mpg ~ am, dados = mtcars, grafico = TRUE)
+# Duas amostras independentes (Mann-Whitney U) com correlação rank-biserial
+teste_mann_whitney(mpg ~ am, dados = mtcars, formato = "completo", grafico = TRUE)
 ```
 
-### Kruskal-Wallis & Friedman
+### Comparações Múltiplas Não-Paramétricas
 
 ```r
-# Grupos independentes (Kruskal-Wallis com post-hoc de Dunn)
-teste_kruskal(Sepal.Length ~ Species, dados = iris)
+# Kruskal-Wallis (k >= 2 grupos independentes) com post-hoc de Dunn
+teste_kruskal(mpg ~ cyl, dados = mtcars, grafico = TRUE)
 
-# Medidas repetidas / blocos (Friedman)
-teste_friedman(y ~ grupo | bloco, dados = dados_repetidos)
+# Friedman (k >= 2 medidas repetidas / blocos) com post-hoc pareado
+teste_friedman(resposta ~ tratamento | bloco, dados = dados_experimento)
 ```
 
-
-### Teste de Equivalência (TOST)
-Procedimento de Dois Testes Unicaudais para avaliar se a diferença entre tratamentos está dentro de uma margem clinicamente aceitável:
+### Análise de Tabelas de Contingência e Concordância
 
 ```r
-teste_equivalencia(mpg ~ am, dados = mtcars, margem = 2, grafico = TRUE)
-```
+# Teste Qui-Quadrado de Independência com V de Cramér e poder post-hoc
+teste_qui_quadrado(dados, var_x, var_y, formato = "completo", grafico = TRUE)
 
-### Teste de McNemar para Dados Pareados
-Avaliação de homogeneidade marginal para dados categóricos binários pareados (com cálculo de Odds Ratio pareado):
+# Teste de McNemar para pares binários com Odds Ratio pareado
+teste_mcnemar(dados, antes, depois)
 
-```r
-teste_mcnemar(dados, var_antes = Antes, var_depois = Depois, grafico = TRUE)
-```
+# Confiabilidade inter-avaliadores (Kappa de Cohen)
+concordancia_kappa(avaliador_1, avaliador_2)
 
-### Qui-Quadrado & Homocedasticidade
-
-```r
-# Qui-Quadrado de Independência
-teste_qui_quadrado(mtcars, cyl, am)
-
-# Homocedasticidade de Levene
-teste_levene(mtcars$mpg, mtcars$am)
-```
-
-### Concordância
-
-```r
-# Cohen / Fleiss Kappa
-concordancia_kappa(avaliador1, avaliador2)
-
-# Bland-Altman
-grafico_bland_altman(dados, metodo1 = "termometro_A", metodo2 = "termometro_B")
+# Gráfico de Bland-Altman para concordância contínua
+grafico_bland_altman(metodo_novo, metodo_referencia)
 ```

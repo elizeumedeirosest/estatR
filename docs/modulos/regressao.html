@@ -7,7 +7,7 @@
 <meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=yes">
 
 
-<title>Modelagem Linear e Diagnóstico Residual – estatR</title>
+<title>Modelagem e Regressão – estatR</title>
 <style>
 /* Default styles provided by pandoc.
 ** See https://pandoc.org/MANUAL.html#variables-for-html for config info.
@@ -91,6 +91,35 @@ pre > code.sourceCode > span > a:first-child::before { text-decoration: underlin
 }</script>
 <style>html{ scroll-behavior: smooth; }</style>
 
+  <script src="https://cdnjs.cloudflare.com/polyfill/v3/polyfill.min.js?features=es6"></script>
+  <script defer="" src="https://cdn.jsdelivr.net/npm/mathjax@3/es5/tex-chtml-full.js" type="text/javascript"></script>
+
+<script type="text/javascript">
+const typesetMath = (el) => {
+  if (window.MathJax) {
+    // MathJax Typeset
+    window.MathJax.typeset([el]);
+  } else if (window.katex) {
+    // KaTeX Render
+    var mathElements = el.getElementsByClassName("math");
+    var macros = [];
+    for (var i = 0; i < mathElements.length; i++) {
+      var texText = mathElements[i].firstChild;
+      if (mathElements[i].tagName == "SPAN" && texText && texText.data) {
+        window.katex.render(texText.data, mathElements[i], {
+          displayMode: mathElements[i].classList.contains('display'),
+          throwOnError: false,
+          macros: macros,
+          fleqn: false
+        });
+      }
+    }
+  }
+}
+window.Quarto = {
+  typesetMath
+};
+</script>
 
 <link rel="stylesheet" href="../styles.css">
 </head>
@@ -130,11 +159,7 @@ pre > code.sourceCode > span > a:first-child::before { text-decoration: underlin
   </li>  
         <li>
     <a class="dropdown-item" href="../modulos/inferencia.html">
- <span class="dropdown-text">Testes de Hipótese</span></a>
-  </li>  
-        <li>
-    <a class="dropdown-item" href="../modulos/intervalos.html">
- <span class="dropdown-text">Intervalos de Confiança</span></a>
+ <span class="dropdown-text">Inferência Estatística</span></a>
   </li>  
         <li>
     <a class="dropdown-item" href="../modulos/probabilidade.html">
@@ -146,11 +171,7 @@ pre > code.sourceCode > span > a:first-child::before { text-decoration: underlin
   </li>  
         <li>
     <a class="dropdown-item" href="../modulos/regressao.html">
- <span class="dropdown-text">Modelos Lineares e Regressão</span></a>
-  </li>  
-        <li>
-    <a class="dropdown-item" href="../modulos/mlg.html">
- <span class="dropdown-text">Modelos Generalizados (MLG)</span></a>
+ <span class="dropdown-text">Modelagem e Regressão</span></a>
   </li>  
         <li>
     <a class="dropdown-item" href="../modulos/series_temporais.html">
@@ -214,8 +235,8 @@ pre > code.sourceCode > span > a:first-child::before { text-decoration: underlin
 
 <header id="title-block-header" class="quarto-title-block default">
 <div class="quarto-title">
-<h1 class="title">Modelagem Linear e Diagnóstico Residual</h1>
-<p class="subtitle lead">Regressão múltipla, seleção de variáveis e diagnóstico gráfico em 4 painéis</p>
+<h1 class="title">Modelagem e Regressão</h1>
+<p class="subtitle lead">Regressão linear múltipla, modelos generalizados (MLG), modelos mistos, regressão quantílica e predição conformal</p>
 </div>
 
 
@@ -232,111 +253,128 @@ pre > code.sourceCode > span > a:first-child::before { text-decoration: underlin
 </header>
 
 
-<section id="ajuste-de-modelos" class="level2">
-<h2 class="anchored" data-anchor-id="ajuste-de-modelos">Ajuste de Modelos</h2>
-<section id="regressao_linear" class="level3">
-<h3 class="anchored" data-anchor-id="regressao_linear"><code>regressao_linear()</code></h3>
-<p>Mínimos Quadrados Ordinários (MQO) com saída formatada: coeficientes, erros padrão, estatísticas t e p-valores:</p>
-<div class="code-copy-outer-scaffold"><div class="sourceCode" id="cb1"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb1-1"><a href="#cb1-1" aria-hidden="true" tabindex="-1"></a>modelo <span class="ot">&lt;-</span> <span class="fu">regressao_linear</span>(mpg <span class="sc">~</span> wt <span class="sc">+</span> hp <span class="sc">+</span> qsec, <span class="at">dados =</span> mtcars)</span></code></pre></div><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></div>
+<section id="visão-geral" class="level2">
+<h2 class="anchored" data-anchor-id="visão-geral">Visão Geral</h2>
+<p>O módulo de <strong>Modelagem e Regressão</strong> do <code>estatR</code> unifica em uma interface consistente toda a família de modelos lineares e não-lineares, desde o ajuste clássico por Mínimos Quadrados Ordinários (MQO) até Modelos Lineares Generalizados (MLG), modelos hierárquicos/mistos e inferência preditiva moderna.</p>
+<p>Todas as funções exibem o resumo estatístico completo imediatamente ao rodar o comando no console — sem a necessidade de comandos adicionais como <code>summary()</code>.</p>
 <hr>
 </section>
-</section>
-<section id="diagnóstico-residual" class="level2">
-<h2 class="anchored" data-anchor-id="diagnóstico-residual">Diagnóstico Residual</h2>
-<section id="analise_residual" class="level3">
-<h3 class="anchored" data-anchor-id="analise_residual"><code>analise_residual()</code></h3>
-<p>Painel editorial com 4 gráficos: Resíduos vs Ajustados, Q-Q Normal, Escala-Locação e Resíduos vs Alavancagem:</p>
-<div class="code-copy-outer-scaffold"><div class="sourceCode" id="cb2"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb2-1"><a href="#cb2-1" aria-hidden="true" tabindex="-1"></a><span class="fu">analise_residual</span>(modelo, <span class="at">grade =</span> <span class="st">"dupla"</span>)</span></code></pre></div><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></div>
+<section id="regressão-linear-múltipla-regressao_linear" class="level2">
+<h2 class="anchored" data-anchor-id="regressão-linear-múltipla-regressao_linear">1. Regressão Linear Múltipla (<code>regressao_linear()</code>)</h2>
+<p>Ajuste por Mínimos Quadrados Ordinários com tabela formatada de coeficientes, intervalos de confiança, <span class="math inline">\(R^2\)</span>, <span class="math inline">\(R^2\)</span> ajustado, estatística F e interpretação de multicolinearidade (VIF):</p>
+<div class="code-copy-outer-scaffold"><div class="sourceCode" id="cb1"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb1-1"><a href="#cb1-1" aria-hidden="true" tabindex="-1"></a><span class="fu">library</span>(estatR)</span>
+<span id="cb1-2"><a href="#cb1-2" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb1-3"><a href="#cb1-3" aria-hidden="true" tabindex="-1"></a><span class="co"># Ajuste com saída imediata no console</span></span>
+<span id="cb1-4"><a href="#cb1-4" aria-hidden="true" tabindex="-1"></a>modelo <span class="ot">&lt;-</span> <span class="fu">regressao_linear</span>(mpg <span class="sc">~</span> wt <span class="sc">+</span> hp <span class="sc">+</span> qsec, <span class="at">dados =</span> mtcars)</span>
+<span id="cb1-5"><a href="#cb1-5" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb1-6"><a href="#cb1-6" aria-hidden="true" tabindex="-1"></a><span class="co"># Seleção de variáveis e métricas</span></span>
+<span id="cb1-7"><a href="#cb1-7" aria-hidden="true" tabindex="-1"></a><span class="fu">metricas</span>(modelo)</span>
+<span id="cb1-8"><a href="#cb1-8" aria-hidden="true" tabindex="-1"></a><span class="fu">selecao_modelos</span>(modelo, <span class="at">direcao =</span> <span class="st">"both"</span>)</span>
+<span id="cb1-9"><a href="#cb1-9" aria-hidden="true" tabindex="-1"></a><span class="fu">multicolinearidade</span>(modelo)</span>
+<span id="cb1-10"><a href="#cb1-10" aria-hidden="true" tabindex="-1"></a><span class="fu">pontos_influentes</span>(modelo)</span>
+<span id="cb1-11"><a href="#cb1-11" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb1-12"><a href="#cb1-12" aria-hidden="true" tabindex="-1"></a><span class="co"># Gráfico de coeficientes estilo Forest Plot</span></span>
+<span id="cb1-13"><a href="#cb1-13" aria-hidden="true" tabindex="-1"></a><span class="fu">grafico_coeficientes</span>(modelo)</span></code></pre></div><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></div>
 <hr>
 </section>
+<section id="modelos-lineares-generalizados-mlg-glm" class="level2">
+<h2 class="anchored" data-anchor-id="modelos-lineares-generalizados-mlg-glm">2. Modelos Lineares Generalizados (MLG / GLM)</h2>
+<section id="regressão-logística-ponto-de-corte-ótimo-de-youden" class="level3">
+<h3 class="anchored" data-anchor-id="regressão-logística-ponto-de-corte-ótimo-de-youden">Regressão Logística &amp; Ponto de Corte Ótimo de Youden</h3>
+<p>Para respostas binárias ou probabilísticas (sucesso/fracasso):</p>
+<div class="code-copy-outer-scaffold"><div class="sourceCode" id="cb2"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb2-1"><a href="#cb2-1" aria-hidden="true" tabindex="-1"></a><span class="co"># Regressão Logística com Odds Ratios automáticos</span></span>
+<span id="cb2-2"><a href="#cb2-2" aria-hidden="true" tabindex="-1"></a>modelo_log <span class="ot">&lt;-</span> <span class="fu">regressao_logistica</span>(am <span class="sc">~</span> mpg <span class="sc">+</span> hp, <span class="at">dados =</span> mtcars)</span>
+<span id="cb2-3"><a href="#cb2-3" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb2-4"><a href="#cb2-4" aria-hidden="true" tabindex="-1"></a><span class="co"># Matriz de confusão, AUC-ROC e ponto de corte ótimo pelo índice J de Youden</span></span>
+<span id="cb2-5"><a href="#cb2-5" aria-hidden="true" tabindex="-1"></a><span class="fu">metricas_logistica</span>(modelo_log, <span class="at">ponto_corte =</span> <span class="st">"youden"</span>)</span></code></pre></div><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></div>
 </section>
-<section id="seleção-e-validação" class="level2">
-<h2 class="anchored" data-anchor-id="seleção-e-validação">Seleção e Validação</h2>
-<div class="code-copy-outer-scaffold"><div class="sourceCode" id="cb3"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb3-1"><a href="#cb3-1" aria-hidden="true" tabindex="-1"></a><span class="co"># R², R² ajustado, RMSE, MAE, AIC, BIC</span></span>
-<span id="cb3-2"><a href="#cb3-2" aria-hidden="true" tabindex="-1"></a><span class="fu">metricas</span>(modelo)</span>
+<section id="modelos-de-contagem-poisson-binomial-negativa" class="level3">
+<h3 class="anchored" data-anchor-id="modelos-de-contagem-poisson-binomial-negativa">Modelos de Contagem: Poisson &amp; Binomial Negativa</h3>
+<p>Para contagens de eventos (número de visitas, falhas, ocorrências):</p>
+<div class="code-copy-outer-scaffold"><div class="sourceCode" id="cb3"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb3-1"><a href="#cb3-1" aria-hidden="true" tabindex="-1"></a><span class="co"># Poisson (com verificação de sobredispersão e teste de razão de verossimilhança)</span></span>
+<span id="cb3-2"><a href="#cb3-2" aria-hidden="true" tabindex="-1"></a>mod_pois <span class="ot">&lt;-</span> <span class="fu">regressao_poisson</span>(num_visitas <span class="sc">~</span> idade <span class="sc">+</span> renda, <span class="at">dados =</span> dados_saude)</span>
 <span id="cb3-3"><a href="#cb3-3" aria-hidden="true" tabindex="-1"></a></span>
-<span id="cb3-4"><a href="#cb3-4" aria-hidden="true" tabindex="-1"></a><span class="co"># Stepwise AIC/BIC</span></span>
-<span id="cb3-5"><a href="#cb3-5" aria-hidden="true" tabindex="-1"></a><span class="fu">selecao_modelos</span>(modelo, <span class="at">direcao =</span> <span class="st">"both"</span>)</span>
-<span id="cb3-6"><a href="#cb3-6" aria-hidden="true" tabindex="-1"></a></span>
-<span id="cb3-7"><a href="#cb3-7" aria-hidden="true" tabindex="-1"></a><span class="co"># Fator de Inflação da Variância (VIF)</span></span>
-<span id="cb3-8"><a href="#cb3-8" aria-hidden="true" tabindex="-1"></a><span class="fu">multicolinearidade</span>(modelo)</span>
-<span id="cb3-9"><a href="#cb3-9" aria-hidden="true" tabindex="-1"></a></span>
-<span id="cb3-10"><a href="#cb3-10" aria-hidden="true" tabindex="-1"></a><span class="co"># Observações influentes e distância de Cook</span></span>
-<span id="cb3-11"><a href="#cb3-11" aria-hidden="true" tabindex="-1"></a><span class="fu">pontos_influentes</span>(modelo)</span>
-<span id="cb3-12"><a href="#cb3-12" aria-hidden="true" tabindex="-1"></a></span>
-<span id="cb3-13"><a href="#cb3-13" aria-hidden="true" tabindex="-1"></a><span class="co"># Gráfico de coeficientes com intervalos de confiança</span></span>
-<span id="cb3-14"><a href="#cb3-14" aria-hidden="true" tabindex="-1"></a><span class="fu">grafico_coeficientes</span>(modelo)</span></code></pre></div><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></div>
+<span id="cb3-4"><a href="#cb3-4" aria-hidden="true" tabindex="-1"></a><span class="co"># Binomial Negativa (com parâmetro theta estimado para contagens sobredispersas)</span></span>
+<span id="cb3-5"><a href="#cb3-5" aria-hidden="true" tabindex="-1"></a>mod_nb <span class="ot">&lt;-</span> <span class="fu">regressao_binomial_negativa</span>(num_visitas <span class="sc">~</span> idade <span class="sc">+</span> renda, <span class="at">dados =</span> dados_saude)</span></code></pre></div><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></div>
+</section>
+<section id="modelos-para-respostas-contínuas-e-taxas-gama-beta" class="level3">
+<h3 class="anchored" data-anchor-id="modelos-para-respostas-contínuas-e-taxas-gama-beta">Modelos para Respostas Contínuas e Taxas: Gama &amp; Beta</h3>
+<div class="code-copy-outer-scaffold"><div class="sourceCode" id="cb4"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb4-1"><a href="#cb4-1" aria-hidden="true" tabindex="-1"></a><span class="co"># Regressão Gama (respostas contínuas estritamente positivas e assimétricas: custos, tempo)</span></span>
+<span id="cb4-2"><a href="#cb4-2" aria-hidden="true" tabindex="-1"></a>mod_gama <span class="ot">&lt;-</span> <span class="fu">regressao_gama</span>(custo <span class="sc">~</span> idade <span class="sc">+</span> tratamento, <span class="at">dados =</span> dados_hospital)</span>
+<span id="cb4-3"><a href="#cb4-3" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb4-4"><a href="#cb4-4" aria-hidden="true" tabindex="-1"></a><span class="co"># Regressão Beta (respostas no intervalo aberto (0, 1): proporções contínuas, índices)</span></span>
+<span id="cb4-5"><a href="#cb4-5" aria-hidden="true" tabindex="-1"></a>mod_beta <span class="ot">&lt;-</span> <span class="fu">regressao_beta</span>(taxa_conclusao <span class="sc">~</span> investimento <span class="sc">+</span> regiao, <span class="at">dados =</span> dados_escolas)</span></code></pre></div><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></div>
 <hr>
+</section>
+</section>
+<section id="modelos-lineares-mistos-e-hierárquicos-regressao_mista" class="level2">
+<h2 class="anchored" data-anchor-id="modelos-lineares-mistos-e-hierárquicos-regressao_mista">3. Modelos Lineares Mistos e Hierárquicos (<code>regressao_mista()</code>)</h2>
+<p>Ajusta modelos com efeitos fixos e efeitos aleatórios por agrupamento hierárquico (via <code>lme4</code>), calculando e interpretando automaticamente o Índice de Correlação Intraclasse (ICC):</p>
+<div class="code-copy-outer-scaffold"><div class="sourceCode" id="cb5"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb5-1"><a href="#cb5-1" aria-hidden="true" tabindex="-1"></a><span class="co"># Modelo com intercepto aleatório por grupo (Subject)</span></span>
+<span id="cb5-2"><a href="#cb5-2" aria-hidden="true" tabindex="-1"></a>res_misto <span class="ot">&lt;-</span> <span class="fu">regressao_mista</span>(</span>
+<span id="cb5-3"><a href="#cb5-3" aria-hidden="true" tabindex="-1"></a>  Reaction <span class="sc">~</span> Days <span class="sc">+</span> (<span class="dv">1</span> <span class="sc">|</span> Subject),</span>
+<span id="cb5-4"><a href="#cb5-4" aria-hidden="true" tabindex="-1"></a>  <span class="at">dados   =</span> lme4<span class="sc">::</span>sleepstudy,</span>
+<span id="cb5-5"><a href="#cb5-5" aria-hidden="true" tabindex="-1"></a>  <span class="at">metodo  =</span> <span class="st">"REML"</span>  <span class="co"># ou "ML"</span></span>
+<span id="cb5-6"><a href="#cb5-6" aria-hidden="true" tabindex="-1"></a>)</span>
+<span id="cb5-7"><a href="#cb5-7" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb5-8"><a href="#cb5-8" aria-hidden="true" tabindex="-1"></a><span class="co"># Extração direta de componentes</span></span>
+<span id="cb5-9"><a href="#cb5-9" aria-hidden="true" tabindex="-1"></a>res_misto<span class="sc">$</span>efeitos_fixos      <span class="co"># Tabela de coeficientes, SE, IC 95% e p-valor</span></span>
+<span id="cb5-10"><a href="#cb5-10" aria-hidden="true" tabindex="-1"></a>res_misto<span class="sc">$</span>efeitos_aleatorios <span class="co"># Variâncias e desvios-padrão dos grupos</span></span>
+<span id="cb5-11"><a href="#cb5-11" aria-hidden="true" tabindex="-1"></a>res_misto<span class="sc">$</span>icc                <span class="co"># ICC calculado (% de variância explicada pelos grupos)</span></span>
+<span id="cb5-12"><a href="#cb5-12" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb5-13"><a href="#cb5-13" aria-hidden="true" tabindex="-1"></a><span class="co"># Caterpillar plot dos BLUPs (efeitos aleatórios por nível)</span></span>
+<span id="cb5-14"><a href="#cb5-14" aria-hidden="true" tabindex="-1"></a><span class="fu">plot_regressao_mista</span>(res_misto)</span></code></pre></div><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></div>
+<hr>
+</section>
+<section id="regressão-quantílica-regressao_quantilica" class="level2">
+<h2 class="anchored" data-anchor-id="regressão-quantílica-regressao_quantilica">4. Regressão Quantílica (<code>regressao_quantilica()</code>)</h2>
+<p>Permite avaliar o efeito das variáveis explicativas em múltiplos percentis condicionais da resposta (ex.: <span class="math inline">\(\tau = 0.10, 0.25, 0.50, 0.75, 0.90\)</span>):</p>
+<div class="code-copy-outer-scaffold"><div class="sourceCode" id="cb6"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb6-1"><a href="#cb6-1" aria-hidden="true" tabindex="-1"></a><span class="co"># Ajuste simultâneo em múltiplos quantis com bootstrap</span></span>
+<span id="cb6-2"><a href="#cb6-2" aria-hidden="true" tabindex="-1"></a>res_rq <span class="ot">&lt;-</span> <span class="fu">regressao_quantilica</span>(</span>
+<span id="cb6-3"><a href="#cb6-3" aria-hidden="true" tabindex="-1"></a>  salario <span class="sc">~</span> experiencia <span class="sc">+</span> escolaridade,</span>
+<span id="cb6-4"><a href="#cb6-4" aria-hidden="true" tabindex="-1"></a>  <span class="at">dados     =</span> df_salarios,</span>
+<span id="cb6-5"><a href="#cb6-5" aria-hidden="true" tabindex="-1"></a>  <span class="at">quantis   =</span> <span class="fu">c</span>(<span class="fl">0.10</span>, <span class="fl">0.25</span>, <span class="fl">0.50</span>, <span class="fl">0.75</span>, <span class="fl">0.90</span>),</span>
+<span id="cb6-6"><a href="#cb6-6" aria-hidden="true" tabindex="-1"></a>  <span class="at">metodo_ep =</span> <span class="st">"bootstrap"</span>,</span>
+<span id="cb6-7"><a href="#cb6-7" aria-hidden="true" tabindex="-1"></a>  <span class="at">n_boot    =</span> <span class="dv">500</span></span>
+<span id="cb6-8"><a href="#cb6-8" aria-hidden="true" tabindex="-1"></a>)</span>
+<span id="cb6-9"><a href="#cb6-9" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb6-10"><a href="#cb6-10" aria-hidden="true" tabindex="-1"></a><span class="co"># Trajetória dos coeficientes ao longo dos quantis</span></span>
+<span id="cb6-11"><a href="#cb6-11" aria-hidden="true" tabindex="-1"></a><span class="fu">plot_regressao_quantilica</span>(res_rq)</span></code></pre></div><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></div>
+<hr>
+</section>
+<section id="predição-conformal-predicao_conformal" class="level2">
+<h2 class="anchored" data-anchor-id="predição-conformal-predicao_conformal">5. Predição Conformal (<code>predicao_conformal()</code>)</h2>
+<p>Gera intervalos de previsão livres de suposições distributivas (<em>distribution-free</em>) com garantia matemática de cobertura exata:</p>
+<div class="code-copy-outer-scaffold"><div class="sourceCode" id="cb7"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb7-1"><a href="#cb7-1" aria-hidden="true" tabindex="-1"></a><span class="co"># Intervalos conformalizados a 95% de confiança</span></span>
+<span id="cb7-2"><a href="#cb7-2" aria-hidden="true" tabindex="-1"></a>conf <span class="ot">&lt;-</span> <span class="fu">predicao_conformal</span>(modelo, <span class="at">novos_dados =</span> dados_teste, <span class="at">confianca =</span> <span class="fl">0.95</span>)</span>
+<span id="cb7-3"><a href="#cb7-3" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb7-4"><a href="#cb7-4" aria-hidden="true" tabindex="-1"></a><span class="co"># Gráfico comparativo entre intervalo clássico e intervalo conformal</span></span>
+<span id="cb7-5"><a href="#cb7-5" aria-hidden="true" tabindex="-1"></a><span class="fu">plot_conformal</span>(conf)</span></code></pre></div><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></div>
+<hr>
+</section>
+<section id="diagnósticos-residuais" class="level2">
+<h2 class="anchored" data-anchor-id="diagnósticos-residuais">6. Diagnósticos Residuais</h2>
+<section id="diagnóstico-clássico-em-4-painéis" class="level3">
+<h3 class="anchored" data-anchor-id="diagnóstico-clássico-em-4-painéis">Diagnóstico Clássico em 4 Painéis</h3>
+<p>Avalia formalmente normalidade (Shapiro-Wilk / Kolmogorov-Smirnov), homocedasticidade (Breusch-Pagan) e independência (Durbin-Watson):</p>
+<div class="code-copy-outer-scaffold"><div class="sourceCode" id="cb8"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb8-1"><a href="#cb8-1" aria-hidden="true" tabindex="-1"></a><span class="fu">analise_residual</span>(modelo, <span class="at">grade =</span> <span class="st">"dupla"</span>)</span></code></pre></div><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></div>
+</section>
+<section id="diagnóstico-por-simulação-empírica-simulacao-true" class="level3">
+<h3 class="anchored" data-anchor-id="diagnóstico-por-simulação-empírica-simulacao-true">Diagnóstico por Simulação Empírica (<code>simulacao = TRUE</code>)</h3>
+<p>Para GLMs (Poisson, Logística, Binomial Negativa) e modelos hierárquicos onde resíduos tradicionais não seguem normalidade:</p>
+<div class="code-copy-outer-scaffold"><div class="sourceCode" id="cb9"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb9-1"><a href="#cb9-1" aria-hidden="true" tabindex="-1"></a><span class="co"># Simulação de resíduos empíricos exatos (estilo DHARMa)</span></span>
+<span id="cb9-2"><a href="#cb9-2" aria-hidden="true" tabindex="-1"></a><span class="fu">analise_residual</span>(mod_pois, <span class="at">simulacao =</span> <span class="cn">TRUE</span>, <span class="at">n_sim =</span> <span class="dv">250</span>)</span></code></pre></div><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></div>
+<hr>
+</section>
 </section>
 <section id="extratores-universais-em-português" class="level2">
-<h2 class="anchored" data-anchor-id="extratores-universais-em-português">Extratores Universais em Português</h2>
-<p>Acesso direto e idiomático aos componentes do modelo estatístico (compatível com <code>lm</code>, <code>glm</code>, <code>aov</code> e modelos do <code>estatR</code>):</p>
-<div class="code-copy-outer-scaffold"><div class="sourceCode" id="cb4"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb4-1"><a href="#cb4-1" aria-hidden="true" tabindex="-1"></a><span class="co"># Coeficientes estimados</span></span>
-<span id="cb4-2"><a href="#cb4-2" aria-hidden="true" tabindex="-1"></a><span class="fu">coeficientes</span>(modelo)</span>
-<span id="cb4-3"><a href="#cb4-3" aria-hidden="true" tabindex="-1"></a></span>
-<span id="cb4-4"><a href="#cb4-4" aria-hidden="true" tabindex="-1"></a><span class="co"># Resíduos do modelo</span></span>
-<span id="cb4-5"><a href="#cb4-5" aria-hidden="true" tabindex="-1"></a><span class="fu">residuos</span>(modelo)</span>
-<span id="cb4-6"><a href="#cb4-6" aria-hidden="true" tabindex="-1"></a></span>
-<span id="cb4-7"><a href="#cb4-7" aria-hidden="true" tabindex="-1"></a><span class="co"># Valores ajustados / preditos na amostra</span></span>
-<span id="cb4-8"><a href="#cb4-8" aria-hidden="true" tabindex="-1"></a><span class="fu">valores_ajustados</span>(modelo)</span>
-<span id="cb4-9"><a href="#cb4-9" aria-hidden="true" tabindex="-1"></a></span>
-<span id="cb4-10"><a href="#cb4-10" aria-hidden="true" tabindex="-1"></a><span class="co"># Resumo completo do modelo</span></span>
-<span id="cb4-11"><a href="#cb4-11" aria-hidden="true" tabindex="-1"></a><span class="fu">resumo</span>(modelo)</span></code></pre></div><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></div>
-<hr>
-</section>
-<section id="diagnóstico-residual-por-simulação" class="level2">
-<h2 class="anchored" data-anchor-id="diagnóstico-residual-por-simulação">Diagnóstico Residual por Simulação</h2>
-<p>Disponível via <code>simulacao = TRUE</code> em <code>analise_residual()</code> para qualquer modelo GLM (Poisson, Binomial Negativa, ZIP, Logística, Beta). Gera resíduos quantílicos escalonados U(0,1) e compara com simulações empíricas do próprio modelo — sem pressupor normalidade.</p>
-<div class="code-copy-outer-scaffold"><div class="sourceCode" id="cb5"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb5-1"><a href="#cb5-1" aria-hidden="true" tabindex="-1"></a>mod_poi <span class="ot">&lt;-</span> <span class="fu">regressao_poisson</span>(acidentes <span class="sc">~</span> distancia <span class="sc">+</span> idade, <span class="at">dados =</span> df)</span>
-<span id="cb5-2"><a href="#cb5-2" aria-hidden="true" tabindex="-1"></a><span class="fu">analise_residual</span>(mod_poi, <span class="at">simulacao =</span> <span class="cn">TRUE</span>, <span class="at">n_sim =</span> <span class="dv">500</span>)</span>
-<span id="cb5-3"><a href="#cb5-3" aria-hidden="true" tabindex="-1"></a><span class="co"># Testa: Uniformidade (KS), Sobredispersão e Excesso de Zeros</span></span>
-<span id="cb5-4"><a href="#cb5-4" aria-hidden="true" tabindex="-1"></a><span class="co"># Painel com 4 gráficos diagnósticos</span></span></code></pre></div><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></div>
-<hr>
-</section>
-<section id="predição-conformal" class="level2">
-<h2 class="anchored" data-anchor-id="predição-conformal">Predição Conformal</h2>
-<div class="code-copy-outer-scaffold"><div class="sourceCode" id="cb6"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb6-1"><a href="#cb6-1" aria-hidden="true" tabindex="-1"></a><span class="co"># Intervalos preditivos com garantia matemática de cobertura (95% exato)</span></span>
-<span id="cb6-2"><a href="#cb6-2" aria-hidden="true" tabindex="-1"></a>modelo_lm <span class="ot">&lt;-</span> <span class="fu">regressao_linear</span>(mpg <span class="sc">~</span> wt <span class="sc">+</span> hp, <span class="at">dados =</span> mtcars)</span>
-<span id="cb6-3"><a href="#cb6-3" aria-hidden="true" tabindex="-1"></a>res_conf <span class="ot">&lt;-</span> <span class="fu">predicao_conformal</span>(modelo_lm, <span class="at">nivel =</span> <span class="fl">0.95</span>, <span class="at">metodo =</span> <span class="st">"split"</span>)</span>
-<span id="cb6-4"><a href="#cb6-4" aria-hidden="true" tabindex="-1"></a></span>
-<span id="cb6-5"><a href="#cb6-5" aria-hidden="true" tabindex="-1"></a><span class="co"># Compara amplitude média e cobertura empírica: Conformal vs Clássico</span></span>
-<span id="cb6-6"><a href="#cb6-6" aria-hidden="true" tabindex="-1"></a>res_conf<span class="sc">$</span>predicoes       <span class="co"># Data frame com intervalos por observação</span></span>
-<span id="cb6-7"><a href="#cb6-7" aria-hidden="true" tabindex="-1"></a>res_conf<span class="sc">$</span>raio_conformal  <span class="co"># Raio do envelope conformal</span></span></code></pre></div><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></div>
-<hr>
-</section>
-<section id="regressão-quantílica" class="level2">
-<h2 class="anchored" data-anchor-id="regressão-quantílica">Regressão Quantílica</h2>
-<div class="code-copy-outer-scaffold"><div class="sourceCode" id="cb7"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb7-1"><a href="#cb7-1" aria-hidden="true" tabindex="-1"></a><span class="co"># Estima os efeitos para múltiplos quantis condicionais</span></span>
-<span id="cb7-2"><a href="#cb7-2" aria-hidden="true" tabindex="-1"></a>res_rq <span class="ot">&lt;-</span> <span class="fu">regressao_quantilica</span>(</span>
-<span id="cb7-3"><a href="#cb7-3" aria-hidden="true" tabindex="-1"></a>  salario <span class="sc">~</span> experiencia <span class="sc">+</span> escolaridade,</span>
-<span id="cb7-4"><a href="#cb7-4" aria-hidden="true" tabindex="-1"></a>  <span class="at">dados     =</span> df,</span>
-<span id="cb7-5"><a href="#cb7-5" aria-hidden="true" tabindex="-1"></a>  <span class="at">quantis   =</span> <span class="fu">c</span>(<span class="fl">0.10</span>, <span class="fl">0.25</span>, <span class="fl">0.50</span>, <span class="fl">0.75</span>, <span class="fl">0.90</span>),</span>
-<span id="cb7-6"><a href="#cb7-6" aria-hidden="true" tabindex="-1"></a>  <span class="at">metodo_ep =</span> <span class="st">"bootstrap"</span>,   <span class="co"># ou "assintotico"</span></span>
-<span id="cb7-7"><a href="#cb7-7" aria-hidden="true" tabindex="-1"></a>  <span class="at">n_boot    =</span> <span class="dv">500</span></span>
-<span id="cb7-8"><a href="#cb7-8" aria-hidden="true" tabindex="-1"></a>)</span>
-<span id="cb7-9"><a href="#cb7-9" aria-hidden="true" tabindex="-1"></a></span>
-<span id="cb7-10"><a href="#cb7-10" aria-hidden="true" tabindex="-1"></a><span class="co"># Extração dos resultados</span></span>
-<span id="cb7-11"><a href="#cb7-11" aria-hidden="true" tabindex="-1"></a>res_rq<span class="sc">$</span>coeficientes[[<span class="st">"tau_0.5"</span>]]  <span class="co"># Coeficientes da mediana (τ = 0.50)</span></span>
-<span id="cb7-12"><a href="#cb7-12" aria-hidden="true" tabindex="-1"></a>res_rq<span class="sc">$</span>matriz_coeficientes        <span class="co"># Todos os coeficientes por quantil</span></span></code></pre></div><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></div>
-<hr>
-</section>
-<section id="modelos-lineares-mistos-e-hierárquicos" class="level2">
-<h2 class="anchored" data-anchor-id="modelos-lineares-mistos-e-hierárquicos">Modelos Lineares Mistos e Hierárquicos</h2>
-<div class="code-copy-outer-scaffold"><div class="sourceCode" id="cb8"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb8-1"><a href="#cb8-1" aria-hidden="true" tabindex="-1"></a><span class="co"># Modelo de intercepto aleatório por grupo (lme4)</span></span>
-<span id="cb8-2"><a href="#cb8-2" aria-hidden="true" tabindex="-1"></a>res_misto <span class="ot">&lt;-</span> <span class="fu">regressao_mista</span>(</span>
-<span id="cb8-3"><a href="#cb8-3" aria-hidden="true" tabindex="-1"></a>  Reaction <span class="sc">~</span> Days <span class="sc">+</span> (<span class="dv">1</span> <span class="sc">|</span> Subject),</span>
-<span id="cb8-4"><a href="#cb8-4" aria-hidden="true" tabindex="-1"></a>  <span class="at">dados   =</span> lme4<span class="sc">::</span>sleepstudy,</span>
-<span id="cb8-5"><a href="#cb8-5" aria-hidden="true" tabindex="-1"></a>  <span class="at">familia =</span> <span class="st">"gaussian"</span>,</span>
-<span id="cb8-6"><a href="#cb8-6" aria-hidden="true" tabindex="-1"></a>  <span class="at">metodo  =</span> <span class="st">"REML"</span>  <span class="co"># ou "ML"</span></span>
-<span id="cb8-7"><a href="#cb8-7" aria-hidden="true" tabindex="-1"></a>)</span>
-<span id="cb8-8"><a href="#cb8-8" aria-hidden="true" tabindex="-1"></a></span>
-<span id="cb8-9"><a href="#cb8-9" aria-hidden="true" tabindex="-1"></a><span class="co"># Extração</span></span>
-<span id="cb8-10"><a href="#cb8-10" aria-hidden="true" tabindex="-1"></a>res_misto<span class="sc">$</span>efeitos_fixos      <span class="co"># Coeficientes + IC + p-valor sem coluna Sig. separada</span></span>
-<span id="cb8-11"><a href="#cb8-11" aria-hidden="true" tabindex="-1"></a>res_misto<span class="sc">$</span>efeitos_aleatorios <span class="co"># Variâncias e DPs dos componentes aleatórios</span></span>
-<span id="cb8-12"><a href="#cb8-12" aria-hidden="true" tabindex="-1"></a>res_misto<span class="sc">$</span>icc                <span class="co"># ICC calculado: variância_grupo / (variância_grupo + variância_resid)</span></span>
-<span id="cb8-13"><a href="#cb8-13" aria-hidden="true" tabindex="-1"></a></span>
-<span id="cb8-14"><a href="#cb8-14" aria-hidden="true" tabindex="-1"></a><span class="co"># Visualização: Caterpillar plot dos BLUPs</span></span>
-<span id="cb8-15"><a href="#cb8-15" aria-hidden="true" tabindex="-1"></a><span class="fu">plot_regressao_mista</span>(res_misto)</span></code></pre></div><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></div>
+<h2 class="anchored" data-anchor-id="extratores-universais-em-português">7. Extratores Universais em Português</h2>
+<p>Para facilitar a extração programática sem a necessidade de sintaxes complexas do R base:</p>
+<div class="code-copy-outer-scaffold"><div class="sourceCode" id="cb10"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb10-1"><a href="#cb10-1" aria-hidden="true" tabindex="-1"></a><span class="fu">coeficientes</span>(modelo)      <span class="co"># Coeficientes estimados</span></span>
+<span id="cb10-2"><a href="#cb10-2" aria-hidden="true" tabindex="-1"></a><span class="fu">residuos</span>(modelo)          <span class="co"># Vetor de resíduos</span></span>
+<span id="cb10-3"><a href="#cb10-3" aria-hidden="true" tabindex="-1"></a><span class="fu">valores_ajustados</span>(modelo) <span class="co"># Valores ajustados pelo modelo</span></span>
+<span id="cb10-4"><a href="#cb10-4" aria-hidden="true" tabindex="-1"></a><span class="fu">resumo</span>(modelo)            <span class="co"># Reexibe o resumo formatado no console</span></span>
+<span id="cb10-5"><a href="#cb10-5" aria-hidden="true" tabindex="-1"></a><span class="fu">predicao</span>(modelo, novos_dados) <span class="co"># Intervalos de confiança e predição</span></span></code></pre></div><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></div>
 
 
 </section>

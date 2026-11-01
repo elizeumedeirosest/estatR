@@ -21,18 +21,14 @@ website:
         menu:
           - text: "Diagnóstico e Descritiva"
             href: modulos/descritiva.qmd
-          - text: "Testes de Hipótese"
+          - text: "Inferência Estatística"
             href: modulos/inferencia.qmd
-          - text: "Intervalos de Confiança"
-            href: modulos/intervalos.qmd
           - text: "Probabilidade e Simulação"
             href: modulos/probabilidade.qmd
           - text: "Engenharia de Variáveis"
             href: modulos/engenharia_variaveis.qmd
-          - text: "Modelos Lineares e Regressão"
+          - text: "Modelagem e Regressão"
             href: modulos/regressao.qmd
-          - text: "Modelos Generalizados (MLG)"
-            href: modulos/mlg.qmd
           - text: "Séries Temporais"
             href: modulos/series_temporais.qmd
           - text: "Análise Multivariada"

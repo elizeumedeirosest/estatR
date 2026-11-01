@@ -4,7 +4,7 @@
     "href": "sobre.html",
     "title": "Sobre o estatR",
     "section": "",
-    "text": "O estatR é uma camada estatística moderna para R, desenvolvida para unificar análises dispersas em um único ecossistema coerente, didático e de alto padrão editorial. O pacote nasce da necessidade prática de realizar análises completas — do diagnóstico descritivo ao controle estatístico de processos e modelagem avançada — com sintaxe fluida, saídas legíveis no console e gráficos prontos para publicação.\n\n\n\nA estatística aplicada no R, em sua forma nativa, exige o domínio de dezenas de pacotes com interfaces distintas. O estatR resolve isso: uma função, um resultado, uma linguagem. As saídas são formatadas automaticamente em português, com alinhamento preciso de colunas, casas decimais padronizadas e notas interpretativas embutidas — prontas para teses, artigos e relatórios corporativos.\n\n\n\nO pacote é organizado em 16 módulos especializados:\n\nDiagnóstico e Descritiva\nTestes de Hipótese\nIntervalos de Confiança\nProbabilidade e Simulação\nEngenharia de Variáveis\nModelos Lineares e Regressão\nModelos Generalizados (MLG)\nSéries Temporais\nAnálise Multivariada\nDelineamentos Experimentais\nControle Estatístico da Qualidade (CEQ)\nAprendizado de Máquina\nAnálise de Sobrevivência\nAmostragem Probabilística\nEstatística Espacial\nProcessos Estocásticos\n\n\n\n\nO estatR é distribuído como código aberto via GitHub. Contribuições, sugestões e relatórios de problemas são bem-vindos no repositório oficial."
+    "text": "O estatR é uma camada estatística moderna para R, desenvolvida para unificar análises dispersas em um único ecossistema coerente, didático e de alto padrão editorial. O pacote nasce da necessidade prática de realizar análises completas — do diagnóstico descritivo ao controle estatístico de processos e modelagem avançada — com sintaxe fluida, saídas legíveis no console e gráficos prontos para publicação.\n\n\n\nA estatística aplicada no R, em sua forma nativa, exige o domínio de dezenas de pacotes com interfaces distintas. O estatR resolve isso: uma função, um resultado, uma linguagem. As saídas são formatadas automaticamente em português, com alinhamento preciso de colunas, casas decimais padronizadas e notas interpretativas embutidas — prontas para teses, artigos e relatórios corporativos.\n\n\n\nO pacote é organizado em 14 módulos especializados:\n\nDiagnóstico e Descritiva\nInferência Estatística\nProbabilidade e Simulação\nEngenharia de Variáveis\nModelagem e Regressão\nSéries Temporais\nAnálise Multivariada\nDelineamentos Experimentais\nControle Estatístico da Qualidade (CEQ)\nAprendizado de Máquina\nAnálise de Sobrevivência\nAmostragem Probabilística\nEstatística Espacial\nProcessos Estocásticos\n\n\n\n\nO estatR é distribuído como código aberto via GitHub. Contribuições, sugestões e relatórios de problemas são bem-vindos no repositório oficial."
   },
   {
     "objectID": "sobre.html#o-que-é-o-estatr",
@@ -25,7 +25,7 @@
     "href": "sobre.html#módulos",
     "title": "Sobre o estatR",
     "section": "",
-    "text": "O pacote é organizado em 16 módulos especializados:\n\nDiagnóstico e Descritiva\nTestes de Hipótese\nIntervalos de Confiança\nProbabilidade e Simulação\nEngenharia de Variáveis\nModelos Lineares e Regressão\nModelos Generalizados (MLG)\nSéries Temporais\nAnálise Multivariada\nDelineamentos Experimentais\nControle Estatístico da Qualidade (CEQ)\nAprendizado de Máquina\nAnálise de Sobrevivência\nAmostragem Probabilística\nEstatística Espacial\nProcessos Estocásticos"
+    "text": "O pacote é organizado em 14 módulos especializados:\n\nDiagnóstico e Descritiva\nInferência Estatística\nProbabilidade e Simulação\nEngenharia de Variáveis\nModelagem e Regressão\nSéries Temporais\nAnálise Multivariada\nDelineamentos Experimentais\nControle Estatístico da Qualidade (CEQ)\nAprendizado de Máquina\nAnálise de Sobrevivência\nAmostragem Probabilística\nEstatística Espacial\nProcessos Estocásticos"
   },
   {
     "objectID": "sobre.html#código-aberto",
@@ -138,27 +138,6 @@
     "title": "Análise Multivariada e Agrupamento",
     "section": "Agrupamento para Dados Mistos (Gower + PAM)",
     "text": "Agrupamento para Dados Mistos (Gower + PAM)\n# Cluster com variáveis numéricas e categóricas simultaneamente\nres_misto &lt;- cluster_misto(banco_misto, k = 3)\n\n# Resultados\nres_misto$clusters             # Vetor de classificação por observação\nres_misto$silhueta$global      # Silhueta média global\nres_misto$silhueta$por_grupo   # Silhueta por cluster\nres_misto$perfil_numerico      # Média das variáveis numéricas por grupo\n\n# Projeção bidimensional (PCoA)\nplot_cluster_misto(res_misto)"
-  },
-  {
-    "objectID": "modulos/intervalos.html",
-    "href": "modulos/intervalos.html",
-    "title": "Intervalos de Confiança",
-    "section": "",
-    "text": "Baseado na distribuição t de Student (ou normal para grandes amostras):\n# IC de 95%\nic_media(mtcars$mpg)\n\n# IC de 99%\nic_media(mtcars$mpg, confianca = 0.99)\n\n\n\nMétodo de Wilson ou Wald com correção de continuidade:\n# 87 sucessos em 300 tentativas\nic_proporcao(x = 87, n = 300, confianca = 0.95)\n\n\n\nBaseado na distribuição \\(\\chi^2\\), fornece IC para \\(\\sigma^2\\) e \\(\\sigma\\):\nic_variancia(mtcars$mpg, confianca = 0.95)\n\n\n\nSuporta variâncias iguais (Student agrupado) ou desiguais (Welch-Satterthwaite):\nic_diferenca_medias(mtcars$mpg, mtcars$am, confianca = 0.95)"
-  },
-  {
-    "objectID": "modulos/intervalos.html#funções-disponíveis",
-    "href": "modulos/intervalos.html#funções-disponíveis",
-    "title": "Intervalos de Confiança",
-    "section": "",
-    "text": "Baseado na distribuição t de Student (ou normal para grandes amostras):\n# IC de 95%\nic_media(mtcars$mpg)\n\n# IC de 99%\nic_media(mtcars$mpg, confianca = 0.99)\n\n\n\nMétodo de Wilson ou Wald com correção de continuidade:\n# 87 sucessos em 300 tentativas\nic_proporcao(x = 87, n = 300, confianca = 0.95)\n\n\n\nBaseado na distribuição \\(\\chi^2\\), fornece IC para \\(\\sigma^2\\) e \\(\\sigma\\):\nic_variancia(mtcars$mpg, confianca = 0.95)\n\n\n\nSuporta variâncias iguais (Student agrupado) ou desiguais (Welch-Satterthwaite):\nic_diferenca_medias(mtcars$mpg, mtcars$am, confianca = 0.95)"
-  },
-  {
-    "objectID": "modulos/intervalos.html#representação-visual",
-    "href": "modulos/intervalos.html#representação-visual",
-    "title": "Intervalos de Confiança",
-    "section": "Representação Visual",
-    "text": "Representação Visual\nTodas as funções geram, com grafico = TRUE, um gráfico de régua com ponto médio, barras de erro e identificação do nível de confiança no subtítulo."
   },
   {
     "objectID": "modulos/experimentos.html",
@@ -277,7 +256,7 @@
     "href": "index.html",
     "title": "estatR",
     "section": "",
-    "text": "estatR\n    Estatística moderna, didática e de alto padrão para R.\n    135+ funções  ·  17 módulos  ·  Código aberto\n    \n      Sobre o estatR\n      Módulos\n    \n  \n\n\n\n  \n    Módulos Especializados\n    Uma arquitetura modular cobrindo todo o fluxo da análise estatística.\n\n    \n\n      \n        \n        Diagnóstico & Descritiva\n        Inspeção estrutural, detecção de outliers e estatísticas descritivas uni e multivariadas.\n        Ver módulo →\n      \n\n      \n        \n        Testes de Hipótese\n        Testes paramétricos e não-paramétricos com tamanhos de efeito e interpretação automática.\n        Ver módulo →\n      \n\n      \n        \n        Intervalos de Confiança\n        Construção e interpretação de intervalos para médias, proporções e variâncias.\n        Ver módulo →\n      \n\n      \n        \n        Probabilidade & Simulação\n        Distribuições teóricas (Normal, Poisson, Weibull), bootstrap, Monte Carlo e TCL.\n        Ver módulo →\n      \n\n      \n        \n        Engenharia de Variáveis\n        Validação por fórmula, 17 métodos de imputação e transformações guiadas por objetivos.\n        Ver módulo →\n      \n\n      \n        \n        Modelos Lineares & Regressão\n        Regressão múltipla com diagnóstico residual rigoroso e extratores em português.\n        Ver módulo →\n      \n\n      \n        \n        Modelos Generalizados (MLG)\n        Logística, Poisson, Binomial Negativa, Gama e Beta com Odds Ratio e IRR.\n        Ver módulo →\n      \n\n      \n        \n        Séries Temporais\n        Decomposição, testes de raiz unitária, previsão e modelos de machine learning.\n        Ver módulo →\n      \n\n      \n        \n        Análise Multivariada\n        PCA, Análise Fatorial, K-means, Dendrogramas, Discriminante Linear e MANOVA.\n        Ver módulo →\n      \n\n      \n        \n        Delineamentos Experimentais\n        DIC, DBC, DQL, fatoriais, parcelas subdivididas e testes de Tukey, Dunnett e Scott-Knott.\n        Ver módulo →\n      \n\n      \n        \n        Controle de Qualidade (CEQ)\n        Cartas de Shewhart (I-MR, Xbar-R, p, c), regras de alarme, índices Cp/Cpk e nível Sigma.\n        Ver módulo →\n      \n\n      \n        \n        Aprendizado de Máquina\n        Classificação, regressão supervisionada, Random Forest e validação cruzada K-fold.\n        Ver módulo →\n      \n\n      \n        \n        Análise de Sobrevivência\n        Curvas de Kaplan-Meier, Nelson-Aalen, testes de Log-Rank e modelos de riscos de Cox.\n        Ver módulo →\n      \n\n      \n        \n        Amostragem Probabilística\n        AAS, estratificada (proporcional/ótima), sistemática e cálculo de poder estatístico.\n        Ver módulo →\n      \n\n\n      \n        \n        Estatística Espacial\n        Autocorrelação espacial (Moran Global e LISA) e modelos de regressão espacial SAR e SEM.\n        Ver módulo →\n      \n\n      \n        \n        Processos Estocásticos\n        Cadeias de Markov em tempo discreto, distribuição estacionária e passeio aleatório 1D.\n        Ver módulo →\n      \n\n    \n  \n\n\n\n  \n    \n      Instalação\n      Disponível diretamente via GitHub. Nenhuma dependência externa obrigatória.\n    \n    \n      # Instalar via devtools\ndevtools::install_github(\"elizeumedeirosest/estatR\")\nlibrary(estatR)"
+    "text": "estatR\n    Estatística moderna, didática e de alto padrão para R.\n    135+ funções  ·  17 módulos  ·  Código aberto\n    \n      Sobre o estatR\n      Módulos\n    \n  \n\n\n\n  \n    Módulos Especializados\n    Uma arquitetura modular cobrindo todo o fluxo da análise estatística.\n\n    \n\n      \n        \n        Diagnóstico & Descritiva\n        Inspeção estrutural, detecção de outliers e estatísticas descritivas uni e multivariadas.\n        Ver módulo →\n      \n\n      \n        \n        Inferência Estatística\n        Testes de hipótese paramétricos e não-paramétricos, Welch, TOST e intervalos de confiança.\n        Ver módulo →\n      \n\n\n      \n        \n        Probabilidade & Simulação\n        Distribuições teóricas (Normal, Poisson, Weibull), bootstrap, Monte Carlo e TCL.\n        Ver módulo →\n      \n\n      \n        \n        Engenharia de Variáveis\n        Validação por fórmula, 17 métodos de imputação e transformações guiadas por objetivos.\n        Ver módulo →\n      \n\n      \n        \n        Modelagem e Regressão\n        Regressão múltipla, GLMs (Logística, Poisson, Gama, Beta), modelos mistos e predição conformal.\n        Ver módulo →\n      \n\n\n      \n        \n        Séries Temporais\n        Decomposição, testes de raiz unitária, previsão e modelos de machine learning.\n        Ver módulo →\n      \n\n      \n        \n        Análise Multivariada\n        PCA, Análise Fatorial, K-means, Dendrogramas, Discriminante Linear e MANOVA.\n        Ver módulo →\n      \n\n      \n        \n        Delineamentos Experimentais\n        DIC, DBC, DQL, fatoriais, parcelas subdivididas e testes de Tukey, Dunnett e Scott-Knott.\n        Ver módulo →\n      \n\n      \n        \n        Controle de Qualidade (CEQ)\n        Cartas de Shewhart (I-MR, Xbar-R, p, c), regras de alarme, índices Cp/Cpk e nível Sigma.\n        Ver módulo →\n      \n\n      \n        \n        Aprendizado de Máquina\n        Classificação, regressão supervisionada, Random Forest e validação cruzada K-fold.\n        Ver módulo →\n      \n\n      \n        \n        Análise de Sobrevivência\n        Curvas de Kaplan-Meier, Nelson-Aalen, testes de Log-Rank e modelos de riscos de Cox.\n        Ver módulo →\n      \n\n      \n        \n        Amostragem Probabilística\n        AAS, estratificada (proporcional/ótima), sistemática e cálculo de poder estatístico.\n        Ver módulo →\n      \n\n\n      \n        \n        Estatística Espacial\n        Autocorrelação espacial (Moran Global e LISA) e modelos de regressão espacial SAR e SEM.\n        Ver módulo →\n      \n\n      \n        \n        Processos Estocásticos\n        Cadeias de Markov em tempo discreto, distribuição estacionária e passeio aleatório 1D.\n        Ver módulo →\n      \n\n    \n  \n\n\n\n  \n    \n      Instalação\n      Disponível diretamente via GitHub. Nenhuma dependência externa obrigatória.\n    \n    \n      # Instalar via devtools\ndevtools::install_github(\"elizeumedeirosest/estatR\")\nlibrary(estatR)"
   },
   {
     "objectID": "modulos/aprendizado_maquina.html",
@@ -373,58 +352,37 @@
   {
     "objectID": "modulos/inferencia.html",
     "href": "modulos/inferencia.html",
-    "title": "Inferência e Testes de Hipótese",
+    "title": "Inferência Estatística",
     "section": "",
-    "text": "Compara a média amostral com um valor de referência populacional (\\(\\mu_0\\)):\nteste_t_uma_amostra(mtcars$mpg, mu = 20, grafico = TRUE)\n\n\n\nAvalia diferença entre grupos com verificação automática de homocedasticidade (Welch por padrão):\nteste_t_duas_amostras(mpg ~ am, dados = mtcars, grafico = TRUE)\n\n\n\nteste_t_pareado(dados$antes, dados$depois, grafico = TRUE)\n\n\n\nteste_proporcao(x = 87, n = 300, p0 = 0.25)"
+    "text": "O módulo de Inferência Estatística do estatR reúne as duas vertentes complementares da inferência frequentista clássica: Intervalos de Confiança e Testes de Hipótese. Todas as funções geram saídas formatadas em português, verificação automática de pressupostos, cálculo de tamanho de efeito e gráficos editoriais automáticos."
   },
   {
-    "objectID": "modulos/inferencia.html#testes-paramétricos",
-    "href": "modulos/inferencia.html#testes-paramétricos",
-    "title": "Inferência e Testes de Hipótese",
+    "objectID": "modulos/inferencia.html#visão-geral",
+    "href": "modulos/inferencia.html#visão-geral",
+    "title": "Inferência Estatística",
     "section": "",
-    "text": "Compara a média amostral com um valor de referência populacional (\\(\\mu_0\\)):\nteste_t_uma_amostra(mtcars$mpg, mu = 20, grafico = TRUE)\n\n\n\nAvalia diferença entre grupos com verificação automática de homocedasticidade (Welch por padrão):\nteste_t_duas_amostras(mpg ~ am, dados = mtcars, grafico = TRUE)\n\n\n\nteste_t_pareado(dados$antes, dados$depois, grafico = TRUE)\n\n\n\nteste_proporcao(x = 87, n = 300, p0 = 0.25)"
+    "text": "O módulo de Inferência Estatística do estatR reúne as duas vertentes complementares da inferência frequentista clássica: Intervalos de Confiança e Testes de Hipótese. Todas as funções geram saídas formatadas em português, verificação automática de pressupostos, cálculo de tamanho de efeito e gráficos editoriais automáticos."
+  },
+  {
+    "objectID": "modulos/inferencia.html#intervalos-de-confiança-estimação-intervalar",
+    "href": "modulos/inferencia.html#intervalos-de-confiança-estimação-intervalar",
+    "title": "Inferência Estatística",
+    "section": "1. Intervalos de Confiança (Estimação Intervalar)",
+    "text": "1. Intervalos de Confiança (Estimação Intervalar)\n\nIntervalo para a Média\nCalcula o IC exato baseado na distribuição t de Student (ou normal):\nlibrary(estatR)\n\n# IC de 95% para a média\nic_media(mtcars$mpg, confianca = 0.95, grafico = TRUE)\n\n# IC de 99%\nic_media(mtcars$mpg, confianca = 0.99)\n\n\nIntervalo para Proporções\nMétodo de Wilson com correção de continuidade:\n# 87 sucessos em 300 tentativas\nic_proporcao(x = 87, n = 300, confianca = 0.95, grafico = TRUE)\n\n\nIntervalo para a Variância e Desvio Padrão\nBaseado na distribuição \\(\\chi^2\\), fornece os limites de confiança para \\(\\sigma^2\\) e \\(\\sigma\\):\nic_variancia(mtcars$mpg, confianca = 0.95, grafico = TRUE)\n\n\nIntervalo para Diferença entre Médias\nSuporta variâncias iguais (Student agrupado) ou desiguais (Welch-Satterthwaite):\nic_diferenca_medias(mtcars$mpg, mtcars$am, confianca = 0.95, grafico = TRUE)"
+  },
+  {
+    "objectID": "modulos/inferencia.html#testes-de-hipótese-paramétricos",
+    "href": "modulos/inferencia.html#testes-de-hipótese-paramétricos",
+    "title": "Inferência Estatística",
+    "section": "2. Testes de Hipótese Paramétricos",
+    "text": "2. Testes de Hipótese Paramétricos\nTodas as funções de teste suportam formato = c(\"resumo\", \"completo\"). No modo \"completo\", fornecem intervalo de confiança do tamanho de efeito e o poder estatístico observado (\\(1 - \\beta\\)).\n\nTeste T para Uma Amostra\nCompara a média amostral com um valor de referência populacional (\\(\\mu_0\\)):\nteste_t_uma_amostra(mtcars$mpg, mu = 20, formato = \"completo\", grafico = TRUE)\n\n\nTeste T para Duas Amostras Independentes\nAvalia a diferença entre dois grupos independentes com correção de Welch por padrão:\nteste_t_duas_amostras(mpg ~ am, dados = mtcars, formato = \"completo\", grafico = TRUE)\n\n\nTeste T Pareado\nPara observações emparelhadas (antes vs. depois):\nteste_t_pareado(dados$antes, dados$depois, formato = \"completo\", grafico = TRUE)\n\n\nTeste Z de Proporção Amostral\nteste_proporcao(x = 87, n = 300, p0 = 0.25)\n\n\nTeste de Equivalência Clínica (TOST)\nDois Testes Unicaudais (Two One-Sided Tests) para demonstrar equivalência prática dentro de uma margem \\([-\\Delta, +\\Delta]\\):\nteste_equivalencia(medicamento_teste, medicamento_referencia, margem = 2.0)"
   },
   {
     "objectID": "modulos/inferencia.html#testes-não-paramétricos-e-categóricos",
     "href": "modulos/inferencia.html#testes-não-paramétricos-e-categóricos",
-    "title": "Inferência e Testes de Hipótese",
-    "section": "Testes Não-Paramétricos e Categóricos",
-    "text": "Testes Não-Paramétricos e Categóricos\n\nTeste de Wilcoxon & Mann-Whitney\n# Uma amostra / pareado (Wilcoxon Signed-Rank)\nteste_wilcoxon(mtcars$mpg, mu = 20, grafico = TRUE)\n\n# Duas amostras independentes (Mann-Whitney U)\nteste_mann_whitney(mpg ~ am, dados = mtcars, grafico = TRUE)\n\n\nKruskal-Wallis & Friedman\n# Grupos independentes (Kruskal-Wallis com post-hoc de Dunn)\nteste_kruskal(Sepal.Length ~ Species, dados = iris)\n\n# Medidas repetidas / blocos (Friedman)\nteste_friedman(y ~ grupo | bloco, dados = dados_repetidos)\n\n\nTeste de Equivalência (TOST)\nProcedimento de Dois Testes Unicaudais para avaliar se a diferença entre tratamentos está dentro de uma margem clinicamente aceitável:\nteste_equivalencia(mpg ~ am, dados = mtcars, margem = 2, grafico = TRUE)\n\n\nTeste de McNemar para Dados Pareados\nAvaliação de homogeneidade marginal para dados categóricos binários pareados (com cálculo de Odds Ratio pareado):\nteste_mcnemar(dados, var_antes = Antes, var_depois = Depois, grafico = TRUE)\n\n\nQui-Quadrado & Homocedasticidade\n# Qui-Quadrado de Independência\nteste_qui_quadrado(mtcars, cyl, am)\n\n# Homocedasticidade de Levene\nteste_levene(mtcars$mpg, mtcars$am)\n\n\nConcordância\n# Cohen / Fleiss Kappa\nconcordancia_kappa(avaliador1, avaliador2)\n\n# Bland-Altman\ngrafico_bland_altman(dados, metodo1 = \"termometro_A\", metodo2 = \"termometro_B\")"
-  },
-  {
-    "objectID": "modulos/mlg.html",
-    "href": "modulos/mlg.html",
-    "title": "Modelos Lineares Generalizados (MLG)",
-    "section": "",
-    "text": "modelo_log &lt;- regressao_logistica(am ~ mpg + hp, dados = mtcars)\n\n# Matriz de confusão, AUC-ROC e cutoff ótimo de Youden\nmetricas_logistica(modelo_log, ponto_corte = \"youden\")"
-  },
-  {
-    "objectID": "modulos/mlg.html#modelos-para-variáveis-binárias",
-    "href": "modulos/mlg.html#modelos-para-variáveis-binárias",
-    "title": "Modelos Lineares Generalizados (MLG)",
-    "section": "",
-    "text": "modelo_log &lt;- regressao_logistica(am ~ mpg + hp, dados = mtcars)\n\n# Matriz de confusão, AUC-ROC e cutoff ótimo de Youden\nmetricas_logistica(modelo_log, ponto_corte = \"youden\")"
-  },
-  {
-    "objectID": "modulos/mlg.html#modelos-para-dados-de-contagem",
-    "href": "modulos/mlg.html#modelos-para-dados-de-contagem",
-    "title": "Modelos Lineares Generalizados (MLG)",
-    "section": "Modelos para Dados de Contagem",
-    "text": "Modelos para Dados de Contagem\n\nPoisson & Binomial Negativa\n# Poisson\nmod_pois &lt;- regressao_poisson(num_visitas ~ idade + renda, dados = dados_saude)\n\n# Binomial Negativa (para contagens superdispersas)\nmod_nb &lt;- regressao_binomial_negativa(num_visitas ~ idade + renda, dados = dados_saude)"
-  },
-  {
-    "objectID": "modulos/mlg.html#modelos-para-dados-contínuos-e-taxas",
-    "href": "modulos/mlg.html#modelos-para-dados-contínuos-e-taxas",
-    "title": "Modelos Lineares Generalizados (MLG)",
-    "section": "Modelos para Dados Contínuos e Taxas",
-    "text": "Modelos para Dados Contínuos e Taxas\n\nRegressão Gama\nPara respostas estritamente positivas e assimétricas (custos, tempo de reação):\nmod_gama &lt;- regressao_gama(custo ~ idade + tratamento, dados = dados_hospital)\n\n\nRegressão Beta\nPara respostas no intervalo aberto \\((0, 1)\\) (taxas, índices, proporções contínuas):\nmod_beta &lt;- regressao_beta(taxa_conclusao ~ investimento + regiao, dados = dados_escolas)"
-  },
-  {
-    "objectID": "modulos/mlg.html#diagnóstico-residual-em-mlg",
-    "href": "modulos/mlg.html#diagnóstico-residual-em-mlg",
-    "title": "Modelos Lineares Generalizados (MLG)",
-    "section": "Diagnóstico Residual em MLG",
-    "text": "Diagnóstico Residual em MLG\nanalise_residual(modelo_log, grade = \"dupla\")\nanalise_residual(mod_pois, grade = \"dupla\")"
+    "title": "Inferência Estatística",
+    "section": "3. Testes Não-Paramétricos e Categóricos",
+    "text": "3. Testes Não-Paramétricos e Categóricos\n\nTestes de Wilcoxon & Mann-Whitney\nAlternativas robustas para distribuições não-normais com cálculo do tamanho de efeito \\(r\\):\n# Uma amostra ou pareado (Wilcoxon Signed-Rank)\nteste_wilcoxon(mtcars$mpg, mu = 20, formato = \"completo\", grafico = TRUE)\n\n# Duas amostras independentes (Mann-Whitney U) com correlação rank-biserial\nteste_mann_whitney(mpg ~ am, dados = mtcars, formato = \"completo\", grafico = TRUE)\n\n\nComparações Múltiplas Não-Paramétricas\n# Kruskal-Wallis (k &gt;= 2 grupos independentes) com post-hoc de Dunn\nteste_kruskal(mpg ~ cyl, dados = mtcars, grafico = TRUE)\n\n# Friedman (k &gt;= 2 medidas repetidas / blocos) com post-hoc pareado\nteste_friedman(resposta ~ tratamento | bloco, dados = dados_experimento)\n\n\nAnálise de Tabelas de Contingência e Concordância\n# Teste Qui-Quadrado de Independência com V de Cramér e poder post-hoc\nteste_qui_quadrado(dados, var_x, var_y, formato = \"completo\", grafico = TRUE)\n\n# Teste de McNemar para pares binários com Odds Ratio pareado\nteste_mcnemar(dados, antes, depois)\n\n# Confiabilidade inter-avaliadores (Kappa de Cohen)\nconcordancia_kappa(avaliador_1, avaliador_2)\n\n# Gráfico de Bland-Altman para concordância contínua\ngrafico_bland_altman(metodo_novo, metodo_referencia)"
   },
   {
     "objectID": "modulos/probabilidade.html",
@@ -457,65 +415,65 @@
   {
     "objectID": "modulos/regressao.html",
     "href": "modulos/regressao.html",
-    "title": "Modelagem Linear e Diagnóstico Residual",
+    "title": "Modelagem e Regressão",
     "section": "",
-    "text": "Mínimos Quadrados Ordinários (MQO) com saída formatada: coeficientes, erros padrão, estatísticas t e p-valores:\nmodelo &lt;- regressao_linear(mpg ~ wt + hp + qsec, dados = mtcars)"
+    "text": "O módulo de Modelagem e Regressão do estatR unifica em uma interface consistente toda a família de modelos lineares e não-lineares, desde o ajuste clássico por Mínimos Quadrados Ordinários (MQO) até Modelos Lineares Generalizados (MLG), modelos hierárquicos/mistos e inferência preditiva moderna.\nTodas as funções exibem o resumo estatístico completo imediatamente ao rodar o comando no console — sem a necessidade de comandos adicionais como summary()."
   },
   {
-    "objectID": "modulos/regressao.html#ajuste-de-modelos",
-    "href": "modulos/regressao.html#ajuste-de-modelos",
-    "title": "Modelagem Linear e Diagnóstico Residual",
+    "objectID": "modulos/regressao.html#visão-geral",
+    "href": "modulos/regressao.html#visão-geral",
+    "title": "Modelagem e Regressão",
     "section": "",
-    "text": "Mínimos Quadrados Ordinários (MQO) com saída formatada: coeficientes, erros padrão, estatísticas t e p-valores:\nmodelo &lt;- regressao_linear(mpg ~ wt + hp + qsec, dados = mtcars)"
+    "text": "O módulo de Modelagem e Regressão do estatR unifica em uma interface consistente toda a família de modelos lineares e não-lineares, desde o ajuste clássico por Mínimos Quadrados Ordinários (MQO) até Modelos Lineares Generalizados (MLG), modelos hierárquicos/mistos e inferência preditiva moderna.\nTodas as funções exibem o resumo estatístico completo imediatamente ao rodar o comando no console — sem a necessidade de comandos adicionais como summary()."
   },
   {
-    "objectID": "modulos/regressao.html#diagnóstico-residual",
-    "href": "modulos/regressao.html#diagnóstico-residual",
-    "title": "Modelagem Linear e Diagnóstico Residual",
-    "section": "Diagnóstico Residual",
-    "text": "Diagnóstico Residual\n\nanalise_residual()\nPainel editorial com 4 gráficos: Resíduos vs Ajustados, Q-Q Normal, Escala-Locação e Resíduos vs Alavancagem:\nanalise_residual(modelo, grade = \"dupla\")"
+    "objectID": "modulos/regressao.html#regressão-linear-múltipla-regressao_linear",
+    "href": "modulos/regressao.html#regressão-linear-múltipla-regressao_linear",
+    "title": "Modelagem e Regressão",
+    "section": "1. Regressão Linear Múltipla (regressao_linear())",
+    "text": "1. Regressão Linear Múltipla (regressao_linear())\nAjuste por Mínimos Quadrados Ordinários com tabela formatada de coeficientes, intervalos de confiança, \\(R^2\\), \\(R^2\\) ajustado, estatística F e interpretação de multicolinearidade (VIF):\nlibrary(estatR)\n\n# Ajuste com saída imediata no console\nmodelo &lt;- regressao_linear(mpg ~ wt + hp + qsec, dados = mtcars)\n\n# Seleção de variáveis e métricas\nmetricas(modelo)\nselecao_modelos(modelo, direcao = \"both\")\nmulticolinearidade(modelo)\npontos_influentes(modelo)\n\n# Gráfico de coeficientes estilo Forest Plot\ngrafico_coeficientes(modelo)"
   },
   {
-    "objectID": "modulos/regressao.html#seleção-e-validação",
-    "href": "modulos/regressao.html#seleção-e-validação",
-    "title": "Modelagem Linear e Diagnóstico Residual",
-    "section": "Seleção e Validação",
-    "text": "Seleção e Validação\n# R², R² ajustado, RMSE, MAE, AIC, BIC\nmetricas(modelo)\n\n# Stepwise AIC/BIC\nselecao_modelos(modelo, direcao = \"both\")\n\n# Fator de Inflação da Variância (VIF)\nmulticolinearidade(modelo)\n\n# Observações influentes e distância de Cook\npontos_influentes(modelo)\n\n# Gráfico de coeficientes com intervalos de confiança\ngrafico_coeficientes(modelo)"
+    "objectID": "modulos/regressao.html#modelos-lineares-generalizados-mlg-glm",
+    "href": "modulos/regressao.html#modelos-lineares-generalizados-mlg-glm",
+    "title": "Modelagem e Regressão",
+    "section": "2. Modelos Lineares Generalizados (MLG / GLM)",
+    "text": "2. Modelos Lineares Generalizados (MLG / GLM)\n\nRegressão Logística & Ponto de Corte Ótimo de Youden\nPara respostas binárias ou probabilísticas (sucesso/fracasso):\n# Regressão Logística com Odds Ratios automáticos\nmodelo_log &lt;- regressao_logistica(am ~ mpg + hp, dados = mtcars)\n\n# Matriz de confusão, AUC-ROC e ponto de corte ótimo pelo índice J de Youden\nmetricas_logistica(modelo_log, ponto_corte = \"youden\")\n\n\nModelos de Contagem: Poisson & Binomial Negativa\nPara contagens de eventos (número de visitas, falhas, ocorrências):\n# Poisson (com verificação de sobredispersão e teste de razão de verossimilhança)\nmod_pois &lt;- regressao_poisson(num_visitas ~ idade + renda, dados = dados_saude)\n\n# Binomial Negativa (com parâmetro theta estimado para contagens sobredispersas)\nmod_nb &lt;- regressao_binomial_negativa(num_visitas ~ idade + renda, dados = dados_saude)\n\n\nModelos para Respostas Contínuas e Taxas: Gama & Beta\n# Regressão Gama (respostas contínuas estritamente positivas e assimétricas: custos, tempo)\nmod_gama &lt;- regressao_gama(custo ~ idade + tratamento, dados = dados_hospital)\n\n# Regressão Beta (respostas no intervalo aberto (0, 1): proporções contínuas, índices)\nmod_beta &lt;- regressao_beta(taxa_conclusao ~ investimento + regiao, dados = dados_escolas)"
+  },
+  {
+    "objectID": "modulos/regressao.html#modelos-lineares-mistos-e-hierárquicos-regressao_mista",
+    "href": "modulos/regressao.html#modelos-lineares-mistos-e-hierárquicos-regressao_mista",
+    "title": "Modelagem e Regressão",
+    "section": "3. Modelos Lineares Mistos e Hierárquicos (regressao_mista())",
+    "text": "3. Modelos Lineares Mistos e Hierárquicos (regressao_mista())\nAjusta modelos com efeitos fixos e efeitos aleatórios por agrupamento hierárquico (via lme4), calculando e interpretando automaticamente o Índice de Correlação Intraclasse (ICC):\n# Modelo com intercepto aleatório por grupo (Subject)\nres_misto &lt;- regressao_mista(\n  Reaction ~ Days + (1 | Subject),\n  dados   = lme4::sleepstudy,\n  metodo  = \"REML\"  # ou \"ML\"\n)\n\n# Extração direta de componentes\nres_misto$efeitos_fixos      # Tabela de coeficientes, SE, IC 95% e p-valor\nres_misto$efeitos_aleatorios # Variâncias e desvios-padrão dos grupos\nres_misto$icc                # ICC calculado (% de variância explicada pelos grupos)\n\n# Caterpillar plot dos BLUPs (efeitos aleatórios por nível)\nplot_regressao_mista(res_misto)"
+  },
+  {
+    "objectID": "modulos/regressao.html#regressão-quantílica-regressao_quantilica",
+    "href": "modulos/regressao.html#regressão-quantílica-regressao_quantilica",
+    "title": "Modelagem e Regressão",
+    "section": "4. Regressão Quantílica (regressao_quantilica())",
+    "text": "4. Regressão Quantílica (regressao_quantilica())\nPermite avaliar o efeito das variáveis explicativas em múltiplos percentis condicionais da resposta (ex.: \\(\\tau = 0.10, 0.25, 0.50, 0.75, 0.90\\)):\n# Ajuste simultâneo em múltiplos quantis com bootstrap\nres_rq &lt;- regressao_quantilica(\n  salario ~ experiencia + escolaridade,\n  dados     = df_salarios,\n  quantis   = c(0.10, 0.25, 0.50, 0.75, 0.90),\n  metodo_ep = \"bootstrap\",\n  n_boot    = 500\n)\n\n# Trajetória dos coeficientes ao longo dos quantis\nplot_regressao_quantilica(res_rq)"
+  },
+  {
+    "objectID": "modulos/regressao.html#predição-conformal-predicao_conformal",
+    "href": "modulos/regressao.html#predição-conformal-predicao_conformal",
+    "title": "Modelagem e Regressão",
+    "section": "5. Predição Conformal (predicao_conformal())",
+    "text": "5. Predição Conformal (predicao_conformal())\nGera intervalos de previsão livres de suposições distributivas (distribution-free) com garantia matemática de cobertura exata:\n# Intervalos conformalizados a 95% de confiança\nconf &lt;- predicao_conformal(modelo, novos_dados = dados_teste, confianca = 0.95)\n\n# Gráfico comparativo entre intervalo clássico e intervalo conformal\nplot_conformal(conf)"
+  },
+  {
+    "objectID": "modulos/regressao.html#diagnósticos-residuais",
+    "href": "modulos/regressao.html#diagnósticos-residuais",
+    "title": "Modelagem e Regressão",
+    "section": "6. Diagnósticos Residuais",
+    "text": "6. Diagnósticos Residuais\n\nDiagnóstico Clássico em 4 Painéis\nAvalia formalmente normalidade (Shapiro-Wilk / Kolmogorov-Smirnov), homocedasticidade (Breusch-Pagan) e independência (Durbin-Watson):\nanalise_residual(modelo, grade = \"dupla\")\n\n\nDiagnóstico por Simulação Empírica (simulacao = TRUE)\nPara GLMs (Poisson, Logística, Binomial Negativa) e modelos hierárquicos onde resíduos tradicionais não seguem normalidade:\n# Simulação de resíduos empíricos exatos (estilo DHARMa)\nanalise_residual(mod_pois, simulacao = TRUE, n_sim = 250)"
   },
   {
     "objectID": "modulos/regressao.html#extratores-universais-em-português",
     "href": "modulos/regressao.html#extratores-universais-em-português",
-    "title": "Modelagem Linear e Diagnóstico Residual",
-    "section": "Extratores Universais em Português",
-    "text": "Extratores Universais em Português\nAcesso direto e idiomático aos componentes do modelo estatístico (compatível com lm, glm, aov e modelos do estatR):\n# Coeficientes estimados\ncoeficientes(modelo)\n\n# Resíduos do modelo\nresiduos(modelo)\n\n# Valores ajustados / preditos na amostra\nvalores_ajustados(modelo)\n\n# Resumo completo do modelo\nresumo(modelo)"
-  },
-  {
-    "objectID": "modulos/regressao.html#diagnóstico-residual-por-simulação",
-    "href": "modulos/regressao.html#diagnóstico-residual-por-simulação",
-    "title": "Modelagem Linear e Diagnóstico Residual",
-    "section": "Diagnóstico Residual por Simulação",
-    "text": "Diagnóstico Residual por Simulação\nDisponível via simulacao = TRUE em analise_residual() para qualquer modelo GLM (Poisson, Binomial Negativa, ZIP, Logística, Beta). Gera resíduos quantílicos escalonados U(0,1) e compara com simulações empíricas do próprio modelo — sem pressupor normalidade.\nmod_poi &lt;- regressao_poisson(acidentes ~ distancia + idade, dados = df)\nanalise_residual(mod_poi, simulacao = TRUE, n_sim = 500)\n# Testa: Uniformidade (KS), Sobredispersão e Excesso de Zeros\n# Painel com 4 gráficos diagnósticos"
-  },
-  {
-    "objectID": "modulos/regressao.html#predição-conformal",
-    "href": "modulos/regressao.html#predição-conformal",
-    "title": "Modelagem Linear e Diagnóstico Residual",
-    "section": "Predição Conformal",
-    "text": "Predição Conformal\n# Intervalos preditivos com garantia matemática de cobertura (95% exato)\nmodelo_lm &lt;- regressao_linear(mpg ~ wt + hp, dados = mtcars)\nres_conf &lt;- predicao_conformal(modelo_lm, nivel = 0.95, metodo = \"split\")\n\n# Compara amplitude média e cobertura empírica: Conformal vs Clássico\nres_conf$predicoes       # Data frame com intervalos por observação\nres_conf$raio_conformal  # Raio do envelope conformal"
-  },
-  {
-    "objectID": "modulos/regressao.html#regressão-quantílica",
-    "href": "modulos/regressao.html#regressão-quantílica",
-    "title": "Modelagem Linear e Diagnóstico Residual",
-    "section": "Regressão Quantílica",
-    "text": "Regressão Quantílica\n# Estima os efeitos para múltiplos quantis condicionais\nres_rq &lt;- regressao_quantilica(\n  salario ~ experiencia + escolaridade,\n  dados     = df,\n  quantis   = c(0.10, 0.25, 0.50, 0.75, 0.90),\n  metodo_ep = \"bootstrap\",   # ou \"assintotico\"\n  n_boot    = 500\n)\n\n# Extração dos resultados\nres_rq$coeficientes[[\"tau_0.5\"]]  # Coeficientes da mediana (τ = 0.50)\nres_rq$matriz_coeficientes        # Todos os coeficientes por quantil"
-  },
-  {
-    "objectID": "modulos/regressao.html#modelos-lineares-mistos-e-hierárquicos",
-    "href": "modulos/regressao.html#modelos-lineares-mistos-e-hierárquicos",
-    "title": "Modelagem Linear e Diagnóstico Residual",
-    "section": "Modelos Lineares Mistos e Hierárquicos",
-    "text": "Modelos Lineares Mistos e Hierárquicos\n# Modelo de intercepto aleatório por grupo (lme4)\nres_misto &lt;- regressao_mista(\n  Reaction ~ Days + (1 | Subject),\n  dados   = lme4::sleepstudy,\n  familia = \"gaussian\",\n  metodo  = \"REML\"  # ou \"ML\"\n)\n\n# Extração\nres_misto$efeitos_fixos      # Coeficientes + IC + p-valor sem coluna Sig. separada\nres_misto$efeitos_aleatorios # Variâncias e DPs dos componentes aleatórios\nres_misto$icc                # ICC calculado: variância_grupo / (variância_grupo + variância_resid)\n\n# Visualização: Caterpillar plot dos BLUPs\nplot_regressao_mista(res_misto)"
+    "title": "Modelagem e Regressão",
+    "section": "7. Extratores Universais em Português",
+    "text": "7. Extratores Universais em Português\nPara facilitar a extração programática sem a necessidade de sintaxes complexas do R base:\ncoeficientes(modelo)      # Coeficientes estimados\nresiduos(modelo)          # Vetor de resíduos\nvalores_ajustados(modelo) # Valores ajustados pelo modelo\nresumo(modelo)            # Reexibe o resumo formatado no console\npredicao(modelo, novos_dados) # Intervalos de confiança e predição"
   },
   {
     "objectID": "modulos/sobrevivencia.html",

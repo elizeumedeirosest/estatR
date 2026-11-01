@@ -7,7 +7,7 @@
 <meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=yes">
 
 
-<title>Inferência e Testes de Hipótese – estatR</title>
+<title>Inferência Estatística – estatR</title>
 <style>
 /* Default styles provided by pandoc.
 ** See https://pandoc.org/MANUAL.html#variables-for-html for config info.
@@ -159,11 +159,7 @@ window.Quarto = {
   </li>  
         <li>
     <a class="dropdown-item" href="../modulos/inferencia.html">
- <span class="dropdown-text">Testes de Hipótese</span></a>
-  </li>  
-        <li>
-    <a class="dropdown-item" href="../modulos/intervalos.html">
- <span class="dropdown-text">Intervalos de Confiança</span></a>
+ <span class="dropdown-text">Inferência Estatística</span></a>
   </li>  
         <li>
     <a class="dropdown-item" href="../modulos/probabilidade.html">
@@ -175,11 +171,7 @@ window.Quarto = {
   </li>  
         <li>
     <a class="dropdown-item" href="../modulos/regressao.html">
- <span class="dropdown-text">Modelos Lineares e Regressão</span></a>
-  </li>  
-        <li>
-    <a class="dropdown-item" href="../modulos/mlg.html">
- <span class="dropdown-text">Modelos Generalizados (MLG)</span></a>
+ <span class="dropdown-text">Modelagem e Regressão</span></a>
   </li>  
         <li>
     <a class="dropdown-item" href="../modulos/series_temporais.html">
@@ -243,8 +235,8 @@ window.Quarto = {
 
 <header id="title-block-header" class="quarto-title-block default">
 <div class="quarto-title">
-<h1 class="title">Inferência e Testes de Hipótese</h1>
-<p class="subtitle lead">Testes paramétricos e não-paramétricos com saídas didáticas e gráficos editoriais</p>
+<h1 class="title">Inferência Estatística</h1>
+<p class="subtitle lead">Testes de hipótese paramétricos e não-paramétricos e estimação intervalar com saídas didáticas</p>
 </div>
 
 
@@ -261,71 +253,103 @@ window.Quarto = {
 </header>
 
 
-<section id="testes-paramétricos" class="level2">
-<h2 class="anchored" data-anchor-id="testes-paramétricos">Testes Paramétricos</h2>
+<section id="visão-geral" class="level2">
+<h2 class="anchored" data-anchor-id="visão-geral">Visão Geral</h2>
+<p>O módulo de <strong>Inferência Estatística</strong> do <code>estatR</code> reúne as duas vertentes complementares da inferência frequentista clássica: <strong>Intervalos de Confiança</strong> e <strong>Testes de Hipótese</strong>. Todas as funções geram saídas formatadas em português, verificação automática de pressupostos, cálculo de tamanho de efeito e gráficos editoriais automáticos.</p>
+<hr>
+</section>
+<section id="intervalos-de-confiança-estimação-intervalar" class="level2">
+<h2 class="anchored" data-anchor-id="intervalos-de-confiança-estimação-intervalar">1. Intervalos de Confiança (Estimação Intervalar)</h2>
+<section id="intervalo-para-a-média" class="level3">
+<h3 class="anchored" data-anchor-id="intervalo-para-a-média">Intervalo para a Média</h3>
+<p>Calcula o IC exato baseado na distribuição t de Student (ou normal):</p>
+<div class="code-copy-outer-scaffold"><div class="sourceCode" id="cb1"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb1-1"><a href="#cb1-1" aria-hidden="true" tabindex="-1"></a><span class="fu">library</span>(estatR)</span>
+<span id="cb1-2"><a href="#cb1-2" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb1-3"><a href="#cb1-3" aria-hidden="true" tabindex="-1"></a><span class="co"># IC de 95% para a média</span></span>
+<span id="cb1-4"><a href="#cb1-4" aria-hidden="true" tabindex="-1"></a><span class="fu">ic_media</span>(mtcars<span class="sc">$</span>mpg, <span class="at">confianca =</span> <span class="fl">0.95</span>, <span class="at">grafico =</span> <span class="cn">TRUE</span>)</span>
+<span id="cb1-5"><a href="#cb1-5" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb1-6"><a href="#cb1-6" aria-hidden="true" tabindex="-1"></a><span class="co"># IC de 99%</span></span>
+<span id="cb1-7"><a href="#cb1-7" aria-hidden="true" tabindex="-1"></a><span class="fu">ic_media</span>(mtcars<span class="sc">$</span>mpg, <span class="at">confianca =</span> <span class="fl">0.99</span>)</span></code></pre></div><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></div>
+</section>
+<section id="intervalo-para-proporções" class="level3">
+<h3 class="anchored" data-anchor-id="intervalo-para-proporções">Intervalo para Proporções</h3>
+<p>Método de Wilson com correção de continuidade:</p>
+<div class="code-copy-outer-scaffold"><div class="sourceCode" id="cb2"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb2-1"><a href="#cb2-1" aria-hidden="true" tabindex="-1"></a><span class="co"># 87 sucessos em 300 tentativas</span></span>
+<span id="cb2-2"><a href="#cb2-2" aria-hidden="true" tabindex="-1"></a><span class="fu">ic_proporcao</span>(<span class="at">x =</span> <span class="dv">87</span>, <span class="at">n =</span> <span class="dv">300</span>, <span class="at">confianca =</span> <span class="fl">0.95</span>, <span class="at">grafico =</span> <span class="cn">TRUE</span>)</span></code></pre></div><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></div>
+</section>
+<section id="intervalo-para-a-variância-e-desvio-padrão" class="level3">
+<h3 class="anchored" data-anchor-id="intervalo-para-a-variância-e-desvio-padrão">Intervalo para a Variância e Desvio Padrão</h3>
+<p>Baseado na distribuição <span class="math inline">\(\chi^2\)</span>, fornece os limites de confiança para <span class="math inline">\(\sigma^2\)</span> e <span class="math inline">\(\sigma\)</span>:</p>
+<div class="code-copy-outer-scaffold"><div class="sourceCode" id="cb3"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb3-1"><a href="#cb3-1" aria-hidden="true" tabindex="-1"></a><span class="fu">ic_variancia</span>(mtcars<span class="sc">$</span>mpg, <span class="at">confianca =</span> <span class="fl">0.95</span>, <span class="at">grafico =</span> <span class="cn">TRUE</span>)</span></code></pre></div><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></div>
+</section>
+<section id="intervalo-para-diferença-entre-médias" class="level3">
+<h3 class="anchored" data-anchor-id="intervalo-para-diferença-entre-médias">Intervalo para Diferença entre Médias</h3>
+<p>Suporta variâncias iguais (Student agrupado) ou desiguais (Welch-Satterthwaite):</p>
+<div class="code-copy-outer-scaffold"><div class="sourceCode" id="cb4"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb4-1"><a href="#cb4-1" aria-hidden="true" tabindex="-1"></a><span class="fu">ic_diferenca_medias</span>(mtcars<span class="sc">$</span>mpg, mtcars<span class="sc">$</span>am, <span class="at">confianca =</span> <span class="fl">0.95</span>, <span class="at">grafico =</span> <span class="cn">TRUE</span>)</span></code></pre></div><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></div>
+<hr>
+</section>
+</section>
+<section id="testes-de-hipótese-paramétricos" class="level2">
+<h2 class="anchored" data-anchor-id="testes-de-hipótese-paramétricos">2. Testes de Hipótese Paramétricos</h2>
+<p>Todas as funções de teste suportam <code>formato = c("resumo", "completo")</code>. No modo <code>"completo"</code>, fornecem intervalo de confiança do tamanho de efeito e o poder estatístico observado (<span class="math inline">\(1 - \beta\)</span>).</p>
 <section id="teste-t-para-uma-amostra" class="level3">
 <h3 class="anchored" data-anchor-id="teste-t-para-uma-amostra">Teste T para Uma Amostra</h3>
 <p>Compara a média amostral com um valor de referência populacional (<span class="math inline">\(\mu_0\)</span>):</p>
-<div class="code-copy-outer-scaffold"><div class="sourceCode" id="cb1"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb1-1"><a href="#cb1-1" aria-hidden="true" tabindex="-1"></a><span class="fu">teste_t_uma_amostra</span>(mtcars<span class="sc">$</span>mpg, <span class="at">mu =</span> <span class="dv">20</span>, <span class="at">grafico =</span> <span class="cn">TRUE</span>)</span></code></pre></div><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></div>
+<div class="code-copy-outer-scaffold"><div class="sourceCode" id="cb5"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb5-1"><a href="#cb5-1" aria-hidden="true" tabindex="-1"></a><span class="fu">teste_t_uma_amostra</span>(mtcars<span class="sc">$</span>mpg, <span class="at">mu =</span> <span class="dv">20</span>, <span class="at">formato =</span> <span class="st">"completo"</span>, <span class="at">grafico =</span> <span class="cn">TRUE</span>)</span></code></pre></div><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></div>
 </section>
 <section id="teste-t-para-duas-amostras-independentes" class="level3">
 <h3 class="anchored" data-anchor-id="teste-t-para-duas-amostras-independentes">Teste T para Duas Amostras Independentes</h3>
-<p>Avalia diferença entre grupos com verificação automática de homocedasticidade (Welch por padrão):</p>
-<div class="code-copy-outer-scaffold"><div class="sourceCode" id="cb2"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb2-1"><a href="#cb2-1" aria-hidden="true" tabindex="-1"></a><span class="fu">teste_t_duas_amostras</span>(mpg <span class="sc">~</span> am, <span class="at">dados =</span> mtcars, <span class="at">grafico =</span> <span class="cn">TRUE</span>)</span></code></pre></div><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></div>
+<p>Avalia a diferença entre dois grupos independentes com correção de Welch por padrão:</p>
+<div class="code-copy-outer-scaffold"><div class="sourceCode" id="cb6"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb6-1"><a href="#cb6-1" aria-hidden="true" tabindex="-1"></a><span class="fu">teste_t_duas_amostras</span>(mpg <span class="sc">~</span> am, <span class="at">dados =</span> mtcars, <span class="at">formato =</span> <span class="st">"completo"</span>, <span class="at">grafico =</span> <span class="cn">TRUE</span>)</span></code></pre></div><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></div>
 </section>
 <section id="teste-t-pareado" class="level3">
 <h3 class="anchored" data-anchor-id="teste-t-pareado">Teste T Pareado</h3>
-<div class="code-copy-outer-scaffold"><div class="sourceCode" id="cb3"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb3-1"><a href="#cb3-1" aria-hidden="true" tabindex="-1"></a><span class="fu">teste_t_pareado</span>(dados<span class="sc">$</span>antes, dados<span class="sc">$</span>depois, <span class="at">grafico =</span> <span class="cn">TRUE</span>)</span></code></pre></div><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></div>
+<p>Para observações emparelhadas (antes vs.&nbsp;depois):</p>
+<div class="code-copy-outer-scaffold"><div class="sourceCode" id="cb7"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb7-1"><a href="#cb7-1" aria-hidden="true" tabindex="-1"></a><span class="fu">teste_t_pareado</span>(dados<span class="sc">$</span>antes, dados<span class="sc">$</span>depois, <span class="at">formato =</span> <span class="st">"completo"</span>, <span class="at">grafico =</span> <span class="cn">TRUE</span>)</span></code></pre></div><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></div>
 </section>
-<section id="teste-de-proporção" class="level3">
-<h3 class="anchored" data-anchor-id="teste-de-proporção">Teste de Proporção</h3>
-<div class="code-copy-outer-scaffold"><div class="sourceCode" id="cb4"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb4-1"><a href="#cb4-1" aria-hidden="true" tabindex="-1"></a><span class="fu">teste_proporcao</span>(<span class="at">x =</span> <span class="dv">87</span>, <span class="at">n =</span> <span class="dv">300</span>, <span class="at">p0 =</span> <span class="fl">0.25</span>)</span></code></pre></div><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></div>
+<section id="teste-z-de-proporção-amostral" class="level3">
+<h3 class="anchored" data-anchor-id="teste-z-de-proporção-amostral">Teste Z de Proporção Amostral</h3>
+<div class="code-copy-outer-scaffold"><div class="sourceCode" id="cb8"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb8-1"><a href="#cb8-1" aria-hidden="true" tabindex="-1"></a><span class="fu">teste_proporcao</span>(<span class="at">x =</span> <span class="dv">87</span>, <span class="at">n =</span> <span class="dv">300</span>, <span class="at">p0 =</span> <span class="fl">0.25</span>)</span></code></pre></div><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></div>
+</section>
+<section id="teste-de-equivalência-clínica-tost" class="level3">
+<h3 class="anchored" data-anchor-id="teste-de-equivalência-clínica-tost">Teste de Equivalência Clínica (TOST)</h3>
+<p>Dois Testes Unicaudais (<em>Two One-Sided Tests</em>) para demonstrar equivalência prática dentro de uma margem <span class="math inline">\([-\Delta, +\Delta]\)</span>:</p>
+<div class="code-copy-outer-scaffold"><div class="sourceCode" id="cb9"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb9-1"><a href="#cb9-1" aria-hidden="true" tabindex="-1"></a><span class="fu">teste_equivalencia</span>(medicamento_teste, medicamento_referencia, <span class="at">margem =</span> <span class="fl">2.0</span>)</span></code></pre></div><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></div>
 <hr>
 </section>
 </section>
 <section id="testes-não-paramétricos-e-categóricos" class="level2">
-<h2 class="anchored" data-anchor-id="testes-não-paramétricos-e-categóricos">Testes Não-Paramétricos e Categóricos</h2>
-<section id="teste-de-wilcoxon-mann-whitney" class="level3">
-<h3 class="anchored" data-anchor-id="teste-de-wilcoxon-mann-whitney">Teste de Wilcoxon &amp; Mann-Whitney</h3>
-<div class="code-copy-outer-scaffold"><div class="sourceCode" id="cb5"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb5-1"><a href="#cb5-1" aria-hidden="true" tabindex="-1"></a><span class="co"># Uma amostra / pareado (Wilcoxon Signed-Rank)</span></span>
-<span id="cb5-2"><a href="#cb5-2" aria-hidden="true" tabindex="-1"></a><span class="fu">teste_wilcoxon</span>(mtcars<span class="sc">$</span>mpg, <span class="at">mu =</span> <span class="dv">20</span>, <span class="at">grafico =</span> <span class="cn">TRUE</span>)</span>
-<span id="cb5-3"><a href="#cb5-3" aria-hidden="true" tabindex="-1"></a></span>
-<span id="cb5-4"><a href="#cb5-4" aria-hidden="true" tabindex="-1"></a><span class="co"># Duas amostras independentes (Mann-Whitney U)</span></span>
-<span id="cb5-5"><a href="#cb5-5" aria-hidden="true" tabindex="-1"></a><span class="fu">teste_mann_whitney</span>(mpg <span class="sc">~</span> am, <span class="at">dados =</span> mtcars, <span class="at">grafico =</span> <span class="cn">TRUE</span>)</span></code></pre></div><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></div>
-</section>
-<section id="kruskal-wallis-friedman" class="level3">
-<h3 class="anchored" data-anchor-id="kruskal-wallis-friedman">Kruskal-Wallis &amp; Friedman</h3>
-<div class="code-copy-outer-scaffold"><div class="sourceCode" id="cb6"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb6-1"><a href="#cb6-1" aria-hidden="true" tabindex="-1"></a><span class="co"># Grupos independentes (Kruskal-Wallis com post-hoc de Dunn)</span></span>
-<span id="cb6-2"><a href="#cb6-2" aria-hidden="true" tabindex="-1"></a><span class="fu">teste_kruskal</span>(Sepal.Length <span class="sc">~</span> Species, <span class="at">dados =</span> iris)</span>
-<span id="cb6-3"><a href="#cb6-3" aria-hidden="true" tabindex="-1"></a></span>
-<span id="cb6-4"><a href="#cb6-4" aria-hidden="true" tabindex="-1"></a><span class="co"># Medidas repetidas / blocos (Friedman)</span></span>
-<span id="cb6-5"><a href="#cb6-5" aria-hidden="true" tabindex="-1"></a><span class="fu">teste_friedman</span>(y <span class="sc">~</span> grupo <span class="sc">|</span> bloco, <span class="at">dados =</span> dados_repetidos)</span></code></pre></div><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></div>
-</section>
-<section id="teste-de-equivalência-tost" class="level3">
-<h3 class="anchored" data-anchor-id="teste-de-equivalência-tost">Teste de Equivalência (TOST)</h3>
-<p>Procedimento de Dois Testes Unicaudais para avaliar se a diferença entre tratamentos está dentro de uma margem clinicamente aceitável:</p>
-<div class="code-copy-outer-scaffold"><div class="sourceCode" id="cb7"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb7-1"><a href="#cb7-1" aria-hidden="true" tabindex="-1"></a><span class="fu">teste_equivalencia</span>(mpg <span class="sc">~</span> am, <span class="at">dados =</span> mtcars, <span class="at">margem =</span> <span class="dv">2</span>, <span class="at">grafico =</span> <span class="cn">TRUE</span>)</span></code></pre></div><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></div>
-</section>
-<section id="teste-de-mcnemar-para-dados-pareados" class="level3">
-<h3 class="anchored" data-anchor-id="teste-de-mcnemar-para-dados-pareados">Teste de McNemar para Dados Pareados</h3>
-<p>Avaliação de homogeneidade marginal para dados categóricos binários pareados (com cálculo de Odds Ratio pareado):</p>
-<div class="code-copy-outer-scaffold"><div class="sourceCode" id="cb8"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb8-1"><a href="#cb8-1" aria-hidden="true" tabindex="-1"></a><span class="fu">teste_mcnemar</span>(dados, <span class="at">var_antes =</span> Antes, <span class="at">var_depois =</span> Depois, <span class="at">grafico =</span> <span class="cn">TRUE</span>)</span></code></pre></div><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></div>
-</section>
-<section id="qui-quadrado-homocedasticidade" class="level3">
-<h3 class="anchored" data-anchor-id="qui-quadrado-homocedasticidade">Qui-Quadrado &amp; Homocedasticidade</h3>
-<div class="code-copy-outer-scaffold"><div class="sourceCode" id="cb9"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb9-1"><a href="#cb9-1" aria-hidden="true" tabindex="-1"></a><span class="co"># Qui-Quadrado de Independência</span></span>
-<span id="cb9-2"><a href="#cb9-2" aria-hidden="true" tabindex="-1"></a><span class="fu">teste_qui_quadrado</span>(mtcars, cyl, am)</span>
-<span id="cb9-3"><a href="#cb9-3" aria-hidden="true" tabindex="-1"></a></span>
-<span id="cb9-4"><a href="#cb9-4" aria-hidden="true" tabindex="-1"></a><span class="co"># Homocedasticidade de Levene</span></span>
-<span id="cb9-5"><a href="#cb9-5" aria-hidden="true" tabindex="-1"></a><span class="fu">teste_levene</span>(mtcars<span class="sc">$</span>mpg, mtcars<span class="sc">$</span>am)</span></code></pre></div><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></div>
-</section>
-<section id="concordância" class="level3">
-<h3 class="anchored" data-anchor-id="concordância">Concordância</h3>
-<div class="code-copy-outer-scaffold"><div class="sourceCode" id="cb10"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb10-1"><a href="#cb10-1" aria-hidden="true" tabindex="-1"></a><span class="co"># Cohen / Fleiss Kappa</span></span>
-<span id="cb10-2"><a href="#cb10-2" aria-hidden="true" tabindex="-1"></a><span class="fu">concordancia_kappa</span>(avaliador1, avaliador2)</span>
+<h2 class="anchored" data-anchor-id="testes-não-paramétricos-e-categóricos">3. Testes Não-Paramétricos e Categóricos</h2>
+<section id="testes-de-wilcoxon-mann-whitney" class="level3">
+<h3 class="anchored" data-anchor-id="testes-de-wilcoxon-mann-whitney">Testes de Wilcoxon &amp; Mann-Whitney</h3>
+<p>Alternativas robustas para distribuições não-normais com cálculo do tamanho de efeito <span class="math inline">\(r\)</span>:</p>
+<div class="code-copy-outer-scaffold"><div class="sourceCode" id="cb10"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb10-1"><a href="#cb10-1" aria-hidden="true" tabindex="-1"></a><span class="co"># Uma amostra ou pareado (Wilcoxon Signed-Rank)</span></span>
+<span id="cb10-2"><a href="#cb10-2" aria-hidden="true" tabindex="-1"></a><span class="fu">teste_wilcoxon</span>(mtcars<span class="sc">$</span>mpg, <span class="at">mu =</span> <span class="dv">20</span>, <span class="at">formato =</span> <span class="st">"completo"</span>, <span class="at">grafico =</span> <span class="cn">TRUE</span>)</span>
 <span id="cb10-3"><a href="#cb10-3" aria-hidden="true" tabindex="-1"></a></span>
-<span id="cb10-4"><a href="#cb10-4" aria-hidden="true" tabindex="-1"></a><span class="co"># Bland-Altman</span></span>
-<span id="cb10-5"><a href="#cb10-5" aria-hidden="true" tabindex="-1"></a><span class="fu">grafico_bland_altman</span>(dados, <span class="at">metodo1 =</span> <span class="st">"termometro_A"</span>, <span class="at">metodo2 =</span> <span class="st">"termometro_B"</span>)</span></code></pre></div><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></div>
+<span id="cb10-4"><a href="#cb10-4" aria-hidden="true" tabindex="-1"></a><span class="co"># Duas amostras independentes (Mann-Whitney U) com correlação rank-biserial</span></span>
+<span id="cb10-5"><a href="#cb10-5" aria-hidden="true" tabindex="-1"></a><span class="fu">teste_mann_whitney</span>(mpg <span class="sc">~</span> am, <span class="at">dados =</span> mtcars, <span class="at">formato =</span> <span class="st">"completo"</span>, <span class="at">grafico =</span> <span class="cn">TRUE</span>)</span></code></pre></div><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></div>
+</section>
+<section id="comparações-múltiplas-não-paramétricas" class="level3">
+<h3 class="anchored" data-anchor-id="comparações-múltiplas-não-paramétricas">Comparações Múltiplas Não-Paramétricas</h3>
+<div class="code-copy-outer-scaffold"><div class="sourceCode" id="cb11"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb11-1"><a href="#cb11-1" aria-hidden="true" tabindex="-1"></a><span class="co"># Kruskal-Wallis (k &gt;= 2 grupos independentes) com post-hoc de Dunn</span></span>
+<span id="cb11-2"><a href="#cb11-2" aria-hidden="true" tabindex="-1"></a><span class="fu">teste_kruskal</span>(mpg <span class="sc">~</span> cyl, <span class="at">dados =</span> mtcars, <span class="at">grafico =</span> <span class="cn">TRUE</span>)</span>
+<span id="cb11-3"><a href="#cb11-3" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb11-4"><a href="#cb11-4" aria-hidden="true" tabindex="-1"></a><span class="co"># Friedman (k &gt;= 2 medidas repetidas / blocos) com post-hoc pareado</span></span>
+<span id="cb11-5"><a href="#cb11-5" aria-hidden="true" tabindex="-1"></a><span class="fu">teste_friedman</span>(resposta <span class="sc">~</span> tratamento <span class="sc">|</span> bloco, <span class="at">dados =</span> dados_experimento)</span></code></pre></div><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></div>
+</section>
+<section id="análise-de-tabelas-de-contingência-e-concordância" class="level3">
+<h3 class="anchored" data-anchor-id="análise-de-tabelas-de-contingência-e-concordância">Análise de Tabelas de Contingência e Concordância</h3>
+<div class="code-copy-outer-scaffold"><div class="sourceCode" id="cb12"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb12-1"><a href="#cb12-1" aria-hidden="true" tabindex="-1"></a><span class="co"># Teste Qui-Quadrado de Independência com V de Cramér e poder post-hoc</span></span>
+<span id="cb12-2"><a href="#cb12-2" aria-hidden="true" tabindex="-1"></a><span class="fu">teste_qui_quadrado</span>(dados, var_x, var_y, <span class="at">formato =</span> <span class="st">"completo"</span>, <span class="at">grafico =</span> <span class="cn">TRUE</span>)</span>
+<span id="cb12-3"><a href="#cb12-3" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb12-4"><a href="#cb12-4" aria-hidden="true" tabindex="-1"></a><span class="co"># Teste de McNemar para pares binários com Odds Ratio pareado</span></span>
+<span id="cb12-5"><a href="#cb12-5" aria-hidden="true" tabindex="-1"></a><span class="fu">teste_mcnemar</span>(dados, antes, depois)</span>
+<span id="cb12-6"><a href="#cb12-6" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb12-7"><a href="#cb12-7" aria-hidden="true" tabindex="-1"></a><span class="co"># Confiabilidade inter-avaliadores (Kappa de Cohen)</span></span>
+<span id="cb12-8"><a href="#cb12-8" aria-hidden="true" tabindex="-1"></a><span class="fu">concordancia_kappa</span>(avaliador_1, avaliador_2)</span>
+<span id="cb12-9"><a href="#cb12-9" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb12-10"><a href="#cb12-10" aria-hidden="true" tabindex="-1"></a><span class="co"># Gráfico de Bland-Altman para concordância contínua</span></span>
+<span id="cb12-11"><a href="#cb12-11" aria-hidden="true" tabindex="-1"></a><span class="fu">grafico_bland_altman</span>(metodo_novo, metodo_referencia)</span></code></pre></div><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></div>
 
 
 </section>

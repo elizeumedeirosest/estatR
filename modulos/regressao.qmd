@@ -1,135 +1,158 @@
 ---
-title: "Modelagem Linear e Diagnóstico Residual"
-subtitle: "Regressão múltipla, seleção de variáveis e diagnóstico gráfico em 4 painéis"
+title: "Modelagem e Regressão"
+subtitle: "Regressão linear múltipla, modelos generalizados (MLG), modelos mistos, regressão quantílica e predição conformal"
 ---
 
-## Ajuste de Modelos
+## Visão Geral
 
-### `regressao_linear()`
-Mínimos Quadrados Ordinários (MQO) com saída formatada: coeficientes, erros padrão, estatísticas t e p-valores:
+O módulo de **Modelagem e Regressão** do `estatR` unifica em uma interface consistente toda a família de modelos lineares e não-lineares, desde o ajuste clássico por Mínimos Quadrados Ordinários (MQO) até Modelos Lineares Generalizados (MLG), modelos hierárquicos/mistos e inferência preditiva moderna.
+
+Todas as funções exibem o resumo estatístico completo imediatamente ao rodar o comando no console — sem a necessidade de comandos adicionais como `summary()`.
+
+---
+
+## 1. Regressão Linear Múltipla (`regressao_linear()`)
+
+Ajuste por Mínimos Quadrados Ordinários com tabela formatada de coeficientes, intervalos de confiança, $R^2$, $R^2$ ajustado, estatística F e interpretação de multicolinearidade (VIF):
 
 ```r
+library(estatR)
+
+# Ajuste com saída imediata no console
 modelo <- regressao_linear(mpg ~ wt + hp + qsec, dados = mtcars)
+
+# Seleção de variáveis e métricas
+metricas(modelo)
+selecao_modelos(modelo, direcao = "both")
+multicolinearidade(modelo)
+pontos_influentes(modelo)
+
+# Gráfico de coeficientes estilo Forest Plot
+grafico_coeficientes(modelo)
 ```
 
 ---
 
-## Diagnóstico Residual
+## 2. Modelos Lineares Generalizados (MLG / GLM)
 
-### `analise_residual()`
-Painel editorial com 4 gráficos: Resíduos vs Ajustados, Q-Q Normal, Escala-Locação e Resíduos vs Alavancagem:
+### Regressão Logística & Ponto de Corte Ótimo de Youden
+Para respostas binárias ou probabilísticas (sucesso/fracasso):
+
+```r
+# Regressão Logística com Odds Ratios automáticos
+modelo_log <- regressao_logistica(am ~ mpg + hp, dados = mtcars)
+
+# Matriz de confusão, AUC-ROC e ponto de corte ótimo pelo índice J de Youden
+metricas_logistica(modelo_log, ponto_corte = "youden")
+```
+
+### Modelos de Contagem: Poisson & Binomial Negativa
+Para contagens de eventos (número de visitas, falhas, ocorrências):
+
+```r
+# Poisson (com verificação de sobredispersão e teste de razão de verossimilhança)
+mod_pois <- regressao_poisson(num_visitas ~ idade + renda, dados = dados_saude)
+
+# Binomial Negativa (com parâmetro theta estimado para contagens sobredispersas)
+mod_nb <- regressao_binomial_negativa(num_visitas ~ idade + renda, dados = dados_saude)
+```
+
+### Modelos para Respostas Contínuas e Taxas: Gama & Beta
+
+```r
+# Regressão Gama (respostas contínuas estritamente positivas e assimétricas: custos, tempo)
+mod_gama <- regressao_gama(custo ~ idade + tratamento, dados = dados_hospital)
+
+# Regressão Beta (respostas no intervalo aberto (0, 1): proporções contínuas, índices)
+mod_beta <- regressao_beta(taxa_conclusao ~ investimento + regiao, dados = dados_escolas)
+```
+
+---
+
+## 3. Modelos Lineares Mistos e Hierárquicos (`regressao_mista()`)
+
+Ajusta modelos com efeitos fixos e efeitos aleatórios por agrupamento hierárquico (via `lme4`), calculando e interpretando automaticamente o Índice de Correlação Intraclasse (ICC):
+
+```r
+# Modelo com intercepto aleatório por grupo (Subject)
+res_misto <- regressao_mista(
+  Reaction ~ Days + (1 | Subject),
+  dados   = lme4::sleepstudy,
+  metodo  = "REML"  # ou "ML"
+)
+
+# Extração direta de componentes
+res_misto$efeitos_fixos      # Tabela de coeficientes, SE, IC 95% e p-valor
+res_misto$efeitos_aleatorios # Variâncias e desvios-padrão dos grupos
+res_misto$icc                # ICC calculado (% de variância explicada pelos grupos)
+
+# Caterpillar plot dos BLUPs (efeitos aleatórios por nível)
+plot_regressao_mista(res_misto)
+```
+
+---
+
+## 4. Regressão Quantílica (`regressao_quantilica()`)
+
+Permite avaliar o efeito das variáveis explicativas em múltiplos percentis condicionais da resposta (ex.: $\tau = 0.10, 0.25, 0.50, 0.75, 0.90$):
+
+```r
+# Ajuste simultâneo em múltiplos quantis com bootstrap
+res_rq <- regressao_quantilica(
+  salario ~ experiencia + escolaridade,
+  dados     = df_salarios,
+  quantis   = c(0.10, 0.25, 0.50, 0.75, 0.90),
+  metodo_ep = "bootstrap",
+  n_boot    = 500
+)
+
+# Trajetória dos coeficientes ao longo dos quantis
+plot_regressao_quantilica(res_rq)
+```
+
+---
+
+## 5. Predição Conformal (`predicao_conformal()`)
+
+Gera intervalos de previsão livres de suposições distributivas (*distribution-free*) com garantia matemática de cobertura exata:
+
+```r
+# Intervalos conformalizados a 95% de confiança
+conf <- predicao_conformal(modelo, novos_dados = dados_teste, confianca = 0.95)
+
+# Gráfico comparativo entre intervalo clássico e intervalo conformal
+plot_conformal(conf)
+```
+
+---
+
+## 6. Diagnósticos Residuais
+
+### Diagnóstico Clássico em 4 Painéis
+Avalia formalmente normalidade (Shapiro-Wilk / Kolmogorov-Smirnov), homocedasticidade (Breusch-Pagan) e independência (Durbin-Watson):
 
 ```r
 analise_residual(modelo, grade = "dupla")
 ```
 
----
-
-## Seleção e Validação
-
-```r
-# R², R² ajustado, RMSE, MAE, AIC, BIC
-metricas(modelo)
-
-# Stepwise AIC/BIC
-selecao_modelos(modelo, direcao = "both")
-
-# Fator de Inflação da Variância (VIF)
-multicolinearidade(modelo)
-
-# Observações influentes e distância de Cook
-pontos_influentes(modelo)
-
-# Gráfico de coeficientes com intervalos de confiança
-grafico_coeficientes(modelo)
-```
-
-
----
-
-## Extratores Universais em Português
-
-Acesso direto e idiomático aos componentes do modelo estatístico (compatível com `lm`, `glm`, `aov` e modelos do `estatR`):
+### Diagnóstico por Simulação Empírica (`simulacao = TRUE`)
+Para GLMs (Poisson, Logística, Binomial Negativa) e modelos hierárquicos onde resíduos tradicionais não seguem normalidade:
 
 ```r
-# Coeficientes estimados
-coeficientes(modelo)
-
-# Resíduos do modelo
-residuos(modelo)
-
-# Valores ajustados / preditos na amostra
-valores_ajustados(modelo)
-
-# Resumo completo do modelo
-resumo(modelo)
-```
-
-
----
-
-## Diagnóstico Residual por Simulação
-
-Disponível via `simulacao = TRUE` em `analise_residual()` para qualquer modelo GLM (Poisson, Binomial Negativa, ZIP, Logística, Beta). Gera resíduos quantílicos escalonados U(0,1) e compara com simulações empíricas do próprio modelo — sem pressupor normalidade.
-
-```r
-mod_poi <- regressao_poisson(acidentes ~ distancia + idade, dados = df)
-analise_residual(mod_poi, simulacao = TRUE, n_sim = 500)
-# Testa: Uniformidade (KS), Sobredispersão e Excesso de Zeros
-# Painel com 4 gráficos diagnósticos
+# Simulação de resíduos empíricos exatos (estilo DHARMa)
+analise_residual(mod_pois, simulacao = TRUE, n_sim = 250)
 ```
 
 ---
 
-## Predição Conformal
+## 7. Extratores Universais em Português
+
+Para facilitar a extração programática sem a necessidade de sintaxes complexas do R base:
 
 ```r
-# Intervalos preditivos com garantia matemática de cobertura (95% exato)
-modelo_lm <- regressao_linear(mpg ~ wt + hp, dados = mtcars)
-res_conf <- predicao_conformal(modelo_lm, nivel = 0.95, metodo = "split")
-
-# Compara amplitude média e cobertura empírica: Conformal vs Clássico
-res_conf$predicoes       # Data frame com intervalos por observação
-res_conf$raio_conformal  # Raio do envelope conformal
-```
-
----
-
-## Regressão Quantílica
-
-```r
-# Estima os efeitos para múltiplos quantis condicionais
-res_rq <- regressao_quantilica(
-  salario ~ experiencia + escolaridade,
-  dados     = df,
-  quantis   = c(0.10, 0.25, 0.50, 0.75, 0.90),
-  metodo_ep = "bootstrap",   # ou "assintotico"
-  n_boot    = 500
-)
-
-# Extração dos resultados
-res_rq$coeficientes[["tau_0.5"]]  # Coeficientes da mediana (τ = 0.50)
-res_rq$matriz_coeficientes        # Todos os coeficientes por quantil
-```
-
----
-
-## Modelos Lineares Mistos e Hierárquicos
-
-```r
-# Modelo de intercepto aleatório por grupo (lme4)
-res_misto <- regressao_mista(
-  Reaction ~ Days + (1 | Subject),
-  dados   = lme4::sleepstudy,
-  familia = "gaussian",
-  metodo  = "REML"  # ou "ML"
-)
-
-# Extração
-res_misto$efeitos_fixos      # Coeficientes + IC + p-valor sem coluna Sig. separada
-res_misto$efeitos_aleatorios # Variâncias e DPs dos componentes aleatórios
-res_misto$icc                # ICC calculado: variância_grupo / (variância_grupo + variância_resid)
-
-# Visualização: Caterpillar plot dos BLUPs
-plot_regressao_mista(res_misto)
+coeficientes(modelo)      # Coeficientes estimados
+residuos(modelo)          # Vetor de resíduos
+valores_ajustados(modelo) # Valores ajustados pelo modelo
+resumo(modelo)            # Reexibe o resumo formatado no console
+predicao(modelo, novos_dados) # Intervalos de confiança e predição
 ```
