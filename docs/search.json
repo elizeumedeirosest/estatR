@@ -189,74 +189,53 @@
     "text": "Testes Não-Paramétricos e Categóricos\n\nTeste de Wilcoxon & Mann-Whitney\n# Uma amostra / pareado (Wilcoxon Signed-Rank)\nteste_wilcoxon(mtcars$mpg, mu = 20, grafico = TRUE)\n\n# Duas amostras independentes (Mann-Whitney U)\nteste_mann_whitney(mpg ~ am, dados = mtcars, grafico = TRUE)\n\n\nKruskal-Wallis & Friedman\n# Grupos independentes (Kruskal-Wallis com post-hoc de Dunn)\nteste_kruskal(Sepal.Length ~ Species, dados = iris)\n\n# Medidas repetidas / blocos (Friedman)\nteste_friedman(y ~ grupo | bloco, dados = dados_repetidos)\n\n\nTeste de Equivalência (TOST)\nProcedimento de Dois Testes Unicaudais para avaliar se a diferença entre tratamentos está dentro de uma margem clinicamente aceitável:\nteste_equivalencia(mpg ~ am, dados = mtcars, margem = 2, grafico = TRUE)\n\n\nTeste de McNemar para Dados Pareados\nAvaliação de homogeneidade marginal para dados categóricos binários pareados (com cálculo de Odds Ratio pareado):\nteste_mcnemar(dados, var_antes = Antes, var_depois = Depois, grafico = TRUE)\n\n\nQui-Quadrado & Homocedasticidade\n# Qui-Quadrado de Independência\nteste_qui_quadrado(mtcars, cyl, am)\n\n# Homocedasticidade de Levene\nteste_levene(mtcars$mpg, mtcars$am)\n\n\nConcordância\n# Cohen / Fleiss Kappa\nconcordancia_kappa(avaliador1, avaliador2)\n\n# Bland-Altman\ngrafico_bland_altman(dados, metodo1 = \"termometro_A\", metodo2 = \"termometro_B\")"
   },
   {
-    "objectID": "modulos/descritiva.html",
-    "href": "modulos/descritiva.html",
-    "title": "Diagnóstico e Estatística Descritiva",
+    "objectID": "modulos/experimentos.html",
+    "href": "modulos/experimentos.html",
+    "title": "Planejamento e Análise de Experimentos",
     "section": "",
-    "text": "Produz um diagnóstico global com número de linhas, colunas, presença de NA e classificação das variáveis.\n# Diagnóstico global de um data frame\ndiagnostico(iris)\n\n# Diagnóstico de uma variável específica\ndiagnostico(iris$Sepal.Length)\n\n\n\nFunções focadas na integridade do banco:\n# Inspeção de tipos e classes de colunas\nestrutura(iris)\n\n# Mapa e contagem de valores ausentes (com gráfico opcional)\nvalores_ausentes(airquality, grafico = TRUE)\n\n\n\nIdentifica valores discrepantes com base no critério de Tukey (\\(1{,}5 \\times IIQ\\)) ou escore Z:\noutliers(mtcars$mpg, metodo = \"iqr\")"
+    "text": "res_dic &lt;- analise_dic(y = dados$produtividade, trat = dados$adubo, teste_medias = \"tukey\")\ngrafico_dic(res_dic)\n\n\n\nres_dbc &lt;- analise_dbc(y = dados$produtividade, trat = dados$adubo, bloco = dados$bloco)\ngrafico_dbc(res_dbc)\n\n\n\nres_dql &lt;- analise_dql(y = dados$prod, trat = dados$trat, linha = dados$lin, coluna = dados$col)\ngrafico_dql(res_dql)"
   },
   {
-    "objectID": "modulos/descritiva.html#diagnóstico-de-dados",
-    "href": "modulos/descritiva.html#diagnóstico-de-dados",
-    "title": "Diagnóstico e Estatística Descritiva",
+    "objectID": "modulos/experimentos.html#delineamentos-básicos",
+    "href": "modulos/experimentos.html#delineamentos-básicos",
+    "title": "Planejamento e Análise de Experimentos",
     "section": "",
-    "text": "Produz um diagnóstico global com número de linhas, colunas, presença de NA e classificação das variáveis.\n# Diagnóstico global de um data frame\ndiagnostico(iris)\n\n# Diagnóstico de uma variável específica\ndiagnostico(iris$Sepal.Length)\n\n\n\nFunções focadas na integridade do banco:\n# Inspeção de tipos e classes de colunas\nestrutura(iris)\n\n# Mapa e contagem de valores ausentes (com gráfico opcional)\nvalores_ausentes(airquality, grafico = TRUE)\n\n\n\nIdentifica valores discrepantes com base no critério de Tukey (\\(1{,}5 \\times IIQ\\)) ou escore Z:\noutliers(mtcars$mpg, metodo = \"iqr\")"
+    "text": "res_dic &lt;- analise_dic(y = dados$produtividade, trat = dados$adubo, teste_medias = \"tukey\")\ngrafico_dic(res_dic)\n\n\n\nres_dbc &lt;- analise_dbc(y = dados$produtividade, trat = dados$adubo, bloco = dados$bloco)\ngrafico_dbc(res_dbc)\n\n\n\nres_dql &lt;- analise_dql(y = dados$prod, trat = dados$trat, linha = dados$lin, coluna = dados$col)\ngrafico_dql(res_dql)"
   },
   {
-    "objectID": "modulos/descritiva.html#estatística-descritiva",
-    "href": "modulos/descritiva.html#estatística-descritiva",
-    "title": "Diagnóstico e Estatística Descritiva",
-    "section": "Estatística Descritiva",
-    "text": "Estatística Descritiva\n\ndescrever()\nFunção polimórfica universal: resume vetores numéricos (média, DP, mediana, IIQ), fatores (frequências), data frames completos ou métricas estratificadas por grupo (por).\n# Numérica simples\ndescrever(mtcars$mpg)\n\n# Categórica simples\ndescrever(mtcars$cyl)\n\n# Estratificada por grupo\ndescrever(iris$Sepal.Length, por = iris$Species)\n\n\ntabela_contingencia()\nCruzamento bivariado com suporte a frequências conjuntas e proporções por linha, coluna ou total:\n# Frequências absolutas\ntabela_contingencia(mtcars, cyl, am)\n\n# Proporções por linha centralizadas\ntabela_contingencia(mtcars, cyl, am, proporcao = \"linha\")"
+    "objectID": "modulos/experimentos.html#esquemas-fatoriais-e-parcelas",
+    "href": "modulos/experimentos.html#esquemas-fatoriais-e-parcelas",
+    "title": "Planejamento e Análise de Experimentos",
+    "section": "Esquemas Fatoriais e Parcelas",
+    "text": "Esquemas Fatoriais e Parcelas\n\nFatorial Duplo e Adicional\n# Fatorial Duplo (Fator A x Fator B)\nres_fat &lt;- analise_fatorial_duplo(y = dados$prod, fator_a = dados$irrigacao, fator_b = dados$adubo)\ngrafico_fatorial(res_fat)\n\n# Fatorial com Testemunha Adicional\nres_fat_ad &lt;- analise_fatorial_adicional(y = dados$prod, fator_a = dados$fA, fator_b = dados$fB, testemunha = dados$test)\n\n\nParcelas Subdivididas (Split-Plot)\nres_split &lt;- analise_parcela_subdividida(y = dados$prod, parcela = dados$p, subparcela = dados$sp, bloco = dados$b)"
   },
   {
-    "objectID": "modulos/descritiva.html#separatrizes-amostrais",
-    "href": "modulos/descritiva.html#separatrizes-amostrais",
-    "title": "Diagnóstico e Estatística Descritiva",
-    "section": "Separatrizes Amostrais",
-    "text": "Separatrizes Amostrais\nFunções dedicadas para cálculo intuitivo de pontos de corte e medidas de posição:\n# Quartis (Q1, Q2, Q3) e IIQ\nquartis(mtcars$mpg)\n\n# Quintis (20%, 40%, 60%, 80%)\nquintis(mtcars$mpg)\n\n# Decis (D1 a D9)\ndecis(mtcars$mpg)\n\n# Percentis específicos\npercentis(mtcars$mpg, p = c(0.01, 0.05, 0.95, 0.99))"
+    "objectID": "modulos/experimentos.html#teste-de-dunnett-e-medidas-repetidas",
+    "href": "modulos/experimentos.html#teste-de-dunnett-e-medidas-repetidas",
+    "title": "Planejamento e Análise de Experimentos",
+    "section": "Teste de Dunnett e Medidas Repetidas",
+    "text": "Teste de Dunnett e Medidas Repetidas\n\nTeste de Dunnett (Comparações com o Controle)\nComparações de múltiplos tratamentos contra uma testemunha/controle com controle da taxa de erro da família e gráfico de intervalos:\nres_dunnett &lt;- teste_dunnett(resp ~ trat, dados = df_exp, controle = \"Testemunha\")\ngrafico_dunnett(res_dunnett)\n\n\nAnálise de Medidas Repetidas no Tempo\nANOVA de medidas repetidas intrasujeito com teste de esfericidade de Mauchly e correções de Greenhouse-Geisser e Huynh-Feldt:\nanalise_medidas_repetidas(\n  dados    = dados_tempo,\n  resposta = \"escore\",\n  tempo    = \"periodo\",\n  sujeito  = \"paciente\",\n  grafico  = TRUE\n)"
   },
   {
-    "objectID": "modulos/descritiva.html#medidas-específicas",
-    "href": "modulos/descritiva.html#medidas-específicas",
-    "title": "Diagnóstico e Estatística Descritiva",
-    "section": "Medidas Específicas",
-    "text": "Medidas Específicas\nQuando você precisa apenas de um bloco específico de estatísticas:\n# Tendência Central: média, mediana e moda\nmed_tend_central(mtcars$mpg)\n\n# Dispersão: variância, desvio padrão, erro padrão, CV (%) e amplitude\nmed_dispersao(mtcars$mpg)\n\n# Forma: assimetria (skewness) e curtose teóricas\nmed_forma(mtcars$mpg)"
-  },
-  {
-    "objectID": "modulos/amostragem.html",
-    "href": "modulos/amostragem.html",
-    "title": "Amostragem Probabilística",
+    "objectID": "modulos/espacial.html",
+    "href": "modulos/espacial.html",
+    "title": "Estatística Espacial",
     "section": "",
-    "text": "# 50 observações por AAS sem reposição\namostra &lt;- amostra_aleatoria(banco_dados, n = 50, reposicao = FALSE)\n\n\n\nRepresentatividade proporcional ou ótima de subpopulações:\namostra_est &lt;- amostra_estratificada(banco_dados, estrato = \"regiao\", n = 100, alocacao = \"proporcional\")\n\n\n\nSeleção periódica com intervalo fixo (\\(k = N/n\\)):\namostra_sist &lt;- amostra_sistematica(banco_dados, n = 40)\n\n\n\namostra_cong &lt;- amostra_conglomerados(banco_dados, conglomerado = \"escola\", n_conglomerados = 5)"
+    "text": "O módulo de Estatística Espacial do estatR oferece ferramentas completas para diagnóstico de dependência geográfica, mapeamento de clusters espaciais e ajuste de modelos de regressão espacial."
   },
   {
-    "objectID": "modulos/amostragem.html#planos-amostrais",
-    "href": "modulos/amostragem.html#planos-amostrais",
-    "title": "Amostragem Probabilística",
-    "section": "",
-    "text": "# 50 observações por AAS sem reposição\namostra &lt;- amostra_aleatoria(banco_dados, n = 50, reposicao = FALSE)\n\n\n\nRepresentatividade proporcional ou ótima de subpopulações:\namostra_est &lt;- amostra_estratificada(banco_dados, estrato = \"regiao\", n = 100, alocacao = \"proporcional\")\n\n\n\nSeleção periódica com intervalo fixo (\\(k = N/n\\)):\namostra_sist &lt;- amostra_sistematica(banco_dados, n = 40)\n\n\n\namostra_cong &lt;- amostra_conglomerados(banco_dados, conglomerado = \"escola\", n_conglomerados = 5)"
+    "objectID": "modulos/espacial.html#autocorrelação-espacial-global-e-local-moran-e-lisa",
+    "href": "modulos/espacial.html#autocorrelação-espacial-global-e-local-moran-e-lisa",
+    "title": "Estatística Espacial",
+    "section": "1. Autocorrelação Espacial Global e Local (Moran e LISA)",
+    "text": "1. Autocorrelação Espacial Global e Local (Moran e LISA)\nA função analise_autocorrelacao() calcula o Índice de Moran Global com teste pseudo-p via permutações Monte Carlo e classifica cada observação nos quadrantes locais de Moran (LISA):\n\nAlto-Alto (Q1): Hotspots ou aglomerados de altos valores.\nBaixo-Baixo (Q2): Coldspots ou aglomerados de baixos valores.\nAlto-Baixo (Q3): Outliers espaciais com valores altos cercados por vizinhos baixos.\nBaixo-Alto (Q4): Outliers espaciais com valores baixos cercados por vizinhos altos.\n\nlibrary(estatR)\n\n# Análise de autocorrelação com coordenadas geográficas\nres_moran &lt;- analise_autocorrelacao(\n  dados          = dados_municipios,\n  variavel       = pib_per_capita,\n  coordenadas    = coords,\n  padronizacao   = \"linha\",\n  n_permutacoes  = 999\n)\nGera automaticamente o Diagrama de Dispersão de Moran com os quatro quadrantes destacados por cores editoriais."
   },
   {
-    "objectID": "modulos/amostragem.html#dimensionamento-amostral",
-    "href": "modulos/amostragem.html#dimensionamento-amostral",
-    "title": "Amostragem Probabilística",
-    "section": "Dimensionamento Amostral",
-    "text": "Dimensionamento Amostral\n\ntamanho_amostra()\nCalcula o n necessário dado erro tolerável (\\(e\\)), nível de confiança e tamanho da população:\n# Proporção (margem de 3%, 95% de confiança)\ntamanho_amostra(tipo = \"proporcao\", erro = 0.03, confianca = 0.95, N = 10000)\n\n# Média contínua\ntamanho_amostra(tipo = \"media\", erro = 2, dp = 15, confianca = 0.95)"
-  },
-  {
-    "objectID": "modulos/amostragem.html#poder-estatístico-e-dimensionamento-de-experimentos",
-    "href": "modulos/amostragem.html#poder-estatístico-e-dimensionamento-de-experimentos",
-    "title": "Amostragem Probabilística",
-    "section": "Poder Estatístico e Dimensionamento de Experimentos",
-    "text": "Poder Estatístico e Dimensionamento de Experimentos\n\npoder_estatistico()\nCalcula o poder do teste (\\(1 - \\beta\\)) ou o tamanho de amostra necessário para Teste T, ANOVA, Correlação e Proporção com curva gráfica de poder:\n# Cálculo de poder para Teste T para duas amostras\npoder_estatistico(teste = \"t\", n = 30, d = 0.5, sig_nivel = 0.05, grafico = TRUE)\n\n# Determinação do tamanho amostral para poder de 80%\npoder_estatistico(teste = \"t\", poder = 0.80, d = 0.5, sig_nivel = 0.05)"
-  },
-  {
-    "objectID": "index.html",
-    "href": "index.html",
-    "title": "estatR",
-    "section": "",
-    "text": "estatR\n    Estatística moderna, didática e de alto padrão para R.\n    120+ funções  ·  14 módulos  ·  Código aberto\n    \n      Sobre o estatR\n      Módulos\n    \n  \n\n\n\n  \n    Módulos Especializados\n    Uma arquitetura modular cobrindo todo o fluxo da análise estatística.\n\n    \n\n      \n        \n        Diagnóstico & Descritiva\n        Inspeção estrutural, detecção de outliers e estatísticas descritivas uni e multivariadas.\n        Ver módulo →\n      \n\n      \n        \n        Testes de Hipótese\n        Testes paramétricos e não-paramétricos com tamanhos de efeito e interpretação automática.\n        Ver módulo →\n      \n\n      \n        \n        Intervalos de Confiança\n        Construção e interpretação de intervalos para médias, proporções e variâncias.\n        Ver módulo →\n      \n\n      \n        \n        Probabilidade & Simulação\n        Distribuições teóricas (Normal, Poisson, Weibull), bootstrap, Monte Carlo e TCL.\n        Ver módulo →\n      \n\n      \n        \n        Transformações de Variáveis\n        Box-Cox com bandas de confiança, Yeo-Johnson, família de potências e seleção automática.\n        Ver módulo →\n      \n\n      \n        \n        Modelos Lineares & Regressão\n        Regressão múltipla com diagnóstico residual rigoroso e extratores em português.\n        Ver módulo →\n      \n\n      \n        \n        Modelos Generalizados (MLG)\n        Logística, Poisson, Binomial Negativa, Gama e Beta com Odds Ratio e IRR.\n        Ver módulo →\n      \n\n      \n        \n        Séries Temporais\n        Decomposição, testes de raiz unitária, previsão e modelos de machine learning.\n        Ver módulo →\n      \n\n      \n        \n        Análise Multivariada\n        PCA, Análise Fatorial, K-means, Dendrogramas, Discriminante Linear e MANOVA.\n        Ver módulo →\n      \n\n      \n        \n        Delineamentos Experimentais\n        DIC, DBC, DQL, fatoriais, parcelas subdivididas e testes de Tukey, Dunnett e Scott-Knott.\n        Ver módulo →\n      \n\n      \n        \n        Controle de Qualidade (CEQ)\n        Cartas de Shewhart (I-MR, Xbar-R, p, c), regras de alarme, índices Cp/Cpk e nível Sigma.\n        Ver módulo →\n      \n\n      \n        \n        Aprendizado de Máquina\n        Classificação, regressão supervisionada, Random Forest e validação cruzada K-fold.\n        Ver módulo →\n      \n\n      \n        \n        Análise de Sobrevivência\n        Curvas de Kaplan-Meier, Nelson-Aalen, testes de Log-Rank e modelos de riscos de Cox.\n        Ver módulo →\n      \n\n      \n        \n        Amostragem Probabilística\n        AAS, estratificada (proporcional/ótima), sistemática e cálculo de poder estatístico.\n        Ver módulo →\n      \n\n    \n  \n\n\n\n  \n    \n      Instalação\n      Disponível diretamente via GitHub. Nenhuma dependência externa obrigatória.\n    \n    \n      # Instalar via devtools\ndevtools::install_github(\"elizeumedeirosest/estatR\")\nlibrary(estatR)"
+    "objectID": "modulos/espacial.html#regressão-espacial-sar-e-sem",
+    "href": "modulos/espacial.html#regressão-espacial-sar-e-sem",
+    "title": "Estatística Espacial",
+    "section": "2. Regressão Espacial (SAR e SEM)",
+    "text": "2. Regressão Espacial (SAR e SEM)\nModelos lineares tradicionais violam o pressuposto de independência quando há dependência espacial. O estatR implementa:\n\nModelo Espacial Autorregressivo — SAR (Spatial Lag): \\[y = \\rho W y + X \\beta + \\epsilon\\] Captura efeitos de transbordamento espacial (spillover).\nModelo com Erro Espacial — SEM (Spatial Error): \\[y = X \\beta + u, \\quad u = \\lambda W u + \\epsilon\\] Corrige variáveis omitidas ou choques não observados correlacionados no espaço.\n\n# Modelo SAR (Spatial Lag)\nmod_sar &lt;- regressao_espacial(\n  renda ~ educacao + saneamento,\n  dados  = dados_municipios,\n  modelo = \"sar\"\n)\n\n# Modelo SEM (Spatial Error)\nmod_sem &lt;- regressao_espacial(\n  renda ~ educacao + saneamento,\n  dados  = dados_municipios,\n  modelo = \"sem\"\n)\n\nAnálise Residual Integrada\n# Diagnóstico residual polimórfico\nanalise_residual(mod_sar)"
   },
   {
     "objectID": "modulos/aprendizado_maquina.html",
@@ -294,32 +273,116 @@
     "text": "Validação Cruzada K-Fold (Cross-Validation)\nAvaliação rigorosa de generalização fora da amostra com métricas fold a fold e resumo estatístico:\n# Validação cruzada estratificada em 5 partições\ncv_res &lt;- validacao_cruzada(\n  formula   = Sepal.Length ~ Sepal.Width + Petal.Length,\n  dados     = iris,\n  k         = 5,\n  tipo      = \"regressao\",\n  algoritmo = \"linear\",\n  grafico   = TRUE\n)\n\n# Visualizar resumo de desempenho\ncv_res$resumo"
   },
   {
-    "objectID": "modulos/experimentos.html",
-    "href": "modulos/experimentos.html",
-    "title": "Planejamento e Análise de Experimentos",
+    "objectID": "index.html",
+    "href": "index.html",
+    "title": "estatR",
     "section": "",
-    "text": "res_dic &lt;- analise_dic(y = dados$produtividade, trat = dados$adubo, teste_medias = \"tukey\")\ngrafico_dic(res_dic)\n\n\n\nres_dbc &lt;- analise_dbc(y = dados$produtividade, trat = dados$adubo, bloco = dados$bloco)\ngrafico_dbc(res_dbc)\n\n\n\nres_dql &lt;- analise_dql(y = dados$prod, trat = dados$trat, linha = dados$lin, coluna = dados$col)\ngrafico_dql(res_dql)"
+    "text": "estatR\n    Estatística moderna, didática e de alto padrão para R.\n    120+ funções  ·  14 módulos  ·  Código aberto\n    \n      Sobre o estatR\n      Módulos\n    \n  \n\n\n\n  \n    Módulos Especializados\n    Uma arquitetura modular cobrindo todo o fluxo da análise estatística.\n\n    \n\n      \n        \n        Diagnóstico & Descritiva\n        Inspeção estrutural, detecção de outliers e estatísticas descritivas uni e multivariadas.\n        Ver módulo →\n      \n\n      \n        \n        Testes de Hipótese\n        Testes paramétricos e não-paramétricos com tamanhos de efeito e interpretação automática.\n        Ver módulo →\n      \n\n      \n        \n        Intervalos de Confiança\n        Construção e interpretação de intervalos para médias, proporções e variâncias.\n        Ver módulo →\n      \n\n      \n        \n        Probabilidade & Simulação\n        Distribuições teóricas (Normal, Poisson, Weibull), bootstrap, Monte Carlo e TCL.\n        Ver módulo →\n      \n\n      \n        \n        Transformações de Variáveis\n        Box-Cox com bandas de confiança, Yeo-Johnson, família de potências e seleção automática.\n        Ver módulo →\n      \n\n      \n        \n        Modelos Lineares & Regressão\n        Regressão múltipla com diagnóstico residual rigoroso e extratores em português.\n        Ver módulo →\n      \n\n      \n        \n        Modelos Generalizados (MLG)\n        Logística, Poisson, Binomial Negativa, Gama e Beta com Odds Ratio e IRR.\n        Ver módulo →\n      \n\n      \n        \n        Séries Temporais\n        Decomposição, testes de raiz unitária, previsão e modelos de machine learning.\n        Ver módulo →\n      \n\n      \n        \n        Análise Multivariada\n        PCA, Análise Fatorial, K-means, Dendrogramas, Discriminante Linear e MANOVA.\n        Ver módulo →\n      \n\n      \n        \n        Delineamentos Experimentais\n        DIC, DBC, DQL, fatoriais, parcelas subdivididas e testes de Tukey, Dunnett e Scott-Knott.\n        Ver módulo →\n      \n\n      \n        \n        Controle de Qualidade (CEQ)\n        Cartas de Shewhart (I-MR, Xbar-R, p, c), regras de alarme, índices Cp/Cpk e nível Sigma.\n        Ver módulo →\n      \n\n      \n        \n        Aprendizado de Máquina\n        Classificação, regressão supervisionada, Random Forest e validação cruzada K-fold.\n        Ver módulo →\n      \n\n      \n        \n        Análise de Sobrevivência\n        Curvas de Kaplan-Meier, Nelson-Aalen, testes de Log-Rank e modelos de riscos de Cox.\n        Ver módulo →\n      \n\n      \n        \n        Amostragem Probabilística\n        AAS, estratificada (proporcional/ótima), sistemática e cálculo de poder estatístico.\n        Ver módulo →\n      \n\n    \n  \n\n\n\n  \n    \n      Instalação\n      Disponível diretamente via GitHub. Nenhuma dependência externa obrigatória.\n    \n    \n      # Instalar via devtools\ndevtools::install_github(\"elizeumedeirosest/estatR\")\nlibrary(estatR)"
   },
   {
-    "objectID": "modulos/experimentos.html#delineamentos-básicos",
-    "href": "modulos/experimentos.html#delineamentos-básicos",
-    "title": "Planejamento e Análise de Experimentos",
+    "objectID": "modulos/amostragem.html",
+    "href": "modulos/amostragem.html",
+    "title": "Amostragem Probabilística",
     "section": "",
-    "text": "res_dic &lt;- analise_dic(y = dados$produtividade, trat = dados$adubo, teste_medias = \"tukey\")\ngrafico_dic(res_dic)\n\n\n\nres_dbc &lt;- analise_dbc(y = dados$produtividade, trat = dados$adubo, bloco = dados$bloco)\ngrafico_dbc(res_dbc)\n\n\n\nres_dql &lt;- analise_dql(y = dados$prod, trat = dados$trat, linha = dados$lin, coluna = dados$col)\ngrafico_dql(res_dql)"
+    "text": "# 50 observações por AAS sem reposição\namostra &lt;- amostra_aleatoria(banco_dados, n = 50, reposicao = FALSE)\n\n\n\nRepresentatividade proporcional ou ótima de subpopulações:\namostra_est &lt;- amostra_estratificada(banco_dados, estrato = \"regiao\", n = 100, alocacao = \"proporcional\")\n\n\n\nSeleção periódica com intervalo fixo (\\(k = N/n\\)):\namostra_sist &lt;- amostra_sistematica(banco_dados, n = 40)\n\n\n\namostra_cong &lt;- amostra_conglomerados(banco_dados, conglomerado = \"escola\", n_conglomerados = 5)"
   },
   {
-    "objectID": "modulos/experimentos.html#esquemas-fatoriais-e-parcelas",
-    "href": "modulos/experimentos.html#esquemas-fatoriais-e-parcelas",
-    "title": "Planejamento e Análise de Experimentos",
-    "section": "Esquemas Fatoriais e Parcelas",
-    "text": "Esquemas Fatoriais e Parcelas\n\nFatorial Duplo e Adicional\n# Fatorial Duplo (Fator A x Fator B)\nres_fat &lt;- analise_fatorial_duplo(y = dados$prod, fator_a = dados$irrigacao, fator_b = dados$adubo)\ngrafico_fatorial(res_fat)\n\n# Fatorial com Testemunha Adicional\nres_fat_ad &lt;- analise_fatorial_adicional(y = dados$prod, fator_a = dados$fA, fator_b = dados$fB, testemunha = dados$test)\n\n\nParcelas Subdivididas (Split-Plot)\nres_split &lt;- analise_parcela_subdividida(y = dados$prod, parcela = dados$p, subparcela = dados$sp, bloco = dados$b)"
+    "objectID": "modulos/amostragem.html#planos-amostrais",
+    "href": "modulos/amostragem.html#planos-amostrais",
+    "title": "Amostragem Probabilística",
+    "section": "",
+    "text": "# 50 observações por AAS sem reposição\namostra &lt;- amostra_aleatoria(banco_dados, n = 50, reposicao = FALSE)\n\n\n\nRepresentatividade proporcional ou ótima de subpopulações:\namostra_est &lt;- amostra_estratificada(banco_dados, estrato = \"regiao\", n = 100, alocacao = \"proporcional\")\n\n\n\nSeleção periódica com intervalo fixo (\\(k = N/n\\)):\namostra_sist &lt;- amostra_sistematica(banco_dados, n = 40)\n\n\n\namostra_cong &lt;- amostra_conglomerados(banco_dados, conglomerado = \"escola\", n_conglomerados = 5)"
   },
   {
-    "objectID": "modulos/experimentos.html#teste-de-dunnett-e-medidas-repetidas",
-    "href": "modulos/experimentos.html#teste-de-dunnett-e-medidas-repetidas",
-    "title": "Planejamento e Análise de Experimentos",
-    "section": "Teste de Dunnett e Medidas Repetidas",
-    "text": "Teste de Dunnett e Medidas Repetidas\n\nTeste de Dunnett (Comparações com o Controle)\nComparações de múltiplos tratamentos contra uma testemunha/controle com controle da taxa de erro da família e gráfico de intervalos:\nres_dunnett &lt;- teste_dunnett(resp ~ trat, dados = df_exp, controle = \"Testemunha\")\ngrafico_dunnett(res_dunnett)\n\n\nAnálise de Medidas Repetidas no Tempo\nANOVA de medidas repetidas intrasujeito com teste de esfericidade de Mauchly e correções de Greenhouse-Geisser e Huynh-Feldt:\nanalise_medidas_repetidas(\n  dados    = dados_tempo,\n  resposta = \"escore\",\n  tempo    = \"periodo\",\n  sujeito  = \"paciente\",\n  grafico  = TRUE\n)"
+    "objectID": "modulos/amostragem.html#dimensionamento-amostral",
+    "href": "modulos/amostragem.html#dimensionamento-amostral",
+    "title": "Amostragem Probabilística",
+    "section": "Dimensionamento Amostral",
+    "text": "Dimensionamento Amostral\n\ntamanho_amostra()\nCalcula o n necessário dado erro tolerável (\\(e\\)), nível de confiança e tamanho da população:\n# Proporção (margem de 3%, 95% de confiança)\ntamanho_amostra(tipo = \"proporcao\", erro = 0.03, confianca = 0.95, N = 10000)\n\n# Média contínua\ntamanho_amostra(tipo = \"media\", erro = 2, dp = 15, confianca = 0.95)"
+  },
+  {
+    "objectID": "modulos/amostragem.html#poder-estatístico-e-dimensionamento-de-experimentos",
+    "href": "modulos/amostragem.html#poder-estatístico-e-dimensionamento-de-experimentos",
+    "title": "Amostragem Probabilística",
+    "section": "Poder Estatístico e Dimensionamento de Experimentos",
+    "text": "Poder Estatístico e Dimensionamento de Experimentos\n\npoder_estatistico()\nCalcula o poder do teste (\\(1 - \\beta\\)) ou o tamanho de amostra necessário para Teste T, ANOVA, Correlação e Proporção com curva gráfica de poder:\n# Cálculo de poder para Teste T para duas amostras\npoder_estatistico(teste = \"t\", n = 30, d = 0.5, sig_nivel = 0.05, grafico = TRUE)\n\n# Determinação do tamanho amostral para poder de 80%\npoder_estatistico(teste = \"t\", poder = 0.80, d = 0.5, sig_nivel = 0.05)"
+  },
+  {
+    "objectID": "modulos/descritiva.html",
+    "href": "modulos/descritiva.html",
+    "title": "Diagnóstico e Estatística Descritiva",
+    "section": "",
+    "text": "Produz um diagnóstico global com número de linhas, colunas, presença de NA e classificação das variáveis.\n# Diagnóstico global de um data frame\ndiagnostico(iris)\n\n# Diagnóstico de uma variável específica\ndiagnostico(iris$Sepal.Length)\n\n\n\nFunções focadas na integridade do banco:\n# Inspeção de tipos e classes de colunas\nestrutura(iris)\n\n# Mapa e contagem de valores ausentes (com gráfico opcional)\nvalores_ausentes(airquality, grafico = TRUE)\n\n\n\nIdentifica valores discrepantes com base no critério de Tukey (\\(1{,}5 \\times IIQ\\)) ou escore Z:\noutliers(mtcars$mpg, metodo = \"iqr\")"
+  },
+  {
+    "objectID": "modulos/descritiva.html#diagnóstico-de-dados",
+    "href": "modulos/descritiva.html#diagnóstico-de-dados",
+    "title": "Diagnóstico e Estatística Descritiva",
+    "section": "",
+    "text": "Produz um diagnóstico global com número de linhas, colunas, presença de NA e classificação das variáveis.\n# Diagnóstico global de um data frame\ndiagnostico(iris)\n\n# Diagnóstico de uma variável específica\ndiagnostico(iris$Sepal.Length)\n\n\n\nFunções focadas na integridade do banco:\n# Inspeção de tipos e classes de colunas\nestrutura(iris)\n\n# Mapa e contagem de valores ausentes (com gráfico opcional)\nvalores_ausentes(airquality, grafico = TRUE)\n\n\n\nIdentifica valores discrepantes com base no critério de Tukey (\\(1{,}5 \\times IIQ\\)) ou escore Z:\noutliers(mtcars$mpg, metodo = \"iqr\")"
+  },
+  {
+    "objectID": "modulos/descritiva.html#estatística-descritiva",
+    "href": "modulos/descritiva.html#estatística-descritiva",
+    "title": "Diagnóstico e Estatística Descritiva",
+    "section": "Estatística Descritiva",
+    "text": "Estatística Descritiva\n\ndescrever()\nFunção polimórfica universal: resume vetores numéricos (média, DP, mediana, IIQ), fatores (frequências), data frames completos ou métricas estratificadas por grupo (por).\n# Numérica simples\ndescrever(mtcars$mpg)\n\n# Categórica simples\ndescrever(mtcars$cyl)\n\n# Estratificada por grupo\ndescrever(iris$Sepal.Length, por = iris$Species)\n\n\ntabela_contingencia()\nCruzamento bivariado com suporte a frequências conjuntas e proporções por linha, coluna ou total:\n# Frequências absolutas\ntabela_contingencia(mtcars, cyl, am)\n\n# Proporções por linha centralizadas\ntabela_contingencia(mtcars, cyl, am, proporcao = \"linha\")"
+  },
+  {
+    "objectID": "modulos/descritiva.html#separatrizes-amostrais",
+    "href": "modulos/descritiva.html#separatrizes-amostrais",
+    "title": "Diagnóstico e Estatística Descritiva",
+    "section": "Separatrizes Amostrais",
+    "text": "Separatrizes Amostrais\nFunções dedicadas para cálculo intuitivo de pontos de corte e medidas de posição:\n# Quartis (Q1, Q2, Q3) e IIQ\nquartis(mtcars$mpg)\n\n# Quintis (20%, 40%, 60%, 80%)\nquintis(mtcars$mpg)\n\n# Decis (D1 a D9)\ndecis(mtcars$mpg)\n\n# Percentis específicos\npercentis(mtcars$mpg, p = c(0.01, 0.05, 0.95, 0.99))"
+  },
+  {
+    "objectID": "modulos/descritiva.html#medidas-específicas",
+    "href": "modulos/descritiva.html#medidas-específicas",
+    "title": "Diagnóstico e Estatística Descritiva",
+    "section": "Medidas Específicas",
+    "text": "Medidas Específicas\nQuando você precisa apenas de um bloco específico de estatísticas:\n# Tendência Central: média, mediana e moda\nmed_tend_central(mtcars$mpg)\n\n# Dispersão: variância, desvio padrão, erro padrão, CV (%) e amplitude\nmed_dispersao(mtcars$mpg)\n\n# Forma: assimetria (skewness) e curtose teóricas\nmed_forma(mtcars$mpg)"
+  },
+  {
+    "objectID": "modulos/estocastico.html",
+    "href": "modulos/estocastico.html",
+    "title": "Processos Estocásticos",
+    "section": "",
+    "text": "O módulo de Processos Estocásticos do estatR permite analisar a dinâmica temporal probabilística de sistemas estocásticos com rigor matemático e visualização elegante."
+  },
+  {
+    "objectID": "modulos/estocastico.html#cadeias-de-markov-dtmc",
+    "href": "modulos/estocastico.html#cadeias-de-markov-dtmc",
+    "title": "Processos Estocásticos",
+    "section": "1. Cadeias de Markov (DTMC)",
+    "text": "1. Cadeias de Markov (DTMC)\nA função cadeia_markov() avalia matrizes de transição estocásticas, calcula a distribuição estacionária \\(\\pi\\) de longo prazo (\\(\\pi P = \\pi\\)) e simula trajetórias:\nlibrary(estatR)\n\n# Matriz de transição 3x3\nP &lt;- matrix(c(\n  0.7, 0.2, 0.1,\n  0.3, 0.4, 0.3,\n  0.2, 0.3, 0.5\n), nrow = 3, byrow = TRUE)\n\n# Análise teórica e projeção temporal\ncm &lt;- cadeia_markov(\n  matriz_transicao = P,\n  estados          = c(\"Ensolarado\", \"Nublado\", \"Chuvoso\"),\n  estado_inicial   = \"Ensolarado\",\n  passos           = 10\n)\nGera o gráfico de curvas de evolução temporal de probabilidade convergindo para a distribuição de equilíbrio estável."
+  },
+  {
+    "objectID": "modulos/estocastico.html#passeio-aleatório-random-walk-1d",
+    "href": "modulos/estocastico.html#passeio-aleatório-random-walk-1d",
+    "title": "Processos Estocásticos",
+    "section": "2. Passeio Aleatório (Random Walk 1D)",
+    "text": "2. Passeio Aleatório (Random Walk 1D)\nSimulação de processos de difusão discretos com barreiras de absorção ou ruína:\n# Simulação simétrica (p = 0.5) com 5 trajetórias\npa &lt;- passeio_aleatorio(\n  n_passos      = 100,\n  p_sucesso     = 0.5,\n  n_trajetorias = 5,\n  barreira_superior = 25,\n  barreira_inferior = -25\n)"
+  },
+  {
+    "objectID": "modulos/imputacao.html",
+    "href": "modulos/imputacao.html",
+    "title": "Imputação e Validação de Dados",
+    "section": "",
+    "text": "O módulo de Imputação e Validação de Dados do estatR reúne ferramentas essenciais de engenharia e saneamento de variáveis para preparação prévia de dados analíticos."
+  },
+  {
+    "objectID": "modulos/imputacao.html#imputação-de-dados-imputar",
+    "href": "modulos/imputacao.html#imputação-de-dados-imputar",
+    "title": "Imputação e Validação de Dados",
+    "section": "1. Imputação de Dados (imputar())",
+    "text": "1. Imputação de Dados (imputar())\nOferece 17 estratégias completas de imputação estatística para substituir valores ausentes (NA) com relatório comparativo de diagnóstico:\n\nMedidas Centrais Gerais: media, mediana, moda, min, max\nMedidas Centrais Agrupadas: media_grupo, mediana_grupo, moda_grupo, min_grupo, max_grupo\nSéries Temporais: locf (Last Observation Carried Forward), nocb (Next Observation Carried Backward), interpolacao_linear, interpolacao_spline\nModelagem e Machine Learning: regressao (linear multivariada), knn (k-vizinhos mais próximos normalizado), mice (imputação múltipla)\n\nlibrary(estatR)\n\n# Imputação por média de grupo\ndados_limpos &lt;- imputar(dados, metodo = \"media_grupo\", grupo = \"regiao\")\n\n# Imputação k-NN multivariada\ndados_knn &lt;- imputar(dados, metodo = \"knn\", k = 5)"
+  },
+  {
+    "objectID": "modulos/imputacao.html#validação-e-integridade-de-dados-validar_dados",
+    "href": "modulos/imputacao.html#validação-e-integridade-de-dados-validar_dados",
+    "title": "Imputação e Validação de Dados",
+    "section": "2. Validação e Integridade de Dados (validar_dados())",
+    "text": "2. Validação e Integridade de Dados (validar_dados())\nPermite expressar regras de integridade de forma limpa usando a sintaxe de fórmula (variavel ~ regra):\nresultado &lt;- validar_dados(dados,\n  idade   ~ entre(0, 120),\n  cpf     ~ sem_nulos(),\n  grupo   ~ niveis_permitidos(c(\"Controle\", \"Tratamento_A\", \"Tratamento_B\")),\n  salario ~ maior_que(0),\n  email   ~ padrao(\"^.+@.+\\\\..+$\")\n)\nExibe a tabela formatada no console com o número de violações por variável e a lista das linhas afetadas."
   },
   {
     "objectID": "modulos/intervalos.html",

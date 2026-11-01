@@ -1,0 +1,50 @@
+---
+title: "Processos Estocásticos"
+subtitle: "Cadeias de Markov em Tempo Discreto e Passeio Aleatório (Random Walk)"
+---
+
+O módulo de **Processos Estocásticos** do `estatR` permite analisar a dinâmica temporal probabilística de sistemas estocásticos com rigor matemático e visualização elegante.
+
+---
+
+## 1. Cadeias de Markov (DTMC)
+
+A função `cadeia_markov()` avalia matrizes de transição estocásticas, calcula a distribuição estacionária $\pi$ de longo prazo ($\pi P = \pi$) e simula trajetórias:
+
+```r
+library(estatR)
+
+# Matriz de transição 3x3
+P <- matrix(c(
+  0.7, 0.2, 0.1,
+  0.3, 0.4, 0.3,
+  0.2, 0.3, 0.5
+), nrow = 3, byrow = TRUE)
+
+# Análise teórica e projeção temporal
+cm <- cadeia_markov(
+  matriz_transicao = P,
+  estados          = c("Ensolarado", "Nublado", "Chuvoso"),
+  estado_inicial   = "Ensolarado",
+  passos           = 10
+)
+```
+
+Gera o gráfico de curvas de evolução temporal de probabilidade convergindo para a distribuição de equilíbrio estável.
+
+---
+
+## 2. Passeio Aleatório (Random Walk 1D)
+
+Simulação de processos de difusão discretos com barreiras de absorção ou ruína:
+
+```r
+# Simulação simétrica (p = 0.5) com 5 trajetórias
+pa <- passeio_aleatorio(
+  n_passos      = 100,
+  p_sucesso     = 0.5,
+  n_trajetorias = 5,
+  barreira_superior = 25,
+  barreira_inferior = -25
+)
+```

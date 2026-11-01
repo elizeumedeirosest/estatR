@@ -1,4 +1,4 @@
-﻿project:
+project:
   type: website
   output-dir: docs
 
@@ -47,6 +47,12 @@ website:
             href: modulos/sobrevivencia.qmd
           - text: "Amostragem Probabilística"
             href: modulos/amostragem.qmd
+          - text: "Imputação e Validação"
+            href: modulos/imputacao.qmd
+          - text: "Estatística Espacial"
+            href: modulos/espacial.qmd
+          - text: "Processos Estocásticos"
+            href: modulos/estocastico.qmd
     right:
       - icon: github
         href: "https://github.com/elizeumedeirosest/estatR"

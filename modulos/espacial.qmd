@@ -1,0 +1,69 @@
+---
+title: "Estatística Espacial"
+subtitle: "Autocorrelação Espacial (Moran Global e LISA) e Modelos de Regressão Espacial"
+---
+
+O módulo de **Estatística Espacial** do `estatR` oferece ferramentas completas para diagnóstico de dependência geográfica, mapeamento de clusters espaciais e ajuste de modelos de regressão espacial.
+
+---
+
+## 1. Autocorrelação Espacial Global e Local (Moran e LISA)
+
+A função `analise_autocorrelacao()` calcula o Índice de Moran Global com teste pseudo-p via permutações Monte Carlo e classifica cada observação nos quadrantes locais de Moran (LISA):
+
+* **Alto-Alto (Q1)**: Hotspots ou aglomerados de altos valores.
+* **Baixo-Baixo (Q2)**: Coldspots ou aglomerados de baixos valores.
+* **Alto-Baixo (Q3)**: Outliers espaciais com valores altos cercados por vizinhos baixos.
+* **Baixo-Alto (Q4)**: Outliers espaciais com valores baixos cercados por vizinhos altos.
+
+```r
+library(estatR)
+
+# Análise de autocorrelação com coordenadas geográficas
+res_moran <- analise_autocorrelacao(
+  dados          = dados_municipios,
+  variavel       = pib_per_capita,
+  coordenadas    = coords,
+  padronizacao   = "linha",
+  n_permutacoes  = 999
+)
+```
+
+Gera automaticamente o **Diagrama de Dispersão de Moran** com os quatro quadrantes destacados por cores editoriais.
+
+---
+
+## 2. Regressão Espacial (SAR e SEM)
+
+Modelos lineares tradicionais violam o pressuposto de independência quando há dependência espacial. O `estatR` implementa:
+
+1. **Modelo Espacial Autorregressivo — SAR (Spatial Lag)**:
+   $$y = \rho W y + X \beta + \epsilon$$
+   Captura efeitos de transbordamento espacial (*spillover*).
+
+2. **Modelo com Erro Espacial — SEM (Spatial Error)**:
+   $$y = X \beta + u, \quad u = \lambda W u + \epsilon$$
+   Corrige variáveis omitidas ou choques não observados correlacionados no espaço.
+
+```r
+# Modelo SAR (Spatial Lag)
+mod_sar <- regressao_espacial(
+  renda ~ educacao + saneamento,
+  dados  = dados_municipios,
+  modelo = "sar"
+)
+
+# Modelo SEM (Spatial Error)
+mod_sem <- regressao_espacial(
+  renda ~ educacao + saneamento,
+  dados  = dados_municipios,
+  modelo = "sem"
+)
+```
+
+### Análise Residual Integrada
+
+```r
+# Diagnóstico residual polimórfico
+analise_residual(mod_sar)
+```

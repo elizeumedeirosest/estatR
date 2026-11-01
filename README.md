@@ -1,4 +1,4 @@
-﻿<div align="center">
+<div align="center">
 
 <p align="center">
   <img src="man/figures/estatR_title.svg" alt="estatR" width="340" />
@@ -9,8 +9,8 @@
 [![Documentação Oficial](https://img.shields.io/badge/docs-oficial-0071e3?style=for-the-badge&logo=google-chrome&logoColor=white)](https://elizeumedeirosest.github.io/estatR) 
 [![Licença MIT](https://img.shields.io/badge/licença-MIT-10b981?style=for-the-badge)](LICENSE) 
 [![R >= 4.0](https://img.shields.io/badge/R-%3E%3D_4.0-38bdf8?style=for-the-badge&logo=R&logoColor=white)](https://cran.r-project.org/) 
-[![Módulos](https://img.shields.io/badge/módulos-14-0284c7?style=for-the-badge)](https://elizeumedeirosest.github.io/estatR/index.html) 
-[![Funções](https://img.shields.io/badge/funções-120+-818cf8?style=for-the-badge)](https://elizeumedeirosest.github.io/estatR#modulos)
+[![Módulos](https://img.shields.io/badge/módulos-16+-0284c7?style=for-the-badge)](https://elizeumedeirosest.github.io/estatR/index.html) 
+[![Funções](https://img.shields.io/badge/funções-135+-818cf8?style=for-the-badge)](https://elizeumedeirosest.github.io/estatR#modulos)
 
 <p align="center">
   <b>Uma camada estatística moderna, didática e unificada para o ecossistema R.</b><br>
@@ -367,6 +367,16 @@ dividir_dados(mtcars, proporcao = 0.8, estrato = cyl, semente = 42)
 dividir_dados(dados_serie, proporcao = 0.8, temporal = TRUE)
 ```
 
+
+**Comparação e Ranqueamento Geral de Modelos**
+
+```r
+# Ranqueamento automático por AICc, BIC, Delta-AICc e Pesos de Akaike (wi)
+m1 <- lm(mpg ~ wt, data = mtcars)
+m2 <- lm(mpg ~ wt + hp, data = mtcars)
+m3 <- lm(mpg ~ wt + hp + qsec, data = mtcars)
+comparar_modelos(m1, m2, m3, criterio = "aicc")
+```
 </details>
 
 ---
@@ -628,6 +638,20 @@ modelo_fat_ad$dunnett      # Teste de Dunnett comparando cada combinação diret
 analise_residual(modelo_fat_ad)
 ```
 
+
+**Croqui e Casualização Experimental**
+
+```r
+# Planejamento de campo para DIC com visualização gráfica limpa (meu_tema estilo 3)
+croqui_experimental(tratamentos = c("Controle", "Adubo A", "Adubo B"), repeticoes = 4, delineamento = "dic")
+
+# Planejamento para DBC e DQL (Quadrado Latino)
+croqui_experimental(tratamentos = 5, repeticoes = 3, delineamento = "dbc")
+croqui_experimental(tratamentos = c("A", "B", "C", "D"), delineamento = "dql")
+
+# Experimento Fatorial (ex: 2x3 em blocos)
+croqui_experimental(fatorial = c(2, 3), repeticoes = 3, delineamento = "dbc")
+```
 </details>
 
 ---
@@ -976,6 +1000,95 @@ validacao_cruzada(mpg ~ wt + hp + qsec, dados = mtcars, k = 5, tipo = "regressao
 </details>
 
 ---
+---
+
+<details>
+<summary><strong> Imputação e Validação de Dados</strong></summary>
+<br>
+
+**Imputação Estatística com 17 Métodos**
+
+```r
+# Imputação pela média, mediana, moda (geral ou agrupada)
+imputar(dados, metodo = "media")
+imputar(dados, metodo = "mediana_grupo", grupo = "regiao")
+
+# Imputação temporal (LOCF, NOCB, interpolação linear e spline)
+imputar(dados_ts, metodo = "locf")
+
+# Imputação avançada (Regressão multivariada, k-NN e MICE)
+imputar(dados, metodo = "knn", k = 5)
+```
+
+**Validação e Integridade de Dados por Fórmula**
+
+```r
+# Verificação de regras lógicas e diagnóstico de linhas violadas
+validar_dados(dados,
+  idade ~ entre(0, 120),
+  cpf   ~ sem_nulos(),
+  grupo ~ niveis_permitidos(c("A", "B", "C")),
+  email ~ padrao("^.+@.+\\..+$")
+)
+```
+
+</details>
+
+---
+
+<details>
+<summary><strong> Estatística Espacial</strong></summary>
+<br>
+
+**Autocorrelação Espacial (Moran Global e LISA)**
+
+```r
+# Índice de Moran Global e Diagrama de Dispersão com quadrantes Alto-Alto, Baixo-Baixo
+analise_autocorrelacao(dados_geo, variavel = renda, coordenadas = coords, padronizacao = "linha")
+```
+
+**Modelos de Regressão Espacial (SAR e SEM)**
+
+```r
+# Modelo Autorregressivo Espacial (SAR / Spatial Lag)
+mod_sar <- regressao_espacial(renda ~ educacao + saneamento, dados = dados_geo, modelo = "sar")
+
+# Modelo com Erro Espacial (SEM / Spatial Error)
+mod_sem <- regressao_espacial(renda ~ educacao + saneamento, dados = dados_geo, modelo = "sem")
+
+# Diagnóstico residual polimórfico espacial
+analise_residual(mod_sar)
+```
+
+</details>
+
+---
+
+<details>
+<summary><strong> Processos Estocásticos</strong></summary>
+<br>
+
+**Cadeias de Markov em Tempo Discreto (DTMC)**
+
+```r
+# Matriz de transição, distribuição estacionária de longo prazo (pi) e simulação
+P <- matrix(c(0.7, 0.2, 0.1,
+              0.3, 0.4, 0.3,
+              0.2, 0.3, 0.5), nrow = 3, byrow = TRUE)
+cadeia_markov(P, estados = c("Sol", "Nublado", "Chuva"), estado_inicial = "Sol", passos = 10)
+```
+
+**Passeio Aleatório (Random Walk)**
+
+```r
+# Simulação de trajetórias 1D com barreiras de absorção
+passeio_aleatorio(n_passos = 100, p_sucesso = 0.5, n_trajetorias = 5)
+```
+
+</details>
+
+---
+
 
 ## Autor
 
