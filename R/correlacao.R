@@ -1,4 +1,4 @@
-﻿#' @title Teste de Correlação (Bivariada)
+#' @title Teste de Correlação (Bivariada)
 #' @description Realiza o teste de correlação entre duas variáveis.
 #' @param dados Data frame
 #' @param var1 Variável 1 (sem aspas)

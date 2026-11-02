@@ -1,4 +1,4 @@
-﻿#' @title Regressao Beta
+#' @title Regressao Beta
 #' @description Ajusta um modelo de regressao Beta para variaveis respostas
 #' que sao proporcoes ou taxas estritamente no intervalo (0, 1).
 #' Apresenta estatisticas de ajuste, parametro de precisao (phi), coeficientes,

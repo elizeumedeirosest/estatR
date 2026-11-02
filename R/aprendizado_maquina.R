@@ -351,7 +351,7 @@ previsao_aprend_maq <- function(formula,
     df_imp_print <- data.frame(
       "Vari\u00e1vel" = importancia_df$Variavel,
       "Import\u00e2ncia" = sapply(importancia_df$Importancia, .am_fmt_num, decimais = 2),
-      "Contribui\u00e7\u00e3o (%)" = sapply(importancia_df$Percentual / 100, .am_fmt_pct, decimais = 1),
+      "Contribui\u00e7\u00e3o (%)" = sapply(importancia_df$Percentual, .am_fmt_num, decimais = 1),
       stringsAsFactors = FALSE, check.names = FALSE
     )
     .print_tabela_estatR(df_imp_print, align = c("left", "center", "center"))
@@ -772,7 +772,7 @@ classificacao_aprend_maq <- function(formula,
     df_imp_print <- data.frame(
       "Vari\u00e1vel" = importancia_df$Variavel,
       "Import\u00e2ncia" = sapply(importancia_df$Importancia, .am_fmt_num, decimais = 2),
-      "Contribui\u00e7\u00e3o (%)" = sapply(importancia_df$Percentual / 100, .am_fmt_pct, decimais = 1),
+      "Contribui\u00e7\u00e3o (%)" = sapply(importancia_df$Percentual, .am_fmt_num, decimais = 1),
       stringsAsFactors = FALSE, check.names = FALSE
     )
     .print_tabela_estatR(df_imp_print, align = c("left", "center", "center"))

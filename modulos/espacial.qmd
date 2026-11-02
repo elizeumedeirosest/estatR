@@ -1,69 +1,160 @@
 ---
 title: "Estatística Espacial"
-subtitle: "Autocorrelação Espacial (Moran Global e LISA) e Modelos de Regressão Espacial"
+subtitle: "Vizinhança, Autocorrelação (Moran/LISA), Testes LM de Anselin, Regressão Espacial e Impactos de Spillover"
 ---
 
-O módulo de **Estatística Espacial** do `estatR` oferece ferramentas completas para diagnóstico de dependência geográfica, mapeamento de clusters espaciais e ajuste de modelos de regressão espacial.
+O módulo de **Estatística Espacial** do `estatR` oferece um ecossistema integrado para a análise de dados com dependência geográfica (dados de área e redes espaciais), cobrindo desde a construção e seleção automática de matrizes de vizinhança até diagnósticos confirmatórios e modelos de regressão espacial autorregressivos.
 
 ---
 
-## 1. Autocorrelação Espacial Global e Local (Moran e LISA)
+## 1. Matrizes de Vizinhança e Pesos Espaciais
 
-A função `analise_autocorrelacao()` calcula o Índice de Moran Global com teste pseudo-p via permutações Monte Carlo e classifica cada observação nos quadrantes locais de Moran (LISA):
+A função `matriz_vizinhanca()` constrói matrizes espaciais padronizadas para polígonos ou coordenadas pontuais:
 
-* **Alto-Alto (Q1)**: Hotspots ou aglomerados de altos valores.
-* **Baixo-Baixo (Q2)**: Coldspots ou aglomerados de baixos valores.
-* **Alto-Baixo (Q3)**: Outliers espaciais com valores altos cercados por vizinhos baixos.
-* **Baixo-Alto (Q4)**: Outliers espaciais com valores baixos cercados por vizinhos altos.
+* **Contiguidade Geográfica** (polígonos `sf`): `"rainha"` (vértices e arestas) e `"torre"` (apenas arestas compartilhadas).
+* **Proximidade Métria / KNN**: `"knn"` ($k$ vizinhos mais próximos) e `"distancia_inversa"` ($1 / d_{ij}^\alpha$).
+* **Seleção Automática**: `tipo = "auto"` seleciona o melhor critério de vizinhança para o conjunto de dados.
 
 ```r
 library(estatR)
 
-# Análise de autocorrelação com coordenadas geográficas
+# Matriz por k vizinhos mais próximos padronizada por linha
+W <- matriz_vizinhanca(
+  dados        = dados_municipios,
+  tipo         = "knn",
+  k            = 5,
+  coordenadas  = c("longitude", "latitude"),
+  padronizacao = "linha"
+)
+```
+
+---
+
+## 2. Autocorrelação Espacial Global e Local (Moran e LISA)
+
+A função `analise_autocorrelacao()` calcula o **Índice I de Moran Global** com teste de significância por permutações Monte Carlo e classifica as observações nos quadrantes locais de Moran (**LISA**):
+
+* **Alto-Alto (Q1)**: *Hotspots* — regiões com valores elevados rodeadas por vizinhos com valores elevados.
+* **Baixo-Baixo (Q2)**: *Coldspots* — regiões com valores baixos rodeadas por vizinhos baixos.
+* **Alto-Baixo (Q3)**: Outliers espaciais — regiões com valores altos cercadas por vizinhos baixos.
+* **Baixo-Alto (Q4)**: Outliers espaciais — regiões com valores baixos cercadas por vizinhos altos.
+
+```r
+# Autocorrelação espacial e clusterização LISA
 res_moran <- analise_autocorrelacao(
   dados          = dados_municipios,
   variavel       = pib_per_capita,
-  coordenadas    = coords,
-  padronizacao   = "linha",
+  coordenadas    = c("longitude", "latitude"),
   n_permutacoes  = 999
 )
 ```
 
-Gera automaticamente o **Diagrama de Dispersão de Moran** com os quatro quadrantes destacados por cores editoriais.
+Gera no console a tabela editorial completa e o **Diagrama de Dispersão de Moran** com os quatro quadrantes destacados por cores analíticas.
 
 ---
 
-## 2. Regressão Espacial (SAR e SEM)
+## 3. Diagnóstico Metodológico: Testes LM de Anselin
 
-Modelos lineares tradicionais violam o pressuposto de independência quando há dependência espacial. O `estatR` implementa:
+Antes de estimar uma regressão espacial, a função `teste_mult_lagrange_espacial()` (ou `teste_multiplicadores_lagrange_espacial()`) aplica os quatro testes canônicos do Multiplicador de Lagrange de Anselin (1988) sobre os resíduos do modelo linear clássico (OLS/MQO):
 
-1. **Modelo Espacial Autorregressivo — SAR (Spatial Lag)**:
-   $$y = \rho W y + X \beta + \epsilon$$
-   Captura efeitos de transbordamento espacial (*spillover*).
-
-2. **Modelo com Erro Espacial — SEM (Spatial Error)**:
-   $$y = X \beta + u, \quad u = \lambda W u + \epsilon$$
-   Corrige variáveis omitidas ou choques não observados correlacionados no espaço.
+1. **LM - Defasagem Espacial (Lag)**: Testa dependência na variável resposta ($\rho$).
+2. **LM - Erro Espacial (Error)**: Testa dependência nos distúrbios ($\lambda$).
+3. **LM Robusto - Defasagem**: Robusto à eventual presença de erro espacial.
+4. **LM Robusto - Erro**: Robusto à eventual presença de defasagem espacial.
 
 ```r
-# Modelo SAR (Spatial Lag)
-mod_sar <- regressao_espacial(
-  renda ~ educacao + saneamento,
-  dados  = dados_municipios,
-  modelo = "sar"
-)
-
-# Modelo SEM (Spatial Error)
-mod_sem <- regressao_espacial(
-  renda ~ educacao + saneamento,
-  dados  = dados_municipios,
-  modelo = "sem"
+# Diagnóstico e recomendação automática do modelo
+teste_mult_lagrange_espacial(
+  pib_per_capita ~ educacao + saneamento,
+  dados        = dados_municipios,
+  matriz_pesos = W
 )
 ```
 
-### Análise Residual Integrada
+A saída emite uma recomendação conclusiva padronizada no console com `[✓]`, apontando se o pesquisador deve adotar o modelo clássico (OLS), SAR ou SEM.
+
+---
+
+## 4. Modelos de Regressão Espacial
+
+Quando a dependência espacial é confirmada, o modelo clássico por MQO torna-se enviesado ou ineficiente. A função `regressao_espacial()` estima os principais modelos econométricos espaciais por Máxima Verossimilhança:
+
+### A. Modelo de Defasagem Espacial — SAR (`modelo = "defasagem"`)
+$$y = \rho W y + X \beta + \epsilon$$
+Captura processos de difusão, contágio e dependência direta entre as respostas das regiões vizinhas.
+
+### B. Modelo com Erro Espacial — SEM (`modelo = "erro"`)
+$$y = X \beta + u, \quad u = \lambda W u + \epsilon$$
+Corrige a autocorrelação nos resíduos decorrente de variáveis omitidas espacialmente estruturadas ou choques não observados.
+
+### C. Modelo de Durbin Espacial — MDE / SDM (`modelo = "durbin"`)
+$$y = \rho W y + X \beta + W X \gamma + \epsilon$$
+Inclui simultaneamente a defasagem espacial da variável dependente e os termos defasados das variáveis explicativas ($W X$).
 
 ```r
-# Diagnóstico residual polimórfico
-analise_residual(mod_sar)
+# Ajuste do Modelo de Defasagem Espacial (SAR)
+mod_sar <- regressao_espacial(
+  pib_per_capita ~ educacao + saneamento,
+  dados        = dados_municipios,
+  modelo       = "defasagem",
+  matriz_pesos = W
+)
+
+# Ajuste do Modelo de Durbin Espacial com busca automática de k vizinhos
+mod_sdm <- regressao_espacial(
+  pib_per_capita ~ educacao + saneamento,
+  dados       = dados_municipios,
+  modelo      = "durbin",
+  k_vizinhos  = "auto"
+)
+```
+
+---
+
+## 5. Decomposição de Impactos Espaciais (LeSage & Pace)
+
+Em modelos com defasagem espacial (SAR e Durbin), os coeficientes $\beta$ não representam efeitos marginais diretos devido aos ciclos de retroalimentação espacial (*feedback loops*).
+
+A função `impactos_espaciais()` decompõe a influência de cada regressor em três componentes fundamentais:
+
+* **Impacto Direto**: Efeito médio que uma alteração na variável explicativa de uma região exerce sobre ela mesma.
+* **Impacto Indireto (*Spillover*)**: Efeito médio de transbordamento gerado sobre todas as regiões vizinhas.
+* **Impacto Total**: Efeito consolidado no sistema geográfico (Direto + Indireto).
+
+```r
+# Decomposição de transbordamento (Spillover)
+impactos_espaciais(mod_sdm)
+```
+
+---
+
+## 6. Diagnóstico e Avaliação Polimórfica
+
+O módulo de Estatística Espacial está plenamente integrado aos métodos unificados do `estatR`:
+
+### Análise Residual
+Avalia a normalidade (Shapiro-Wilk) e testa a persistência de dependência espacial residual através do $I$ de Moran:
+
+```r
+analise_residual(mod_sar, grafico = TRUE)
+```
+
+### Métricas de Ajuste
+Exibe Pseudo-$R^2$, RMSE, MAE, AIC, BIC, Log-Likelihood e autocorrelação residual:
+
+```r
+metricas(mod_sar)
+```
+
+### Comparação e Ranqueamento de Modelos
+Permite comparar diretamente modelos OLS, SAR, SEM e MDE em uma única tabela com AICc, BIC e Pesos de Akaike:
+
+```r
+comparar_modelos(
+  OLS = mod_ols,
+  SAR = mod_sar,
+  SEM = mod_sem,
+  SDM = mod_sdm,
+  criterio = "aicc"
+)
 ```

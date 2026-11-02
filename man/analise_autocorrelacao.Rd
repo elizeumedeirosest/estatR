@@ -9,7 +9,7 @@ analise_autocorrelacao(
   variavel,
   coordenadas = NULL,
   matriz_pesos = NULL,
-  k_vizinhos = 5,
+  k_vizinhos = "auto",
   n_permutacoes = 999,
   padronizacao = c("linha", "binaria", "global", "nenhuma"),
   grafico = TRUE
@@ -20,17 +20,15 @@ analise_autocorrelacao(
 
 \item{variavel}{Nome da variável numérica a analisar (símbolo ou string).}
 
-\item{coordenadas}{Matriz ou data frame com coordenadas espaciais (X e Y, ou Long e Lat).
-Se omitido, tenta detectar colunas com nomes como \code{x, y, long, lat}.}
+\item{coordenadas}{Matriz ou data frame com coordenadas espaciais (X e Y, ou Long e Lat).}
 
-\item{matriz_pesos}{Matriz de vizinhança espacial \eqn{W} opcional (quadrada \eqn{n \times n}).}
+\item{matriz_pesos}{Matriz de vizinhança espacial \eqn{W} opcional.}
 
-\item{k_vizinhos}{Número de vizinhos mais próximos para construir a matriz caso \code{matriz_pesos} não seja informada.}
+\item{k_vizinhos}{Número de vizinhos mais próximos ou \code{"auto"} para seleção ótima.}
 
 \item{n_permutacoes}{Número de permutações Monte Carlo para o pseudo-p-valor (padrão: 999).}
 
-\item{padronizacao}{Método de padronização da matriz de pesos: \code{"linha"} (padrão),
-\code{"binaria"}, \code{"global"} ou \code{"nenhuma"}.}
+\item{padronizacao}{Método de padronização da matriz de pesos (padrão: \code{"linha"}).}
 
 \item{grafico}{Lógico. Se TRUE (padrão), gera o Diagrama de Dispersão de Moran.}
 }
@@ -38,7 +36,7 @@ Se omitido, tenta detectar colunas com nomes como \code{x, y, long, lat}.}
 Objeto invisível da classe \code{estatR_autocorrelacao_espacial}.
 }
 \description{
-Calcula o Índice de Moran Global e o Índice de Moran Local (LISA)
-para identificar dependência espacial e padrões de agrupamento (clusters Alto-Alto,
+Calcula o Índice de Moran Global e os Indicadores Locais de Associação
+Espacial (LISA) para identificar padrões de dependência e agrupamentos (Alto-Alto,
 Baixo-Baixo e outliers espaciais).
 }

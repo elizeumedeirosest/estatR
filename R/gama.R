@@ -1,4 +1,4 @@
-﻿#' @title Regressao Gama
+#' @title Regressao Gama
 #' @description Ajusta um modelo de regressao Gama para variaveis
 #' contínuas e estritamente positivas, geralmente com forte assimetria à direita.
 #' Apresenta estatisticas de ajuste, parametro de forma, coeficientes (como multiplicadores da média)

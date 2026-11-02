@@ -240,6 +240,30 @@ comparar_modelos <- function(..., criterio = c("aicc", "aic", "bic", "rmse", "r2
   linhas_info <- list()
   for (i in seq_along(modelos)) {
     m <- modelos[[i]]
+    if (inherits(m, "estatR_regressao_espacial")) {
+      ll   <- m$loglik
+      aic  <- m$aic
+      bic  <- m$bic
+      res  <- m$residuos
+      k_p  <- if (!is.null(m$parametros$estimativa)) length(m$parametros$estimativa) else 2L
+      n_obs <- if (!is.null(res)) length(res) else 100L
+      aicc <- if (!is.na(aic) && !is.na(k_p) && (n_obs - k_p - 1L) > 0) {
+        aic + (2 * k_p * (k_p + 1L)) / (n_obs - k_p - 1L)
+      } else aic
+      rmse <- if (!is.null(res)) sqrt(mean(res^2, na.rm = TRUE)) else NA_real_
+      r2   <- if (!is.null(m$r2_pseudo)) m$r2_pseudo else NA_real_
+      linhas_info[[i]] <- list(
+        Modelo = nomes_modelos[i],
+        k      = as.integer(k_p),
+        LogLik = ll,
+        AIC    = aic,
+        AICc   = aicc,
+        BIC    = bic,
+        RMSE   = rmse,
+        R2     = r2
+      )
+      next
+    }
     # Caso venha de estatR com $modelo embutido
     if (is.list(m) && !is.null(m$modelo)) m_core <- m$modelo else m_core <- m
 

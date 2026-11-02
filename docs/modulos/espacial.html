@@ -236,7 +236,7 @@ window.Quarto = {
 <header id="title-block-header" class="quarto-title-block default">
 <div class="quarto-title">
 <h1 class="title">Estatística Espacial</h1>
-<p class="subtitle lead">Autocorrelação Espacial (Moran Global e LISA) e Modelos de Regressão Espacial</p>
+<p class="subtitle lead">Vizinhança, Autocorrelação (Moran/LISA), Testes LM de Anselin, Regressão Espacial e Impactos de Spillover</p>
 </div>
 
 
@@ -253,54 +253,133 @@ window.Quarto = {
 </header>
 
 
-<p>O módulo de <strong>Estatística Espacial</strong> do <code>estatR</code> oferece ferramentas completas para diagnóstico de dependência geográfica, mapeamento de clusters espaciais e ajuste de modelos de regressão espacial.</p>
+<p>O módulo de <strong>Estatística Espacial</strong> do <code>estatR</code> oferece um ecossistema integrado para a análise de dados com dependência geográfica (dados de área e redes espaciais), cobrindo desde a construção e seleção automática de matrizes de vizinhança até diagnósticos confirmatórios e modelos de regressão espacial autorregressivos.</p>
 <hr>
-<section id="autocorrelação-espacial-global-e-local-moran-e-lisa" class="level2">
-<h2 class="anchored" data-anchor-id="autocorrelação-espacial-global-e-local-moran-e-lisa">1. Autocorrelação Espacial Global e Local (Moran e LISA)</h2>
-<p>A função <code>analise_autocorrelacao()</code> calcula o Índice de Moran Global com teste pseudo-p via permutações Monte Carlo e classifica cada observação nos quadrantes locais de Moran (LISA):</p>
+<section id="matrizes-de-vizinhança-e-pesos-espaciais" class="level2">
+<h2 class="anchored" data-anchor-id="matrizes-de-vizinhança-e-pesos-espaciais">1. Matrizes de Vizinhança e Pesos Espaciais</h2>
+<p>A função <code>matriz_vizinhanca()</code> constrói matrizes espaciais padronizadas para polígonos ou coordenadas pontuais:</p>
 <ul>
-<li><strong>Alto-Alto (Q1)</strong>: Hotspots ou aglomerados de altos valores.</li>
-<li><strong>Baixo-Baixo (Q2)</strong>: Coldspots ou aglomerados de baixos valores.</li>
-<li><strong>Alto-Baixo (Q3)</strong>: Outliers espaciais com valores altos cercados por vizinhos baixos.</li>
-<li><strong>Baixo-Alto (Q4)</strong>: Outliers espaciais com valores baixos cercados por vizinhos altos.</li>
+<li><strong>Contiguidade Geográfica</strong> (polígonos <code>sf</code>): <code>"rainha"</code> (vértices e arestas) e <code>"torre"</code> (apenas arestas compartilhadas).</li>
+<li><strong>Proximidade Métria / KNN</strong>: <code>"knn"</code> (<span class="math inline">\(k\)</span> vizinhos mais próximos) e <code>"distancia_inversa"</code> (<span class="math inline">\(1 / d_{ij}^\alpha\)</span>).</li>
+<li><strong>Seleção Automática</strong>: <code>tipo = "auto"</code> seleciona o melhor critério de vizinhança para o conjunto de dados.</li>
 </ul>
 <div class="code-copy-outer-scaffold"><div class="sourceCode" id="cb1"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb1-1"><a href="#cb1-1" aria-hidden="true" tabindex="-1"></a><span class="fu">library</span>(estatR)</span>
 <span id="cb1-2"><a href="#cb1-2" aria-hidden="true" tabindex="-1"></a></span>
-<span id="cb1-3"><a href="#cb1-3" aria-hidden="true" tabindex="-1"></a><span class="co"># Análise de autocorrelação com coordenadas geográficas</span></span>
-<span id="cb1-4"><a href="#cb1-4" aria-hidden="true" tabindex="-1"></a>res_moran <span class="ot">&lt;-</span> <span class="fu">analise_autocorrelacao</span>(</span>
-<span id="cb1-5"><a href="#cb1-5" aria-hidden="true" tabindex="-1"></a>  <span class="at">dados          =</span> dados_municipios,</span>
-<span id="cb1-6"><a href="#cb1-6" aria-hidden="true" tabindex="-1"></a>  <span class="at">variavel       =</span> pib_per_capita,</span>
-<span id="cb1-7"><a href="#cb1-7" aria-hidden="true" tabindex="-1"></a>  <span class="at">coordenadas    =</span> coords,</span>
-<span id="cb1-8"><a href="#cb1-8" aria-hidden="true" tabindex="-1"></a>  <span class="at">padronizacao   =</span> <span class="st">"linha"</span>,</span>
-<span id="cb1-9"><a href="#cb1-9" aria-hidden="true" tabindex="-1"></a>  <span class="at">n_permutacoes  =</span> <span class="dv">999</span></span>
+<span id="cb1-3"><a href="#cb1-3" aria-hidden="true" tabindex="-1"></a><span class="co"># Matriz por k vizinhos mais próximos padronizada por linha</span></span>
+<span id="cb1-4"><a href="#cb1-4" aria-hidden="true" tabindex="-1"></a>W <span class="ot">&lt;-</span> <span class="fu">matriz_vizinhanca</span>(</span>
+<span id="cb1-5"><a href="#cb1-5" aria-hidden="true" tabindex="-1"></a>  <span class="at">dados        =</span> dados_municipios,</span>
+<span id="cb1-6"><a href="#cb1-6" aria-hidden="true" tabindex="-1"></a>  <span class="at">tipo         =</span> <span class="st">"knn"</span>,</span>
+<span id="cb1-7"><a href="#cb1-7" aria-hidden="true" tabindex="-1"></a>  <span class="at">k            =</span> <span class="dv">5</span>,</span>
+<span id="cb1-8"><a href="#cb1-8" aria-hidden="true" tabindex="-1"></a>  <span class="at">coordenadas  =</span> <span class="fu">c</span>(<span class="st">"longitude"</span>, <span class="st">"latitude"</span>),</span>
+<span id="cb1-9"><a href="#cb1-9" aria-hidden="true" tabindex="-1"></a>  <span class="at">padronizacao =</span> <span class="st">"linha"</span></span>
 <span id="cb1-10"><a href="#cb1-10" aria-hidden="true" tabindex="-1"></a>)</span></code></pre></div><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></div>
-<p>Gera automaticamente o <strong>Diagrama de Dispersão de Moran</strong> com os quatro quadrantes destacados por cores editoriais.</p>
 <hr>
 </section>
-<section id="regressão-espacial-sar-e-sem" class="level2">
-<h2 class="anchored" data-anchor-id="regressão-espacial-sar-e-sem">2. Regressão Espacial (SAR e SEM)</h2>
-<p>Modelos lineares tradicionais violam o pressuposto de independência quando há dependência espacial. O <code>estatR</code> implementa:</p>
+<section id="autocorrelação-espacial-global-e-local-moran-e-lisa" class="level2">
+<h2 class="anchored" data-anchor-id="autocorrelação-espacial-global-e-local-moran-e-lisa">2. Autocorrelação Espacial Global e Local (Moran e LISA)</h2>
+<p>A função <code>analise_autocorrelacao()</code> calcula o <strong>Índice I de Moran Global</strong> com teste de significância por permutações Monte Carlo e classifica as observações nos quadrantes locais de Moran (<strong>LISA</strong>):</p>
+<ul>
+<li><strong>Alto-Alto (Q1)</strong>: <em>Hotspots</em> — regiões com valores elevados rodeadas por vizinhos com valores elevados.</li>
+<li><strong>Baixo-Baixo (Q2)</strong>: <em>Coldspots</em> — regiões com valores baixos rodeadas por vizinhos baixos.</li>
+<li><strong>Alto-Baixo (Q3)</strong>: Outliers espaciais — regiões com valores altos cercadas por vizinhos baixos.</li>
+<li><strong>Baixo-Alto (Q4)</strong>: Outliers espaciais — regiões com valores baixos cercadas por vizinhos altos.</li>
+</ul>
+<div class="code-copy-outer-scaffold"><div class="sourceCode" id="cb2"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb2-1"><a href="#cb2-1" aria-hidden="true" tabindex="-1"></a><span class="co"># Autocorrelação espacial e clusterização LISA</span></span>
+<span id="cb2-2"><a href="#cb2-2" aria-hidden="true" tabindex="-1"></a>res_moran <span class="ot">&lt;-</span> <span class="fu">analise_autocorrelacao</span>(</span>
+<span id="cb2-3"><a href="#cb2-3" aria-hidden="true" tabindex="-1"></a>  <span class="at">dados          =</span> dados_municipios,</span>
+<span id="cb2-4"><a href="#cb2-4" aria-hidden="true" tabindex="-1"></a>  <span class="at">variavel       =</span> pib_per_capita,</span>
+<span id="cb2-5"><a href="#cb2-5" aria-hidden="true" tabindex="-1"></a>  <span class="at">coordenadas    =</span> <span class="fu">c</span>(<span class="st">"longitude"</span>, <span class="st">"latitude"</span>),</span>
+<span id="cb2-6"><a href="#cb2-6" aria-hidden="true" tabindex="-1"></a>  <span class="at">n_permutacoes  =</span> <span class="dv">999</span></span>
+<span id="cb2-7"><a href="#cb2-7" aria-hidden="true" tabindex="-1"></a>)</span></code></pre></div><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></div>
+<p>Gera no console a tabela editorial completa e o <strong>Diagrama de Dispersão de Moran</strong> com os quatro quadrantes destacados por cores analíticas.</p>
+<hr>
+</section>
+<section id="diagnóstico-metodológico-testes-lm-de-anselin" class="level2">
+<h2 class="anchored" data-anchor-id="diagnóstico-metodológico-testes-lm-de-anselin">3. Diagnóstico Metodológico: Testes LM de Anselin</h2>
+<p>Antes de estimar uma regressão espacial, a função <code>teste_mult_lagrange_espacial()</code> (ou <code>teste_multiplicadores_lagrange_espacial()</code>) aplica os quatro testes canônicos do Multiplicador de Lagrange de Anselin (1988) sobre os resíduos do modelo linear clássico (OLS/MQO):</p>
 <ol type="1">
-<li><p><strong>Modelo Espacial Autorregressivo — SAR (Spatial Lag)</strong>: <span class="math display">\[y = \rho W y + X \beta + \epsilon\]</span> Captura efeitos de transbordamento espacial (<em>spillover</em>).</p></li>
-<li><p><strong>Modelo com Erro Espacial — SEM (Spatial Error)</strong>: <span class="math display">\[y = X \beta + u, \quad u = \lambda W u + \epsilon\]</span> Corrige variáveis omitidas ou choques não observados correlacionados no espaço.</p></li>
+<li><strong>LM - Defasagem Espacial (Lag)</strong>: Testa dependência na variável resposta (<span class="math inline">\(\rho\)</span>).</li>
+<li><strong>LM - Erro Espacial (Error)</strong>: Testa dependência nos distúrbios (<span class="math inline">\(\lambda\)</span>).</li>
+<li><strong>LM Robusto - Defasagem</strong>: Robusto à eventual presença de erro espacial.</li>
+<li><strong>LM Robusto - Erro</strong>: Robusto à eventual presença de defasagem espacial.</li>
 </ol>
-<div class="code-copy-outer-scaffold"><div class="sourceCode" id="cb2"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb2-1"><a href="#cb2-1" aria-hidden="true" tabindex="-1"></a><span class="co"># Modelo SAR (Spatial Lag)</span></span>
-<span id="cb2-2"><a href="#cb2-2" aria-hidden="true" tabindex="-1"></a>mod_sar <span class="ot">&lt;-</span> <span class="fu">regressao_espacial</span>(</span>
-<span id="cb2-3"><a href="#cb2-3" aria-hidden="true" tabindex="-1"></a>  renda <span class="sc">~</span> educacao <span class="sc">+</span> saneamento,</span>
-<span id="cb2-4"><a href="#cb2-4" aria-hidden="true" tabindex="-1"></a>  <span class="at">dados  =</span> dados_municipios,</span>
-<span id="cb2-5"><a href="#cb2-5" aria-hidden="true" tabindex="-1"></a>  <span class="at">modelo =</span> <span class="st">"sar"</span></span>
-<span id="cb2-6"><a href="#cb2-6" aria-hidden="true" tabindex="-1"></a>)</span>
-<span id="cb2-7"><a href="#cb2-7" aria-hidden="true" tabindex="-1"></a></span>
-<span id="cb2-8"><a href="#cb2-8" aria-hidden="true" tabindex="-1"></a><span class="co"># Modelo SEM (Spatial Error)</span></span>
-<span id="cb2-9"><a href="#cb2-9" aria-hidden="true" tabindex="-1"></a>mod_sem <span class="ot">&lt;-</span> <span class="fu">regressao_espacial</span>(</span>
-<span id="cb2-10"><a href="#cb2-10" aria-hidden="true" tabindex="-1"></a>  renda <span class="sc">~</span> educacao <span class="sc">+</span> saneamento,</span>
-<span id="cb2-11"><a href="#cb2-11" aria-hidden="true" tabindex="-1"></a>  <span class="at">dados  =</span> dados_municipios,</span>
-<span id="cb2-12"><a href="#cb2-12" aria-hidden="true" tabindex="-1"></a>  <span class="at">modelo =</span> <span class="st">"sem"</span></span>
-<span id="cb2-13"><a href="#cb2-13" aria-hidden="true" tabindex="-1"></a>)</span></code></pre></div><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></div>
-<section id="análise-residual-integrada" class="level3">
-<h3 class="anchored" data-anchor-id="análise-residual-integrada">Análise Residual Integrada</h3>
-<div class="code-copy-outer-scaffold"><div class="sourceCode" id="cb3"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb3-1"><a href="#cb3-1" aria-hidden="true" tabindex="-1"></a><span class="co"># Diagnóstico residual polimórfico</span></span>
-<span id="cb3-2"><a href="#cb3-2" aria-hidden="true" tabindex="-1"></a><span class="fu">analise_residual</span>(mod_sar)</span></code></pre></div><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></div>
+<div class="code-copy-outer-scaffold"><div class="sourceCode" id="cb3"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb3-1"><a href="#cb3-1" aria-hidden="true" tabindex="-1"></a><span class="co"># Diagnóstico e recomendação automática do modelo</span></span>
+<span id="cb3-2"><a href="#cb3-2" aria-hidden="true" tabindex="-1"></a><span class="fu">teste_mult_lagrange_espacial</span>(</span>
+<span id="cb3-3"><a href="#cb3-3" aria-hidden="true" tabindex="-1"></a>  pib_per_capita <span class="sc">~</span> educacao <span class="sc">+</span> saneamento,</span>
+<span id="cb3-4"><a href="#cb3-4" aria-hidden="true" tabindex="-1"></a>  <span class="at">dados        =</span> dados_municipios,</span>
+<span id="cb3-5"><a href="#cb3-5" aria-hidden="true" tabindex="-1"></a>  <span class="at">matriz_pesos =</span> W</span>
+<span id="cb3-6"><a href="#cb3-6" aria-hidden="true" tabindex="-1"></a>)</span></code></pre></div><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></div>
+<p>A saída emite uma recomendação conclusiva padronizada no console com <code>[✓]</code>, apontando se o pesquisador deve adotar o modelo clássico (OLS), SAR ou SEM.</p>
+<hr>
+</section>
+<section id="modelos-de-regressão-espacial" class="level2">
+<h2 class="anchored" data-anchor-id="modelos-de-regressão-espacial">4. Modelos de Regressão Espacial</h2>
+<p>Quando a dependência espacial é confirmada, o modelo clássico por MQO torna-se enviesado ou ineficiente. A função <code>regressao_espacial()</code> estima os principais modelos econométricos espaciais por Máxima Verossimilhança:</p>
+<section id="a.-modelo-de-defasagem-espacial-sar-modelo-defasagem" class="level3">
+<h3 class="anchored" data-anchor-id="a.-modelo-de-defasagem-espacial-sar-modelo-defasagem">A. Modelo de Defasagem Espacial — SAR (<code>modelo = "defasagem"</code>)</h3>
+<p><span class="math display">\[y = \rho W y + X \beta + \epsilon\]</span> Captura processos de difusão, contágio e dependência direta entre as respostas das regiões vizinhas.</p>
+</section>
+<section id="b.-modelo-com-erro-espacial-sem-modelo-erro" class="level3">
+<h3 class="anchored" data-anchor-id="b.-modelo-com-erro-espacial-sem-modelo-erro">B. Modelo com Erro Espacial — SEM (<code>modelo = "erro"</code>)</h3>
+<p><span class="math display">\[y = X \beta + u, \quad u = \lambda W u + \epsilon\]</span> Corrige a autocorrelação nos resíduos decorrente de variáveis omitidas espacialmente estruturadas ou choques não observados.</p>
+</section>
+<section id="c.-modelo-de-durbin-espacial-mde-sdm-modelo-durbin" class="level3">
+<h3 class="anchored" data-anchor-id="c.-modelo-de-durbin-espacial-mde-sdm-modelo-durbin">C. Modelo de Durbin Espacial — MDE / SDM (<code>modelo = "durbin"</code>)</h3>
+<p><span class="math display">\[y = \rho W y + X \beta + W X \gamma + \epsilon\]</span> Inclui simultaneamente a defasagem espacial da variável dependente e os termos defasados das variáveis explicativas (<span class="math inline">\(W X\)</span>).</p>
+<div class="code-copy-outer-scaffold"><div class="sourceCode" id="cb4"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb4-1"><a href="#cb4-1" aria-hidden="true" tabindex="-1"></a><span class="co"># Ajuste do Modelo de Defasagem Espacial (SAR)</span></span>
+<span id="cb4-2"><a href="#cb4-2" aria-hidden="true" tabindex="-1"></a>mod_sar <span class="ot">&lt;-</span> <span class="fu">regressao_espacial</span>(</span>
+<span id="cb4-3"><a href="#cb4-3" aria-hidden="true" tabindex="-1"></a>  pib_per_capita <span class="sc">~</span> educacao <span class="sc">+</span> saneamento,</span>
+<span id="cb4-4"><a href="#cb4-4" aria-hidden="true" tabindex="-1"></a>  <span class="at">dados        =</span> dados_municipios,</span>
+<span id="cb4-5"><a href="#cb4-5" aria-hidden="true" tabindex="-1"></a>  <span class="at">modelo       =</span> <span class="st">"defasagem"</span>,</span>
+<span id="cb4-6"><a href="#cb4-6" aria-hidden="true" tabindex="-1"></a>  <span class="at">matriz_pesos =</span> W</span>
+<span id="cb4-7"><a href="#cb4-7" aria-hidden="true" tabindex="-1"></a>)</span>
+<span id="cb4-8"><a href="#cb4-8" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb4-9"><a href="#cb4-9" aria-hidden="true" tabindex="-1"></a><span class="co"># Ajuste do Modelo de Durbin Espacial com busca automática de k vizinhos</span></span>
+<span id="cb4-10"><a href="#cb4-10" aria-hidden="true" tabindex="-1"></a>mod_sdm <span class="ot">&lt;-</span> <span class="fu">regressao_espacial</span>(</span>
+<span id="cb4-11"><a href="#cb4-11" aria-hidden="true" tabindex="-1"></a>  pib_per_capita <span class="sc">~</span> educacao <span class="sc">+</span> saneamento,</span>
+<span id="cb4-12"><a href="#cb4-12" aria-hidden="true" tabindex="-1"></a>  <span class="at">dados       =</span> dados_municipios,</span>
+<span id="cb4-13"><a href="#cb4-13" aria-hidden="true" tabindex="-1"></a>  <span class="at">modelo      =</span> <span class="st">"durbin"</span>,</span>
+<span id="cb4-14"><a href="#cb4-14" aria-hidden="true" tabindex="-1"></a>  <span class="at">k_vizinhos  =</span> <span class="st">"auto"</span></span>
+<span id="cb4-15"><a href="#cb4-15" aria-hidden="true" tabindex="-1"></a>)</span></code></pre></div><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></div>
+<hr>
+</section>
+</section>
+<section id="decomposição-de-impactos-espaciais-lesage-pace" class="level2">
+<h2 class="anchored" data-anchor-id="decomposição-de-impactos-espaciais-lesage-pace">5. Decomposição de Impactos Espaciais (LeSage &amp; Pace)</h2>
+<p>Em modelos com defasagem espacial (SAR e Durbin), os coeficientes <span class="math inline">\(\beta\)</span> não representam efeitos marginais diretos devido aos ciclos de retroalimentação espacial (<em>feedback loops</em>).</p>
+<p>A função <code>impactos_espaciais()</code> decompõe a influência de cada regressor em três componentes fundamentais:</p>
+<ul>
+<li><strong>Impacto Direto</strong>: Efeito médio que uma alteração na variável explicativa de uma região exerce sobre ela mesma.</li>
+<li><strong>Impacto Indireto (<em>Spillover</em>)</strong>: Efeito médio de transbordamento gerado sobre todas as regiões vizinhas.</li>
+<li><strong>Impacto Total</strong>: Efeito consolidado no sistema geográfico (Direto + Indireto).</li>
+</ul>
+<div class="code-copy-outer-scaffold"><div class="sourceCode" id="cb5"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb5-1"><a href="#cb5-1" aria-hidden="true" tabindex="-1"></a><span class="co"># Decomposição de transbordamento (Spillover)</span></span>
+<span id="cb5-2"><a href="#cb5-2" aria-hidden="true" tabindex="-1"></a><span class="fu">impactos_espaciais</span>(mod_sdm)</span></code></pre></div><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></div>
+<hr>
+</section>
+<section id="diagnóstico-e-avaliação-polimórfica" class="level2">
+<h2 class="anchored" data-anchor-id="diagnóstico-e-avaliação-polimórfica">6. Diagnóstico e Avaliação Polimórfica</h2>
+<p>O módulo de Estatística Espacial está plenamente integrado aos métodos unificados do <code>estatR</code>:</p>
+<section id="análise-residual" class="level3">
+<h3 class="anchored" data-anchor-id="análise-residual">Análise Residual</h3>
+<p>Avalia a normalidade (Shapiro-Wilk) e testa a persistência de dependência espacial residual através do <span class="math inline">\(I\)</span> de Moran:</p>
+<div class="code-copy-outer-scaffold"><div class="sourceCode" id="cb6"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb6-1"><a href="#cb6-1" aria-hidden="true" tabindex="-1"></a><span class="fu">analise_residual</span>(mod_sar, <span class="at">grafico =</span> <span class="cn">TRUE</span>)</span></code></pre></div><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></div>
+</section>
+<section id="métricas-de-ajuste" class="level3">
+<h3 class="anchored" data-anchor-id="métricas-de-ajuste">Métricas de Ajuste</h3>
+<p>Exibe Pseudo-<span class="math inline">\(R^2\)</span>, RMSE, MAE, AIC, BIC, Log-Likelihood e autocorrelação residual:</p>
+<div class="code-copy-outer-scaffold"><div class="sourceCode" id="cb7"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb7-1"><a href="#cb7-1" aria-hidden="true" tabindex="-1"></a><span class="fu">metricas</span>(mod_sar)</span></code></pre></div><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></div>
+</section>
+<section id="comparação-e-ranqueamento-de-modelos" class="level3">
+<h3 class="anchored" data-anchor-id="comparação-e-ranqueamento-de-modelos">Comparação e Ranqueamento de Modelos</h3>
+<p>Permite comparar diretamente modelos OLS, SAR, SEM e MDE em uma única tabela com AICc, BIC e Pesos de Akaike:</p>
+<div class="code-copy-outer-scaffold"><div class="sourceCode" id="cb8"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb8-1"><a href="#cb8-1" aria-hidden="true" tabindex="-1"></a><span class="fu">comparar_modelos</span>(</span>
+<span id="cb8-2"><a href="#cb8-2" aria-hidden="true" tabindex="-1"></a>  <span class="at">OLS =</span> mod_ols,</span>
+<span id="cb8-3"><a href="#cb8-3" aria-hidden="true" tabindex="-1"></a>  <span class="at">SAR =</span> mod_sar,</span>
+<span id="cb8-4"><a href="#cb8-4" aria-hidden="true" tabindex="-1"></a>  <span class="at">SEM =</span> mod_sem,</span>
+<span id="cb8-5"><a href="#cb8-5" aria-hidden="true" tabindex="-1"></a>  <span class="at">SDM =</span> mod_sdm,</span>
+<span id="cb8-6"><a href="#cb8-6" aria-hidden="true" tabindex="-1"></a>  <span class="at">criterio =</span> <span class="st">"aicc"</span></span>
+<span id="cb8-7"><a href="#cb8-7" aria-hidden="true" tabindex="-1"></a>)</span></code></pre></div><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></div>
 
 
 </section>

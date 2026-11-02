@@ -451,6 +451,11 @@ predicao <- function(modelo, novos_dados,
 #' @param modelo Objeto do tipo lm
 #' @export
 metricas <- function(modelo, corte_prob = 0.5) {
+  if (inherits(modelo, "estatR_regressao_espacial")) {
+    if (exists(".metricas_espacial", mode = "function")) {
+      return(.metricas_espacial(modelo))
+    }
+  }
   if (inherits(modelo, "zeroinfl") && !is.null(modelo$dist)) {
     if (modelo$dist == "poisson" && exists(".metricas_poisson_iz", mode = "function")) {
       return(.metricas_poisson_iz(modelo))
@@ -558,7 +563,9 @@ analise_residual <- function(modelo, grafico = TRUE, simulacao = FALSE, n_sim = 
     if (!is.null(modelo$modelo_lme4)) modelo <- modelo$modelo_lme4
   }
   if (inherits(modelo, "estatR_regressao_espacial")) {
-    if (exists("analise_residual_espacial", mode = "function")) {
+    if (exists(".analise_residual_espacial", mode = "function")) {
+      return(.analise_residual_espacial(modelo, grafico = grafico))
+    } else if (exists("analise_residual_espacial", mode = "function")) {
       return(analise_residual_espacial(modelo, grafico = grafico))
     }
   }

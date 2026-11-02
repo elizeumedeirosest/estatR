@@ -172,21 +172,49 @@
     "href": "modulos/espacial.html",
     "title": "Estatística Espacial",
     "section": "",
-    "text": "O módulo de Estatística Espacial do estatR oferece ferramentas completas para diagnóstico de dependência geográfica, mapeamento de clusters espaciais e ajuste de modelos de regressão espacial."
+    "text": "O módulo de Estatística Espacial do estatR oferece um ecossistema integrado para a análise de dados com dependência geográfica (dados de área e redes espaciais), cobrindo desde a construção e seleção automática de matrizes de vizinhança até diagnósticos confirmatórios e modelos de regressão espacial autorregressivos."
+  },
+  {
+    "objectID": "modulos/espacial.html#matrizes-de-vizinhança-e-pesos-espaciais",
+    "href": "modulos/espacial.html#matrizes-de-vizinhança-e-pesos-espaciais",
+    "title": "Estatística Espacial",
+    "section": "1. Matrizes de Vizinhança e Pesos Espaciais",
+    "text": "1. Matrizes de Vizinhança e Pesos Espaciais\nA função matriz_vizinhanca() constrói matrizes espaciais padronizadas para polígonos ou coordenadas pontuais:\n\nContiguidade Geográfica (polígonos sf): \"rainha\" (vértices e arestas) e \"torre\" (apenas arestas compartilhadas).\nProximidade Métria / KNN: \"knn\" (\\(k\\) vizinhos mais próximos) e \"distancia_inversa\" (\\(1 / d_{ij}^\\alpha\\)).\nSeleção Automática: tipo = \"auto\" seleciona o melhor critério de vizinhança para o conjunto de dados.\n\nlibrary(estatR)\n\n# Matriz por k vizinhos mais próximos padronizada por linha\nW &lt;- matriz_vizinhanca(\n  dados        = dados_municipios,\n  tipo         = \"knn\",\n  k            = 5,\n  coordenadas  = c(\"longitude\", \"latitude\"),\n  padronizacao = \"linha\"\n)"
   },
   {
     "objectID": "modulos/espacial.html#autocorrelação-espacial-global-e-local-moran-e-lisa",
     "href": "modulos/espacial.html#autocorrelação-espacial-global-e-local-moran-e-lisa",
     "title": "Estatística Espacial",
-    "section": "1. Autocorrelação Espacial Global e Local (Moran e LISA)",
-    "text": "1. Autocorrelação Espacial Global e Local (Moran e LISA)\nA função analise_autocorrelacao() calcula o Índice de Moran Global com teste pseudo-p via permutações Monte Carlo e classifica cada observação nos quadrantes locais de Moran (LISA):\n\nAlto-Alto (Q1): Hotspots ou aglomerados de altos valores.\nBaixo-Baixo (Q2): Coldspots ou aglomerados de baixos valores.\nAlto-Baixo (Q3): Outliers espaciais com valores altos cercados por vizinhos baixos.\nBaixo-Alto (Q4): Outliers espaciais com valores baixos cercados por vizinhos altos.\n\nlibrary(estatR)\n\n# Análise de autocorrelação com coordenadas geográficas\nres_moran &lt;- analise_autocorrelacao(\n  dados          = dados_municipios,\n  variavel       = pib_per_capita,\n  coordenadas    = coords,\n  padronizacao   = \"linha\",\n  n_permutacoes  = 999\n)\nGera automaticamente o Diagrama de Dispersão de Moran com os quatro quadrantes destacados por cores editoriais."
+    "section": "2. Autocorrelação Espacial Global e Local (Moran e LISA)",
+    "text": "2. Autocorrelação Espacial Global e Local (Moran e LISA)\nA função analise_autocorrelacao() calcula o Índice I de Moran Global com teste de significância por permutações Monte Carlo e classifica as observações nos quadrantes locais de Moran (LISA):\n\nAlto-Alto (Q1): Hotspots — regiões com valores elevados rodeadas por vizinhos com valores elevados.\nBaixo-Baixo (Q2): Coldspots — regiões com valores baixos rodeadas por vizinhos baixos.\nAlto-Baixo (Q3): Outliers espaciais — regiões com valores altos cercadas por vizinhos baixos.\nBaixo-Alto (Q4): Outliers espaciais — regiões com valores baixos cercadas por vizinhos altos.\n\n# Autocorrelação espacial e clusterização LISA\nres_moran &lt;- analise_autocorrelacao(\n  dados          = dados_municipios,\n  variavel       = pib_per_capita,\n  coordenadas    = c(\"longitude\", \"latitude\"),\n  n_permutacoes  = 999\n)\nGera no console a tabela editorial completa e o Diagrama de Dispersão de Moran com os quatro quadrantes destacados por cores analíticas."
   },
   {
-    "objectID": "modulos/espacial.html#regressão-espacial-sar-e-sem",
-    "href": "modulos/espacial.html#regressão-espacial-sar-e-sem",
+    "objectID": "modulos/espacial.html#diagnóstico-metodológico-testes-lm-de-anselin",
+    "href": "modulos/espacial.html#diagnóstico-metodológico-testes-lm-de-anselin",
     "title": "Estatística Espacial",
-    "section": "2. Regressão Espacial (SAR e SEM)",
-    "text": "2. Regressão Espacial (SAR e SEM)\nModelos lineares tradicionais violam o pressuposto de independência quando há dependência espacial. O estatR implementa:\n\nModelo Espacial Autorregressivo — SAR (Spatial Lag): \\[y = \\rho W y + X \\beta + \\epsilon\\] Captura efeitos de transbordamento espacial (spillover).\nModelo com Erro Espacial — SEM (Spatial Error): \\[y = X \\beta + u, \\quad u = \\lambda W u + \\epsilon\\] Corrige variáveis omitidas ou choques não observados correlacionados no espaço.\n\n# Modelo SAR (Spatial Lag)\nmod_sar &lt;- regressao_espacial(\n  renda ~ educacao + saneamento,\n  dados  = dados_municipios,\n  modelo = \"sar\"\n)\n\n# Modelo SEM (Spatial Error)\nmod_sem &lt;- regressao_espacial(\n  renda ~ educacao + saneamento,\n  dados  = dados_municipios,\n  modelo = \"sem\"\n)\n\nAnálise Residual Integrada\n# Diagnóstico residual polimórfico\nanalise_residual(mod_sar)"
+    "section": "3. Diagnóstico Metodológico: Testes LM de Anselin",
+    "text": "3. Diagnóstico Metodológico: Testes LM de Anselin\nAntes de estimar uma regressão espacial, a função teste_mult_lagrange_espacial() (ou teste_multiplicadores_lagrange_espacial()) aplica os quatro testes canônicos do Multiplicador de Lagrange de Anselin (1988) sobre os resíduos do modelo linear clássico (OLS/MQO):\n\nLM - Defasagem Espacial (Lag): Testa dependência na variável resposta (\\(\\rho\\)).\nLM - Erro Espacial (Error): Testa dependência nos distúrbios (\\(\\lambda\\)).\nLM Robusto - Defasagem: Robusto à eventual presença de erro espacial.\nLM Robusto - Erro: Robusto à eventual presença de defasagem espacial.\n\n# Diagnóstico e recomendação automática do modelo\nteste_mult_lagrange_espacial(\n  pib_per_capita ~ educacao + saneamento,\n  dados        = dados_municipios,\n  matriz_pesos = W\n)\nA saída emite uma recomendação conclusiva padronizada no console com [✓], apontando se o pesquisador deve adotar o modelo clássico (OLS), SAR ou SEM."
+  },
+  {
+    "objectID": "modulos/espacial.html#modelos-de-regressão-espacial",
+    "href": "modulos/espacial.html#modelos-de-regressão-espacial",
+    "title": "Estatística Espacial",
+    "section": "4. Modelos de Regressão Espacial",
+    "text": "4. Modelos de Regressão Espacial\nQuando a dependência espacial é confirmada, o modelo clássico por MQO torna-se enviesado ou ineficiente. A função regressao_espacial() estima os principais modelos econométricos espaciais por Máxima Verossimilhança:\n\nA. Modelo de Defasagem Espacial — SAR (modelo = \"defasagem\")\n\\[y = \\rho W y + X \\beta + \\epsilon\\] Captura processos de difusão, contágio e dependência direta entre as respostas das regiões vizinhas.\n\n\nB. Modelo com Erro Espacial — SEM (modelo = \"erro\")\n\\[y = X \\beta + u, \\quad u = \\lambda W u + \\epsilon\\] Corrige a autocorrelação nos resíduos decorrente de variáveis omitidas espacialmente estruturadas ou choques não observados.\n\n\nC. Modelo de Durbin Espacial — MDE / SDM (modelo = \"durbin\")\n\\[y = \\rho W y + X \\beta + W X \\gamma + \\epsilon\\] Inclui simultaneamente a defasagem espacial da variável dependente e os termos defasados das variáveis explicativas (\\(W X\\)).\n# Ajuste do Modelo de Defasagem Espacial (SAR)\nmod_sar &lt;- regressao_espacial(\n  pib_per_capita ~ educacao + saneamento,\n  dados        = dados_municipios,\n  modelo       = \"defasagem\",\n  matriz_pesos = W\n)\n\n# Ajuste do Modelo de Durbin Espacial com busca automática de k vizinhos\nmod_sdm &lt;- regressao_espacial(\n  pib_per_capita ~ educacao + saneamento,\n  dados       = dados_municipios,\n  modelo      = \"durbin\",\n  k_vizinhos  = \"auto\"\n)"
+  },
+  {
+    "objectID": "modulos/espacial.html#decomposição-de-impactos-espaciais-lesage-pace",
+    "href": "modulos/espacial.html#decomposição-de-impactos-espaciais-lesage-pace",
+    "title": "Estatística Espacial",
+    "section": "5. Decomposição de Impactos Espaciais (LeSage & Pace)",
+    "text": "5. Decomposição de Impactos Espaciais (LeSage & Pace)\nEm modelos com defasagem espacial (SAR e Durbin), os coeficientes \\(\\beta\\) não representam efeitos marginais diretos devido aos ciclos de retroalimentação espacial (feedback loops).\nA função impactos_espaciais() decompõe a influência de cada regressor em três componentes fundamentais:\n\nImpacto Direto: Efeito médio que uma alteração na variável explicativa de uma região exerce sobre ela mesma.\nImpacto Indireto (Spillover): Efeito médio de transbordamento gerado sobre todas as regiões vizinhas.\nImpacto Total: Efeito consolidado no sistema geográfico (Direto + Indireto).\n\n# Decomposição de transbordamento (Spillover)\nimpactos_espaciais(mod_sdm)"
+  },
+  {
+    "objectID": "modulos/espacial.html#diagnóstico-e-avaliação-polimórfica",
+    "href": "modulos/espacial.html#diagnóstico-e-avaliação-polimórfica",
+    "title": "Estatística Espacial",
+    "section": "6. Diagnóstico e Avaliação Polimórfica",
+    "text": "6. Diagnóstico e Avaliação Polimórfica\nO módulo de Estatística Espacial está plenamente integrado aos métodos unificados do estatR:\n\nAnálise Residual\nAvalia a normalidade (Shapiro-Wilk) e testa a persistência de dependência espacial residual através do \\(I\\) de Moran:\nanalise_residual(mod_sar, grafico = TRUE)\n\n\nMétricas de Ajuste\nExibe Pseudo-\\(R^2\\), RMSE, MAE, AIC, BIC, Log-Likelihood e autocorrelação residual:\nmetricas(mod_sar)\n\n\nComparação e Ranqueamento de Modelos\nPermite comparar diretamente modelos OLS, SAR, SEM e MDE em uma única tabela com AICc, BIC e Pesos de Akaike:\ncomparar_modelos(\n  OLS = mod_ols,\n  SAR = mod_sar,\n  SEM = mod_sem,\n  SDM = mod_sdm,\n  criterio = \"aicc\"\n)"
   },
   {
     "objectID": "modulos/descritiva.html",
@@ -473,7 +501,7 @@
     "href": "modulos/regressao.html#extratores-universais-em-português",
     "title": "Modelagem e Regressão",
     "section": "7. Extratores Universais em Português",
-    "text": "7. Extratores Universais em Português\nPara facilitar a extração programática sem a necessidade de sintaxes complexas do R base:\ncoeficientes(modelo)      # Coeficientes estimados\nresiduos(modelo)          # Vetor de resíduos\nvalores_ajustados(modelo) # Valores ajustados pelo modelo\nresumo(modelo)            # Reexibe o resumo formatado no console\npredicao(modelo, novos_dados) # Intervalos de confiança e predição"
+    "text": "7. Extratores Universais em Português\nPara facilitar a extração programática sem a necessidade de sintaxes complexas do R base:\ncoeficientes(modelo)      # Coeficientes estimados\nresiduos(modelo)          # Vetor de resíduos\nvalores_ajustados(modelo) # Valores ajustados pelo modelo\npredicao(modelo, novos_dados) # Intervalos de confiança e predição"
   },
   {
     "objectID": "modulos/sobrevivencia.html",

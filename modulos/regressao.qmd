@@ -153,6 +153,5 @@ Para facilitar a extração programática sem a necessidade de sintaxes complexa
 coeficientes(modelo)      # Coeficientes estimados
 residuos(modelo)          # Vetor de resíduos
 valores_ajustados(modelo) # Valores ajustados pelo modelo
-resumo(modelo)            # Reexibe o resumo formatado no console
 predicao(modelo, novos_dados) # Intervalos de confiança e predição
 ```

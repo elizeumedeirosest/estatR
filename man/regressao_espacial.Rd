@@ -2,34 +2,34 @@
 % Please edit documentation in R/espacial.R
 \name{regressao_espacial}
 \alias{regressao_espacial}
-\title{Regressão Espacial: Modelos Autorregressivo (SAR) e de Erro (SEM)}
+\title{Regressão Espacial (Defasagem, Erro e Modelo de Durbin Espacial)}
 \usage{
 regressao_espacial(
   formula,
   dados,
   coordenadas = NULL,
   matriz_pesos = NULL,
-  modelo = c("sar", "sem"),
-  k_vizinhos = 5,
+  modelo = c("defasagem", "erro", "durbin", "sar", "sem", "sdm", "mde"),
+  k_vizinhos = "auto",
   padronizacao = c("linha", "binaria", "global", "nenhuma"),
   ...
 )
 }
 \arguments{
-\item{formula}{Fórmula linear do modelo (ex: \code{y ~ x1 + x2}).}
+\item{formula}{Fórmula da regressão (ex.: \code{y ~ x1 + x2}).}
 
-\item{dados}{Data frame com os dados da análise.}
+\item{dados}{Data frame contendo as variáveis.}
 
-\item{coordenadas}{Matriz ou data frame com coordenadas espaciais.}
+\item{coordenadas}{Coordenadas espaciais opcionais (X, Y ou Long, Lat).}
 
-\item{matriz_pesos}{Matriz de vizinhança espacial \eqn{W} opcional.}
+\item{matriz_pesos}{Matriz de pesos espaciais \eqn{W} opcional.}
 
-\item{modelo}{Tipo de modelo: \code{"sar"} (Spatial Lag) ou \code{"sem"} (Spatial Error).}
+\item{modelo}{Tipo de modelo em português: \code{"defasagem"} (SAR, padrão),
+\code{"erro"} (SEM) ou \code{"durbin"} (MDE / SDM). Também aceita \code{"sar"}, \code{"sem"}, \code{"sdm"}, \code{"mde"}.}
 
-\item{k_vizinhos}{Número de vizinhos mais próximos caso \code{matriz_pesos} não seja fornecida.}
+\item{k_vizinhos}{Número de vizinhos mais próximos ou \code{"auto"} para otimização automática por AIC.}
 
-\item{padronizacao}{Método de padronização da matriz \eqn{W}: \code{"linha"} (padrão),
-\code{"binaria"}, \code{"global"} ou \code{"nenhuma"}.}
+\item{padronizacao}{Método de padronização da matriz de pesos (padrão: \code{"linha"}).}
 
 \item{...}{Argumentos adicionais.}
 }
@@ -37,7 +37,7 @@ regressao_espacial(
 Objeto invisível da classe \code{estatR_regressao_espacial}.
 }
 \description{
-Ajusta modelos lineares com dependência espacial incorporada:
-modelo autoregressivo na resposta (SAR / Spatial Lag) ou modelo com correlação
-nos erros (SEM / Spatial Error).
+Ajusta modelos de regressão espacial para dados de área: Modelo de Defasagem Espacial
+(\code{"defasagem"} / SAR), Modelo de Erro Espacial (\code{"erro"} / SEM) e Modelo de Durbin Espacial
+(\code{"durbin"} / MDE) com seleção de vizinhança automática por AIC e matriz de pesos padronizada por linha.
 }

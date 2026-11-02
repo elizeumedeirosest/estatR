@@ -1,4 +1,4 @@
-﻿# MÃ³dulo de imputaÃ§Ã£o de dados para o pacote estatR
+# MÃ³dulo de imputaÃ§Ã£o de dados para o pacote estatR
 # Implementa 17 mÃ©todos de imputaÃ§Ã£o com saÃ­da formatada no console
 
 # â”€â”€ FUNÃ‡Ã•ES AUXILIARES INTERNAS â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€

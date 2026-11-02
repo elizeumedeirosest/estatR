@@ -1,4 +1,4 @@
-﻿#' @title Resumo Estatistico de Variaveis ou Banco de Dados
+#' @title Resumo Estatistico de Variaveis ou Banco de Dados
 #' @description Gera um resumo estatistico completo.
 #' @param x Um data frame ou vetor.
 #' @param por Variavel categorica para agrupar o resumo.
