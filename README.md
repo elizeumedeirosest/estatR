@@ -9,7 +9,7 @@
 [![Documentação Oficial](https://img.shields.io/badge/docs-oficial-0071e3?style=for-the-badge&logo=google-chrome&logoColor=white)](https://elizeumedeirosest.github.io/estatR) 
 [![Licença MIT](https://img.shields.io/badge/licença-MIT-10b981?style=for-the-badge)](LICENSE) 
 [![R >= 4.0](https://img.shields.io/badge/R-%3E%3D_4.0-38bdf8?style=for-the-badge&logo=R&logoColor=white)](https://cran.r-project.org/) 
-[![Módulos](https://img.shields.io/badge/módulos-16+-0284c7?style=for-the-badge)](https://elizeumedeirosest.github.io/estatR/index.html) 
+[![Módulos](https://img.shields.io/badge/módulos-14-0284c7?style=for-the-badge)](https://elizeumedeirosest.github.io/estatR/index.html) 
 [![Funções](https://img.shields.io/badge/funções-135+-818cf8?style=for-the-badge)](https://elizeumedeirosest.github.io/estatR#modulos)
 
 <p align="center">

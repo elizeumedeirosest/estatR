@@ -129,8 +129,6 @@ editoriais automáticos com grade dupla e retorno estruturado para manipulação
 \item \code{\link{tamanho_amostra}} — Dimensionamento ótimo de amostra.
 \item \code{\link{poder_estatistico}} — Cálculo de poder (1 - beta) e curvas de poder para testes estatísticos.
 }
-\itemize{
-\item \code{\link{imputar}} — 17 métodos de imputação estatística de dados ausentes (média, mediana, moda, LOCF, NOCB, interpolação, regressão, k-NN e MICE).
 \item \code{\link{validar_dados}} — Validação de integridade de dados por fórmula (entre, sem_nulos, niveis_permitidos, padrao regex, etc.).
 }
 
