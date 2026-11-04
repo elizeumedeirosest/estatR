@@ -172,7 +172,7 @@
     "href": "modulos/espacial.html",
     "title": "Estatística Espacial",
     "section": "",
-    "text": "O módulo de Estatística Espacial do estatR oferece um ecossistema integrado para a análise de dados com dependência geográfica (dados de área e redes espaciais), cobrindo desde a construção e seleção automática de matrizes de vizinhança até diagnósticos confirmatórios e modelos de regressão espacial autorregressivos."
+    "text": "O módulo de Estatística Espacial do estatR cobre dois grandes domínios da análise espacial quantitativa:\nTodos os gráficos utilizam ggplot2 com meu_tema(grade = \"dupla\") para manter o padrão editorial do pacote."
   },
   {
     "objectID": "modulos/espacial.html#matrizes-de-vizinhança-e-pesos-espaciais",
@@ -215,6 +215,41 @@
     "title": "Estatística Espacial",
     "section": "6. Diagnóstico e Avaliação Polimórfica",
     "text": "6. Diagnóstico e Avaliação Polimórfica\nO módulo de Estatística Espacial está plenamente integrado aos métodos unificados do estatR:\n\nAnálise Residual\nAvalia a normalidade (Shapiro-Wilk) e testa a persistência de dependência espacial residual através do \\(I\\) de Moran:\nanalise_residual(mod_sar, grafico = TRUE)\n\n\nMétricas de Ajuste\nExibe Pseudo-\\(R^2\\), RMSE, MAE, AIC, BIC, Log-Likelihood e autocorrelação residual:\nmetricas(mod_sar)\n\n\nComparação e Ranqueamento de Modelos\nPermite comparar diretamente modelos OLS, SAR, SEM e MDE em uma única tabela com AICc, BIC e Pesos de Akaike:\ncomparar_modelos(\n  OLS = mod_ols,\n  SAR = mod_sar,\n  SEM = mod_sem,\n  SDM = mod_sdm,\n  criterio = \"aicc\"\n)"
+  },
+  {
+    "objectID": "modulos/espacial.html#parte-ii-processos-pontuais-point-pattern-analysis",
+    "href": "modulos/espacial.html#parte-ii-processos-pontuais-point-pattern-analysis",
+    "title": "Estatística Espacial",
+    "section": "Parte II — Processos Pontuais (Point Pattern Analysis)",
+    "text": "Parte II — Processos Pontuais (Point Pattern Analysis)\nA análise de Processos Pontuais responde à pergunta fundamental: os eventos observados no espaço ocorrem de forma Aleatória, Agrupada (cluster) ou Regular (dispersa)? O estatR implementa os métodos clássicos com saídas ricas no console, testes formais com [✓]/[!] e gráficos editoriais em ggplot2.\nTodas as funções aceitam:\n\ncoordenadas = c(\"x\", \"y\") para especificar colunas manualmente ou detecção automática por nomes convencionais (x, y, lon, lat).\njanela = \"auto\" para delimitar o retângulo de estudo automaticamente ou janela = c(xmin, xmax, ymin, ymax) para definição manual."
+  },
+  {
+    "objectID": "modulos/espacial.html#teste-de-quadrats-homogeneidade-de-primeira-ordem-csr",
+    "href": "modulos/espacial.html#teste-de-quadrats-homogeneidade-de-primeira-ordem-csr",
+    "title": "Estatística Espacial",
+    "section": "7. Teste de Quadrats — Homogeneidade de Primeira Ordem (CSR)",
+    "text": "7. Teste de Quadrats — Homogeneidade de Primeira Ordem (CSR)\nA função teste_quadrats() divide o domínio geográfico em uma grade de \\(n_x \\times n_y\\) células e compara as contagens observadas em cada quadrat com a distribuição teórica de Poisson homogênea via teste Qui-Quadrado (\\(\\chi^2\\)).\nA Razão Variância/Média (VMR) complementa o teste formal:\n\n\\(VMR \\approx 1\\): compatível com aleatoriedade espacial completa (CSR).\n\\(VMR &gt; 1\\): superdispersão — eventos mais concentrados do que o esperado (Agrupamento).\n\\(VMR &lt; 1\\): subdispersão — eventos mais uniformes do que o esperado (Regularidade).\n\nParâmetro auto: nx = \"auto\" e ny = \"auto\" selecionam automaticamente a grade ótima para que a contagem esperada por célula atenda à regra de Pearson (\\(E_i \\ge 5\\)), maximizando o poder do \\(\\chi^2\\).\n# Grade selecionada automaticamente\nteste_quadrats(\n  dados        = dados_ocorrencias,\n  coordenadas  = c(\"longitude\", \"latitude\")\n)\n\n# Grade manual 5×5\nteste_quadrats(\n  dados        = dados_ocorrencias,\n  coordenadas  = c(\"longitude\", \"latitude\"),\n  nx           = 5,\n  ny           = 5,\n  janela       = c(xmin, xmax, ymin, ymax)\n)\nO gráfico exibe a distribuição de frequências dos quadrats (barras azuis) sobreposta à curva teórica de Poisson esperada (linha vermelha tracejada)."
+  },
+  {
+    "objectID": "modulos/espacial.html#teste-de-clark-evans-agregação-pelo-vizinho-mais-próximo",
+    "href": "modulos/espacial.html#teste-de-clark-evans-agregação-pelo-vizinho-mais-próximo",
+    "title": "Estatística Espacial",
+    "section": "8. Teste de Clark-Evans — Agregação pelo Vizinho Mais Próximo",
+    "text": "8. Teste de Clark-Evans — Agregação pelo Vizinho Mais Próximo\nA função teste_clark_evans() compara a distância média observada entre cada evento e seu vizinho mais próximo (\\(\\bar{r}_A\\)) com a distância teórica esperada sob aleatoriedade (\\(\\bar{r}_E = 1 / 2\\sqrt{\\lambda}\\)).\nO Índice de Clark-Evans (\\(R = \\bar{r}_A / \\bar{r}_E\\)) resume o diagnóstico numa única estatística:\n\n\\(R = 1\\): Aleatório (CSR).\n\\(R &lt; 1\\): Agrupado (cluster) — atração mútua entre eventos.\n\\(R &gt; 1\\): Regular / Disperso — inibição ou competição espacial.\n\nParâmetro auto: correcao = \"auto\" aplica automaticamente a Correção de Borda de Donnelly (1978) quando a janela é retangular, corrigindo o viés de borda na estimativa de \\(\\bar{r}_E\\).\n# Com correção de borda automática\nteste_clark_evans(\n  dados       = dados_arvores,\n  coordenadas = c(\"x\", \"y\")\n)\n\n# Sem correção de borda\nteste_clark_evans(\n  dados       = dados_arvores,\n  coordenadas = c(\"x\", \"y\"),\n  correcao    = \"nenhuma\"\n)\nO gráfico exibe a distribuição das distâncias ao vizinho mais próximo com as médias observada (verde) e teórica esperada (vermelho tracejado)."
+  },
+  {
+    "objectID": "modulos/espacial.html#função-k-de-ripley-e-l-de-besag-dependência-de-segunda-ordem",
+    "href": "modulos/espacial.html#função-k-de-ripley-e-l-de-besag-dependência-de-segunda-ordem",
+    "title": "Estatística Espacial",
+    "section": "9. Função K de Ripley e L de Besag — Dependência de Segunda Ordem",
+    "text": "9. Função K de Ripley e L de Besag — Dependência de Segunda Ordem\nA função funcao_k_ripley() (alias: funcao_ripley()) avalia a dependência espacial em múltiplas escalas de distância \\(r\\), superando a limitação dos testes de primeira ordem que não revelam em que escala o agrupamento ocorre.\nA forma estabilizada de Besag: \\[L(r) = \\sqrt{\\frac{K(r)}{\\pi}} - r\\] tem valor esperado \\(L(r) = 0\\) sob CSR, \\(L(r) &gt; 0\\) indica agrupamento e \\(L(r) &lt; 0\\) indica dispersão/inibição naquela escala.\nEnvelopes de Monte Carlo: A faixa cinza do gráfico representa o intervalo de confiança gerado por n_sim simulações de Poisson homogêneo. A curva observada fora dessa faixa constitui evidência de desvio em relação à CSR.\nParâmetros auto:\n\nr_max = \"auto\" adota \\(r_{\\text{max}} = \\frac{1}{4} \\min(\\text{largura}, \\text{altura})\\) — a recomendação clássica de Ripley para evitar distorções severas de borda.\nn_passos = \"auto\" gera uma malha de 50 raios equidistantes.\n\n# Com envelopes de Monte Carlo (padrão)\nfuncao_k_ripley(\n  dados       = dados_ocorrencias,\n  coordenadas = c(\"x\", \"y\"),\n  n_sim       = 99,\n  nivel       = 0.95\n)\n\n# Com raio máximo manual e sem envelope\nfuncao_k_ripley(\n  dados       = dados_ocorrencias,\n  coordenadas = c(\"x\", \"y\"),\n  r_max       = 50,\n  n_passos    = 100,\n  envelope    = FALSE\n)\nO gráfico exibe a curva \\(L(r)\\) observada (linha azul), a referência CSR em \\(y = 0\\) (linha vermelha tracejada) e a faixa de simulação (cinza sombreado)."
+  },
+  {
+    "objectID": "modulos/espacial.html#função-g-distribuição-acumulada-do-vizinho-mais-próximo",
+    "href": "modulos/espacial.html#função-g-distribuição-acumulada-do-vizinho-mais-próximo",
+    "title": "Estatística Espacial",
+    "section": "10. Função G — Distribuição Acumulada do Vizinho Mais Próximo",
+    "text": "10. Função G — Distribuição Acumulada do Vizinho Mais Próximo\nA função funcao_g_pontos() estima a distribuição acumulada \\(G(r)\\) das distâncias de cada evento ao seu vizinho mais próximo, comparando a curva empírica com a curva teórica de Poisson: \\[G_{\\text{CSR}}(r) = 1 - e^{-\\lambda \\pi r^2}\\]\n\nCurva observada acima do envelope: vizinhos mais próximos entre si do que sob CSR → Agrupamento.\nCurva observada abaixo do envelope: vizinhos mais afastados do que sob CSR → Regularidade / Inibição.\nCurva dentro do envelope: padrão consistente com CSR.\n\n# Função G com envelope CSR\nfuncao_g_pontos(\n  dados       = dados_ocorrencias,\n  coordenadas = c(\"x\", \"y\"),\n  n_sim       = 99,\n  nivel       = 0.95\n)\nO gráfico exibe a curva empírica \\(G(r)\\) observada (linha azul), a curva teórica de Poisson (linha vermelha tracejada) e a faixa de envelopes CSR (cinza sombreado)."
   },
   {
     "objectID": "modulos/descritiva.html",

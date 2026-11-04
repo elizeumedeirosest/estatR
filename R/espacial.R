@@ -1152,3 +1152,690 @@ impactos_espaciais <- function(modelo) {
     stringsAsFactors = FALSE
   ))
 }
+
+
+
+# ==============================================================================
+# PARTE II: PROCESSOS PONTUAIS ESPACIAIS (POINT PATTERN ANALYSIS)
+# ==============================================================================
+
+# ── HELPERS INTERNOS PARA PROCESSOS PONTUAIS ──────────────────────────────────
+
+#' @noRd
+.esp_extrair_coords_pontos <- function(dados, coordenadas = NULL) {
+  if (inherits(dados, "sf")) {
+    if (requireNamespace("sf", quietly = TRUE)) {
+      coords <- sf::st_coordinates(dados)[, 1:2, drop = FALSE]
+      colnames(coords) <- c("x", "y")
+      return(as.data.frame(coords))
+    }
+  }
+  if (!is.null(coordenadas)) {
+    if (is.character(coordenadas) && length(coordenadas) == 2) {
+      if (!all(coordenadas %in% colnames(dados))) {
+        stop(sprintf("Colunas de coordenadas '%s' e '%s' não encontradas nos dados.",
+                     coordenadas[1], coordenadas[2]), call. = FALSE)
+      }
+      res <- as.data.frame(dados[, coordenadas])
+      colnames(res) <- c("x", "y")
+      return(res)
+    } else if (is.numeric(coordenadas) && length(coordenadas) == 2) {
+      res <- as.data.frame(dados[, coordenadas])
+      colnames(res) <- c("x", "y")
+      return(res)
+    }
+  }
+  if ((is.data.frame(dados) || is.matrix(dados)) && ncol(dados) >= 2) {
+    cnames <- tolower(colnames(dados))
+    idx_x <- which(cnames %in% c("x", "lon", "longitude", "coord_x", "x_coord", "long"))[1]
+    idx_y <- which(cnames %in% c("y", "lat", "latitude", "coord_y", "y_coord"))[1]
+    if (!is.na(idx_x) && !is.na(idx_y)) {
+      res <- as.data.frame(dados[, c(idx_x, idx_y)])
+      colnames(res) <- c("x", "y")
+      return(res)
+    }
+    res <- as.data.frame(dados[, 1:2])
+    colnames(res) <- c("x", "y")
+    return(res)
+  }
+  stop("Não foi possível identificar as coordenadas dos pontos. Informe 'coordenadas = c(\"x\", \"y\")'.", call. = FALSE)
+}
+
+#' @noRd
+.esp_definir_janela <- function(coords, janela = "auto") {
+  if (is.character(janela) && janela == "auto") {
+    rx <- range(coords$x, na.rm = TRUE)
+    ry <- range(coords$y, na.rm = TRUE)
+    dx <- rx[2] - rx[1]
+    dy <- ry[2] - ry[1]
+    pad_x <- if (dx > 0) dx * 0.02 else 0.1
+    pad_y <- if (dy > 0) dy * 0.02 else 0.1
+    return(c(xmin = rx[1] - pad_x, xmax = rx[2] + pad_x,
+             ymin = ry[1] - pad_y, ymax = ry[2] + pad_y))
+  }
+  if (is.numeric(janela) && length(janela) == 4) {
+    names(janela) <- c("xmin", "xmax", "ymin", "ymax")
+    return(janela)
+  }
+  stop("O argumento 'janela' deve ser 'auto' ou um vetor numérico c(xmin, xmax, ymin, ymax).", call. = FALSE)
+}
+
+
+# ── 8. TESTE DE QUADRATS (CSR) ────────────────────────────────────────────────
+
+#' @title Teste de Quadrats para Homogeneidade Espacial (CSR)
+#' @description Avalia a hipótese de Aleatoriedade Espacial Completa (CSR - Complete Spatial Randomness)
+#'   dividindo o domínio geográfico em uma grade de quadrats e comparando as frequências observadas
+#'   com uma distribuição teórica homogênea de Poisson via teste Qui-Quadrado (χ²).
+#' @param dados Data frame, matriz ou objeto \code{sf} contendo as coordenadas dos pontos.
+#' @param coordenadas Vetor de caracteres ou índices com o nome das colunas de coordenadas (ex: \code{c("x", "y")}).
+#' @param nx Número de divisões no eixo X ou \code{"auto"} para determinação automática da grade ótima.
+#' @param ny Número de divisões no eixo Y ou \code{"auto"} para determinação automática da grade ótima.
+#' @param janela Vetor com os limites do retângulo envolvente \code{c(xmin, xmax, ymin, ymax)} ou \code{"auto"}.
+#' @param grafico Lógico. Se TRUE, plota o gráfico em ggplot2 com a distribuição de frequências e \code{meu_tema(grade = "dupla")}.
+#' @return Objeto invisível da classe \code{estatR_teste_quadrats}.
+#' @export
+teste_quadrats <- function(dados,
+                           coordenadas = NULL,
+                           nx = "auto",
+                           ny = "auto",
+                           janela = "auto",
+                           grafico = TRUE) {
+
+  coords <- .esp_extrair_coords_pontos(dados, coordenadas)
+  N <- nrow(coords)
+  if (N < 4) stop("São necessárias pelo menos 4 observações para o teste de quadrats.", call. = FALSE)
+
+  j <- .esp_definir_janela(coords, janela)
+  Lx <- j["xmax"] - j["xmin"]
+  Ly <- j["ymax"] - j["ymin"]
+
+  nx_auto <- identical(nx, "auto")
+  ny_auto <- identical(ny, "auto")
+  if (nx_auto || ny_auto) {
+    M_alvo <- max(4, min(64, round(N / 6)))
+    razao <- Lx / Ly
+    if (razao <= 0) razao <- 1
+    if (nx_auto) {
+      nx_val <- max(2, min(12, round(sqrt(M_alvo * razao))))
+    } else {
+      nx_val <- max(2, as.integer(nx))
+    }
+    if (ny_auto) {
+      ny_val <- max(2, min(12, round(M_alvo / nx_val)))
+    } else {
+      ny_val <- max(2, as.integer(ny))
+    }
+  } else {
+    nx_val <- max(2, as.integer(nx))
+    ny_val <- max(2, as.integer(ny))
+  }
+
+  m <- nx_val * ny_val
+  cortes_x <- seq(j["xmin"], j["xmax"], length.out = nx_val + 1)
+  cortes_y <- seq(j["ymin"], j["ymax"], length.out = ny_val + 1)
+
+  fx <- cut(coords$x, breaks = cortes_x, include.lowest = TRUE)
+  fy <- cut(coords$y, breaks = cortes_y, include.lowest = TRUE)
+  tab_cont <- as.data.frame(table(fx, fy))
+  contagens <- tab_cont$Freq
+
+  E_esperado <- N / m
+  chi2 <- sum((contagens - E_esperado)^2 / E_esperado)
+  gl <- m - 1
+  p_valor <- stats::pchisq(chi2, df = gl, lower.tail = FALSE)
+  vmr <- stats::var(contagens) / mean(contagens)
+
+  q_vals <- stats::quantile(contagens, probs = c(0, 0.25, 0.5, 0.75, 1))
+  dp_vals <- stats::sd(contagens)
+
+  .print_titulo("TESTE DE HOMOGENEIDADE ESPACIAL: QUADRATS (CSR)")
+  cat(sprintf("  Nº Observações    : %d pontos\n", N))
+  cat(sprintf("  Janela de Estudo  : [%s, %s] × [%s, %s]\n",
+              .esp_fmt_num(j["xmin"], 2), .esp_fmt_num(j["xmax"], 2),
+              .esp_fmt_num(j["ymin"], 2), .esp_fmt_num(j["ymax"], 2)))
+  modo_grade <- if (nx_auto && ny_auto) " (selecionada automaticamente)" else ""
+  cat(sprintf("  Grade de Quadrats : %d × %d (%d células)%s\n", nx_val, ny_val, m, modo_grade))
+  cat(sprintf("  Média Esperada (E): %s pontos por quadrat\n\n", .esp_fmt_num(E_esperado, 2)))
+
+  .print_topico("DISTRIBUIÇÃO DAS CONTAGENS POR QUADRAT")
+  w_q <- c(min = 10, q1 = 12, med = 12, medm = 12, q3 = 12, max = 10, dp = 14)
+  w_tot <- sum(w_q)
+  cat(.esp_sep(w_tot), "\n")
+  cat("  ",
+      .esp_pad("Mínimo", w_q["min"], "center"),
+      .esp_pad("1º Quartil", w_q["q1"], "center"),
+      .esp_pad("Mediana", w_q["med"], "center"),
+      .esp_pad("Média", w_q["medm"], "center"),
+      .esp_pad("3º Quartil", w_q["q3"], "center"),
+      .esp_pad("Máximo", w_q["max"], "center"),
+      .esp_pad("Desvio Padrão", w_q["dp"], "center"),
+      "\n", sep = "")
+  cat(.esp_sep(w_tot), "\n")
+  cat("  ",
+      .esp_pad(q_vals[1], w_q["min"], "center"),
+      .esp_pad(.esp_fmt_num(q_vals[2], 1), w_q["q1"], "center"),
+      .esp_pad(.esp_fmt_num(q_vals[3], 1), w_q["med"], "center"),
+      .esp_pad(.esp_fmt_num(mean(contagens), 2), w_q["medm"], "center"),
+      .esp_pad(.esp_fmt_num(q_vals[4], 1), w_q["q3"], "center"),
+      .esp_pad(q_vals[5], w_q["max"], "center"),
+      .esp_pad(.esp_fmt_num(dp_vals, 2), w_q["dp"], "center"),
+      "\n", sep = "")
+  cat(.esp_sep(w_tot), "\n\n")
+
+  .print_topico("RESULTADOS DO TESTE QUI-QUADRADO")
+  w_r <- 65
+  cat(sprintf("  Estatística Qui-Quadrado (χ²) : %s\n", .esp_fmt_num(chi2, 3)))
+  cat(sprintf("  Graus de Liberdade (gl)       : %d\n", gl))
+  desc_vmr <- if (vmr > 1.2) " (superdispersão / agrupamento)" else if (vmr < 0.8) " (subdispersão / regularidade)" else " (compatível com Poisson)"
+  cat(sprintf("  Razão Variância/Média (VMR)   : %s%s\n", .esp_fmt_num(vmr, 3), desc_vmr))
+  p_str <- paste0(.esp_fmt_p(p_valor), " ", .esp_asterisco(p_valor))
+  cat(sprintf("  p-valor                       : %s\n", p_str))
+  cat(.esp_sep(w_r), "\n")
+  .esp_nota_sig()
+
+  .print_topico("INTERPRETAÇÃO")
+  if (p_valor < 0.05) {
+    if (vmr > 1) {
+      cat(sprintf("  [✓] A hipótese de Aleatoriedade Espacial Completa (CSR) foi rejeitada (p = %s).\n", .esp_fmt_p(p_valor)))
+      cat(sprintf("  A razão variância/média elevada (VMR = %s) indica um padrão espacial Agrupado (clusters),\n  com concentrações densas de eventos em determinados quadrantes e outros rarefeitos.\n\n",
+                  .esp_fmt_num(vmr, 3)))
+    } else {
+      cat(sprintf("  [✓] A hipótese de Aleatoriedade Espacial Completa (CSR) foi rejeitada (p = %s).\n", .esp_fmt_p(p_valor)))
+      cat(sprintf("  A razão variância/média reduzida (VMR = %s) indica um padrão espacial Regular / Uniforme,\n  evidenciando dispersão ou inibição mútua entre os eventos.\n\n",
+                  .esp_fmt_num(vmr, 3)))
+    }
+  } else {
+    cat(sprintf("  [!] Não há evidência estatística para rejeitar a Aleatoriedade Espacial Completa (CSR) (p = %s).\n", .esp_fmt_p(p_valor)))
+    cat("  O padrão espacial é compatível com um Processo Pontual de Poisson Homogêneo constante.\n\n")
+  }
+  .print_rodape()
+
+  p_plot <- NULL
+  if (grafico && requireNamespace("ggplot2", quietly = TRUE)) {
+    df_plot <- data.frame(Contagem = contagens)
+    k_range <- 0:max(contagens, stats::qpois(0.999, lambda = E_esperado))
+    df_pois <- data.frame(
+      k = k_range,
+      freq_esperada = stats::dpois(k_range, lambda = E_esperado) * m
+    )
+
+    p_plot <- ggplot2::ggplot(df_plot, ggplot2::aes(x = Contagem)) +
+      ggplot2::geom_histogram(binwidth = 1, fill = "#457B9D", color = "white", alpha = 0.85,
+                              center = 0, ggplot2::aes(y = ggplot2::after_stat(count))) +
+      ggplot2::geom_line(data = df_pois, ggplot2::aes(x = k, y = freq_esperada),
+                         color = "#E63946", linewidth = 1.1, linetype = "dashed") +
+      ggplot2::geom_point(data = df_pois, ggplot2::aes(x = k, y = freq_esperada),
+                          color = "#E63946", size = 2) +
+      ggplot2::labs(
+        title    = "Teste de Quadrats: Frequência Observada vs Teórica de Poisson",
+        subtitle = sprintf("Grade %d×%d | χ² = %s (gl = %d, p = %s) | Linha vermelha: Poisson E(k) = %s",
+                           nx_val, ny_val, .esp_fmt_num(chi2, 2), gl, .esp_fmt_p(p_valor), .esp_fmt_num(E_esperado, 1)),
+        x        = "Número de Pontos por Quadrat",
+        y        = "Frequência de Quadrats"
+      ) +
+      meu_tema(grade = "dupla")
+
+    suppressMessages(print(p_plot))
+  }
+
+  res <- list(
+    estatistica   = chi2,
+    gl            = gl,
+    p_valor       = p_valor,
+    vmr           = vmr,
+    esperado      = E_esperado,
+    contagens     = contagens,
+    nx            = nx_val,
+    ny            = ny_val,
+    janela        = j,
+    grafico       = p_plot
+  )
+  class(res) <- c("estatR_teste_quadrats", "list")
+  invisible(res)
+}
+
+
+# ── 9. TESTE DE CLARK-EVANS (CSR) ─────────────────────────────────────────────
+
+#' @title Teste de Agregação de Clark-Evans (CSR)
+#' @description Avalia a dependência espacial de processos pontuais comparando a distância média
+#'   observada entre cada evento e seu vizinho mais próximo com a distância teórica esperada sob
+#'   Aleatoriedade Espacial Completa (CSR - Processo de Poisson Homogêneo).
+#' @param dados Data frame, matriz ou objeto \code{sf} com coordenadas dos pontos.
+#' @param coordenadas Vetor de caracteres ou índices com as colunas de coordenadas (ex: \code{c("x", "y")}).
+#' @param janela Vetor \code{c(xmin, xmax, ymin, ymax)} ou \code{"auto"}.
+#' @param correcao Método de correção de borda: \code{"auto"} (Donnelly para janela retangular),
+#'   \code{"donnelly"} ou \code{"nenhuma"}.
+#' @param grafico Lógico. Se TRUE, gera gráfico em ggplot2 com \code{meu_tema(grade = "dupla")}.
+#' @return Objeto invisível da classe \code{estatR_clark_evans}.
+#' @export
+teste_clark_evans <- function(dados,
+                              coordenadas = NULL,
+                              janela = "auto",
+                              correcao = c("auto", "donnelly", "nenhuma"),
+                              grafico = TRUE) {
+
+  correcao <- match.arg(correcao)
+  coords <- .esp_extrair_coords_pontos(dados, coordenadas)
+  N <- nrow(coords)
+  if (N < 4) stop("São necessárias pelo menos 4 observações para o teste de Clark-Evans.", call. = FALSE)
+
+  j <- .esp_definir_janela(coords, janela)
+  Lx <- j["xmax"] - j["xmin"]
+  Ly <- j["ymax"] - j["ymin"]
+  area <- Lx * Ly
+  perimetro <- 2 * (Lx + Ly)
+  lambda <- N / area
+
+  coords_mat <- as.matrix(coords)
+  d_mat <- as.matrix(stats::dist(coords_mat))
+  diag(d_mat) <- Inf
+  d_min <- apply(d_mat, 1, min)
+  r_A <- mean(d_min)
+
+  r_E <- 1 / (2 * sqrt(lambda))
+
+  if (correcao %in% c("auto", "donnelly")) {
+    r_teorico <- r_E + (0.0514 + 0.041 / sqrt(N)) * (perimetro / N)
+    var_teorica <- 0.0703 * area / (N^2) + 0.037 * perimetro * sqrt(area) / (N^2.5)
+    se <- sqrt(var_teorica)
+    nome_corr <- "Correção de Borda de Donnelly (1978)"
+  } else {
+    r_teorico <- r_E
+    se <- 0.26136 / sqrt(N * lambda)
+    nome_corr <- "Sem correção de borda"
+  }
+
+  R_ratio <- r_A / r_teorico
+  z_score <- (r_A - r_teorico) / se
+  p_valor <- 2 * stats::pnorm(-abs(z_score))
+
+  .print_titulo("TESTE DE AGREGAÇÃO DE CLARK-EVANS (CSR)")
+  cat(sprintf("  Nº Observações      : %d pontos\n", N))
+  cat(sprintf("  Janela de Estudo    : Área = %s | Perímetro = %s\n",
+              .esp_fmt_num(area, 2), .esp_fmt_num(perimetro, 2)))
+  cat(sprintf("  Densidade Estimada  : %s pontos/unidade²\n", .esp_fmt_num(lambda, 4)))
+  cat(sprintf("  Método de Correção  : %s\n\n", nome_corr))
+
+  .print_topico("RESULTADOS DO TESTE")
+  w_r <- 65
+  cat(sprintf("  Distância Média Observada (r̄A)   : %s\n", .esp_fmt_num(r_A, 4)))
+  cat(sprintf("  Distância Média Esperada (r̄E)    : %s\n", .esp_fmt_num(r_teorico, 4)))
+  desc_r <- if (R_ratio < 0.9) " (agregação / cluster)" else if (R_ratio > 1.1) " (regularidade / dispersão)" else " (aleatório)"
+  cat(sprintf("  Índice de Clark-Evans (R)        : %s%s\n", .esp_fmt_num(R_ratio, 4), desc_r))
+  cat(sprintf("  Estatística Z (Score)            : %s\n", .esp_fmt_num(z_score, 3)))
+  p_str <- paste0(.esp_fmt_p(p_valor), " ", .esp_asterisco(p_valor))
+  cat(sprintf("  p-valor                          : %s\n", p_str))
+  cat(.esp_sep(w_r), "\n")
+  .esp_nota_sig()
+
+  .print_topico("INTERPRETAÇÃO")
+  if (p_valor < 0.05) {
+    if (R_ratio < 1) {
+      cat(sprintf("  [✓] O padrão espacial apresenta Agrupamento estatisticamente significativo (R = %s; p = %s).\n",
+                  .esp_fmt_num(R_ratio, 4), .esp_fmt_p(p_valor)))
+      cat("  A distância média observada entre vizinhos é inferior à esperada sob CSR,\n  indicando atração mútua ou concentração espacial dos eventos.\n\n")
+    } else {
+      cat(sprintf("  [✓] O padrão espacial apresenta Regularidade / Dispersão significativa (R = %s; p = %s).\n",
+                  .esp_fmt_num(R_ratio, 4), .esp_fmt_p(p_valor)))
+      cat("  A distância média observada entre vizinhos é superior à esperada sob CSR,\n  evidenciando inibição mútua ou competição espacial.\n\n")
+    }
+  } else {
+    cat(sprintf("  [!] Não há evidência estatística para rejeitar a Aleatoriedade Espacial Completa (R = %s; p = %s).\n",
+                .esp_fmt_num(R_ratio, 4), .esp_fmt_p(p_valor)))
+    cat("  A distribuição das distâncias entre vizinhos comporta-se de forma espacialmente aleatória.\n\n")
+  }
+  .print_rodape()
+
+  p_plot <- NULL
+  if (grafico && requireNamespace("ggplot2", quietly = TRUE)) {
+    df_plot <- data.frame(distancia = d_min)
+    p_plot <- ggplot2::ggplot(df_plot, ggplot2::aes(x = distancia)) +
+      ggplot2::geom_histogram(ggplot2::aes(y = ggplot2::after_stat(density)),
+                              bins = 15, fill = "#1D3557", color = "white", alpha = 0.75) +
+      ggplot2::geom_density(color = "#1D3557", linewidth = 1) +
+      ggplot2::geom_vline(xintercept = r_teorico, color = "#E63946", linetype = "dashed", linewidth = 1) +
+      ggplot2::geom_vline(xintercept = r_A, color = "#2A9D8F", linewidth = 1.1) +
+      ggplot2::labs(
+        title    = "Teste de Clark-Evans: Distâncias ao Vizinho Mais Próximo",
+        subtitle = sprintf("Verde: Média Observada (%s) | Vermelho Tracejado: Média Esperada CSR (%s) | R = %s (p = %s)",
+                           .esp_fmt_num(r_A, 2), .esp_fmt_num(r_teorico, 2), .esp_fmt_num(R_ratio, 3), .esp_fmt_p(p_valor)),
+        x        = "Distância ao Vizinho Mais Próximo",
+        y        = "Densidade"
+      ) +
+      meu_tema(grade = "dupla")
+
+    suppressMessages(print(p_plot))
+  }
+
+  res <- list(
+    r_observado = r_A,
+    r_esperado  = r_teorico,
+    R           = R_ratio,
+    z_score     = z_score,
+    p_valor     = p_valor,
+    distancias  = d_min,
+    correcao    = nome_corr,
+    janela      = j,
+    grafico     = p_plot
+  )
+  class(res) <- c("estatR_clark_evans", "list")
+  invisible(res)
+}
+
+
+# ── 10. FUNÇÃO K DE RIPLEY E L DE BESAG ───────────────────────────────────────
+
+#' @title Função K de Ripley e L de Besag com Envelopes de Monte Carlo
+#' @description Estima a função espacial de segunda ordem K de Ripley e sua forma linearizada
+#'   L de Besag (L(r) = sqrt(K(r)/pi) - r) para avaliar a dependência espacial em múltiplas
+#'   escalas de distância (r), com faixas de simulação CSR (Complete Spatial Randomness) via envelopes de Monte Carlo.
+#' @param dados Data frame, matriz ou objeto \code{sf} com coordenadas dos pontos.
+#' @param coordenadas Vetor de caracteres ou índices com as colunas de coordenadas.
+#' @param r_max Distância máxima avaliada ou \code{"auto"} para adotar 1/4 da menor dimensão da janela.
+#' @param n_passos Número de passos na malha de distâncias avaliadas ou \code{"auto"} (padrão 50).
+#' @param janela Vetor \code{c(xmin, xmax, ymin, ymax)} ou \code{"auto"}.
+#' @param envelope Lógico. Se TRUE, constrói envelopes de simulação sob CSR via Monte Carlo.
+#' @param n_sim Número de simulações de Monte Carlo (padrão 99).
+#' @param nivel Nível de confiança para o envelope de simulação (padrão 0.95).
+#' @param grafico Lógico. Se TRUE, plota o gráfico da curva L(r) com \code{meu_tema(grade = "dupla")}.
+#' @return Objeto invisível da classe \code{estatR_k_ripley}.
+#' @export
+funcao_k_ripley <- function(dados,
+                            coordenadas = NULL,
+                            r_max = "auto",
+                            n_passos = "auto",
+                            janela = "auto",
+                            envelope = TRUE,
+                            n_sim = 99,
+                            nivel = 0.95,
+                            grafico = TRUE) {
+
+  coords <- .esp_extrair_coords_pontos(dados, coordenadas)
+  N <- nrow(coords)
+  if (N < 5) stop("São necessárias pelo menos 5 observações para a função K de Ripley.", call. = FALSE)
+
+  j <- .esp_definir_janela(coords, janela)
+  Lx <- j["xmax"] - j["xmin"]
+  Ly <- j["ymax"] - j["ymin"]
+  area <- Lx * Ly
+  lambda <- N / area
+
+  r_max_val <- if (identical(r_max, "auto")) 0.25 * min(Lx, Ly) else as.numeric(r_max)
+  n_passos_val <- if (identical(n_passos, "auto")) 50 else as.integer(n_passos)
+  r_seq <- seq(r_max_val / n_passos_val, r_max_val, length.out = n_passos_val)
+
+  coords_mat <- as.matrix(coords)
+  d_mat <- as.matrix(stats::dist(coords_mat))
+  diag(d_mat) <- Inf
+
+  fator_k <- area / (N^2)
+  calc_k_vetor <- function(dmat, rvec) {
+    sapply(rvec, function(r) {
+      fator_k * sum(dmat <= r)
+    })
+  }
+
+  K_obs <- calc_k_vetor(d_mat, r_seq)
+  L_obs <- sqrt(K_obs / pi) - r_seq
+
+  L_inf <- NULL
+  L_sup <- NULL
+  if (envelope) {
+    alpha <- 1 - nivel
+    p_inf <- alpha / 2
+    p_sup <- 1 - alpha / 2
+
+    sim_L_mat <- matrix(0, nrow = n_sim, ncol = length(r_seq))
+    for (s in seq_len(n_sim)) {
+      sim_x <- stats::runif(N, min = j["xmin"], max = j["xmax"])
+      sim_y <- stats::runif(N, min = j["ymin"], max = j["ymax"])
+      sim_d <- as.matrix(stats::dist(cbind(sim_x, sim_y)))
+      diag(sim_d) <- Inf
+      sim_K <- calc_k_vetor(sim_d, r_seq)
+      sim_L_mat[s, ] <- sqrt(sim_K / pi) - r_seq
+    }
+    L_inf <- apply(sim_L_mat, 2, stats::quantile, probs = p_inf)
+    L_sup <- apply(sim_L_mat, 2, stats::quantile, probs = p_sup)
+  }
+
+  faixas_agreg <- c()
+  faixas_inib  <- c()
+  if (envelope) {
+    idx_agreg <- which(L_obs > L_sup)
+    idx_inib  <- which(L_obs < L_inf)
+    if (length(idx_agreg) >= 2) {
+      r_agr_min <- r_seq[min(idx_agreg)]
+      r_agr_max <- r_seq[max(idx_agreg)]
+      faixas_agreg <- c(r_agr_min, r_agr_max)
+    }
+    if (length(idx_inib) >= 2) {
+      r_in_min <- r_seq[min(idx_inib)]
+      r_in_max <- r_seq[max(idx_inib)]
+      faixas_inib <- c(r_in_min, r_in_max)
+    }
+  }
+
+  .print_titulo("FUNÇÃO K DE RIPLEY E L DE BESAG (PROCESSOS PONTUAIS)")
+  cat(sprintf("  Nº Observações    : %d pontos\n", N))
+  cat(sprintf("  Janela de Estudo  : Área = %s\n", .esp_fmt_num(area, 2)))
+  modo_rmax <- if (identical(r_max, "auto")) " (ótimo: 1/4 da menor dimensão)" else ""
+  cat(sprintf("  Raio Máximo (rmax): %s%s\n", .esp_fmt_num(r_max_val, 2), modo_rmax))
+  cat(sprintf("  Malha de Avaliação: %d passos de distância\n", n_passos_val))
+  if (envelope) {
+    cat(sprintf("  Envelope CSR      : %d simulações Monte Carlo (IC %.0f%%)\n\n", n_sim, nivel * 100))
+  } else {
+    cat("\n")
+  }
+
+  .print_topico("DIAGNÓSTICO POR ESCALA ESPACIAL")
+  if (envelope) {
+    if (length(faixas_agreg) > 0) {
+      cat(sprintf("  Agrupamento Espacial (Cluster): Detectado nas distâncias r entre %s e %s.\n",
+                  .esp_fmt_num(faixas_agreg[1], 2), .esp_fmt_num(faixas_agreg[2], 2)))
+      cat("  Nessa escala de raio, a quantidade média de eventos vizinhos supera significativamente\n  o envelope teórico esperado sob aleatoriedade espacial completa.\n\n")
+    }
+    if (length(faixas_inib) > 0) {
+      cat(sprintf("  Dispersão / Inibição Espacial : Detectada nas distâncias r entre %s e %s.\n",
+                  .esp_fmt_num(faixas_inib[1], 2), .esp_fmt_num(faixas_inib[2], 2)))
+      cat("  Nessa escala, a quantidade média de vizinhos é inferior ao esperado por Poisson,\n  indicando segregação ou competição por espaço.\n\n")
+    }
+    if (length(faixas_agreg) == 0 && length(faixas_inib) == 0) {
+      cat("  Aleatoriedade Espacial Completa (CSR): A curva L(r) permaneceu inteiramente contida\n")
+      cat("  dentro dos limites do envelope de simulação em todas as distâncias avaliadas.\n")
+      cat("  Não há evidência de desvio em relação ao processo pontual homogêneo de Poisson.\n\n")
+    }
+  } else {
+    cat("  Envelope de simulação não solicitado. Para diagnóstico inferencial de agrupamento,\n  utilize envelope = TRUE.\n\n")
+  }
+  .print_rodape()
+
+  p_plot <- NULL
+  if (grafico && requireNamespace("ggplot2", quietly = TRUE)) {
+    df_plot <- data.frame(r = r_seq, L_obs = L_obs)
+    if (envelope) {
+      df_plot$L_inf <- L_inf
+      df_plot$L_sup <- L_sup
+    }
+
+    p <- ggplot2::ggplot(df_plot, ggplot2::aes(x = r))
+    if (envelope) {
+      p <- p + ggplot2::geom_ribbon(ggplot2::aes(ymin = L_inf, ymax = L_sup),
+                                   fill = "gray75", alpha = 0.45)
+    }
+    p <- p +
+      ggplot2::geom_hline(yintercept = 0, linetype = "dashed", color = "#E63946", linewidth = 0.9) +
+      ggplot2::geom_line(ggplot2::aes(y = L_obs), color = "#1D3557", linewidth = 1.2) +
+      ggplot2::labs(
+        title    = "Função L de Besag: L(r) = √(K(r)/π) - r",
+        subtitle = "Linha Azul: Observado | Linha Vermelha: CSR Teórico (L = 0) | Faixa Cinza: Envelope Monte Carlo",
+        x        = "Distância (r)",
+        y        = "L(r)"
+      ) +
+      meu_tema(grade = "dupla")
+
+    p_plot <- p
+    suppressMessages(print(p_plot))
+  }
+
+  res <- list(
+    r         = r_seq,
+    K         = K_obs,
+    L         = L_obs,
+    L_inf     = L_inf,
+    L_sup     = L_sup,
+    r_max     = r_max_val,
+    janela    = j,
+    envelope  = envelope,
+    grafico   = p_plot
+  )
+  class(res) <- c("estatR_k_ripley", "list")
+  invisible(res)
+}
+
+#' @export
+funcao_ripley <- funcao_k_ripley
+
+
+# ── 11. FUNÇÃO G DO VIZINHO MAIS PRÓXIMO ──────────────────────────────────────
+
+#' @title Função G do Vizinho Mais Próximo com Envelopes de Monte Carlo
+#' @description Estima a função de distribuição acumulada G(r) das distâncias de cada evento
+#'   ao seu vizinho mais próximo, comparando com a curva teórica de Poisson e envelopes CSR de Monte Carlo.
+#' @param dados Data frame, matriz ou objeto \code{sf} com coordenadas dos pontos.
+#' @param coordenadas Vetor de caracteres ou índices com as colunas de coordenadas.
+#' @param r_max Distância máxima avaliada ou \code{"auto"}.
+#' @param n_passos Número de passos na malha de distâncias avaliadas ou \code{"auto"} (padrão 50).
+#' @param janela Vetor \code{c(xmin, xmax, ymin, ymax)} ou \code{"auto"}.
+#' @param envelope Lógico. Se TRUE, constrói envelopes de simulação sob CSR via Monte Carlo.
+#' @param n_sim Número de simulações de Monte Carlo (padrão 99).
+#' @param nivel Nível de confiança para o envelope de simulação (padrão 0.95).
+#' @param grafico Lógico. Se TRUE, plota o gráfico da curva G(r) com \code{meu_tema(grade = "dupla")}.
+#' @return Objeto invisível da classe \code{estatR_g_pontos}.
+#' @export
+funcao_g_pontos <- function(dados,
+                            coordenadas = NULL,
+                            r_max = "auto",
+                            n_passos = "auto",
+                            janela = "auto",
+                            envelope = TRUE,
+                            n_sim = 99,
+                            nivel = 0.95,
+                            grafico = TRUE) {
+
+  coords <- .esp_extrair_coords_pontos(dados, coordenadas)
+  N <- nrow(coords)
+  if (N < 5) stop("São necessárias pelo menos 5 observações para a função G.", call. = FALSE)
+
+  j <- .esp_definir_janela(coords, janela)
+  Lx <- j["xmax"] - j["xmin"]
+  Ly <- j["ymax"] - j["ymin"]
+  area <- Lx * Ly
+  lambda <- N / area
+
+  coords_mat <- as.matrix(coords)
+  d_mat <- as.matrix(stats::dist(coords_mat))
+  diag(d_mat) <- Inf
+  d_min <- apply(d_mat, 1, min)
+
+  r_max_val <- if (identical(r_max, "auto")) max(d_min) * 1.05 else as.numeric(r_max)
+  n_passos_val <- if (identical(n_passos, "auto")) 50 else as.integer(n_passos)
+  r_seq <- seq(0, r_max_val, length.out = n_passos_val)
+
+  G_obs <- sapply(r_seq, function(r) mean(d_min <= r))
+  G_csr <- 1 - exp(-lambda * pi * (r_seq^2))
+
+  G_inf <- NULL
+  G_sup <- NULL
+  if (envelope) {
+    alpha <- 1 - nivel
+    p_inf <- alpha / 2
+    p_sup <- 1 - alpha / 2
+
+    sim_G_mat <- matrix(0, nrow = n_sim, ncol = length(r_seq))
+    for (s in seq_len(n_sim)) {
+      sim_x <- stats::runif(N, min = j["xmin"], max = j["xmax"])
+      sim_y <- stats::runif(N, min = j["ymin"], max = j["ymax"])
+      sim_d <- as.matrix(stats::dist(cbind(sim_x, sim_y)))
+      diag(sim_d) <- Inf
+      sim_d_min <- apply(sim_d, 1, min)
+      sim_G_mat[s, ] <- sapply(r_seq, function(r) mean(sim_d_min <= r))
+    }
+    G_inf <- apply(sim_G_mat, 2, stats::quantile, probs = p_inf)
+    G_sup <- apply(sim_G_mat, 2, stats::quantile, probs = p_sup)
+  }
+
+  .print_titulo("FUNÇÃO G: DISTRIBUIÇÃO DO VIZINHO MAIS PRÓXIMO (CSR)")
+  cat(sprintf("  Nº Observações    : %d pontos\n", N))
+  cat(sprintf("  Janela de Estudo  : Área = %s\n", .esp_fmt_num(area, 2)))
+  cat(sprintf("  Distância Média   : %s\n", .esp_fmt_num(mean(d_min), 4)))
+  cat(sprintf("  Distância Máxima  : %s\n", .esp_fmt_num(max(d_min), 4)))
+  if (envelope) {
+    cat(sprintf("  Envelope CSR      : %d simulações Monte Carlo (IC %.0f%%)\n\n", n_sim, nivel * 100))
+  } else {
+    cat("\n")
+  }
+
+  .print_topico("DIAGNÓSTICO DA FUNÇÃO G")
+  if (envelope) {
+    idx_agr <- which(G_obs > G_sup)
+    idx_inb <- which(G_obs < G_inf)
+    if (length(idx_agr) >= 2) {
+      cat("  Curva Observada acima do Envelope: Indica agregação espacial de eventos.\n")
+      cat(sprintf("  As distâncias entre vizinhos são significativamente menores que sob Poisson (r entre %s e %s).\n\n",
+                  .esp_fmt_num(r_seq[min(idx_agr)], 2), .esp_fmt_num(r_seq[max(idx_agr)], 2)))
+    } else if (length(idx_inb) >= 2) {
+      cat("  Curva Observada abaixo do Envelope: Indica padrão regular / disperso.\n")
+      cat(sprintf("  Os eventos mantêm distâncias mútuas maiores que o esperado sob CSR (r entre %s e %s).\n\n",
+                  .esp_fmt_num(r_seq[min(idx_inb)], 2), .esp_fmt_num(r_seq[max(idx_inb)], 2)))
+    } else {
+      cat("  Curva contida no envelope: O padrão espacial é plenamente consistente com\n  um Processo Pontual de Poisson Homogêneo (CSR).\n\n")
+    }
+  } else {
+    cat("  Envelope de simulação não solicitado.\n\n")
+  }
+  .print_rodape()
+
+  p_plot <- NULL
+  if (grafico && requireNamespace("ggplot2", quietly = TRUE)) {
+    df_plot <- data.frame(r = r_seq, G_obs = G_obs, G_csr = G_csr)
+    if (envelope) {
+      df_plot$G_inf <- G_inf
+      df_plot$G_sup <- G_sup
+    }
+
+    p <- ggplot2::ggplot(df_plot, ggplot2::aes(x = r))
+    if (envelope) {
+      p <- p + ggplot2::geom_ribbon(ggplot2::aes(ymin = G_inf, ymax = G_sup),
+                                   fill = "gray75", alpha = 0.45)
+    }
+    p <- p +
+      ggplot2::geom_line(ggplot2::aes(y = G_csr), linetype = "dashed", color = "#E63946", linewidth = 0.9) +
+      ggplot2::geom_line(ggplot2::aes(y = G_obs), color = "#1D3557", linewidth = 1.2) +
+      ggplot2::labs(
+        title    = "Função G: Probabilidade Acumulada do Vizinho Mais Próximo",
+        subtitle = "Linha Azul: G(r) Observado | Linha Vermelha: Teórico Poisson | Faixa Cinza: Envelope CSR",
+        x        = "Distância (r)",
+        y        = "G(r)"
+      ) +
+      meu_tema(grade = "dupla")
+
+    p_plot <- p
+    suppressMessages(print(p_plot))
+  }
+
+  res <- list(
+    r         = r_seq,
+    G_obs     = G_obs,
+    G_csr     = G_csr,
+    G_inf     = G_inf,
+    G_sup     = G_sup,
+    distancias = d_min,
+    janela    = j,
+    envelope  = envelope,
+    grafico   = p_plot
+  )
+  class(res) <- c("estatR_g_pontos", "list")
+  invisible(res)
+}

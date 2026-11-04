@@ -236,7 +236,7 @@ window.Quarto = {
 <header id="title-block-header" class="quarto-title-block default">
 <div class="quarto-title">
 <h1 class="title">Estatística Espacial</h1>
-<p class="subtitle lead">Vizinhança, Autocorrelação (Moran/LISA), Testes LM de Anselin, Regressão Espacial e Impactos de Spillover</p>
+<p class="subtitle lead">Dados de Área (Moran, LM de Anselin, SAR/SEM/MDE) e Processos Pontuais (CSR, Ripley, Clark-Evans)</p>
 </div>
 
 
@@ -253,7 +253,12 @@ window.Quarto = {
 </header>
 
 
-<p>O módulo de <strong>Estatística Espacial</strong> do <code>estatR</code> oferece um ecossistema integrado para a análise de dados com dependência geográfica (dados de área e redes espaciais), cobrindo desde a construção e seleção automática de matrizes de vizinhança até diagnósticos confirmatórios e modelos de regressão espacial autorregressivos.</p>
+<p>O módulo de <strong>Estatística Espacial</strong> do <code>estatR</code> cobre dois grandes domínios da análise espacial quantitativa:</p>
+<ul>
+<li><strong>Dados de Área (<em>Areal Data</em>)</strong> — Dependência geográfica entre regiões contíguas (municípios, estados, unidades censitárias): matrizes de vizinhança, Moran Global/LISA, diagnóstico LM de Anselin e modelos de regressão espacial (SAR, SEM e MDE).</li>
+<li><strong>Processos Pontuais (<em>Point Pattern Analysis</em>)</strong> — Análise do padrão de localização de eventos discretos no espaço (crimes, focos de doenças, árvores, ocorrências): testes de Aleatoriedade Espacial Completa (CSR), função K de Ripley, função G e teste de Clark-Evans.</li>
+</ul>
+<p>Todos os gráficos utilizam <code>ggplot2</code> com <code>meu_tema(grade = "dupla")</code> para manter o padrão editorial do pacote.</p>
 <hr>
 <section id="matrizes-de-vizinhança-e-pesos-espaciais" class="level2">
 <h2 class="anchored" data-anchor-id="matrizes-de-vizinhança-e-pesos-espaciais">1. Matrizes de Vizinhança e Pesos Espaciais</h2>
@@ -380,9 +385,118 @@ window.Quarto = {
 <span id="cb8-5"><a href="#cb8-5" aria-hidden="true" tabindex="-1"></a>  <span class="at">SDM =</span> mod_sdm,</span>
 <span id="cb8-6"><a href="#cb8-6" aria-hidden="true" tabindex="-1"></a>  <span class="at">criterio =</span> <span class="st">"aicc"</span></span>
 <span id="cb8-7"><a href="#cb8-7" aria-hidden="true" tabindex="-1"></a>)</span></code></pre></div><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></div>
-
-
+<hr>
 </section>
+</section>
+<section id="parte-ii-processos-pontuais-point-pattern-analysis" class="level2">
+<h2 class="anchored" data-anchor-id="parte-ii-processos-pontuais-point-pattern-analysis">Parte II — Processos Pontuais (Point Pattern Analysis)</h2>
+<p>A análise de <strong>Processos Pontuais</strong> responde à pergunta fundamental: <strong>os eventos observados no espaço ocorrem de forma Aleatória, Agrupada (<em>cluster</em>) ou Regular (dispersa)?</strong> O <code>estatR</code> implementa os métodos clássicos com saídas ricas no console, testes formais com <code>[✓]</code>/<code>[!]</code> e gráficos editoriais em <code>ggplot2</code>.</p>
+<p>Todas as funções aceitam:</p>
+<ul>
+<li><code>coordenadas = c("x", "y")</code> para especificar colunas manualmente ou detecção automática por nomes convencionais (<code>x</code>, <code>y</code>, <code>lon</code>, <code>lat</code>).</li>
+<li><code>janela = "auto"</code> para delimitar o retângulo de estudo automaticamente ou <code>janela = c(xmin, xmax, ymin, ymax)</code> para definição manual.</li>
+</ul>
+<hr>
+</section>
+<section id="teste-de-quadrats-homogeneidade-de-primeira-ordem-csr" class="level2">
+<h2 class="anchored" data-anchor-id="teste-de-quadrats-homogeneidade-de-primeira-ordem-csr">7. Teste de Quadrats — Homogeneidade de Primeira Ordem (CSR)</h2>
+<p>A função <code>teste_quadrats()</code> divide o domínio geográfico em uma grade de <span class="math inline">\(n_x \times n_y\)</span> células e compara as contagens observadas em cada quadrat com a distribuição teórica de Poisson homogênea via teste Qui-Quadrado (<span class="math inline">\(\chi^2\)</span>).</p>
+<p>A <strong>Razão Variância/Média (VMR)</strong> complementa o teste formal:</p>
+<ul>
+<li><span class="math inline">\(VMR \approx 1\)</span>: compatível com aleatoriedade espacial completa (CSR).</li>
+<li><span class="math inline">\(VMR &gt; 1\)</span>: superdispersão — eventos mais concentrados do que o esperado (<strong>Agrupamento</strong>).</li>
+<li><span class="math inline">\(VMR &lt; 1\)</span>: subdispersão — eventos mais uniformes do que o esperado (<strong>Regularidade</strong>).</li>
+</ul>
+<p><strong>Parâmetro <code>auto</code>:</strong> <code>nx = "auto"</code> e <code>ny = "auto"</code> selecionam automaticamente a grade ótima para que a contagem esperada por célula atenda à regra de Pearson (<span class="math inline">\(E_i \ge 5\)</span>), maximizando o poder do <span class="math inline">\(\chi^2\)</span>.</p>
+<div class="code-copy-outer-scaffold"><div class="sourceCode" id="cb9"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb9-1"><a href="#cb9-1" aria-hidden="true" tabindex="-1"></a><span class="co"># Grade selecionada automaticamente</span></span>
+<span id="cb9-2"><a href="#cb9-2" aria-hidden="true" tabindex="-1"></a><span class="fu">teste_quadrats</span>(</span>
+<span id="cb9-3"><a href="#cb9-3" aria-hidden="true" tabindex="-1"></a>  <span class="at">dados        =</span> dados_ocorrencias,</span>
+<span id="cb9-4"><a href="#cb9-4" aria-hidden="true" tabindex="-1"></a>  <span class="at">coordenadas  =</span> <span class="fu">c</span>(<span class="st">"longitude"</span>, <span class="st">"latitude"</span>)</span>
+<span id="cb9-5"><a href="#cb9-5" aria-hidden="true" tabindex="-1"></a>)</span>
+<span id="cb9-6"><a href="#cb9-6" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb9-7"><a href="#cb9-7" aria-hidden="true" tabindex="-1"></a><span class="co"># Grade manual 5×5</span></span>
+<span id="cb9-8"><a href="#cb9-8" aria-hidden="true" tabindex="-1"></a><span class="fu">teste_quadrats</span>(</span>
+<span id="cb9-9"><a href="#cb9-9" aria-hidden="true" tabindex="-1"></a>  <span class="at">dados        =</span> dados_ocorrencias,</span>
+<span id="cb9-10"><a href="#cb9-10" aria-hidden="true" tabindex="-1"></a>  <span class="at">coordenadas  =</span> <span class="fu">c</span>(<span class="st">"longitude"</span>, <span class="st">"latitude"</span>),</span>
+<span id="cb9-11"><a href="#cb9-11" aria-hidden="true" tabindex="-1"></a>  <span class="at">nx           =</span> <span class="dv">5</span>,</span>
+<span id="cb9-12"><a href="#cb9-12" aria-hidden="true" tabindex="-1"></a>  <span class="at">ny           =</span> <span class="dv">5</span>,</span>
+<span id="cb9-13"><a href="#cb9-13" aria-hidden="true" tabindex="-1"></a>  <span class="at">janela       =</span> <span class="fu">c</span>(xmin, xmax, ymin, ymax)</span>
+<span id="cb9-14"><a href="#cb9-14" aria-hidden="true" tabindex="-1"></a>)</span></code></pre></div><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></div>
+<p>O gráfico exibe a distribuição de frequências dos quadrats (barras azuis) sobreposta à curva teórica de Poisson esperada (linha vermelha tracejada).</p>
+<hr>
+</section>
+<section id="teste-de-clark-evans-agregação-pelo-vizinho-mais-próximo" class="level2">
+<h2 class="anchored" data-anchor-id="teste-de-clark-evans-agregação-pelo-vizinho-mais-próximo">8. Teste de Clark-Evans — Agregação pelo Vizinho Mais Próximo</h2>
+<p>A função <code>teste_clark_evans()</code> compara a <strong>distância média observada</strong> entre cada evento e seu vizinho mais próximo (<span class="math inline">\(\bar{r}_A\)</span>) com a <strong>distância teórica esperada</strong> sob aleatoriedade (<span class="math inline">\(\bar{r}_E = 1 / 2\sqrt{\lambda}\)</span>).</p>
+<p>O <strong>Índice de Clark-Evans</strong> (<span class="math inline">\(R = \bar{r}_A / \bar{r}_E\)</span>) resume o diagnóstico numa única estatística:</p>
+<ul>
+<li><span class="math inline">\(R = 1\)</span>: Aleatório (CSR).</li>
+<li><span class="math inline">\(R &lt; 1\)</span>: Agrupado (<em>cluster</em>) — atração mútua entre eventos.</li>
+<li><span class="math inline">\(R &gt; 1\)</span>: Regular / Disperso — inibição ou competição espacial.</li>
+</ul>
+<p><strong>Parâmetro <code>auto</code>:</strong> <code>correcao = "auto"</code> aplica automaticamente a <strong>Correção de Borda de Donnelly (1978)</strong> quando a janela é retangular, corrigindo o viés de borda na estimativa de <span class="math inline">\(\bar{r}_E\)</span>.</p>
+<div class="code-copy-outer-scaffold"><div class="sourceCode" id="cb10"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb10-1"><a href="#cb10-1" aria-hidden="true" tabindex="-1"></a><span class="co"># Com correção de borda automática</span></span>
+<span id="cb10-2"><a href="#cb10-2" aria-hidden="true" tabindex="-1"></a><span class="fu">teste_clark_evans</span>(</span>
+<span id="cb10-3"><a href="#cb10-3" aria-hidden="true" tabindex="-1"></a>  <span class="at">dados       =</span> dados_arvores,</span>
+<span id="cb10-4"><a href="#cb10-4" aria-hidden="true" tabindex="-1"></a>  <span class="at">coordenadas =</span> <span class="fu">c</span>(<span class="st">"x"</span>, <span class="st">"y"</span>)</span>
+<span id="cb10-5"><a href="#cb10-5" aria-hidden="true" tabindex="-1"></a>)</span>
+<span id="cb10-6"><a href="#cb10-6" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb10-7"><a href="#cb10-7" aria-hidden="true" tabindex="-1"></a><span class="co"># Sem correção de borda</span></span>
+<span id="cb10-8"><a href="#cb10-8" aria-hidden="true" tabindex="-1"></a><span class="fu">teste_clark_evans</span>(</span>
+<span id="cb10-9"><a href="#cb10-9" aria-hidden="true" tabindex="-1"></a>  <span class="at">dados       =</span> dados_arvores,</span>
+<span id="cb10-10"><a href="#cb10-10" aria-hidden="true" tabindex="-1"></a>  <span class="at">coordenadas =</span> <span class="fu">c</span>(<span class="st">"x"</span>, <span class="st">"y"</span>),</span>
+<span id="cb10-11"><a href="#cb10-11" aria-hidden="true" tabindex="-1"></a>  <span class="at">correcao    =</span> <span class="st">"nenhuma"</span></span>
+<span id="cb10-12"><a href="#cb10-12" aria-hidden="true" tabindex="-1"></a>)</span></code></pre></div><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></div>
+<p>O gráfico exibe a distribuição das distâncias ao vizinho mais próximo com as médias observada (verde) e teórica esperada (vermelho tracejado).</p>
+<hr>
+</section>
+<section id="função-k-de-ripley-e-l-de-besag-dependência-de-segunda-ordem" class="level2">
+<h2 class="anchored" data-anchor-id="função-k-de-ripley-e-l-de-besag-dependência-de-segunda-ordem">9. Função K de Ripley e L de Besag — Dependência de Segunda Ordem</h2>
+<p>A função <code>funcao_k_ripley()</code> (alias: <code>funcao_ripley()</code>) avalia a dependência espacial em <strong>múltiplas escalas de distância</strong> <span class="math inline">\(r\)</span>, superando a limitação dos testes de primeira ordem que não revelam <em>em que escala</em> o agrupamento ocorre.</p>
+<p>A forma estabilizada de <strong>Besag</strong>: <span class="math display">\[L(r) = \sqrt{\frac{K(r)}{\pi}} - r\]</span> tem valor esperado <span class="math inline">\(L(r) = 0\)</span> sob CSR, <span class="math inline">\(L(r) &gt; 0\)</span> indica <strong>agrupamento</strong> e <span class="math inline">\(L(r) &lt; 0\)</span> indica <strong>dispersão/inibição</strong> naquela escala.</p>
+<p><strong>Envelopes de Monte Carlo:</strong> A faixa cinza do gráfico representa o intervalo de confiança gerado por <code>n_sim</code> simulações de Poisson homogêneo. A curva observada fora dessa faixa constitui evidência de desvio em relação à CSR.</p>
+<p><strong>Parâmetros <code>auto</code>:</strong></p>
+<ul>
+<li><code>r_max = "auto"</code> adota <span class="math inline">\(r_{\text{max}} = \frac{1}{4} \min(\text{largura}, \text{altura})\)</span> — a recomendação clássica de Ripley para evitar distorções severas de borda.</li>
+<li><code>n_passos = "auto"</code> gera uma malha de 50 raios equidistantes.</li>
+</ul>
+<div class="code-copy-outer-scaffold"><div class="sourceCode" id="cb11"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb11-1"><a href="#cb11-1" aria-hidden="true" tabindex="-1"></a><span class="co"># Com envelopes de Monte Carlo (padrão)</span></span>
+<span id="cb11-2"><a href="#cb11-2" aria-hidden="true" tabindex="-1"></a><span class="fu">funcao_k_ripley</span>(</span>
+<span id="cb11-3"><a href="#cb11-3" aria-hidden="true" tabindex="-1"></a>  <span class="at">dados       =</span> dados_ocorrencias,</span>
+<span id="cb11-4"><a href="#cb11-4" aria-hidden="true" tabindex="-1"></a>  <span class="at">coordenadas =</span> <span class="fu">c</span>(<span class="st">"x"</span>, <span class="st">"y"</span>),</span>
+<span id="cb11-5"><a href="#cb11-5" aria-hidden="true" tabindex="-1"></a>  <span class="at">n_sim       =</span> <span class="dv">99</span>,</span>
+<span id="cb11-6"><a href="#cb11-6" aria-hidden="true" tabindex="-1"></a>  <span class="at">nivel       =</span> <span class="fl">0.95</span></span>
+<span id="cb11-7"><a href="#cb11-7" aria-hidden="true" tabindex="-1"></a>)</span>
+<span id="cb11-8"><a href="#cb11-8" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb11-9"><a href="#cb11-9" aria-hidden="true" tabindex="-1"></a><span class="co"># Com raio máximo manual e sem envelope</span></span>
+<span id="cb11-10"><a href="#cb11-10" aria-hidden="true" tabindex="-1"></a><span class="fu">funcao_k_ripley</span>(</span>
+<span id="cb11-11"><a href="#cb11-11" aria-hidden="true" tabindex="-1"></a>  <span class="at">dados       =</span> dados_ocorrencias,</span>
+<span id="cb11-12"><a href="#cb11-12" aria-hidden="true" tabindex="-1"></a>  <span class="at">coordenadas =</span> <span class="fu">c</span>(<span class="st">"x"</span>, <span class="st">"y"</span>),</span>
+<span id="cb11-13"><a href="#cb11-13" aria-hidden="true" tabindex="-1"></a>  <span class="at">r_max       =</span> <span class="dv">50</span>,</span>
+<span id="cb11-14"><a href="#cb11-14" aria-hidden="true" tabindex="-1"></a>  <span class="at">n_passos    =</span> <span class="dv">100</span>,</span>
+<span id="cb11-15"><a href="#cb11-15" aria-hidden="true" tabindex="-1"></a>  <span class="at">envelope    =</span> <span class="cn">FALSE</span></span>
+<span id="cb11-16"><a href="#cb11-16" aria-hidden="true" tabindex="-1"></a>)</span></code></pre></div><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></div>
+<p>O gráfico exibe a curva <span class="math inline">\(L(r)\)</span> observada (linha azul), a referência CSR em <span class="math inline">\(y = 0\)</span> (linha vermelha tracejada) e a faixa de simulação (cinza sombreado).</p>
+<hr>
+</section>
+<section id="função-g-distribuição-acumulada-do-vizinho-mais-próximo" class="level2">
+<h2 class="anchored" data-anchor-id="função-g-distribuição-acumulada-do-vizinho-mais-próximo">10. Função G — Distribuição Acumulada do Vizinho Mais Próximo</h2>
+<p>A função <code>funcao_g_pontos()</code> estima a distribuição acumulada <span class="math inline">\(G(r)\)</span> das distâncias de cada evento ao seu vizinho mais próximo, comparando a curva empírica com a curva teórica de Poisson: <span class="math display">\[G_{\text{CSR}}(r) = 1 - e^{-\lambda \pi r^2}\]</span></p>
+<ul>
+<li>Curva observada <strong>acima</strong> do envelope: vizinhos mais próximos entre si do que sob CSR → <strong>Agrupamento</strong>.</li>
+<li>Curva observada <strong>abaixo</strong> do envelope: vizinhos mais afastados do que sob CSR → <strong>Regularidade / Inibição</strong>.</li>
+<li>Curva <strong>dentro</strong> do envelope: padrão consistente com CSR.</li>
+</ul>
+<div class="code-copy-outer-scaffold"><div class="sourceCode" id="cb12"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb12-1"><a href="#cb12-1" aria-hidden="true" tabindex="-1"></a><span class="co"># Função G com envelope CSR</span></span>
+<span id="cb12-2"><a href="#cb12-2" aria-hidden="true" tabindex="-1"></a><span class="fu">funcao_g_pontos</span>(</span>
+<span id="cb12-3"><a href="#cb12-3" aria-hidden="true" tabindex="-1"></a>  <span class="at">dados       =</span> dados_ocorrencias,</span>
+<span id="cb12-4"><a href="#cb12-4" aria-hidden="true" tabindex="-1"></a>  <span class="at">coordenadas =</span> <span class="fu">c</span>(<span class="st">"x"</span>, <span class="st">"y"</span>),</span>
+<span id="cb12-5"><a href="#cb12-5" aria-hidden="true" tabindex="-1"></a>  <span class="at">n_sim       =</span> <span class="dv">99</span>,</span>
+<span id="cb12-6"><a href="#cb12-6" aria-hidden="true" tabindex="-1"></a>  <span class="at">nivel       =</span> <span class="fl">0.95</span></span>
+<span id="cb12-7"><a href="#cb12-7" aria-hidden="true" tabindex="-1"></a>)</span></code></pre></div><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></div>
+<p>O gráfico exibe a curva empírica <span class="math inline">\(G(r)\)</span> observada (linha azul), a curva teórica de Poisson (linha vermelha tracejada) e a faixa de envelopes CSR (cinza sombreado).</p>
+
+
 </section>
 
 </main> <!-- /main -->
