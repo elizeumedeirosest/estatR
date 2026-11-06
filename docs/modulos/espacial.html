@@ -236,7 +236,7 @@ window.Quarto = {
 <header id="title-block-header" class="quarto-title-block default">
 <div class="quarto-title">
 <h1 class="title">Estatística Espacial</h1>
-<p class="subtitle lead">Dados de Área (Moran, LM de Anselin, SAR/SEM/MDE) e Processos Pontuais (CSR, Ripley, Clark-Evans)</p>
+<p class="subtitle lead">Dados de Área (Moran, LM, SAR/SEM/MDE), Processos Pontuais (CSR, Ripley, Clark-Evans) e Superfície Contínua (Variograma, Krigagem)</p>
 </div>
 
 
@@ -253,10 +253,11 @@ window.Quarto = {
 </header>
 
 
-<p>O módulo de <strong>Estatística Espacial</strong> do <code>estatR</code> cobre dois grandes domínios da análise espacial quantitativa:</p>
+<p>O módulo de <strong>Estatística Espacial</strong> do <code>estatR</code> cobre os três grandes domínios da análise espacial quantitativa:</p>
 <ul>
-<li><strong>Dados de Área (<em>Areal Data</em>)</strong> — Dependência geográfica entre regiões contíguas (municípios, estados, unidades censitárias): matrizes de vizinhança, Moran Global/LISA, diagnóstico LM de Anselin e modelos de regressão espacial (SAR, SEM e MDE).</li>
-<li><strong>Processos Pontuais (<em>Point Pattern Analysis</em>)</strong> — Análise do padrão de localização de eventos discretos no espaço (crimes, focos de doenças, árvores, ocorrências): testes de Aleatoriedade Espacial Completa (CSR), função K de Ripley, função G e teste de Clark-Evans.</li>
+<li><p><strong>Dados de Área (<em>Areal Data</em>)</strong> — Dependência geográfica entre regiões contíguas (municípios, estados, unidades censitárias): matrizes de vizinhança, Moran Global/LISA, diagnóstico LM de Anselin e modelos de regressão espacial (SAR, SEM e MDE).</p></li>
+<li><p><strong>Processos Pontuais (<em>Point Pattern Analysis</em>)</strong> — Análise do padrão de localização de eventos discretos no espaço (crimes, focos de doenças, árvores, ocorrências): testes de Aleatoriedade Espacial Completa (CSR), função K de Ripley, função G e teste de Clark-Evans.</p></li>
+<li><p><strong>Superfície Contínua (<em>Geostatistics / Continuous Surface</em>)</strong> — Modelagem da dependência espacial contínua e interpolação por Krigagem Ordinária (BLUE): variograma empírico e teórico (esférico, exponencial, gaussiano), mapas de superfície e variância, e validação cruzada Leave-One-Out (LOO).</p></li>
 </ul>
 <p>Todos os gráficos utilizam <code>ggplot2</code> com <code>meu_tema(grade = "dupla")</code> para manter o padrão editorial do pacote.</p>
 <hr>
@@ -495,8 +496,115 @@ window.Quarto = {
 <span id="cb12-6"><a href="#cb12-6" aria-hidden="true" tabindex="-1"></a>  <span class="at">nivel       =</span> <span class="fl">0.95</span></span>
 <span id="cb12-7"><a href="#cb12-7" aria-hidden="true" tabindex="-1"></a>)</span></code></pre></div><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></div>
 <p>O gráfico exibe a curva empírica <span class="math inline">\(G(r)\)</span> observada (linha azul), a curva teórica de Poisson (linha vermelha tracejada) e a faixa de envelopes CSR (cinza sombreado).</p>
+<hr>
+</section>
+<section id="parte-iii-superfície-contínua-geoestatística-interpolação" class="level2">
+<h2 class="anchored" data-anchor-id="parte-iii-superfície-contínua-geoestatística-interpolação">Parte III — Superfície Contínua (Geoestatística / Interpolação)</h2>
+<p>Na geoestatística, os dados consistem em medições de uma variável contínua (ex: precipitação, temperatura, teor de minério, poluentes) coletadas em coordenadas espaciais pontuais <span class="math inline">\((x, y)\)</span>, com o objetivo de <strong>modelar a estrutura de dependência espacial</strong> e <strong>interpolar a variável</strong> em todo o contínuo geográfico.</p>
+<hr>
+</section>
+<section id="variograma-semivariância-empírica-e-modelos-teóricos" class="level2">
+<h2 class="anchored" data-anchor-id="variograma-semivariância-empírica-e-modelos-teóricos">11. Variograma — Semivariância Empírica e Modelos Teóricos</h2>
+<p>A função <code>variograma()</code> calcula a semivariância empírica por classes de distância (lags) e ajusta modelos teóricos clássicos via mínimos quadrados com busca automática ou seleção manual:</p>
+<p><span class="math display">\[\gamma(h) = \frac{1}{2 N(h)} \sum_{i=1}^{N(h)} [z(s_i) - z(s_i + h)]^2\]</span></p>
+<ul>
+<li><code>modelo = "auto"</code> (padrão): testa os modelos <strong>Esférico</strong>, <strong>Exponencial</strong> e <strong>Gaussiano</strong> e seleciona aquele com menor Soma de Quadrados dos Resíduos (SQR).</li>
+<li><code>modelo = "esferico"</code>, <code>"exponencial"</code> ou <code>"gaussiano"</code>: ajuste direto do modelo escolhido.</li>
+<li><code>n_classes = "auto"</code> ou valor numérico inteiro (ex: <code>15</code>).</li>
+<li><code>dist_max = "auto"</code> (metade da extensão máxima amostrada) ou valor numérico.</li>
+<li>Diagnóstico de Razão Pepita/Patamar: <span class="math inline">\(C_0 / (C_0 + C)\)</span> classifica a dependência espacial em <strong>Forte</strong> (<span class="math inline">\(\le 25\%\)</span>), <strong>Moderada</strong> (<span class="math inline">\(25\% &lt; \text{razão} \le 75\%\)</span>) ou <strong>Fraca / Efeito Pepita</strong> (<span class="math inline">\(&gt; 75\%\)</span>).</li>
+</ul>
+<div class="code-copy-outer-scaffold"><div class="sourceCode" id="cb13"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb13-1"><a href="#cb13-1" aria-hidden="true" tabindex="-1"></a><span class="co"># Variograma com seleção automática do melhor modelo teórico</span></span>
+<span id="cb13-2"><a href="#cb13-2" aria-hidden="true" tabindex="-1"></a>vario <span class="ot">&lt;-</span> <span class="fu">variograma</span>(</span>
+<span id="cb13-3"><a href="#cb13-3" aria-hidden="true" tabindex="-1"></a>  <span class="at">dados       =</span> dados_clima,</span>
+<span id="cb13-4"><a href="#cb13-4" aria-hidden="true" tabindex="-1"></a>  <span class="at">variavel    =</span> <span class="st">"temperatura"</span>,</span>
+<span id="cb13-5"><a href="#cb13-5" aria-hidden="true" tabindex="-1"></a>  <span class="at">coordenadas =</span> <span class="fu">c</span>(<span class="st">"x"</span>, <span class="st">"y"</span>),</span>
+<span id="cb13-6"><a href="#cb13-6" aria-hidden="true" tabindex="-1"></a>  <span class="at">modelo      =</span> <span class="st">"auto"</span></span>
+<span id="cb13-7"><a href="#cb13-7" aria-hidden="true" tabindex="-1"></a>)</span>
+<span id="cb13-8"><a href="#cb13-8" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb13-9"><a href="#cb13-9" aria-hidden="true" tabindex="-1"></a><span class="co"># Ajuste manual do modelo esférico com 12 classes</span></span>
+<span id="cb13-10"><a href="#cb13-10" aria-hidden="true" tabindex="-1"></a>vario_esf <span class="ot">&lt;-</span> <span class="fu">variograma</span>(</span>
+<span id="cb13-11"><a href="#cb13-11" aria-hidden="true" tabindex="-1"></a>  <span class="at">dados       =</span> dados_clima,</span>
+<span id="cb13-12"><a href="#cb13-12" aria-hidden="true" tabindex="-1"></a>  <span class="at">variavel    =</span> <span class="st">"temperatura"</span>,</span>
+<span id="cb13-13"><a href="#cb13-13" aria-hidden="true" tabindex="-1"></a>  <span class="at">coordenadas =</span> <span class="fu">c</span>(<span class="st">"x"</span>, <span class="st">"y"</span>),</span>
+<span id="cb13-14"><a href="#cb13-14" aria-hidden="true" tabindex="-1"></a>  <span class="at">modelo      =</span> <span class="st">"esferico"</span>,</span>
+<span id="cb13-15"><a href="#cb13-15" aria-hidden="true" tabindex="-1"></a>  <span class="at">n_classes   =</span> <span class="dv">12</span></span>
+<span id="cb13-16"><a href="#cb13-16" aria-hidden="true" tabindex="-1"></a>)</span></code></pre></div><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></div>
+<p>O gráfico exibe dois painéis com <code>meu_tema(grade = "dupla")</code>: à esquerda, os pontos empíricos, a curva ajustada do modelo e as linhas de pepita e patamar; à direita, o histograma de pares analisados por lag.</p>
+<hr>
+</section>
+<section id="krigagem-ordinária-interpolação-espacial-blue" class="level2">
+<h2 class="anchored" data-anchor-id="krigagem-ordinária-interpolação-espacial-blue">12. Krigagem Ordinária — Interpolação Espacial BLUE</h2>
+<p>A função <code>krigagem()</code> aplica o estimador linear não viesado de variância mínima (<strong>BLUE</strong> - <em>Best Linear Unbiased Estimator</em>) para estimar valores da variável em qualquer local do domínio:</p>
+<p><span class="math display">\[\hat{z}(s_0) = \sum_{i=1}^n w_i z(s_i), \quad \text{sujeito a} \quad \sum_{i=1}^n w_i = 1\]</span></p>
+<ul>
+<li><code>resolucao = "auto"</code>: gera uma malha regular de <span class="math inline">\(40 \times 40\)</span> (<span class="math inline">\(1.600\)</span> células de predição), ou um valor inteiro (ex: <code>30</code> ou <code>50</code>).</li>
+<li><code>janela = "auto"</code>: delimita a envoltória das amostras com margem de segurança de <span class="math inline">\(5\%\)</span>, ou vetor manual <code>c(xmin, xmax, ymin, ymax)</code>.</li>
+<li><code>variograma_obj</code>: recebe o objeto retornado por <code>variograma()</code> ou ajusta internamente se for <code>NULL</code>.</li>
+</ul>
+<div class="code-copy-outer-scaffold"><div class="sourceCode" id="cb14"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb14-1"><a href="#cb14-1" aria-hidden="true" tabindex="-1"></a><span class="co"># Krigagem Ordinária na grade automática 40x40</span></span>
+<span id="cb14-2"><a href="#cb14-2" aria-hidden="true" tabindex="-1"></a>krig <span class="ot">&lt;-</span> <span class="fu">krigagem</span>(</span>
+<span id="cb14-3"><a href="#cb14-3" aria-hidden="true" tabindex="-1"></a>  <span class="at">dados          =</span> dados_clima,</span>
+<span id="cb14-4"><a href="#cb14-4" aria-hidden="true" tabindex="-1"></a>  <span class="at">variavel       =</span> <span class="st">"temperatura"</span>,</span>
+<span id="cb14-5"><a href="#cb14-5" aria-hidden="true" tabindex="-1"></a>  <span class="at">coordenadas    =</span> <span class="fu">c</span>(<span class="st">"x"</span>, <span class="st">"y"</span>),</span>
+<span id="cb14-6"><a href="#cb14-6" aria-hidden="true" tabindex="-1"></a>  <span class="at">variograma_obj =</span> vario</span>
+<span id="cb14-7"><a href="#cb14-7" aria-hidden="true" tabindex="-1"></a>)</span>
+<span id="cb14-8"><a href="#cb14-8" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb14-9"><a href="#cb14-9" aria-hidden="true" tabindex="-1"></a><span class="co"># Krigagem com resolução customizada (50x50 = 2.500 pontos)</span></span>
+<span id="cb14-10"><a href="#cb14-10" aria-hidden="true" tabindex="-1"></a>krig_fina <span class="ot">&lt;-</span> <span class="fu">krigagem</span>(</span>
+<span id="cb14-11"><a href="#cb14-11" aria-hidden="true" tabindex="-1"></a>  <span class="at">dados       =</span> dados_clima,</span>
+<span id="cb14-12"><a href="#cb14-12" aria-hidden="true" tabindex="-1"></a>  <span class="at">variavel    =</span> <span class="st">"temperatura"</span>,</span>
+<span id="cb14-13"><a href="#cb14-13" aria-hidden="true" tabindex="-1"></a>  <span class="at">coordenadas =</span> <span class="fu">c</span>(<span class="st">"x"</span>, <span class="st">"y"</span>),</span>
+<span id="cb14-14"><a href="#cb14-14" aria-hidden="true" tabindex="-1"></a>  <span class="at">resolucao   =</span> <span class="dv">50</span></span>
+<span id="cb14-15"><a href="#cb14-15" aria-hidden="true" tabindex="-1"></a>)</span></code></pre></div><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></div>
+<p>O painel gráfico exibe lado a lado o <strong>mapa da superfície predita</strong> (com os pontos amostrais sobrepostos) e o <strong>mapa de incerteza (variância de krigagem)</strong> com <code>meu_tema(grade = "dupla")</code>.</p>
+<hr>
+</section>
+<section id="validação-cruzada-leave-one-out-loo" class="level2">
+<h2 class="anchored" data-anchor-id="validação-cruzada-leave-one-out-loo">13. Validação Cruzada Leave-One-Out (LOO)</h2>
+<p>A função <code>validar_krigagem()</code> remove iterativamente cada ponto amostral, prediz seu valor utilizando as demais amostras e compara as estimativas com os valores reais:</p>
+<ul>
+<li>Métricas preditivas: <strong>RMSE</strong>, <strong>MAE</strong>, <strong>MAPE (%)</strong> e <strong>R² (LOO)</strong>.</li>
+<li>Diagnóstico de calibração dos erros padronizados: verifica se a média é próxima de <span class="math inline">\(0\)</span> e o desvio padrão é próximo de <span class="math inline">\(1\)</span>.</li>
+</ul>
+<div class="code-copy-outer-scaffold"><div class="sourceCode" id="cb15"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb15-1"><a href="#cb15-1" aria-hidden="true" tabindex="-1"></a><span class="co"># Validação cruzada com diagnóstico completo e gráficos</span></span>
+<span id="cb15-2"><a href="#cb15-2" aria-hidden="true" tabindex="-1"></a><span class="fu">validar_krigagem</span>(</span>
+<span id="cb15-3"><a href="#cb15-3" aria-hidden="true" tabindex="-1"></a>  <span class="at">dados          =</span> dados_clima,</span>
+<span id="cb15-4"><a href="#cb15-4" aria-hidden="true" tabindex="-1"></a>  <span class="at">variavel       =</span> <span class="st">"temperatura"</span>,</span>
+<span id="cb15-5"><a href="#cb15-5" aria-hidden="true" tabindex="-1"></a>  <span class="at">coordenadas    =</span> <span class="fu">c</span>(<span class="st">"x"</span>, <span class="st">"y"</span>),</span>
+<span id="cb15-6"><a href="#cb15-6" aria-hidden="true" tabindex="-1"></a>  <span class="at">variograma_obj =</span> vario</span>
+<span id="cb15-7"><a href="#cb15-7" aria-hidden="true" tabindex="-1"></a>)</span></code></pre></div><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></div>
+<p>Gera gráficos em grade dupla: diagrama de dispersão <strong>Observado vs.&nbsp;Predito</strong> com linha <span class="math inline">\(y = x\)</span>, e <strong>histograma dos erros padronizados</strong> com a densidade normal teórica <span class="math inline">\(N(0, 1)\)</span>.</p>
+<hr>
+</section>
+<section id="diagnóstico-e-avaliação-polimórfica-1" class="level2">
+<h2 class="anchored" data-anchor-id="diagnóstico-e-avaliação-polimórfica-1">14. Diagnóstico e Avaliação Polimórfica</h2>
+<p>Assim como nos modelos de regressão linear e espacial de área, os objetos de geoestatística se integram ao fluxo de trabalho polimórfico do pacote:</p>
+<section id="análise-residual-1" class="level3">
+<h3 class="anchored" data-anchor-id="análise-residual-1">Análise Residual</h3>
+<p>A função genérica <code>analise_residual()</code> reconhece objetos de krigagem e executa o diagnóstico dos resíduos da validação cruzada LOO:</p>
+<div class="code-copy-outer-scaffold"><div class="sourceCode" id="cb16"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb16-1"><a href="#cb16-1" aria-hidden="true" tabindex="-1"></a><span class="fu">analise_residual</span>(krig)</span></code></pre></div><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></div>
+</section>
+<section id="métricas-de-ajuste-1" class="level3">
+<h3 class="anchored" data-anchor-id="métricas-de-ajuste-1">Métricas de Ajuste</h3>
+<p>A função <code>metricas()</code> sintetiza os desempenhos tanto para modelos de variograma quanto para interpolação:</p>
+<div class="code-copy-outer-scaffold"><div class="sourceCode" id="cb17"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb17-1"><a href="#cb17-1" aria-hidden="true" tabindex="-1"></a><span class="co"># Métricas preditivas da krigagem (RMSE, MAE, R²)</span></span>
+<span id="cb17-2"><a href="#cb17-2" aria-hidden="true" tabindex="-1"></a><span class="fu">metricas</span>(krig)</span>
+<span id="cb17-3"><a href="#cb17-3" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb17-4"><a href="#cb17-4" aria-hidden="true" tabindex="-1"></a><span class="co"># Parâmetros estruturais do variograma (pepita, patamar, alcance, SQR)</span></span>
+<span id="cb17-5"><a href="#cb17-5" aria-hidden="true" tabindex="-1"></a><span class="fu">metricas</span>(vario)</span></code></pre></div><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></div>
+</section>
+<section id="comparação-de-modelos-de-variograma" class="level3">
+<h3 class="anchored" data-anchor-id="comparação-de-modelos-de-variograma">Comparação de Modelos de Variograma</h3>
+<p>A função <code>comparar_modelos()</code> ranqueia múltiplos modelos teóricos ajustados por ordem crescente de SQR:</p>
+<div class="code-copy-outer-scaffold"><div class="sourceCode" id="cb18"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb18-1"><a href="#cb18-1" aria-hidden="true" tabindex="-1"></a><span class="fu">comparar_modelos</span>(</span>
+<span id="cb18-2"><a href="#cb18-2" aria-hidden="true" tabindex="-1"></a>  <span class="at">Esferico    =</span> vario_esf,</span>
+<span id="cb18-3"><a href="#cb18-3" aria-hidden="true" tabindex="-1"></a>  <span class="at">Gaussiano   =</span> vario_gauss,</span>
+<span id="cb18-4"><a href="#cb18-4" aria-hidden="true" tabindex="-1"></a>  <span class="at">Exponencial =</span> vario_exp</span>
+<span id="cb18-5"><a href="#cb18-5" aria-hidden="true" tabindex="-1"></a>)</span></code></pre></div><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></div>
 
 
+</section>
 </section>
 
 </main> <!-- /main -->

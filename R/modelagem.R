@@ -236,6 +236,11 @@ comparar_modelos <- function(..., criterio = c("aicc", "aic", "bic", "rmse", "r2
     nomes_modelos <- paste0("Modelo_", seq_along(modelos))
   }
 
+  if (inherits(modelos[[1]], "estatR_variograma")) {
+    if (exists(".comparar_modelos_variograma", mode = "function")) {
+      return(.comparar_modelos_variograma(modelos, nomes = nomes_modelos))
+    }
+  }
   # Extracao de metricas de cada modelo
   linhas_info <- list()
   for (i in seq_along(modelos)) {

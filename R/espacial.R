@@ -1839,3 +1839,907 @@ funcao_g_pontos <- function(dados,
   class(res) <- c("estatR_g_pontos", "list")
   invisible(res)
 }
+
+
+# ==============================================================================
+# PARTE III: SUPERFÍCIE CONTÍNUA (GEOESTATÍSTICA / KRIGAGEM)
+# ==============================================================================
+
+# ── HELPER INTERNO DE COORDENADAS E VALOR ─────────────────────────────────────
+
+#' @noRd
+.geo_extrair_coords_valor <- function(dados, variavel = NULL, coordenadas = NULL) {
+  # 1. Suporte a objeto sf
+  if (inherits(dados, "sf")) {
+    if (requireNamespace("sf", quietly = TRUE)) {
+      coords_mat <- sf::st_coordinates(dados)[, 1:2, drop = FALSE]
+      coords <- as.data.frame(coords_mat)
+      colnames(coords) <- c("x", "y")
+      dados_df <- as.data.frame(dados)
+      # Se variável informada
+      var_nome <- if (!is.null(variavel)) as.character(variavel)[1] else NULL
+      if (is.null(var_nome)) {
+        num_cols <- setdiff(names(dados_df), c("geometry", colnames(coords)))
+        num_cols <- num_cols[vapply(dados_df[num_cols], is.numeric, logical(1))]
+        if (length(num_cols) == 0) stop("Nenhuma variável numérica encontrada no objeto sf.", call. = FALSE)
+        var_nome <- num_cols[1]
+      }
+      z <- as.numeric(dados_df[[var_nome]])
+      return(list(coords = coords, z = z, var_nome = var_nome))
+    }
+  }
+
+  if (!is.data.frame(dados) && !is.matrix(dados)) {
+    stop("O argumento 'dados' deve ser um data frame ou matriz.", call. = FALSE)
+  }
+  df <- as.data.frame(dados)
+
+  # 2. Identificação das coordenadas
+  coords <- NULL
+  if (!is.null(coordenadas)) {
+    if (is.character(coordenadas) && length(coordenadas) == 2) {
+      if (!all(coordenadas %in% names(df))) {
+        stop(sprintf("Colunas de coordenadas '%s' e '%s' não encontradas.", coordenadas[1], coordenadas[2]), call. = FALSE)
+      }
+      coords <- df[, coordenadas, drop = FALSE]
+      colnames(coords) <- c("x", "y")
+    } else if (is.numeric(coordenadas) && length(coordenadas) == 2) {
+      coords <- df[, coordenadas, drop = FALSE]
+      colnames(coords) <- c("x", "y")
+    }
+  }
+
+  if (is.null(coords)) {
+    cnames <- tolower(names(df))
+    idx_x <- which(cnames %in% c("x", "lon", "longitude", "coord_x", "x_coord", "long", "easting"))[1]
+    idx_y <- which(cnames %in% c("y", "lat", "latitude", "coord_y", "y_coord", "northing"))[1]
+    if (!is.na(idx_x) && !is.na(idx_y) && idx_x != idx_y) {
+      coords <- df[, c(idx_x, idx_y), drop = FALSE]
+      colnames(coords) <- c("x", "y")
+    } else if (ncol(df) >= 3) {
+      # Assume as duas primeiras colunas como coordenadas se numéricas
+      if (is.numeric(df[[1]]) && is.numeric(df[[2]])) {
+        coords <- df[, 1:2, drop = FALSE]
+        colnames(coords) <- c("x", "y")
+      }
+    }
+  }
+
+  if (is.null(coords)) {
+    stop("Não foi possível identificar as coordenadas. Informe 'coordenadas = c(\"x\", \"y\")'.", call. = FALSE)
+  }
+
+  # 3. Identificação da variável z
+  var_nome <- NULL
+  if (!is.null(variavel)) {
+    if (is.character(variavel)) {
+      var_nome <- variavel[1]
+    } else {
+      var_nome <- deparse(substitute(variavel))
+    }
+    if (!var_nome %in% names(df)) {
+      stop(sprintf("Variável '%s' não encontrada nos dados.", var_nome), call. = FALSE)
+    }
+  } else {
+    # Pega primeira coluna numérica que não seja uma das coordenadas
+    nomes_coords <- if (!is.null(coordenadas) && is.character(coordenadas)) coordenadas else colnames(coords)
+    cols_restantes <- setdiff(names(df), nomes_coords)
+    cols_num <- cols_restantes[vapply(df[cols_restantes], is.numeric, logical(1))]
+    if (length(cols_num) == 0) {
+      stop("Nenhuma coluna numérica encontrada para a variável de resposta. Especifique 'variavel'.", call. = FALSE)
+    }
+    var_nome <- cols_num[1]
+  }
+
+  z <- as.numeric(df[[var_nome]])
+  list(coords = coords, z = z, var_nome = var_nome)
+}
+
+# ── 11. VARIOGRAMA EMPÍRICO E AJUSTE TEÓRICO ──────────────────────────────────
+
+#' @title Variograma Empírico e Ajuste de Modelo Teórico
+#' @description Calcula a semivariância empírica de uma variável espacial contínua
+#'   e ajusta modelos teóricos (Esférico, Exponencial ou Gaussiano) via mínimos quadrados
+#'   com seleção automática do modelo ótimo por menor Soma de Quadrados dos Resíduos (SQR).
+#'
+#' @param dados Data frame, matriz ou objeto \code{sf} contendo coordenadas e valores amostrados.
+#' @param variavel Nome da coluna com a variável de resposta (string ou símbolo).
+#' @param coordenadas Vetor de 2 caracteres ou índices com os nomes das colunas de coordenadas (ex: \code{c("x", "y")}).
+#'   Se \code{NULL}, detecta automaticamente colunas com nomes usuais.
+#' @param modelo Modelo teórico a ajustar: \code{"auto"} (padrão, testa esférico, exponencial e gaussiano
+#'   e seleciona o de menor SQR), \code{"esferico"}, \code{"exponencial"} ou \code{"gaussiano"}.
+#' @param n_classes Número de classes de distância (lags) ou \code{"auto"} para determinação automática.
+#' @param dist_max Distância máxima considerada ou \code{"auto"} (metade da extensão máxima amostrada).
+#' @param grafico Lógico. Se TRUE (padrão), plota o variograma empírico com a curva ajustada e o histograma de pares.
+#'
+#' @return Objeto invisível da classe \code{estatR_variograma}.
+#' @export
+variograma <- function(dados,
+                       variavel = NULL,
+                       coordenadas = NULL,
+                       modelo = c("auto", "esferico", "exponencial", "gaussiano"),
+                       n_classes = "auto",
+                       dist_max = "auto",
+                       grafico = TRUE) {
+
+  modelo <- match.arg(modelo)
+  extraido <- .geo_extrair_coords_valor(dados, variavel = variavel, coordenadas = coordenadas)
+  coords <- extraido$coords
+  z <- extraido$z
+  var_nome <- extraido$var_nome
+
+  # Remove NAs
+  val <- stats::complete.cases(coords$x, coords$y, z)
+  coords <- coords[val, , drop = FALSE]
+  z <- z[val]
+  n <- length(z)
+
+  if (n < 6) stop("São necessárias pelo menos 6 observações para o cálculo do variograma.", call. = FALSE)
+
+  # 1. Distâncias e semivariâncias empíricas entre todos os pares
+  coords_mat <- as.matrix(coords)
+  d_dist <- stats::dist(coords_mat)
+  d_vec <- as.numeric(d_dist)
+  p_pares <- t(utils::combn(n, 2))
+  diff_vec <- 0.5 * (z[p_pares[, 1]] - z[p_pares[, 2]])^2
+
+  max_d_total <- max(d_vec, na.rm = TRUE)
+  dist_max_val <- if (identical(dist_max, "auto")) max_d_total / 2 else as.numeric(dist_max)
+  if (dist_max_val <= 0) dist_max_val <- max_d_total / 2
+
+  n_classes_val <- if (identical(n_classes, "auto")) max(5, min(15, floor(n / 3))) else as.integer(n_classes)
+  if (n_classes_val < 3) n_classes_val <- 3
+
+  # Filtrar pares até dist_max
+  idx_valid <- which(d_vec > 0 & d_vec <= dist_max_val)
+  if (length(idx_valid) < 10) {
+    stop("Poucos pares encontrados dentro da distância máxima especificada. Aumente 'dist_max'.", call. = FALSE)
+  }
+  d_sub <- d_vec[idx_valid]
+  diff_sub <- diff_vec[idx_valid]
+
+  # Lags uniformes
+  cortes <- seq(0, dist_max_val, length.out = n_classes_val + 1)
+  classes <- cut(d_sub, breaks = cortes, include.lowest = TRUE)
+
+  # Agrupamento por classe
+  lag_h <- tapply(d_sub, classes, mean, na.rm = TRUE)
+  gamma_emp <- tapply(diff_sub, classes, mean, na.rm = TRUE)
+  n_pares <- as.numeric(table(classes))
+
+  # Remove classes vazias
+  mask_ok <- !is.na(lag_h) & !is.na(gamma_emp) & n_pares > 0
+  lag_h <- as.numeric(lag_h[mask_ok])
+  gamma_emp <- as.numeric(gamma_emp[mask_ok])
+  n_pares <- n_pares[mask_ok]
+
+  # 2. Funções teóricas de semivariância
+  # C0: pepita (nugget)
+  # C: contribuição (sill = C0 + C)
+  # a: alcance (range)
+  f_esferico <- function(h, C0, C, a) {
+    ifelse(h <= a, C0 + C * (1.5 * (h / a) - 0.5 * (h / a)^3), C0 + C)
+  }
+  f_exponencial <- function(h, C0, C, a) {
+    C0 + C * (1 - exp(-3 * h / a))  # alcance prático a (onde atinge 95% do patamar)
+  }
+  f_gaussiano <- function(h, C0, C, a) {
+    C0 + C * (1 - exp(-3 * (h / a)^2))  # alcance prático a (95% do patamar)
+  }
+
+  var_z <- stats::var(z, na.rm = TRUE)
+  c0_init <- max(0, min(gamma_emp) * 0.5)
+  c_init <- max(1e-4, var_z - c0_init)
+  a_init <- dist_max_val * 0.4
+
+  ajustar_mod <- function(tipo) {
+    fn_obj <- function(par) {
+      c0 <- par[1]
+      c  <- par[2]
+      a  <- par[3]
+      if (tipo == "esferico")   g_pred <- f_esferico(lag_h, c0, c, a)
+      if (tipo == "exponencial") g_pred <- f_exponencial(lag_h, c0, c, a)
+      if (tipo == "gaussiano")   g_pred <- f_gaussiano(lag_h, c0, c, a)
+      sum(n_pares * (gamma_emp - g_pred)^2)
+    }
+
+    low_b <- c(0, 1e-6, 1e-6)
+    upp_b <- c(var_z * 2, var_z * 4, dist_max_val * 3)
+    p0 <- c(c0_init, c_init, a_init)
+    p0 <- pmax(low_b + 1e-5, pmin(upp_b - 1e-5, p0))
+
+    opt <- tryCatch({
+      stats::optim(p0, fn_obj, method = "L-BFGS-B", lower = low_b, upper = upp_b)
+    }, error = function(e) {
+      stats::optim(p0, fn_obj, method = "Nelder-Mead")
+    })
+
+    c0_est <- max(0, opt$par[1])
+    c_est  <- max(1e-6, opt$par[2])
+    a_est  <- max(1e-6, opt$par[3])
+    sqr    <- opt$value
+    list(tipo = tipo, c0 = c0_est, c = c_est, a = a_est, sqr = sqr)
+  }
+
+  modelos_testar <- if (modelo == "auto") c("esferico", "exponencial", "gaussiano") else modelo
+  ajustes <- lapply(modelos_testar, ajustar_mod)
+  sqrs <- vapply(ajustes, function(x) x$sqr, numeric(1))
+  melhor_idx <- which.min(sqrs)
+  melhor <- ajustes[[melhor_idx]]
+
+  tipo_selecionado <- melhor$tipo
+  C0 <- melhor$c0
+  C <- melhor$c
+  a <- melhor$a
+  sill <- C0 + C
+  sqr_val <- melhor$sqr
+
+  # Razão de dependência espacial: C0 / (C0 + C)
+  razao_pepita <- (C0 / sill) * 100
+
+  # Nomes amigáveis
+  nome_mod_pt <- switch(tipo_selecionado,
+    "esferico"    = "Esférico",
+    "exponencial" = "Exponencial",
+    "gaussiano"   = "Gaussiano"
+  )
+
+  # ── Saída no console ────────────────────────────────────────────────────────
+  .print_titulo("VARIOGRAMA EMPÍRICO E MODELO TEÓRICO")
+  cat(sprintf("  Variável            : %s\n", var_nome))
+  cat(sprintf("  Nº Observações      : %d pontos\n", n))
+  modo_classes <- if (identical(n_classes, "auto")) " (selecionadas automaticamente)" else ""
+  cat(sprintf("  Nº Classes (Lag)    : %d%s\n", length(lag_h), modo_classes))
+  modo_dist <- if (identical(dist_max, "auto")) " (metade da extensão total)" else ""
+  cat(sprintf("  Distância Máxima    : %s%s\n\n", .esp_fmt_num(dist_max_val, 2), modo_dist))
+
+  .print_topico("PARÂMETROS DO MODELO AJUSTADO")
+  w_box <- 68
+  cat(.esp_sep(w_box), "\n")
+  info_auto <- if (modelo == "auto") " (selecionado automaticamente por menor SQR)" else ""
+  cat(sprintf("  Modelo Selecionado  : %s%s\n", nome_mod_pt, info_auto))
+  cat(sprintf("  Pepita (C₀)         : %s\n", .esp_fmt_num(C0, 4)))
+  cat(sprintf("  Contribuição (C)    : %s\n", .esp_fmt_num(C, 4)))
+  cat(sprintf("  Patamar (C₀ + C)    : %s\n", .esp_fmt_num(sill, 4)))
+  cat(sprintf("  Alcance Prático (a) : %s\n", .esp_fmt_num(a, 4)))
+  cat(sprintf("  SQR do Ajuste       : %s\n", .esp_fmt_num(sqr_val, 4)))
+  cat(.esp_sep(w_box), "\n\n")
+
+  .print_topico("DIAGNÓSTICO DO VARIOGRAMA")
+  cat(sprintf("  Razão Pepita/Patamar: %s%%\n", .esp_fmt_num(razao_pepita, 1)))
+  if (razao_pepita <= 25) {
+    cat("  [✓] Dependência espacial Forte (razão ≤ 25%): estrutura espacial bem definida.\n")
+  } else if (razao_pepita <= 75) {
+    cat("  [✓] Dependência espacial Moderada (25% < razão ≤ 75%): estrutura espacial consistente.\n")
+  } else {
+    cat("  [!] Dependência espacial Fraca ou Efeito Pepita (razão > 75%): alta variabilidade local.\n")
+  }
+  cat(sprintf("  O modelo %s indica que a correlação espacial dos dados se esgota a ~%s unidades de distância.\n\n",
+              nome_mod_pt, .esp_fmt_num(a, 2)))
+  .print_rodape()
+
+  # ── Gráficos em ggplot2 com meu_tema(grade = "dupla") ───────────────────────
+  p_plot <- NULL
+  if (grafico && requireNamespace("ggplot2", quietly = TRUE)) {
+    df_emp <- data.frame(Distancia = lag_h, Semivariancia = gamma_emp, Pares = n_pares)
+
+    h_curva <- seq(0, dist_max_val, length.out = 150)
+    g_curva <- if (tipo_selecionado == "esferico") {
+      f_esferico(h_curva, C0, C, a)
+    } else if (tipo_selecionado == "exponencial") {
+      f_exponencial(h_curva, C0, C, a)
+    } else {
+      f_gaussiano(h_curva, C0, C, a)
+    }
+    df_teo <- data.frame(Distancia = h_curva, Semivariancia = g_curva)
+
+    p1 <- ggplot2::ggplot(df_emp, ggplot2::aes(x = Distancia, y = Semivariancia)) +
+      ggplot2::geom_hline(yintercept = sill, linetype = "dashed", color = "#E63946", linewidth = 0.8) +
+      ggplot2::geom_hline(yintercept = C0, linetype = "dotted", color = "gray40", linewidth = 0.7) +
+      ggplot2::geom_line(data = df_teo, color = "#1D3557", linewidth = 1.1) +
+      ggplot2::geom_point(color = "#457B9D", size = 2.8, alpha = 0.9) +
+      ggplot2::labs(
+        title    = sprintf("Variograma: %s (%s)", var_nome, nome_mod_pt),
+        subtitle = sprintf("Pepita: %s | Patamar: %s | Alcance: %s",
+                           .esp_fmt_num(C0, 2), .esp_fmt_num(sill, 2), .esp_fmt_num(a, 2)),
+        x        = "Distância (h)",
+        y        = "Semivariância γ(h)"
+      ) +
+      meu_tema(grade = "dupla")
+
+    p2 <- ggplot2::ggplot(df_emp, ggplot2::aes(x = Distancia, y = Pares)) +
+      ggplot2::geom_col(fill = "#457B9D", color = "white", alpha = 0.85) +
+      ggplot2::labs(
+        title    = "Número de Pares de Pontos por Classe",
+        subtitle = sprintf("Total: %s pares analisados", .esp_fmt_num(sum(n_pares), 0)),
+        x        = "Distância (h)",
+        y        = "Contagem de Pares"
+      ) +
+      meu_tema(grade = "dupla")
+
+    if (requireNamespace("gridExtra", quietly = TRUE)) {
+      gridExtra::grid.arrange(p1, p2, ncol = 2)
+      p_plot <- list(painel_variograma = p1, painel_pares = p2)
+    } else {
+      print(p1)
+      p_plot <- p1
+    }
+  }
+
+  res <- list(
+    gamma_empirico = data.frame(lag = lag_h, gamma = gamma_emp, n_pares = n_pares),
+    modelo         = tipo_selecionado,
+    modelo_nome    = nome_mod_pt,
+    pepita         = C0,
+    nugget         = C0,
+    contribuicao   = C,
+    patamar        = sill,
+    sill           = sill,
+    alcance        = a,
+    range          = a,
+    sqr            = sqr_val,
+    razao_pepita   = razao_pepita,
+    variavel       = var_nome,
+    coordenadas    = coords,
+    z              = z,
+    dist_max       = dist_max_val,
+    n              = n,
+    fn_teorica     = function(h) {
+      if (tipo_selecionado == "esferico")   f_esferico(h, C0, C, a)
+      else if (tipo_selecionado == "exponencial") f_exponencial(h, C0, C, a)
+      else f_gaussiano(h, C0, C, a)
+    },
+    grafico        = p_plot
+  )
+  class(res) <- c("estatR_variograma", "list")
+  invisible(res)
+}
+
+
+# ── 12. KRIGAGEM ORDINÁRIA (INTERPOLAÇÃO ESPACIAL) ───────────────────────────
+
+#' @title Interpolação Espacial por Krigagem Ordinária
+#' @description Realiza interpolação espacial ótima de uma variável contínua em uma grade
+#'   regular através de Krigagem Ordinária (Best Linear Unbiased Estimator - BLUE),
+#'   gerando estimativas pontuais e mapas de incerteza (variância de krigagem).
+#'
+#' @param dados Data frame, matriz ou objeto \code{sf} contendo coordenadas e valores amostrados.
+#' @param variavel Nome da coluna da variável de resposta.
+#' @param coordenadas Vetor com nomes ou índices das colunas de coordenadas (ex: \code{c("x", "y")}).
+#' @param variograma_obj Objeto retornado por \code{\link{variograma}}. Se \code{NULL},
+#'   o variograma é ajustado automaticamente.
+#' @param resolucao Resolução da malha regular: \code{"auto"} (grade 40×40 = 1.600 pontos)
+#'   ou um inteiro definindo o número de divisões em cada eixo (ex: 30, 50).
+#' @param janela Limites espaciais \code{c(xmin, xmax, ymin, ymax)} ou \code{"auto"} (envoltória amostrada + 5% padding).
+#' @param grafico Lógico. Se TRUE (padrão), exibe mapa da predição e mapa de variância via \code{meu_tema(grade = "dupla")}.
+#'
+#' @return Objeto invisível da classe \code{estatR_krigagem}.
+#' @export
+krigagem <- function(dados,
+                     variavel = NULL,
+                     coordenadas = NULL,
+                     variograma_obj = NULL,
+                     resolucao = "auto",
+                     janela = "auto",
+                     grafico = TRUE) {
+
+  # 1. Ajuste do variograma se não fornecido
+  if (is.null(variograma_obj)) {
+    variograma_obj <- variograma(dados, variavel = variavel, coordenadas = coordenadas, grafico = FALSE)
+  }
+  if (!inherits(variograma_obj, "estatR_variograma")) {
+    stop("O argumento 'variograma_obj' deve ser um objeto gerado por 'variograma()'.", call. = FALSE)
+  }
+
+  coords <- variograma_obj$coordenadas
+  z <- variograma_obj$z
+  var_nome <- variograma_obj$variavel
+  n <- length(z)
+  fn_semivar <- variograma_obj$fn_teorica
+
+  # 2. Definição da janela de interpolação
+  if (is.character(janela) && janela == "auto") {
+    rx <- range(coords$x, na.rm = TRUE)
+    ry <- range(coords$y, na.rm = TRUE)
+    dx <- rx[2] - rx[1]
+    dy <- ry[2] - ry[1]
+    pad_x <- if (dx > 0) dx * 0.05 else 0.5
+    pad_y <- if (dy > 0) dy * 0.05 else 0.5
+    janela_vec <- c(xmin = rx[1] - pad_x, xmax = rx[2] + pad_x,
+                    ymin = ry[1] - pad_y, ymax = ry[2] + pad_y)
+  } else if (is.numeric(janela) && length(janela) == 4) {
+    janela_vec <- janela
+    names(janela_vec) <- c("xmin", "xmax", "ymin", "ymax")
+  } else {
+    stop("O argumento 'janela' deve ser 'auto' ou um vetor c(xmin, xmax, ymin, ymax).", call. = FALSE)
+  }
+
+  # 3. Resolução da grade
+  res_val <- if (identical(resolucao, "auto")) 40L else as.integer(resolucao)
+  if (res_val < 5) res_val <- 5L
+
+  gx <- seq(janela_vec["xmin"], janela_vec["xmax"], length.out = res_val)
+  gy <- seq(janela_vec["ymin"], janela_vec["ymax"], length.out = res_val)
+  grade <- expand.grid(x = gx, y = gy)
+  n_grade <- nrow(grade)
+
+  # 4. Construção do sistema de Krigagem Ordinária
+  # Matriz Gamma (n+1) x (n+1)
+  coords_mat <- as.matrix(coords[, c("x", "y")])
+  D_amostral <- as.matrix(stats::dist(coords_mat))
+  Gamma_mat <- fn_semivar(D_amostral)
+  diag(Gamma_mat) <- 0
+
+  # Adiciona pequena perturbação na diagonal para estabilidade numérica
+  diag(Gamma_mat) <- diag(Gamma_mat) + 1e-8
+
+  A <- matrix(1, nrow = n + 1, ncol = n + 1)
+  A[1:n, 1:n] <- Gamma_mat
+  A[n + 1, n + 1] <- 0
+
+  # Inversão única do sistema A (n+1) x (n+1)
+  A_inv <- tryCatch({
+    solve(A)
+  }, error = function(e) {
+    MASS::ginv(A)
+  })
+
+  # 5. Predição vetorizada na grade
+  grade_mat <- as.matrix(grade[, c("x", "y")])
+
+  # Matriz de distâncias entre pontos amostrais (n) e pontos da grade (n_grade)
+  # dx: grade_mat[,1] vs coords_mat[,1], dy: grade_mat[,2] vs coords_mat[,2]
+  # Para economizar memória e manter performance alta, calculamos em blocos se necessário
+  bloco_tam <- 2000L
+  n_blocos <- ceiling(n_grade / bloco_tam)
+
+  z_pred_vec <- numeric(n_grade)
+  var_krig_vec <- numeric(n_grade)
+
+  for (b in seq_len(n_blocos)) {
+    idx_b <- seq((b - 1) * bloco_tam + 1, min(b * bloco_tam, n_grade))
+    sub_grade <- grade_mat[idx_b, , drop = FALSE]
+    nb <- length(idx_b)
+
+    # dist_mat_b: dimensão n x nb
+    # dist(sub_grade, coords_mat)
+    # dist_ij = sqrt((x_g - x_a)^2 + (y_g - y_a)^2)
+    dx_b <- outer(coords_mat[, 1], sub_grade[, 1], "-")
+    dy_b <- outer(coords_mat[, 2], sub_grade[, 2], "-")
+    D_b <- sqrt(dx_b^2 + dy_b^2)
+
+    # Vetor de semivariâncias b0: dimensão (n+1) x nb
+    B0 <- matrix(1, nrow = n + 1, ncol = nb)
+    B0[1:n, ] <- fn_semivar(D_b)
+
+    # Pesos W: dimensão (n+1) x nb = A_inv %*% B0
+    W_b <- A_inv %*% B0
+
+    # Predição: soma dos pesos 1..n multiplicados por z
+    z_pred_vec[idx_b] <- as.numeric(crossprod(W_b[1:n, , drop = FALSE], z))
+
+    # Variância de Krigagem: sum(w_i * gamma_i0) + mu = colSums(W_b * B0)
+    var_krig_vec[idx_b] <- colSums(W_b * B0)
+  }
+
+  var_krig_vec[var_krig_vec < 0] <- 0
+  grade$predicao <- z_pred_vec
+  grade$var_krigagem <- var_krig_vec
+  grade$dp_krigagem <- sqrt(var_krig_vec)
+
+  # ── Saída no console ────────────────────────────────────────────────────────
+  .print_titulo("KRIGAGEM ORDINÁRIA (INTERPOLAÇÃO ESPACIAL)")
+  cat(sprintf("  Variável            : %s\n", var_nome))
+  cat(sprintf("  Nº Observações      : %d pontos amostrados\n", n))
+  cat(sprintf("  Modelo de Variograma: %s (pepita = %s | patamar = %s | alcance = %s)\n",
+              variograma_obj$modelo_nome,
+              .esp_fmt_num(variograma_obj$pepita, 2),
+              .esp_fmt_num(variograma_obj$patamar, 2),
+              .esp_fmt_num(variograma_obj$alcance, 2)))
+  modo_res <- if (identical(resolucao, "auto")) " (selecionada automaticamente)" else ""
+  cat(sprintf("  Grade de Predição   : %d × %d (%d locais)%s\n", res_val, res_val, n_grade, modo_res))
+  cat(sprintf("  Janela              : X ∈ [%s, %s] | Y ∈ [%s, %s]\n\n",
+              .esp_fmt_num(janela_vec["xmin"], 2), .esp_fmt_num(janela_vec["xmax"], 2),
+              .esp_fmt_num(janela_vec["ymin"], 2), .esp_fmt_num(janela_vec["ymax"], 2)))
+
+  .print_topico("DISTRIBUIÇÃO DA SUPERFÍCIE PREDITA")
+  w_c <- c(est = 18, pred = 18, vkrig = 20)
+  cat(.esp_sep(sum(w_c)), "\n")
+  cat("  ",
+      .esp_pad("Estatística", w_c["est"]),
+      .esp_pad("Predição", w_c["pred"], "right"),
+      .esp_pad("Variância Krigagem", w_c["vkrig"], "right"),
+      "\n", sep = "")
+  cat(.esp_sep(sum(w_c)), "\n")
+
+  q_p <- stats::quantile(grade$predicao, probs = c(0, 0.25, 0.5, 0.75, 1))
+  q_v <- stats::quantile(grade$var_krigagem, probs = c(0, 0.25, 0.5, 0.75, 1))
+
+  imprime_linha_tab <- function(rotulo, val_p, val_v) {
+    cat("  ",
+        .esp_pad(rotulo, w_c["est"]),
+        .esp_pad(.esp_fmt_num(val_p, 2), w_c["pred"], "right"),
+        .esp_pad(.esp_fmt_num(val_v, 2), w_c["vkrig"], "right"),
+        "\n", sep = "")
+  }
+
+  imprime_linha_tab("Mínimo", q_p[1], q_v[1])
+  imprime_linha_tab("1º Quartil", q_p[2], q_v[2])
+  imprime_linha_tab("Mediana", q_p[3], q_v[3])
+  imprime_linha_tab("Média", mean(grade$predicao), mean(grade$var_krigagem))
+  imprime_linha_tab("3º Quartil", q_p[4], q_v[4])
+  imprime_linha_tab("Máximo", q_p[5], q_v[5])
+  cat(.esp_sep(sum(w_c)), "\n\n")
+
+  cat(sprintf("  Variância média de Krigagem: %s (incerteza média quadrática de predição)\n\n",
+              .esp_fmt_num(mean(grade$var_krigagem), 2)))
+  .print_rodape()
+
+  # ── Gráficos em ggplot2 com meu_tema(grade = "dupla") ───────────────────────
+  p_plot <- NULL
+  if (grafico && requireNamespace("ggplot2", quietly = TRUE)) {
+    df_pts <- as.data.frame(coords)
+    df_pts$z <- z
+
+    p1 <- ggplot2::ggplot(grade, ggplot2::aes(x = x, y = y)) +
+      ggplot2::geom_tile(ggplot2::aes(fill = predicao)) +
+      ggplot2::scale_fill_gradientn(
+        colours = c("#2166AC", "#67A9CF", "#D1E5F0", "#FDDBC7", "#EF8A62", "#B2182B"),
+        name = var_nome
+      ) +
+      ggplot2::geom_point(data = df_pts, ggplot2::aes(x = x, y = y),
+                          color = "black", fill = "white", shape = 21, size = 1.8, stroke = 0.5) +
+      ggplot2::labs(
+        title    = sprintf("Superfície Krigada: %s", var_nome),
+        subtitle = sprintf("Interpolação BLUE | Grade %d×%d | Pontos: Amostras", res_val, res_val),
+        x        = "Coordenada X",
+        y        = "Coordenada Y"
+      ) +
+      meu_tema(grade = "dupla")
+
+    p2 <- ggplot2::ggplot(grade, ggplot2::aes(x = x, y = y)) +
+      ggplot2::geom_tile(ggplot2::aes(fill = var_krigagem)) +
+      ggplot2::scale_fill_gradientn(
+        colours = c("#FFFFCC", "#FED976", "#FD8D3C", "#FC4E2A", "#E31A1C", "#800026"),
+        name = "Variância"
+      ) +
+      ggplot2::geom_point(data = df_pts, ggplot2::aes(x = x, y = y),
+                          color = "black", shape = 3, size = 1.5, alpha = 0.6) +
+      ggplot2::labs(
+        title    = "Mapa de Incerteza (Variância de Krigagem)",
+        subtitle = "Menores valores (amarelo) indicam maior proximidade das amostras",
+        x        = "Coordenada X",
+        y        = "Coordenada Y"
+      ) +
+      meu_tema(grade = "dupla")
+
+    if (requireNamespace("gridExtra", quietly = TRUE)) {
+      gridExtra::grid.arrange(p1, p2, ncol = 2)
+      p_plot <- list(painel_predicao = p1, painel_variancia = p2)
+    } else {
+      print(p1)
+      p_plot <- p1
+    }
+  }
+
+  res <- list(
+    grade          = grade,
+    variograma     = variograma_obj,
+    resolucao      = c(x = res_val, y = res_val),
+    janela         = janela_vec,
+    variavel       = var_nome,
+    dados_obs      = data.frame(x = coords$x, y = coords$y, z = z),
+    n              = n,
+    valores_ajustados = z_pred_vec,
+    grafico        = p_plot
+  )
+  class(res) <- c("estatR_krigagem", "list")
+  invisible(res)
+}
+
+
+# ── 13. VALIDAÇÃO CRUZADA DA KRIGAGEM (LEAVE-ONE-OUT) ─────────────────────────
+
+#' @title Validação Cruzada Leave-One-Out para Krigagem Ordinária
+#' @description Avalia a qualidade preditiva e calibração do modelo de interpolação
+#'   espacial via validação cruzada do tipo Leave-One-Out (LOO), calculando resíduos,
+#'   erros padronizados, RMSE, MAE, MAPE e R².
+#'
+#' @param dados Data frame, matriz ou objeto \code{sf} contendo coordenadas e valores amostrados.
+#' @param variavel Nome da coluna com a variável de resposta.
+#' @param coordenadas Vetor de nomes ou índices das colunas de coordenadas (ex: \code{c("x", "y")}).
+#' @param variograma_obj Objeto retornado por \code{\link{variograma}}. Se \code{NULL},
+#'   o variograma é ajustado automaticamente.
+#' @param grafico Lógico. Se TRUE (padrão), exibe gráfico de dispersão observado vs. predito
+#'   e histograma dos erros padronizados com \code{meu_tema(grade = "dupla")}.
+#'
+#' @return Objeto invisível da classe \code{estatR_validacao_krigagem}.
+#' @export
+validar_krigagem <- function(dados,
+                             variavel = NULL,
+                             coordenadas = NULL,
+                             variograma_obj = NULL,
+                             grafico = TRUE) {
+
+  if (is.null(variograma_obj)) {
+    variograma_obj <- variograma(dados, variavel = variavel, coordenadas = coordenadas, grafico = FALSE)
+  }
+  if (!inherits(variograma_obj, "estatR_variograma")) {
+    stop("O argumento 'variograma_obj' deve ser um objeto gerado por 'variograma()'.", call. = FALSE)
+  }
+
+  coords <- variograma_obj$coordenadas
+  z <- variograma_obj$z
+  var_nome <- variograma_obj$variavel
+  n <- length(z)
+  fn_semivar <- variograma_obj$fn_teorica
+
+  coords_mat <- as.matrix(coords[, c("x", "y")])
+  D_total <- as.matrix(stats::dist(coords_mat))
+
+  z_pred_loo <- numeric(n)
+  var_krig_loo <- numeric(n)
+
+  # Leave-One-Out Loop
+  for (i in seq_len(n)) {
+    idx_train <- seq_len(n)[-i]
+    m <- length(idx_train)
+
+    coords_train <- coords_mat[idx_train, , drop = FALSE]
+    z_train <- z[idx_train]
+
+    # Matriz A_train
+    D_train <- D_total[idx_train, idx_train, drop = FALSE]
+    G_train <- fn_semivar(D_train)
+    diag(G_train) <- 1e-8
+
+    A_tr <- matrix(1, nrow = m + 1, ncol = m + 1)
+    A_tr[1:m, 1:m] <- G_train
+    A_tr[m + 1, m + 1] <- 0
+
+    A_tr_inv <- tryCatch(solve(A_tr), error = function(e) MASS::ginv(A_tr))
+
+    # Vetor b0 para o ponto i
+    d_i <- D_total[idx_train, i]
+    b0 <- c(fn_semivar(d_i), 1)
+
+    w_i <- A_tr_inv %*% b0
+    z_pred_loo[i] <- sum(w_i[1:m] * z_train)
+    v_i <- sum(w_i * b0)
+    var_krig_loo[i] <- max(1e-6, v_i)
+  }
+
+  erros <- z - z_pred_loo
+  dp_krig <- sqrt(var_krig_loo)
+  erros_pad <- erros / dp_krig
+
+  # Métricas
+  rmse <- sqrt(mean(erros^2, na.rm = TRUE))
+  mae  <- mean(abs(erros), na.rm = TRUE)
+  mape <- if (all(abs(z) > 1e-5)) mean(abs(erros / z), na.rm = TRUE) * 100 else NA_real_
+
+  ss_res <- sum(erros^2, na.rm = TRUE)
+  ss_tot <- sum((z - mean(z, na.rm = TRUE))^2, na.rm = TRUE)
+  r2 <- if (ss_tot > 0) max(0, 1 - (ss_res / ss_tot)) else 0
+
+  media_ep <- mean(erros_pad, na.rm = TRUE)
+  dp_ep <- stats::sd(erros_pad, na.rm = TRUE)
+
+  # ── Saída no console ────────────────────────────────────────────────────────
+  .print_titulo("VALIDAÇÃO CRUZADA (LEAVE-ONE-OUT): KRIGAGEM ORDINÁRIA")
+  cat(sprintf("  Variável            : %s\n", var_nome))
+  cat(sprintf("  Nº Observações      : %d pontos avaliados\n", n))
+  cat(sprintf("  Modelo de Variograma: %s (pepita = %s | patamar = %s | alcance = %s)\n\n",
+              variograma_obj$modelo_nome,
+              .esp_fmt_num(variograma_obj$pepita, 2),
+              .esp_fmt_num(variograma_obj$patamar, 2),
+              .esp_fmt_num(variograma_obj$alcance, 2)))
+
+  .print_topico("MÉTRICAS DE DESEMPENHO PREDITIVO (LOO)")
+  w_m <- c(met = 12, val = 14, desc = 42)
+  cat(.esp_sep(sum(w_m)), "\n")
+  cat("  ",
+      .esp_pad("Métrica", w_m["met"]),
+      .esp_pad("Valor", w_m["val"], "right"),
+      "  ", .esp_pad("Interpretação", w_m["desc"]),
+      "\n", sep = "")
+  cat(.esp_sep(sum(w_m)), "\n")
+
+  cat("  ", .esp_pad("RMSE", w_m["met"]), .esp_pad(.esp_fmt_num(rmse, 4), w_m["val"], "right"),
+      "    ", .esp_pad("Raiz do Erro Quadrático Médio", w_m["desc"]), "\n", sep = "")
+  cat("  ", .esp_pad("MAE", w_m["met"]), .esp_pad(.esp_fmt_num(mae, 4), w_m["val"], "right"),
+      "    ", .esp_pad("Erro Absoluto Médio", w_m["desc"]), "\n", sep = "")
+  if (!is.na(mape)) {
+    cat("  ", .esp_pad("MAPE (%)", w_m["met"]), .esp_pad(paste0(.esp_fmt_num(mape, 2), "%"), w_m["val"], "right"),
+        "    ", .esp_pad("Erro Percentual Absoluto Médio", w_m["desc"]), "\n", sep = "")
+  }
+  cat("  ", .esp_pad("R² (LOO)", w_m["met"]), .esp_pad(.esp_fmt_num(r2, 4), w_m["val"], "right"),
+      "    ", .esp_pad("Coeficiente de Determinação (Predito vs Obs)", w_m["desc"]), "\n", sep = "")
+  cat(.esp_sep(sum(w_m)), "\n\n")
+
+  .print_topico("DIAGNÓSTICO DOS ERROS PADRONIZADOS")
+  cat(sprintf("  Média dos Erros Padronizados : %s  (ideal: próxima de 0)\n", .esp_fmt_num(media_ep, 4)))
+  cat(sprintf("  Desvio Padrão dos Erros Pad. : %s  (ideal: próximo de 1)\n", .esp_fmt_num(dp_ep, 4)))
+
+  if (abs(media_ep) <= 0.20 && dp_ep >= 0.80 && dp_ep <= 1.20) {
+    cat("  [✓] Variograma bem calibrado: média ≈ 0 e desvio ≈ 1 confirmam acurácia e incerteza realistas.\n\n")
+  } else if (dp_ep > 1.20) {
+    cat("  [!] Variograma subestimou a incerteza real (desvio padrão > 1,20): o patamar pode estar subestimado.\n\n")
+  } else if (dp_ep < 0.80) {
+    cat("  [!] Variograma superestimou a incerteza real (desvio padrão < 0,80): o patamar pode estar superestimado.\n\n")
+  } else {
+    cat("  [!] Erros padronizados apresentam leve viés médio na predição pontual.\n\n")
+  }
+  .print_rodape()
+
+  # ── Gráficos em ggplot2 com meu_tema(grade = "dupla") ───────────────────────
+  p_plot <- NULL
+  if (grafico && requireNamespace("ggplot2", quietly = TRUE)) {
+    df_loo <- data.frame(
+      Observado = z,
+      Predito = z_pred_loo,
+      Erro = erros,
+      Erro_Pad = erros_pad
+    )
+
+    lims <- range(c(z, z_pred_loo), na.rm = TRUE)
+
+    p1 <- ggplot2::ggplot(df_loo, ggplot2::aes(x = Observado, y = Predito)) +
+      ggplot2::geom_abline(intercept = 0, slope = 1, linetype = "dashed", color = "#E63946", linewidth = 0.9) +
+      ggplot2::geom_point(color = "#1D3557", fill = "#457B9D", shape = 21, size = 2.4, alpha = 0.85) +
+      ggplot2::labs(
+        title    = "Observado vs. Predito (Validação Cruzada LOO)",
+        subtitle = sprintf("R² = %s | RMSE = %s | Linha tracejada: y = x", .esp_fmt_num(r2, 3), .esp_fmt_num(rmse, 2)),
+        x        = "Valor Observado",
+        y        = "Valor Predito"
+      ) +
+      ggplot2::coord_fixed(ratio = 1, xlim = lims, ylim = lims) +
+      meu_tema(grade = "dupla")
+
+    p2 <- ggplot2::ggplot(df_loo, ggplot2::aes(x = Erro_Pad)) +
+      ggplot2::geom_histogram(ggplot2::aes(y = ggplot2::after_stat(density)),
+                              bins = max(7, min(20, round(n / 4))),
+                              fill = "#457B9D", color = "white", alpha = 0.85) +
+      ggplot2::geom_vline(xintercept = 0, linetype = "dashed", color = "#E63946", linewidth = 0.8) +
+      ggplot2::stat_function(fun = stats::dnorm, color = "#1D3557", linewidth = 1.1) +
+      ggplot2::labs(
+        title    = "Distribuição dos Erros Padronizados",
+        subtitle = sprintf("Média = %s | DP = %s | Curva azul: N(0, 1)", .esp_fmt_num(media_ep, 2), .esp_fmt_num(dp_ep, 2)),
+        x        = "Erro Padronizado",
+        y        = "Densidade"
+      ) +
+      meu_tema(grade = "dupla")
+
+    if (requireNamespace("gridExtra", quietly = TRUE)) {
+      gridExtra::grid.arrange(p1, p2, ncol = 2)
+      p_plot <- list(painel_obs_pred = p1, painel_erros_pad = p2)
+    } else {
+      print(p1)
+      p_plot <- p1
+    }
+  }
+
+  res <- list(
+    observado       = z,
+    predito         = z_pred_loo,
+    erro            = erros,
+    erro_padronizado= erros_pad,
+    variancia_krig  = var_krig_loo,
+    rmse            = rmse,
+    mae             = mae,
+    mape            = mape,
+    r2              = r2,
+    media_erro_pad  = media_ep,
+    dp_erro_pad     = dp_ep,
+    variograma      = variograma_obj,
+    n               = n,
+    grafico         = p_plot
+  )
+  class(res) <- c("estatR_validacao_krigagem", "list")
+  invisible(res)
+}
+
+
+# ── 14. POLIMORFISMO PARA SUPERFÍCIE CONTÍNUA ─────────────────────────────────
+
+#' @noRd
+.analise_residual_krigagem <- function(modelo, grafico = TRUE) {
+  validar_krigagem(
+    dados          = modelo$dados_obs,
+    variavel       = "z",
+    coordenadas    = c("x", "y"),
+    variograma_obj = modelo$variograma,
+    grafico        = grafico
+  )
+}
+
+#' @noRd
+.metricas_krigagem <- function(modelo) {
+  val <- validar_krigagem(
+    dados          = modelo$dados_obs,
+    variavel       = "z",
+    coordenadas    = c("x", "y"),
+    variograma_obj = modelo$variograma,
+    grafico        = FALSE
+  )
+  invisible(data.frame(
+    Metrica = c("RMSE", "MAE", "MAPE", "R2_LOO", "Media_Erro_Pad", "DP_Erro_Pad"),
+    Valor   = c(val$rmse, val$mae, val$mape, val$r2, val$media_erro_pad, val$dp_erro_pad),
+    stringsAsFactors = FALSE
+  ))
+}
+
+#' @noRd
+.metricas_variograma <- function(modelo) {
+  .print_titulo("MÉTRICAS DO VARIOGRAMA AJUSTADO")
+  cat(sprintf("  Variável            : %s\n", modelo$variavel))
+  cat(sprintf("  Modelo              : %s\n", modelo$modelo_nome))
+  cat(sprintf("  Pepita (C₀)         : %s\n", .esp_fmt_num(modelo$pepita, 4)))
+  cat(sprintf("  Patamar (C₀ + C)    : %s\n", .esp_fmt_num(modelo$patamar, 4)))
+  cat(sprintf("  Contribuição (C)    : %s\n", .esp_fmt_num(modelo$contribuicao, 4)))
+  cat(sprintf("  Alcance Prático (a) : %s\n", .esp_fmt_num(modelo$alcance, 4)))
+  cat(sprintf("  Razão Pepita/Patamar: %s%%\n", .esp_fmt_num(modelo$razao_pepita, 2)))
+  cat(sprintf("  SQR do Ajuste       : %s\n\n", .esp_fmt_num(modelo$sqr, 6)))
+  .print_rodape()
+
+  invisible(data.frame(
+    Parametro = c("Pepita", "Patamar", "Contribuicao", "Alcance", "Razao_Pepita_Pct", "SQR"),
+    Valor     = c(modelo$pepita, modelo$patamar, modelo$contribuicao, modelo$alcance, modelo$razao_pepita, modelo$sqr),
+    stringsAsFactors = FALSE
+  ))
+}
+
+#' @noRd
+.comparar_modelos_variograma <- function(modelos, nomes = NULL) {
+  n_mods <- length(modelos)
+  if (is.null(nomes)) nomes <- paste0("Modelo_", seq_len(n_mods))
+
+  tipos <- vapply(modelos, function(m) m$modelo_nome, character(1))
+  vars  <- vapply(modelos, function(m) m$variavel, character(1))
+  peps  <- vapply(modelos, function(m) m$pepita, numeric(1))
+  sills <- vapply(modelos, function(m) m$patamar, numeric(1))
+  alcs  <- vapply(modelos, function(m) m$alcance, numeric(1))
+  sqrs  <- vapply(modelos, function(m) m$sqr, numeric(1))
+
+  df_comp <- data.frame(
+    Nome     = nomes,
+    Modelo   = tipos,
+    Variavel = vars,
+    Pepita   = peps,
+    Patamar  = sills,
+    Alcance  = alcs,
+    SQR      = sqrs,
+    stringsAsFactors = FALSE
+  )
+  df_comp <- df_comp[order(df_comp$SQR), ]
+
+  .print_titulo("COMPARAÇÃO DE MODELOS DE VARIOGRAMA")
+  w <- c(nome = 14, mod = 14, pep = 10, pat = 10, alc = 10, sqr = 12)
+  cat(.esp_sep(sum(w)), "\n")
+  cat("  ",
+      .esp_pad("Nome", w["nome"]),
+      .esp_pad("Modelo", w["mod"]),
+      .esp_pad("Pepita", w["pep"], "right"),
+      .esp_pad("Patamar", w["pat"], "right"),
+      .esp_pad("Alcance", w["alc"], "right"),
+      .esp_pad("SQR", w["sqr"], "right"),
+      "\n", sep = "")
+  cat(.esp_sep(sum(w)), "\n")
+
+  for (i in seq_len(nrow(df_comp))) {
+    cat("  ",
+        .esp_pad(df_comp$Nome[i], w["nome"]),
+        .esp_pad(df_comp$Modelo[i], w["mod"]),
+        .esp_pad(.esp_fmt_num(df_comp$Pepita[i], 2), w["pep"], "right"),
+        .esp_pad(.esp_fmt_num(df_comp$Patamar[i], 2), w["pat"], "right"),
+        .esp_pad(.esp_fmt_num(df_comp$Alcance[i], 2), w["alc"], "right"),
+        .esp_pad(.esp_fmt_num(df_comp$SQR[i], 4), w["sqr"], "right"),
+        "\n", sep = "")
+  }
+  cat(.esp_sep(sum(w)), "\n")
+  cat("  Notas:\n")
+  cat("  Modelos ordenados pelo menor SQR (melhor ajuste ao variograma empírico).\n\n")
+  .print_rodape()
+
+  invisible(df_comp)
+}

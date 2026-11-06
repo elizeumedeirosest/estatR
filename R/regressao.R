@@ -456,6 +456,16 @@ metricas <- function(modelo, corte_prob = 0.5) {
       return(.metricas_espacial(modelo))
     }
   }
+  if (inherits(modelo, "estatR_krigagem")) {
+    if (exists(".metricas_krigagem", mode = "function")) {
+      return(.metricas_krigagem(modelo))
+    }
+  }
+  if (inherits(modelo, "estatR_variograma")) {
+    if (exists(".metricas_variograma", mode = "function")) {
+      return(.metricas_variograma(modelo))
+    }
+  }
   if (inherits(modelo, "zeroinfl") && !is.null(modelo$dist)) {
     if (modelo$dist == "poisson" && exists(".metricas_poisson_iz", mode = "function")) {
       return(.metricas_poisson_iz(modelo))
@@ -570,6 +580,11 @@ analise_residual <- function(modelo, grafico = TRUE, simulacao = FALSE, n_sim = 
     }
   }
   # Suporte a Modelos Inflados de Zero (zeroinfl: ZIP e ZINB)
+  if (inherits(modelo, "estatR_krigagem")) {
+    if (exists(".analise_residual_krigagem", mode = "function")) {
+      return(.analise_residual_krigagem(modelo, grafico = grafico))
+    }
+  }
   if (inherits(modelo, "zeroinfl") && !is.null(modelo$dist)) {
     if (modelo$dist == "poisson" && exists(".analise_residual_poisson_iz", mode = "function")) {
       return(.analise_residual_poisson_iz(modelo, grafico = grafico))

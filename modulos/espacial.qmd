@@ -1,12 +1,14 @@
 ---
 title: "Estatística Espacial"
-subtitle: "Dados de Área (Moran, LM de Anselin, SAR/SEM/MDE) e Processos Pontuais (CSR, Ripley, Clark-Evans)"
+subtitle: "Dados de Área (Moran, LM, SAR/SEM/MDE), Processos Pontuais (CSR, Ripley, Clark-Evans) e Superfície Contínua (Variograma, Krigagem)"
 ---
 
-O módulo de **Estatística Espacial** do `estatR` cobre dois grandes domínios da análise espacial quantitativa:
+O módulo de **Estatística Espacial** do `estatR` cobre os três grandes domínios da análise espacial quantitativa:
 
 * **Dados de Área (*Areal Data*)** — Dependência geográfica entre regiões contíguas (municípios, estados, unidades censitárias): matrizes de vizinhança, Moran Global/LISA, diagnóstico LM de Anselin e modelos de regressão espacial (SAR, SEM e MDE).
 * **Processos Pontuais (*Point Pattern Analysis*)** — Análise do padrão de localização de eventos discretos no espaço (crimes, focos de doenças, árvores, ocorrências): testes de Aleatoriedade Espacial Completa (CSR), função K de Ripley, função G e teste de Clark-Evans.
+
+* **Superfície Contínua (*Geostatistics / Continuous Surface*)** — Modelagem da dependência espacial contínua e interpolação por Krigagem Ordinária (BLUE): variograma empírico e teórico (esférico, exponencial, gaussiano), mapas de superfície e variância, e validação cruzada Leave-One-Out (LOO).
 
 Todos os gráficos utilizam `ggplot2` com `meu_tema(grade = "dupla")` para manter o padrão editorial do pacote.
 
@@ -299,3 +301,132 @@ funcao_g_pontos(
 ```
 
 O gráfico exibe a curva empírica $G(r)$ observada (linha azul), a curva teórica de Poisson (linha vermelha tracejada) e a faixa de envelopes CSR (cinza sombreado).
+
+---
+
+## Parte III — Superfície Contínua (Geoestatística / Interpolação)
+
+Na geoestatística, os dados consistem em medições de uma variável contínua (ex: precipitação, temperatura, teor de minério, poluentes) coletadas em coordenadas espaciais pontuais $(x, y)$, com o objetivo de **modelar a estrutura de dependência espacial** e **interpolar a variável** em todo o contínuo geográfico.
+
+---
+
+## 11. Variograma — Semivariância Empírica e Modelos Teóricos
+
+A função `variograma()` calcula a semivariância empírica por classes de distância (lags) e ajusta modelos teóricos clássicos via mínimos quadrados com busca automática ou seleção manual:
+
+$$\gamma(h) = \frac{1}{2 N(h)} \sum_{i=1}^{N(h)} [z(s_i) - z(s_i + h)]^2$$
+
+* `modelo = "auto"` (padrão): testa os modelos **Esférico**, **Exponencial** e **Gaussiano** e seleciona aquele com menor Soma de Quadrados dos Resíduos (SQR).
+* `modelo = "esferico"`, `"exponencial"` ou `"gaussiano"`: ajuste direto do modelo escolhido.
+* `n_classes = "auto"` ou valor numérico inteiro (ex: `15`).
+* `dist_max = "auto"` (metade da extensão máxima amostrada) ou valor numérico.
+* Diagnóstico de Razão Pepita/Patamar: $C_0 / (C_0 + C)$ classifica a dependência espacial em **Forte** ($\le 25\%$), **Moderada** ($25\% < \text{razão} \le 75\%$) ou **Fraca / Efeito Pepita** ($> 75\%$).
+
+```r
+# Variograma com seleção automática do melhor modelo teórico
+vario <- variograma(
+  dados       = dados_clima,
+  variavel    = "temperatura",
+  coordenadas = c("x", "y"),
+  modelo      = "auto"
+)
+
+# Ajuste manual do modelo esférico com 12 classes
+vario_esf <- variograma(
+  dados       = dados_clima,
+  variavel    = "temperatura",
+  coordenadas = c("x", "y"),
+  modelo      = "esferico",
+  n_classes   = 12
+)
+```
+
+O gráfico exibe dois painéis com `meu_tema(grade = "dupla")`: à esquerda, os pontos empíricos, a curva ajustada do modelo e as linhas de pepita e patamar; à direita, o histograma de pares analisados por lag.
+
+---
+
+## 12. Krigagem Ordinária — Interpolação Espacial BLUE
+
+A função `krigagem()` aplica o estimador linear não viesado de variância mínima (**BLUE** - *Best Linear Unbiased Estimator*) para estimar valores da variável em qualquer local do domínio:
+
+$$\hat{z}(s_0) = \sum_{i=1}^n w_i z(s_i), \quad \text{sujeito a} \quad \sum_{i=1}^n w_i = 1$$
+
+* `resolucao = "auto"`: gera uma malha regular de $40 \times 40$ ($1.600$ células de predição), ou um valor inteiro (ex: `30` ou `50`).
+* `janela = "auto"`: delimita a envoltória das amostras com margem de segurança de $5\%$, ou vetor manual `c(xmin, xmax, ymin, ymax)`.
+* `variograma_obj`: recebe o objeto retornado por `variograma()` ou ajusta internamente se for `NULL`.
+
+```r
+# Krigagem Ordinária na grade automática 40x40
+krig <- krigagem(
+  dados          = dados_clima,
+  variavel       = "temperatura",
+  coordenadas    = c("x", "y"),
+  variograma_obj = vario
+)
+
+# Krigagem com resolução customizada (50x50 = 2.500 pontos)
+krig_fina <- krigagem(
+  dados       = dados_clima,
+  variavel    = "temperatura",
+  coordenadas = c("x", "y"),
+  resolucao   = 50
+)
+```
+
+O painel gráfico exibe lado a lado o **mapa da superfície predita** (com os pontos amostrais sobrepostos) e o **mapa de incerteza (variância de krigagem)** com `meu_tema(grade = "dupla")`.
+
+---
+
+## 13. Validação Cruzada Leave-One-Out (LOO)
+
+A função `validar_krigagem()` remove iterativamente cada ponto amostral, prediz seu valor utilizando as demais amostras e compara as estimativas com os valores reais:
+
+* Métricas preditivas: **RMSE**, **MAE**, **MAPE (%)** e **R² (LOO)**.
+* Diagnóstico de calibração dos erros padronizados: verifica se a média é próxima de $0$ e o desvio padrão é próximo de $1$.
+
+```r
+# Validação cruzada com diagnóstico completo e gráficos
+validar_krigagem(
+  dados          = dados_clima,
+  variavel       = "temperatura",
+  coordenadas    = c("x", "y"),
+  variograma_obj = vario
+)
+```
+
+Gera gráficos em grade dupla: diagrama de dispersão **Observado vs. Predito** com linha $y = x$, e **histograma dos erros padronizados** com a densidade normal teórica $N(0, 1)$.
+
+---
+
+## 14. Diagnóstico e Avaliação Polimórfica
+
+Assim como nos modelos de regressão linear e espacial de área, os objetos de geoestatística se integram ao fluxo de trabalho polimórfico do pacote:
+
+### Análise Residual
+A função genérica `analise_residual()` reconhece objetos de krigagem e executa o diagnóstico dos resíduos da validação cruzada LOO:
+
+```r
+analise_residual(krig)
+```
+
+### Métricas de Ajuste
+A função `metricas()` sintetiza os desempenhos tanto para modelos de variograma quanto para interpolação:
+
+```r
+# Métricas preditivas da krigagem (RMSE, MAE, R²)
+metricas(krig)
+
+# Parâmetros estruturais do variograma (pepita, patamar, alcance, SQR)
+metricas(vario)
+```
+
+### Comparação de Modelos de Variograma
+A função `comparar_modelos()` ranqueia múltiplos modelos teóricos ajustados por ordem crescente de SQR:
+
+```r
+comparar_modelos(
+  Esferico    = vario_esf,
+  Gaussiano   = vario_gauss,
+  Exponencial = vario_exp
+)
+```
