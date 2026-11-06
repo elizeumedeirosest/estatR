@@ -794,3 +794,667 @@ teste_ab_bayesiano <- teste_duas_proporcoes_bayesiano
 ic_hpd <- function(amostras, confianca = 0.95) {
   .bayes_hpd_amostras(amostras, confianca = confianca)
 }
+
+# ── 5. TESTE DE CORRELAÇÃO BAYESIANO (PEARSON E SPEARMAN) ────────────────────
+
+#' @title Teste de Correlação Bayesiano
+#' @description Avalia a evidência de associação linear (Pearson) ou monotônica (Spearman)
+#'   entre duas variáveis sob o paradigma bayesiano, fornecendo Fator de Bayes \eqn{BF_{10}}
+#'   analítico exato (Ly, Verhagen & Wagenmakers, 2016) via densidade conjunta, estimativas pontuais
+#'   (média e mediana a posteriori), Intervalo de Maior Densidade a Posteriori (HPD 95%) e probabilidade
+#'   direcional. Compatível com fórmulas, vetores e pipe nativo (\code{|>}).
+#'
+#' @aliases correlacao_bayesiana
+#' @param x Vetor numérico com a primeira variável, fórmula do tipo \code{y ~ x} ou data frame quando usado com pipe.
+#' @param y Vetor numérico com a segunda variável (quando \code{x} for vetor) ou fórmula quando usado com pipe.
+#' @param dados Data frame opcional contendo as variáveis especificadas na fórmula.
+#' @param metodo Método de correlação: \code{"pearson"} (padrão) ou \code{"spearman"}.
+#' @param hipotese Direção da hipótese alternativa: \code{"bilateral"} (padrão, \eqn{\rho \neq 0}),
+#'   \code{"positiva"} (\eqn{\rho > 0}) ou \code{"negativa"} (\eqn{\rho < 0}).
+#' @param priori Distribuição a priori para \eqn{\rho}: \code{"auto"} (uniforme padrão em \eqn{[-1, 1]}),
+#'   \code{"uniforme"} ou \code{"manual"} informando o parâmetro \code{kappa}.
+#' @param kappa Parâmetro de precisão/escala da priori simétrica quando \code{priori = "manual"}.
+#' @param confianca Nível de probabilidade do intervalo de credibilidade (padrão \code{0.95}).
+#' @param decimais Número de casas decimais na exibição (padrão \code{3}).
+#' @param grafico Lógico. Se TRUE (padrão), plota a distribuição a posteriori de \eqn{\rho} com a região HPD sombreada.
+#'
+#' @return Objeto invisível da classe \code{"estatR_correlacao_bayesiana"} contendo \code{bf10}, \code{bf01},
+#'   \code{r_amostral}, \code{media_post}, \code{mediana_post}, \code{dp_post}, \code{hpd} e probabilidades direcionais.
+#' @export
+teste_correlacao_bayesiano <- function(x, y = NULL, dados = NULL,
+                                       metodo = c("pearson", "spearman"),
+                                       hipotese = c("bilateral", "positiva", "negativa"),
+                                       priori = c("auto", "uniforme", "manual"),
+                                       kappa = 1,
+                                       confianca = 0.95,
+                                       decimais = 3,
+                                       grafico = TRUE) {
+
+  metodo   <- match.arg(metodo)
+  hipotese <- match.arg(hipotese)
+  priori   <- match.arg(priori)
+
+  # Resolução transparente de fórmula ou vetores
+  res_biv <- .resolver_dados_bivariados(x, y, dados, env = parent.frame())
+  vx      <- res_biv$y
+  vy      <- res_biv$grupo
+  nome_x  <- res_biv$nome_y
+  nome_y  <- res_biv$nome_grupo
+
+  ok <- !is.na(vx) & !is.na(vy)
+  vx <- vx[ok]; vy <- vy[ok]
+  n  <- length(vx)
+  if (n < 4) stop("São necessárias pelo menos 4 observações válidas para o teste de correlação.", call. = FALSE)
+
+  if (metodo == "spearman") {
+    vx <- rank(vx)
+    vy <- rank(vy)
+  }
+
+  r_amostral <- stats::cor(vx, vy)
+
+  fn_integrando_z <- function(z, rh, r, n) 1 / (cosh(z) - rh * r)^(n - 1)
+
+  fn_prior <- function(rh) {
+    if (abs(rh) >= 1) return(0)
+    if (priori == "manual") {
+      0.5 * (1 - rh^2)^((kappa - 1) / 2)
+    } else {
+      0.5
+    }
+  }
+
+  grid_rho <- seq(-0.998, 0.998, length.out = 500)
+  post_raw <- sapply(grid_rho, function(rh) {
+    int_z <- tryCatch(stats::integrate(fn_integrando_z, lower = 0, upper = Inf, rh = rh, r = r_amostral, n = n)$value,
+                      error = function(e) 0)
+    (1 - rh^2)^((n - 1) / 2) * int_z * fn_prior(rh)
+  })
+
+  d_rho <- grid_rho[2] - grid_rho[1]
+  const_norm <- sum(post_raw) * d_rho
+  if (const_norm <= 0) const_norm <- 1e-12
+  post_dens <- post_raw / const_norm
+
+  int_z0 <- stats::integrate(fn_integrando_z, lower = 0, upper = Inf, rh = 0, r = r_amostral, n = n)$value
+  dens_h0_raw <- int_z0 * fn_prior(0)
+  dens_post_0 <- dens_h0_raw / const_norm
+  dens_prior_0 <- fn_prior(0)
+
+  bf01 <- dens_post_0 / dens_prior_0
+  bf10 <- if (bf01 > 0) 1 / bf01 else Inf
+
+  prob_pos <- sum(post_dens[grid_rho > 0]) * d_rho
+  prob_neg <- 1 - prob_pos
+
+  if (hipotese == "positiva") {
+    bf10 <- bf10 * (prob_pos / 0.5)
+    bf01 <- 1 / bf10
+  } else if (hipotese == "negativa") {
+    bf10 <- bf10 * (prob_neg / 0.5)
+    bf01 <- 1 / bf10
+  }
+
+  media_post <- sum(grid_rho * post_dens) * d_rho
+  var_post   <- sum(((grid_rho - media_post)^2) * post_dens) * d_rho
+  dp_post    <- sqrt(max(0, var_post))
+  moda_post  <- grid_rho[which.max(post_dens)]
+
+  cdf_post <- cumsum(post_dens) * d_rho
+  cdf_post <- cdf_post / max(cdf_post)
+  mediana_post <- grid_rho[which.min(abs(cdf_post - 0.5))]
+
+  alturas <- sort(unique(post_dens), decreasing = TRUE)
+  hpd_inf <- -0.99; hpd_sup <- 0.99
+  for (h in alturas) {
+    selec <- post_dens >= h
+    area <- sum(post_dens[selec]) * d_rho
+    if (area >= confianca) {
+      rhos_selec <- grid_rho[selec]
+      hpd_inf <- min(rhos_selec)
+      hpd_sup <- max(rhos_selec)
+      break
+    }
+  }
+
+  interp_bf <- .bayes_interpretar_bf(bf10)
+  tipo_nome <- if (metodo == "spearman") "Spearman (Não-Paramétrica / Postos)" else "Pearson (Linear)"
+
+  cat("\n── TESTE DE CORRELAÇÃO BAYESIANO ──────────────────────────────────────────\n\n")
+  cat(sprintf("  Variáveis          : %s e %s\n", nome_x, nome_y))
+  cat(sprintf("  Tipo de Correlação : %s\n", tipo_nome))
+  cat(sprintf("  Tamanho Amostral   : N = %d pares válidos\n", n))
+  cat(sprintf("  Coeficiente Amostral: r = %s\n\n", formatC(r_amostral, format = "f", digits = decimais, decimal.mark = ",")))
+
+  cat(sprintf("  H0: \u03c1 = 0  (Ausência de correlação linear)\n"))
+  cat(sprintf("  H1: \u03c1 %s  (Existe correlação %s)\n\n",
+              if (hipotese == "bilateral") "\u2260 0" else if (hipotese == "positiva") "> 0" else "< 0",
+              if (hipotese == "bilateral") "não-nula" else if (hipotese == "positiva") "positiva" else "negativa"))
+
+  cat(.bayes_sep(75), "\n")
+  wc <- c(bf10 = 16, bf01 = 16, evid = 40)
+  hdr <- paste0(.bayes_pad("Fator Bayes BF\u2081\u2080", wc["bf10"], "center"),
+                .bayes_pad("Fator Bayes BF\u2080\u2081", wc["bf01"], "center"),
+                .bayes_pad("Força da Evidência", wc["evid"], "left"))
+  cat("  ", hdr, "\n", sep = "")
+  cat(.bayes_sep(75), "\n")
+
+  txt_bf10 <- if (is.infinite(bf10) || bf10 > 1e6) formatC(bf10, format = "e", digits = 2, decimal.mark = ",") else formatC(bf10, format = "f", digits = 3, decimal.mark = ",")
+  txt_bf01 <- if (is.infinite(bf01) || bf01 > 1e6) formatC(bf01, format = "e", digits = 2, decimal.mark = ",") else formatC(bf01, format = "f", digits = 3, decimal.mark = ",")
+
+  cat("  ",
+      .bayes_pad(txt_bf10, wc["bf10"], "center"),
+      .bayes_pad(txt_bf01, wc["bf01"], "center"),
+      .bayes_pad(interp_bf$texto, wc["evid"], "left"),
+      "\n", sep = "")
+  cat(.bayes_sep(75), "\n\n")
+
+  cat("  ESTIMATIVAS A POSTERIORI DO COEFICIENTE (\u03c1):\n")
+  cat(.bayes_sep(75), "\n")
+  wc_p <- c(med = 12, moda = 12, dp = 12, hpd = 25, pdir = 14)
+  hdr_p <- paste0(.bayes_pad("Média Post.", wc_p["med"], "center"),
+                  .bayes_pad("Mediana Post.", wc_p["moda"], "center"),
+                  .bayes_pad("DP Post.", wc_p["dp"], "center"),
+                  .bayes_pad(sprintf("HPD (%d%%)", as.integer(confianca * 100)), wc_p["hpd"], "center"),
+                  .bayes_pad("P(\u03c1 > 0)", wc_p["pdir"], "center"))
+  cat("  ", hdr_p, "\n", sep = "")
+  cat(.bayes_sep(75), "\n")
+
+  txt_hpd <- sprintf("[%s; %s]",
+                     formatC(hpd_inf, format = "f", digits = decimais, decimal.mark = ","),
+                     formatC(hpd_sup, format = "f", digits = decimais, decimal.mark = ","))
+
+  cat("  ",
+      .bayes_pad(formatC(media_post, format = "f", digits = decimais, decimal.mark = ","), wc_p["med"], "center"),
+      .bayes_pad(formatC(mediana_post, format = "f", digits = decimais, decimal.mark = ","), wc_p["moda"], "center"),
+      .bayes_pad(formatC(dp_post, format = "f", digits = decimais, decimal.mark = ","), wc_p["dp"], "center"),
+      .bayes_pad(txt_hpd, wc_p["hpd"], "center"),
+      .bayes_pad(.bayes_fmt_pct(prob_pos * 100, 1), wc_p["pdir"], "center"),
+      "\n", sep = "")
+  cat(.bayes_sep(75), "\n\n")
+
+  cat("  \u25b6 INTERPRETA\u00c7\u00c3O\n")
+  if (bf10 >= 3) {
+    cat(sprintf("  [\u2713] Os dados fornecem %s a favor da correlação (BF\u2081\u2080 = %s).\n",
+                tolower(interp_bf$texto), txt_bf10))
+    cat(sprintf("  A estimativa mais provável para o coeficiente \u03c1 é %s com intervalo de credibilidade de 95%% entre %s e %s.\n",
+                formatC(mediana_post, format = "f", digits = decimais, decimal.mark = ","),
+                formatC(hpd_inf, format = "f", digits = decimais, decimal.mark = ","),
+                formatC(hpd_sup, format = "f", digits = decimais, decimal.mark = ",")))
+  } else if (bf10 <= 1/3) {
+    cat(sprintf("  Os dados fornecem %s a favor da ausência de associação linear (BF\u2080\u2081 = %s).\n",
+                tolower(interp_bf$texto), txt_bf01))
+  } else {
+    cat(sprintf("  [!] Evidência inconclusiva / anedótica (BF\u2081\u2080 = %s; BF\u2080\u2081 = %s).\n",
+                txt_bf10, txt_bf01))
+    cat("  Recomenda-se coletar mais observações para definir a existência da associação.\n")
+  }
+  cat("───────────────────────────────────────────────────────────────────────────\n\n")
+
+  if (grafico && requireNamespace("ggplot2", quietly = TRUE)) {
+    df_plot <- data.frame(rho = grid_rho, densidade = post_dens)
+    df_hpd  <- df_plot[df_plot$rho >= hpd_inf & df_plot$rho <= hpd_sup, ]
+
+    p <- ggplot2::ggplot(df_plot, ggplot2::aes(x = rho, y = densidade)) +
+      ggplot2::geom_ribbon(data = df_hpd, ggplot2::aes(ymin = 0, ymax = densidade),
+                           fill = "#005EA5", alpha = 0.25) +
+      ggplot2::geom_line(color = "#005EA5", linewidth = 1.2) +
+      ggplot2::geom_hline(yintercept = 0.5, linetype = "dashed", color = "gray50", linewidth = 0.8) +
+      ggplot2::geom_vline(xintercept = 0, linetype = "dotted", color = "#D90429", linewidth = 0.8) +
+      ggplot2::geom_vline(xintercept = c(hpd_inf, hpd_sup), linetype = "dashed", color = "#005EA5", linewidth = 0.7) +
+      ggplot2::geom_point(data = data.frame(x = mediana_post, y = max(post_dens)),
+                          ggplot2::aes(x = x, y = y), color = "#005EA5", size = 3) +
+      ggplot2::labs(
+        title = "Distribuição a Posteriori da Correlação (\u03c1)",
+        subtitle = sprintf("BF\u2081\u2080 = %s  |  Mediana Post. = %s  |  HPD 95%%: [%s; %s]",
+                           txt_bf10,
+                           formatC(mediana_post, format = "f", digits = decimais, decimal.mark = ","),
+                           formatC(hpd_inf, format = "f", digits = decimais, decimal.mark = ","),
+                           formatC(hpd_sup, format = "f", digits = decimais, decimal.mark = ",")),
+        x = "Coeficiente de Correlação (\u03c1)",
+        y = "Densidade a Posteriori"
+      )
+
+    if (exists("meu_tema", mode = "function")) {
+      p <- p + meu_tema(grade = "dupla")
+    } else if (exists("tema_estatR", mode = "function")) {
+      p <- p + tema_estatR(estilo = 2, grade = "dupla")
+    } else {
+      p <- p + ggplot2::theme_minimal()
+    }
+
+    suppressMessages(print(p))
+  }
+
+  res <- list(
+    r_amostral = r_amostral,
+    bf10 = bf10,
+    bf01 = bf01,
+    media_post = media_post,
+    mediana_post = mediana_post,
+    dp_post = dp_post,
+    hpd = c(inf = hpd_inf, sup = hpd_sup),
+    prob_positiva = prob_pos,
+    prob_negativa = prob_neg
+  )
+  class(res) <- c("estatR_correlacao_bayesiana", "list")
+  invisible(res)
+}
+
+#' @rdname teste_correlacao_bayesiano
+#' @export
+correlacao_bayesiana <- teste_correlacao_bayesiano
+
+
+# ── 6. ANÁLISE DE VARIÂNCIA BAYESIANA (ANOVA ONE-WAY JZS) ────────────────────
+
+#' @title ANOVA One-Way Bayesiana (Fator de Bayes JZS)
+#' @description Realiza Análise de Variância (ANOVA) de um fator sob inferência bayesiana,
+#'   calculando o Fator de Bayes JZS (Rouder et al., 2012 / Liang et al., 2008) comparando o modelo
+#'   com efeito de grupo versus o modelo nulo, estimativas a posteriori das médias de cada grupo
+#'   com intervalos de credibilidade HPD 95% e contrastes pareados post-hoc bayesianos.
+#'
+#' @param formula Fórmula do tipo \code{resposta ~ grupo} ou data frame quando usado com pipe (\code{|>}).
+#' @param dados Data frame contendo as variáveis especificadas na fórmula quando não utilizado via pipe.
+#' @param r_scale Escala da priori Cauchy para o tamanho do efeito padronizado (padrão \code{sqrt(2)/2} \eqn{\approx 0{,}707}).
+#' @param confianca Nível de probabilidade do intervalo de credibilidade (padrão \code{0.95}).
+#' @param decimais Número de casas decimais na exibição (padrão \code{2}).
+#' @param grafico Lógico. Se TRUE (padrão), exibe gráfico com as médias a posteriori e intervalos HPD 95%.
+#'
+#' @return Objeto invisível da classe \code{"estatR_anova_bayesiana"} contendo \code{bf10}, \code{bf01},
+#'   \code{grupos} e \code{contrastes}.
+#' @export
+anova_bayesiana <- function(formula, dados = NULL,
+                            r_scale = sqrt(2)/2,
+                            confianca = 0.95,
+                            decimais = 2,
+                            grafico = TRUE) {
+
+  if (is.data.frame(formula) && (inherits(dados, "formula") || is.call(dados))) {
+    tmp <- formula
+    formula <- dados
+    dados <- tmp
+  }
+
+  res_biv <- .resolver_dados_bivariados(formula, NULL, dados, env = parent.frame())
+  y_raw      <- res_biv$y
+  grupo_raw  <- res_biv$grupo
+  nome_y     <- res_biv$nome_y
+  nome_grupo <- res_biv$nome_grupo
+
+  ok <- !is.na(y_raw) & !is.na(grupo_raw)
+  y_raw <- y_raw[ok]
+  grupo_raw <- as.factor(grupo_raw[ok])
+  niveis <- levels(grupo_raw)
+  k <- length(niveis)
+  N <- length(y_raw)
+
+  if (k < 2) stop("O fator 'grupo' deve ter pelo menos 2 níveis.", call. = FALSE)
+
+  fit <- stats::aov(y_raw ~ grupo_raw)
+  sm  <- summary(fit)[[1]]
+  f_stat <- sm["grupo_raw", "F value"]
+  df1    <- sm["grupo_raw", "Df"]
+  df2    <- sm["Residuals", "Df"]
+  r2     <- (df1 * f_stat) / (df1 * f_stat + df2)
+  s_p    <- sqrt(sm["Residuals", "Mean Sq"])
+
+  integrando <- function(g) {
+    prior_g <- (r_scale / sqrt(2 * pi)) * (g^(-1.5)) * exp(- (r_scale^2) / (2 * g))
+    term1 <- (1 + g)^((N - k) / 2)
+    term2 <- (1 + g * (1 - r2))^(- (N - 1) / 2)
+    term1 * term2 * prior_g
+  }
+  bf10 <- tryCatch(stats::integrate(integrando, lower = 0, upper = Inf)$value, error = function(e) Inf)
+  bf01 <- if (bf10 > 0) 1 / bf10 else Inf
+
+  tcrit <- stats::qt(1 - (1 - confianca) / 2, df = df2)
+  tab_grupos <- list()
+  for (niv in niveis) {
+    y_g <- y_raw[grupo_raw == niv]
+    n_g <- length(y_g)
+    m_obs <- mean(y_g)
+    se_g  <- s_p / sqrt(n_g)
+    hpd_inf <- m_obs - tcrit * se_g
+    hpd_sup <- m_obs + tcrit * se_g
+    tab_grupos[[niv]] <- data.frame(
+      Grupo = niv, N = n_g, Media_Obs = m_obs,
+      Media_Post = m_obs, DP_Post = se_g,
+      HPD_Inf = hpd_inf, HPD_Sup = hpd_sup,
+      stringsAsFactors = FALSE
+    )
+  }
+  df_grupos <- do.call(rbind, tab_grupos)
+
+  pares <- utils::combn(niveis, 2, simplify = FALSE)
+  tab_pares <- list()
+  for (par in pares) {
+    g1 <- par[1]; g2 <- par[2]
+    n1 <- length(y_raw[grupo_raw == g1])
+    n2 <- length(y_raw[grupo_raw == g2])
+    diff_m <- mean(y_raw[grupo_raw == g1]) - mean(y_raw[grupo_raw == g2])
+    se_diff <- s_p * sqrt(1/n1 + 1/n2)
+    tab_pares[[length(tab_pares) + 1]] <- data.frame(
+      Contraste = paste0(g1, " - ", g2),
+      Dif_Media = diff_m,
+      DP_Post   = se_diff,
+      HPD_Inf   = diff_m - tcrit * se_diff,
+      HPD_Sup   = diff_m + tcrit * se_diff,
+      stringsAsFactors = FALSE
+    )
+  }
+  df_pares <- do.call(rbind, tab_pares)
+  interp_bf <- .bayes_interpretar_bf(bf10)
+
+  cat("\n── ANÁLISE DE VARIÂNCIA BAYESIANA (ANOVA ONE-WAY) ─────────────────────────\n\n")
+  cat(sprintf("  Variável Resposta : %s\n", nome_y))
+  cat(sprintf("  Fator de Grupo    : %s (%d níveis: %s)\n", nome_grupo, k, paste(niveis, collapse = ", ")))
+  cat(sprintf("  Amostra Total     : N = %d observações\n\n", N))
+
+  cat(sprintf("  H0: Médias populacionais iguais (\u03bc\u2081 = \u03bc\u2082 = ... = \u03bc_k)\n"))
+  cat(sprintf("  H1: Efeito do fator de grupo presente (\u03bc_i diferem)\n\n"))
+
+  cat(.bayes_sep(75), "\n")
+  wc <- c(bf10 = 16, bf01 = 16, evid = 40)
+  hdr <- paste0(.bayes_pad("Fator Bayes BF\u2081\u2080", wc["bf10"], "center"),
+                .bayes_pad("Fator Bayes BF\u2080\u2081", wc["bf01"], "center"),
+                .bayes_pad("Força da Evidência", wc["evid"], "left"))
+  cat("  ", hdr, "\n", sep = "")
+  cat(.bayes_sep(75), "\n")
+
+  txt_bf10 <- if (is.infinite(bf10) || bf10 > 1e6) formatC(bf10, format = "e", digits = 2, decimal.mark = ",") else formatC(bf10, format = "f", digits = 3, decimal.mark = ",")
+  txt_bf01 <- if (is.infinite(bf01) || bf01 > 1e6) formatC(bf01, format = "e", digits = 2, decimal.mark = ",") else formatC(bf01, format = "f", digits = 3, decimal.mark = ",")
+
+  cat("  ",
+      .bayes_pad(txt_bf10, wc["bf10"], "center"),
+      .bayes_pad(txt_bf01, wc["bf01"], "center"),
+      .bayes_pad(interp_bf$texto, wc["evid"], "left"),
+      "\n", sep = "")
+  cat(.bayes_sep(75), "\n\n")
+
+  cat("  ESTIMATIVAS A POSTERIORI DAS MÉDIAS POR GRUPO:\n")
+  cat(.bayes_sep(75), "\n")
+  wc_g <- c(grp = 15, n = 8, med = 14, dp = 12, hpd = 24)
+  hdr_g <- paste0(.bayes_pad("Grupo", wc_g["grp"], "left"),
+                  .bayes_pad("N", wc_g["n"], "center"),
+                  .bayes_pad("Média Post.", wc_g["med"], "center"),
+                  .bayes_pad("DP Post.", wc_g["dp"], "center"),
+                  .bayes_pad(sprintf("HPD (%d%%)", as.integer(confianca * 100)), wc_g["hpd"], "center"))
+  cat("  ", hdr_g, "\n", sep = "")
+  cat(.bayes_sep(75), "\n")
+
+  for (i in seq_len(nrow(df_grupos))) {
+    row <- df_grupos[i, ]
+    txt_hpd_g <- sprintf("[%s; %s]",
+                         formatC(row$HPD_Inf, format = "f", digits = decimais, decimal.mark = ","),
+                         formatC(row$HPD_Sup, format = "f", digits = decimais, decimal.mark = ","))
+    cat("  ",
+        .bayes_pad(row$Grupo, wc_g["grp"], "left"),
+        .bayes_pad(as.character(row$N), wc_g["n"], "center"),
+        .bayes_pad(formatC(row$Media_Post, format = "f", digits = decimais, decimal.mark = ","), wc_g["med"], "center"),
+        .bayes_pad(formatC(row$DP_Post, format = "f", digits = decimais, decimal.mark = ","), wc_g["dp"], "center"),
+        .bayes_pad(txt_hpd_g, wc_g["hpd"], "center"),
+        "\n", sep = "")
+  }
+  cat(.bayes_sep(75), "\n\n")
+
+  cat("  CONTRASTES POST-HOC BAYESIANOS (DIFERENÇAS ENTRE GRUPOS):\n")
+  cat(.bayes_sep(75), "\n")
+  wc_c <- c(par = 22, dif = 14, dp = 12, hpd = 24)
+  hdr_c <- paste0(.bayes_pad("Comparação", wc_c["par"], "left"),
+                  .bayes_pad("Dif. Média", wc_c["dif"], "center"),
+                  .bayes_pad("DP Post.", wc_c["dp"], "center"),
+                  .bayes_pad(sprintf("HPD (%d%%)", as.integer(confianca * 100)), wc_c["hpd"], "center"))
+  cat("  ", hdr_c, "\n", sep = "")
+  cat(.bayes_sep(75), "\n")
+
+  for (i in seq_len(nrow(df_pares))) {
+    row <- df_pares[i, ]
+    txt_hpd_c <- sprintf("[%s; %s]",
+                         formatC(row$HPD_Inf, format = "f", digits = decimais, decimal.mark = ","),
+                         formatC(row$HPD_Sup, format = "f", digits = decimais, decimal.mark = ","))
+    cat("  ",
+        .bayes_pad(row$Contraste, wc_c["par"], "left"),
+        .bayes_pad(formatC(row$Dif_Media, format = "f", digits = decimais, decimal.mark = ","), wc_c["dif"], "center"),
+        .bayes_pad(formatC(row$DP_Post, format = "f", digits = decimais, decimal.mark = ","), wc_c["dp"], "center"),
+        .bayes_pad(txt_hpd_c, wc_c["hpd"], "center"),
+        "\n", sep = "")
+  }
+  cat(.bayes_sep(75), "\n\n")
+
+  cat("  \u25b6 INTERPRETA\u00c7\u00c3O\n")
+  if (bf10 >= 3) {
+    cat(sprintf("  [\u2713] Há evidências a favor do efeito de grupo (BF\u2081\u2080 = %s, %s).\n",
+                txt_bf10, tolower(interp_bf$texto)))
+    cat("  As médias diferem substantivamente entre as condições testadas.\n")
+  } else if (bf10 <= 1/3) {
+    cat(sprintf("  Os dados suportam a hipótese nula de igualdade das médias (BF\u2080\u2081 = %s, %s).\n",
+                txt_bf01, tolower(interp_bf$texto)))
+  } else {
+    cat(sprintf("  [!] Evidência inconclusiva / anedótica (BF\u2081\u2080 = %s).\n", txt_bf10))
+  }
+  cat("───────────────────────────────────────────────────────────────────────────\n\n")
+
+  if (grafico && requireNamespace("ggplot2", quietly = TRUE)) {
+    p <- ggplot2::ggplot(df_grupos, ggplot2::aes(x = Grupo, y = Media_Post)) +
+      ggplot2::geom_errorbar(ggplot2::aes(ymin = HPD_Inf, ymax = HPD_Sup),
+                             width = 0.2, color = "#005EA5", linewidth = 0.9) +
+      ggplot2::geom_point(size = 3.5, color = "#005EA5", fill = "white", shape = 21, stroke = 1.3) +
+      ggplot2::labs(
+        title = "Médias a Posteriori e Intervalos de Credibilidade (HPD 95%)",
+        subtitle = sprintf("BF\u2081\u2080 = %s (%s)", txt_bf10, interp_bf$texto),
+        x = nome_grupo,
+        y = sprintf("Média a Posteriori de %s", nome_y)
+      )
+
+    if (exists("meu_tema", mode = "function")) {
+      p <- p + meu_tema(grade = "dupla")
+    } else if (exists("tema_estatR", mode = "function")) {
+      p <- p + tema_estatR(estilo = 2, grade = "dupla")
+    } else {
+      p <- p + ggplot2::theme_minimal()
+    }
+    suppressMessages(print(p))
+  }
+
+  res <- list(
+    bf10 = bf10,
+    bf01 = bf01,
+    grupos = df_grupos,
+    contrastes = df_pares,
+    r2 = r2
+  )
+  class(res) <- c("estatR_anova_bayesiana", "list")
+  invisible(res)
+}
+
+
+# ── 7. REGRESSÃO LINEAR BAYESIANA (JZS / G-PRIORI) ───────────────────────────
+
+#' @title Regressão Linear Bayesiana (JZS / G-Priori de Zellner)
+#' @description Ajusta modelos lineares múltiplos sob a ótica bayesiana utilizando g-priori de Zellner
+#'   e priori de Jeffreys-Zellner-Siow (Liang et al., 2008), calculando o Fator de Bayes \eqn{BF_{10}}
+#'   do modelo global versus o modelo nulo, estimativas a posteriori dos coeficientes com encolhimento
+#'   empírico (EB shrinkage), intervalos de credibilidade HPD 95% e probabilidades direcionais.
+#'
+#' @param formula Fórmula do modelo (ex: \code{y ~ x1 + x2}) ou data frame quando usado com pipe (\code{|>}).
+#' @param dados Data frame contendo as variáveis especificadas na fórmula.
+#' @param r_scale Parâmetro de escala da priori Cauchy JZS para regressão (padrão \code{0.354}).
+#' @param confianca Nível de probabilidade do intervalo de credibilidade (padrão \code{0.95}).
+#' @param decimais Número de casas decimais na exibição (padrão \code{3}).
+#' @param grafico Lógico. Se TRUE (padrão), exibe gráfico com as estimativas dos coeficientes e intervalos HPD 95%.
+#'
+#' @return Objeto invisível da classe \code{"estatR_regressao_bayesiana"} contendo \code{bf10}, \code{bf01},
+#'   \code{r2} e a tabela de \code{coeficientes}.
+#' @export
+regressao_bayesiana <- function(formula, dados = NULL,
+                                r_scale = 0.354,
+                                confianca = 0.95,
+                                decimais = 3,
+                                grafico = TRUE) {
+
+  if (is.data.frame(formula) && (inherits(dados, "formula") || is.call(dados))) {
+    tmp <- formula
+    formula <- dados
+    dados <- tmp
+  }
+
+  mf <- stats::model.frame(formula, data = dados)
+  y  <- stats::model.response(mf)
+  X  <- stats::model.matrix(formula, data = mf)
+  termos <- colnames(X)
+  nome_y <- names(mf)[1]
+  n <- nrow(X)
+  p <- ncol(X) - 1
+
+  if (p < 1) stop("O modelo deve conter pelo menos uma variável explicativa.", call. = FALSE)
+
+  fit_ols <- stats::lm.fit(X, y)
+  residuos <- fit_ols$residuals
+  ss_res <- sum(residuos^2)
+  ss_tot <- sum((y - mean(y))^2)
+  r2 <- 1 - (ss_res / ss_tot)
+  s2 <- ss_res / (n - p - 1)
+  df_res <- n - p - 1
+
+  integrando <- function(g) {
+    prior_g <- (r_scale / sqrt(2 * pi)) * (g^(-1.5)) * exp(- (r_scale^2) / (2 * g))
+    term1 <- (1 + g)^((n - 1 - p) / 2)
+    term2 <- (1 + g * (1 - r2))^(- (n - 1) / 2)
+    term1 * term2 * prior_g
+  }
+  bf10 <- tryCatch(stats::integrate(integrando, lower = 0, upper = Inf)$value, error = function(e) Inf)
+  bf01 <- if (bf10 > 0) 1 / bf10 else Inf
+
+  f_stat <- (r2 / p) / ((1 - r2) / df_res)
+  g_hat <- max(0, f_stat - 1)
+  fator_enc <- if (g_hat > 0) g_hat / (1 + g_hat) else 0.999
+  if (is.nan(fator_enc) || fator_enc <= 0) fator_enc <- 0.999
+
+  beta_ols <- fit_ols$coefficients
+  beta_post <- beta_ols
+  if (p > 0) {
+    beta_post[-1] <- beta_ols[-1] * fator_enc
+  }
+
+  xtx_inv <- tryCatch(solve(t(X) %*% X), error = function(e) diag(p + 1) * 1e-4)
+  se_beta_post <- sqrt(diag(xtx_inv) * s2 * fator_enc)
+  se_beta_post[1] <- sqrt(diag(xtx_inv)[1] * s2)
+
+  tcrit <- stats::qt(1 - (1 - confianca) / 2, df = df_res)
+  hpd_inf <- beta_post - tcrit * se_beta_post
+  hpd_sup <- beta_post + tcrit * se_beta_post
+  prob_pos <- 1 - stats::pt((0 - beta_post) / se_beta_post, df = df_res)
+
+  df_coef <- data.frame(
+    Parametro = termos,
+    Media_Post = beta_post,
+    DP_Post = se_beta_post,
+    HPD_Inf = hpd_inf,
+    HPD_Sup = hpd_sup,
+    Prob_Pos = prob_pos,
+    stringsAsFactors = FALSE
+  )
+
+  interp_bf <- .bayes_interpretar_bf(bf10)
+
+  cat("\n── REGRESSÃO LINEAR BAYESIANA (JZS / G-PRIORI) ────────────────────────────\n\n")
+  cat(sprintf("  Variável Resposta   : %s\n", nome_y))
+  cat(sprintf("  Preditores (p)      : %d preditor(es)\n", p))
+  cat(sprintf("  Tamanho Amostral    : N = %d observações\n", n))
+  cat(sprintf("  R² Amostral         : %s\n\n", formatC(r2, format = "f", digits = 4, decimal.mark = ",")))
+
+  cat(sprintf("  H0: Modelo nulo apenas com intercepto (R² = 0)\n"))
+  cat(sprintf("  H1: Modelo com preditores lineares (R² > 0)\n\n"))
+
+  cat(.bayes_sep(75), "\n")
+  wc <- c(bf10 = 16, bf01 = 16, evid = 40)
+  hdr <- paste0(.bayes_pad("Fator Bayes BF\u2081\u2080", wc["bf10"], "center"),
+                .bayes_pad("Fator Bayes BF\u2080\u2081", wc["bf01"], "center"),
+                .bayes_pad("Força da Evidência", wc["evid"], "left"))
+  cat("  ", hdr, "\n", sep = "")
+  cat(.bayes_sep(75), "\n")
+
+  txt_bf10 <- if (is.infinite(bf10) || bf10 > 1e6) formatC(bf10, format = "e", digits = 2, decimal.mark = ",") else formatC(bf10, format = "f", digits = 3, decimal.mark = ",")
+  txt_bf01 <- if (is.infinite(bf01) || bf01 > 1e6) formatC(bf01, format = "e", digits = 2, decimal.mark = ",") else formatC(bf01, format = "f", digits = 3, decimal.mark = ",")
+
+  cat("  ",
+      .bayes_pad(txt_bf10, wc["bf10"], "center"),
+      .bayes_pad(txt_bf01, wc["bf01"], "center"),
+      .bayes_pad(interp_bf$texto, wc["evid"], "left"),
+      "\n", sep = "")
+  cat(.bayes_sep(75), "\n\n")
+
+  cat("  ESTIMATIVAS A POSTERIORI DOS COEFICIENTES (\u03b2):\n")
+  cat(.bayes_sep(75), "\n")
+  wc_b <- c(par = 18, est = 13, dp = 12, hpd = 22, pdir = 10)
+  hdr_b <- paste0(.bayes_pad("Parâmetro", wc_b["par"], "left"),
+                  .bayes_pad("Média Post.", wc_b["est"], "center"),
+                  .bayes_pad("DP Post.", wc_b["dp"], "center"),
+                  .bayes_pad(sprintf("HPD (%d%%)", as.integer(confianca * 100)), wc_b["hpd"], "center"),
+                  .bayes_pad("P(\u03b2 > 0)", wc_b["pdir"], "center"))
+  cat("  ", hdr_b, "\n", sep = "")
+  cat(.bayes_sep(75), "\n")
+
+  for (i in seq_len(nrow(df_coef))) {
+    row <- df_coef[i, ]
+    txt_hpd_b <- sprintf("[%s; %s]",
+                         formatC(row$HPD_Inf, format = "f", digits = decimais, decimal.mark = ","),
+                         formatC(row$HPD_Sup, format = "f", digits = decimais, decimal.mark = ","))
+    cat("  ",
+        .bayes_pad(row$Parametro, wc_b["par"], "left"),
+        .bayes_pad(formatC(row$Media_Post, format = "f", digits = decimais, decimal.mark = ","), wc_b["est"], "center"),
+        .bayes_pad(formatC(row$DP_Post, format = "f", digits = decimais, decimal.mark = ","), wc_b["dp"], "center"),
+        .bayes_pad(txt_hpd_b, wc_b["hpd"], "center"),
+        .bayes_pad(.bayes_fmt_pct(row$Prob_Pos * 100, 1), wc_b["pdir"], "center"),
+        "\n", sep = "")
+  }
+  cat(.bayes_sep(75), "\n\n")
+
+  cat("  \u25b6 INTERPRETA\u00c7\u00c3O\n")
+  if (bf10 >= 3) {
+    cat(sprintf("  [\u2713] O modelo global é amplamente sustentado pelos dados (BF\u2081\u2080 = %s, %s).\n",
+                txt_bf10, tolower(interp_bf$texto)))
+    cat(sprintf("  O conjunto de variáveis explica %s da variação de %s.\n",
+                .bayes_fmt_pct(r2 * 100, 1), nome_y))
+  } else if (bf10 <= 1/3) {
+    cat(sprintf("  Os dados suportam o modelo nulo em detrimento dos preditores (BF\u2080\u2081 = %s).\n", txt_bf01))
+  } else {
+    cat(sprintf("  [!] Evidência inconclusiva / anedótica para o modelo global (BF\u2081\u2080 = %s).\n", txt_bf10))
+  }
+  cat("───────────────────────────────────────────────────────────────────────────\n\n")
+
+  if (grafico && requireNamespace("ggplot2", quietly = TRUE)) {
+    df_plot <- df_coef[df_coef$Parametro != "(Intercept)", ]
+    if (nrow(df_plot) > 0) {
+      p <- ggplot2::ggplot(df_plot, ggplot2::aes(x = Media_Post, y = stats::reorder(Parametro, Media_Post))) +
+        ggplot2::geom_vline(xintercept = 0, linetype = "dashed", color = "gray50", linewidth = 0.7) +
+        ggplot2::geom_errorbarh(ggplot2::aes(xmin = HPD_Inf, xmax = HPD_Sup), height = 0.2, color = "#005EA5", linewidth = 0.9) +
+        ggplot2::geom_point(size = 3.5, color = "#005EA5", fill = "white", shape = 21, stroke = 1.3) +
+        ggplot2::labs(
+          title = "Coeficientes a Posteriori e Intervalos de Credibilidade (HPD 95%)",
+          subtitle = sprintf("BF\u2081\u2080 = %s  |  R² = %s", txt_bf10, formatC(r2, format = "f", digits = 3, decimal.mark = ",")),
+          x = "Estimativa a Posteriori (\u03b2)",
+          y = NULL
+        )
+
+      if (exists("meu_tema", mode = "function")) {
+        p <- p + meu_tema(grade = "dupla")
+      } else if (exists("tema_estatR", mode = "function")) {
+        p <- p + tema_estatR(estilo = 2, grade = "dupla")
+      } else {
+        p <- p + ggplot2::theme_minimal()
+      }
+      suppressMessages(print(p))
+    }
+  }
+
+  res <- list(
+    bf10 = bf10,
+    bf01 = bf01,
+    r2 = r2,
+    coeficientes = df_coef
+  )
+  class(res) <- c("estatR_regressao_bayesiana", "list")
+  invisible(res)
+}

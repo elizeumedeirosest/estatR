@@ -932,3 +932,477 @@ capacidade_processo <- function(dados,
   class(res) <- c("estatR_capacidade", "list")
   return(invisible(res))
 }
+
+# ── 5. CARTA EWMA (MÉDIA MÓVEL EXPONENCIALMENTE PONDERADA) ───────────────────
+
+#' @title Carta de Controle EWMA
+#' @description Constrói carta de controle EWMA (Exponentially Weighted Moving Average)
+#'   para monitoramento de processos e detecção precoce de pequenos deslocamentos de média
+#'   (\eqn{\le 1{,}5\sigma}). Suporta limites dinâmicos no tempo ou assintóticos, com interface
+#'   gráfica no padrão do ecossistema e destaque para observações fora de controle.
+#'
+#' @param dados Vetor numérico com as observações ou data frame quando utilizado via pipe (\code{|>}).
+#' @param lambda Parâmetro de suavização/peso do histórico (\eqn{0 < \lambda \le 1}, padrão \code{0.20}).
+#' @param L Multiplicador da largura dos limites em número de desvios-padrão (padrão \code{3.0}).
+#' @param media Valor da média histórica de referência (\eqn{\mu_0}). Se \code{NULL}, utiliza a média amostral.
+#' @param sigma Valor do desvio-padrão histórico do processo. Se \code{NULL}, estima via amplitude móvel média (\eqn{\overline{MR} / d_2}).
+#' @param limites_variaveis Lógico. Se TRUE (padrão), utiliza limites dinâmicos no tempo que se expandem até a assíntota.
+#' @param grafico Lógico. Se TRUE (padrão), exibe o gráfico no padrão visual estatR.
+#'
+#' @return Objeto invisível da classe \code{"estatR_carta_ewma"} contendo \code{z}, \code{lc}, \code{lic},
+#'   \code{lsc}, \code{fora}, \code{n_fora} e o gráfico ggplot2.
+#' @export
+carta_ewma <- function(dados, lambda = 0.2, L = 3, media = NULL, sigma = NULL,
+                       limites_variaveis = TRUE, grafico = TRUE) {
+
+  if (is.data.frame(dados)) {
+    num_cols <- which(sapply(dados, is.numeric))
+    if (length(num_cols) == 0) stop("O data frame não contém colunas numéricas.", call. = FALSE)
+    x <- as.numeric(dados[[num_cols[1]]])
+  } else {
+    x <- as.numeric(dados)
+  }
+  x <- x[!is.na(x)]
+  n <- length(x)
+  if (n < 4) stop("São necessárias pelo menos 4 observações para a carta EWMA.", call. = FALSE)
+
+  mu0 <- if (!is.null(media)) as.numeric(media) else mean(x)
+
+  if (!is.null(sigma)) {
+    sig0 <- as.numeric(sigma)
+  } else {
+    mr <- abs(diff(x))
+    sig0 <- mean(mr) / 1.128
+  }
+
+  z <- numeric(n)
+  z_anterior <- mu0
+  for (i in seq_len(n)) {
+    z[i] <- lambda * x[i] + (1 - lambda) * z_anterior
+    z_anterior <- z[i]
+  }
+
+  idx <- seq_len(n)
+  if (limites_variaveis) {
+    termo_tempo <- sqrt((lambda / (2 - lambda)) * (1 - (1 - lambda)^(2 * idx)))
+    lic <- mu0 - L * sig0 * termo_tempo
+    lsc <- mu0 + L * sig0 * termo_tempo
+  } else {
+    termo_assint <- sqrt(lambda / (2 - lambda))
+    lic <- rep(mu0 - L * sig0 * termo_assint, n)
+    lsc <- rep(mu0 + L * sig0 * termo_assint, n)
+  }
+
+  fora <- (z > lsc) | (z < lic)
+  n_fora <- sum(fora)
+
+  cat("\n── CARTA DE CONTROLE EWMA (MÉDIA MÓVEL EXPONENCIALMENTE PONDERADA) ────────\n\n")
+  cat(sprintf("  Tamanho da Série      : %d observações\n", n))
+  cat(sprintf("  Parâmetro de Peso (\u03bb) : %s\n", formatC(lambda, format = "f", digits = 2, decimal.mark = ",")))
+  cat(sprintf("  Multiplicador Sigma (L): %s\n", formatC(L, format = "f", digits = 2, decimal.mark = ",")))
+  cat(sprintf("  Média do Processo (\u03bc) : %s\n", formatC(mu0, format = "f", digits = 3, decimal.mark = ",")))
+  cat(sprintf("  Desvio-Padrão (\u03c3)     : %s\n", formatC(sig0, format = "f", digits = 3, decimal.mark = ",")))
+  cat(sprintf("  Limites Assintóticos  : LIC = %s  |  LSC = %s\n\n",
+              formatC(mu0 - L * sig0 * sqrt(lambda / (2 - lambda)), format = "f", digits = 3, decimal.mark = ","),
+              formatC(mu0 + L * sig0 * sqrt(lambda / (2 - lambda)), format = "f", digits = 3, decimal.mark = ",")))
+
+  cat(sprintf("  Pontos Fora de Controle : %d de %d (%.1f%%)\n\n", n_fora, n, (n_fora / n) * 100))
+
+  cat("  ▶ INTERPRETAÇÃO DO PROCESSO\n")
+  if (n_fora == 0) {
+    cat("  O processo opera sob controle estatístico em relação a pequenos desvios de média.\n")
+    cat("  Nenhum ponto excedeu os limites dinâmicos da carta EWMA.\n")
+  } else {
+    posicoes <- which(fora)
+    cat(sprintf("  Detectado(s) %d ponto(s) fora dos limites de controle (amostra(s): %s).\n",
+                n_fora, paste(head(posicoes, 10), collapse = ", ")))
+    cat("  A carta EWMA acusa uma tendência ou deslocamento sistemático na média do processo.\n")
+  }
+  cat("───────────────────────────────────────────────────────────────────────────\n\n")
+
+  p <- NULL
+  if (grafico && requireNamespace("ggplot2", quietly = TRUE)) {
+    p <- .montar_grafico_shewhart(
+      pontos_x = idx,
+      valores  = z,
+      lc       = rep(mu0, n),
+      lic      = lic,
+      lsc      = lsc,
+      titulo   = "Carta de Controle EWMA",
+      xlab     = "Ordem de Coleta / Subgrupo",
+      ylab     = "Estatística EWMA (z)",
+      fora     = fora
+    )
+    suppressMessages(print(p))
+  }
+
+  res <- list(
+    z = z,
+    lc = rep(mu0, n),
+    lic = lic,
+    lsc = lsc,
+    fora = fora,
+    n_fora = n_fora,
+    lambda = lambda,
+    L = L,
+    grafico = p
+  )
+  class(res) <- c("estatR_carta_ewma", "list")
+  invisible(res)
+}
+
+
+# ── 6. CARTA CUSUM (SOMAS CUMULATIVAS TABULARES) ─────────────────────────────
+
+#' @title Carta de Controle CUSUM Tabular
+#' @description Constrói carta de controle CUSUM (Cumulative Sum) bilateral tabular
+#'   para monitoramento contínuo e detecção rápida de desvios na média do processo.
+#'
+#' @param dados Vetor numérico com as observações ou data frame quando utilizado via pipe (\code{|>}).
+#' @param k Parâmetro de tolerância/referência em unidades de sigma (padrão \code{0.50}, ótimo para detectar desvio de \eqn{1\sigma}).
+#' @param h Limite de decisão em unidades de sigma (padrão \code{4.50}).
+#' @param media Valor da média histórica de referência (\eqn{\mu_0}). Se \code{NULL}, utiliza a média amostral.
+#' @param sigma Valor do desvio-padrão histórico. Se \code{NULL}, estima via amplitude móvel média (\eqn{\overline{MR} / d_2}).
+#' @param grafico Lógico. Se TRUE (padrão), plota as trajetórias de \eqn{C^+} e \eqn{C^-} com o limite \eqn{H}.
+#'
+#' @return Objeto invisível da classe \code{"estatR_carta_cusum"} contendo \code{c_pos}, \code{c_neg},
+#'   \code{H}, \code{K}, \code{n_fora} e o gráfico ggplot2.
+#' @export
+carta_cusum <- function(dados, k = 0.5, h = 4.5, media = NULL, sigma = NULL, grafico = TRUE) {
+
+  if (is.data.frame(dados)) {
+    num_cols <- which(sapply(dados, is.numeric))
+    if (length(num_cols) == 0) stop("O data frame não contém colunas numéricas.", call. = FALSE)
+    x <- as.numeric(dados[[num_cols[1]]])
+  } else {
+    x <- as.numeric(dados)
+  }
+  x <- x[!is.na(x)]
+  n <- length(x)
+  if (n < 4) stop("São necessárias pelo menos 4 observações para a carta CUSUM.", call. = FALSE)
+
+  mu0 <- if (!is.null(media)) as.numeric(media) else mean(x)
+
+  if (!is.null(sigma)) {
+    sig0 <- as.numeric(sigma)
+  } else {
+    mr <- abs(diff(x))
+    sig0 <- mean(mr) / 1.128
+  }
+
+  K <- k * sig0
+  H <- h * sig0
+
+  c_pos <- numeric(n)
+  c_neg <- numeric(n)
+  cp_ant <- 0
+  cn_ant <- 0
+
+  for (i in seq_len(n)) {
+    c_pos[i] <- max(0, x[i] - (mu0 + K) + cp_ant)
+    c_neg[i] <- max(0, (mu0 - K) - x[i] + cn_ant)
+    cp_ant <- c_pos[i]
+    cn_ant <- c_neg[i]
+  }
+
+  fora_pos <- c_pos > H
+  fora_neg <- c_neg > H
+  fora_geral <- fora_pos | fora_neg
+  n_fora <- sum(fora_geral)
+
+  cat("\n── CARTA DE CONTROLE CUSUM (SOMAS CUMULATIVAS TABULARES) ──────────────────\n\n")
+  cat(sprintf("  Tamanho da Série        : %d observações\n", n))
+  cat(sprintf("  Parâmetro de Tolerância : k = %s  (K = %s)\n",
+              formatC(k, format = "f", digits = 2, decimal.mark = ","),
+              formatC(K, format = "f", digits = 3, decimal.mark = ",")))
+  cat(sprintf("  Limite de Decisão       : h = %s  (H = %s)\n",
+              formatC(h, format = "f", digits = 2, decimal.mark = ","),
+              formatC(H, format = "f", digits = 3, decimal.mark = ",")))
+  cat(sprintf("  Média do Processo (\u03bc)   : %s\n", formatC(mu0, format = "f", digits = 3, decimal.mark = ",")))
+  cat(sprintf("  Desvio-Padrão (\u03c3)       : %s\n\n", formatC(sig0, format = "f", digits = 3, decimal.mark = ",")))
+
+  cat(sprintf("  Pontos em Alarme (C+ ou C- > H): %d de %d (%.1f%%)\n\n",
+              n_fora, n, (n_fora / n) * 100))
+
+  cat("  ▶ INTERPRETAÇÃO DO PROCESSO\n")
+  if (n_fora == 0) {
+    cat("  O processo opera sob controle estatístico. As somas cumulativas permanecem dentro da faixa H.\n")
+  } else {
+    pos_p <- which(fora_pos)
+    pos_n <- which(fora_neg)
+    if (length(pos_p) > 0) {
+      cat(sprintf("  Deslocamento positivo detectado na média: %d ponto(s) (amostra(s): %s).\n",
+                  length(pos_p), paste(head(pos_p, 8), collapse = ", ")))
+    }
+    if (length(pos_n) > 0) {
+      cat(sprintf("  Deslocamento negativo detectado na média: %d ponto(s) (amostra(s): %s).\n",
+                  length(pos_n), paste(head(pos_n, 8), collapse = ", ")))
+    }
+  }
+  cat("───────────────────────────────────────────────────────────────────────────\n\n")
+
+  p <- NULL
+  if (grafico && requireNamespace("ggplot2", quietly = TRUE)) {
+    idx <- seq_len(n)
+    df_p <- data.frame(Ponto = idx, CUSUM = c_pos, Tipo = "C+ (Superior)", Fora = fora_pos)
+    df_n <- data.frame(Ponto = idx, CUSUM = c_neg, Tipo = "C- (Inferior)", Fora = fora_neg)
+    df_plot <- rbind(df_p, df_n)
+
+    p <- ggplot2::ggplot(df_plot, ggplot2::aes(x = Ponto, y = CUSUM, color = Tipo)) +
+      ggplot2::geom_hline(yintercept = H, linetype = "dashed", color = "#D90429", linewidth = 0.9) +
+      ggplot2::geom_hline(yintercept = 0, color = "#222222", linewidth = 0.8) +
+      ggplot2::geom_line(linewidth = 0.8) +
+      ggplot2::geom_point(size = 2.8) +
+      ggplot2::scale_color_manual(values = c("C+ (Superior)" = "#005EA5", "C- (Inferior)" = "#E66101"))
+
+    df_fora_c <- subset(df_plot, Fora)
+    if (nrow(df_fora_c) > 0) {
+      p <- p +
+        ggplot2::geom_point(data = df_fora_c, color = "#D90429", shape = 1, size = 6.2, stroke = 1.3, show.legend = FALSE) +
+        ggplot2::geom_point(data = df_fora_c, color = "#D90429", size = 3.2, show.legend = FALSE)
+    }
+
+    p <- p +
+      ggplot2::labs(
+        title = "Carta de Controle CUSUM Tabular",
+        subtitle = sprintf("H = %s (Limite de Decisão)  |  K = %s  |  Alarme: %d ponto(s)",
+                           formatC(H, format = "f", digits = 2, decimal.mark = ","),
+                           formatC(K, format = "f", digits = 2, decimal.mark = ","),
+                           n_fora),
+        x = "Ordem de Coleta / Subgrupo",
+        y = "Soma Cumulativa (CUSUM)"
+      )
+
+    if (exists("meu_tema", mode = "function")) {
+      p <- p + meu_tema(grade = "dupla")
+    } else if (exists("tema_estatR", mode = "function")) {
+      p <- p + tema_estatR(estilo = 2, grade = "dupla")
+    } else {
+      p <- p + ggplot2::theme_minimal()
+    }
+    p <- p + ggplot2::theme(legend.position = "top", legend.title = ggplot2::element_blank())
+    suppressMessages(print(p))
+  }
+
+  res <- list(
+    c_pos = c_pos,
+    c_neg = c_neg,
+    H = H,
+    K = K,
+    fora_pos = fora_pos,
+    fora_neg = fora_neg,
+    n_fora = n_fora,
+    grafico = p
+  )
+  class(res) <- c("estatR_carta_cusum", "list")
+  invisible(res)
+}
+
+
+# ── 7. ESTUDO GAGE R&R (ANÁLISE DE SISTEMAS DE MEDIÇÃO — MSA) ────────────────
+
+#' @title Análise do Sistema de Medição (Gage R&R)
+#' @description Realiza estudo de Repetibilidade e Reprodutibilidade (Gage R&R) pelo método
+#'   ANOVA de dois fatores com interação (modelo com efeitos aleatórios), calculando
+#'   componentes de variância, percentuais de contribuição, variação do estudo (\%SV),
+#'   número de categorias distintas (\eqn{ndc}) e veredito segundo critérios AIAG.
+#'
+#' @aliases gage_rr
+#' @param dados Data frame contendo os dados do estudo ou fórmula do tipo \code{medicao ~ peca + operador}.
+#' @param peca Nome da coluna de peças quando \code{dados} for data frame, ou data frame quando usado com fórmula.
+#' @param operador Nome da coluna de operadores/avaliadores.
+#' @param medicao Nome da coluna com as respostas numéricas medidas.
+#' @param tolerancia Tolerância opcional do processo (LSE - LIE) para cálculo de \%Tolerância.
+#' @param confianca Nível de confiança (padrão \code{0.95}).
+#' @param grafico Lógico. Se TRUE (padrão), plota os componentes de variabilidade.
+#'
+#' @return Objeto invisível da classe \code{"estatR_gage_rr"} contendo a tabela ANOVA,
+#'   componentes de variância, \code{ndc}, percentuais e o gráfico ggplot2.
+#' @export
+estudo_gage_rr <- function(dados, peca = NULL, operador = NULL, medicao = NULL,
+                           tolerancia = NULL, confianca = 0.95, grafico = TRUE) {
+
+  s_peca <- deparse(substitute(peca))
+  s_op   <- deparse(substitute(operador))
+  s_med  <- deparse(substitute(medicao))
+
+  if (inherits(dados, "formula")) {
+    formula_in <- dados
+    dados_df <- peca
+    mf <- stats::model.frame(formula_in, data = dados_df)
+    med_vec <- stats::model.response(mf)
+    peca_vec <- mf[[2]]
+    op_vec <- mf[[3]]
+    nome_peca <- names(mf)[2]
+    nome_op   <- names(mf)[3]
+    nome_med  <- names(mf)[1]
+  } else {
+    dados_df <- as.data.frame(dados)
+    col_peca <- if (s_peca %in% names(dados_df)) s_peca else if (is.character(peca) && peca %in% names(dados_df)) peca else names(dados_df)[1]
+    col_op   <- if (s_op %in% names(dados_df)) s_op else if (is.character(operador) && operador %in% names(dados_df)) operador else names(dados_df)[2]
+    col_med  <- if (s_med %in% names(dados_df)) s_med else if (is.character(medicao) && medicao %in% names(dados_df)) medicao else names(dados_df)[3]
+
+    peca_vec <- dados_df[[col_peca]]
+    op_vec   <- dados_df[[col_op]]
+    med_vec  <- as.numeric(dados_df[[col_med]])
+    nome_peca <- col_peca
+    nome_op   <- col_op
+    nome_med  <- col_med
+  }
+
+  peca_fac <- as.factor(peca_vec)
+  op_fac   <- as.factor(op_vec)
+  p_num <- nlevels(peca_fac)
+  o_num <- nlevels(op_fac)
+  N_tot <- length(med_vec)
+  r_num <- N_tot / (p_num * o_num)
+
+  if (p_num < 2) stop("O estudo Gage R&R requer pelo menos 2 peças.", call. = FALSE)
+  if (o_num < 2) stop("O estudo Gage R&R requer pelo menos 2 operadores.", call. = FALSE)
+
+  fit <- stats::aov(med_vec ~ peca_fac * op_fac)
+  sm  <- summary(fit)[[1]]
+  rownames(sm) <- trimws(rownames(sm))
+
+  ms_peca <- sm["peca_fac", "Mean Sq"]
+  ms_op   <- sm["op_fac", "Mean Sq"]
+  ms_int  <- sm["peca_fac:op_fac", "Mean Sq"]
+  ms_res  <- sm["Residuals", "Mean Sq"]
+  p_int   <- sm["peca_fac:op_fac", "Pr(>F)"]
+
+  var_repetibilidade <- ms_res
+  var_interacao <- if (!is.na(p_int) && p_int < 0.25) max(0, (ms_int - ms_res) / r_num) else 0
+  var_operador  <- max(0, (ms_op - if (var_interacao > 0) ms_int else ms_res) / (p_num * r_num))
+  var_reprodutibilidade <- var_operador + var_interacao
+  var_grr <- var_repetibilidade + var_reprodutibilidade
+  var_peca <- max(0, (ms_peca - if (var_interacao > 0) ms_int else ms_res) / (o_num * r_num))
+  var_total <- var_grr + var_peca
+
+  dp_repetibilidade <- sqrt(var_repetibilidade)
+  dp_reprodutibilidade <- sqrt(var_reprodutibilidade)
+  dp_grr <- sqrt(var_grr)
+  dp_peca <- sqrt(var_peca)
+  dp_total <- sqrt(var_total)
+
+  pct_contrib_grr  <- (var_grr / var_total) * 100
+  pct_contrib_rep  <- (var_repetibilidade / var_total) * 100
+  pct_contrib_op   <- (var_reprodutibilidade / var_total) * 100
+  pct_contrib_peca <- (var_peca / var_total) * 100
+
+  pct_sv_grr  <- (dp_grr / dp_total) * 100
+  pct_sv_rep  <- (dp_repetibilidade / dp_total) * 100
+  pct_sv_op   <- (dp_reprodutibilidade / dp_total) * 100
+  pct_sv_peca <- (dp_peca / dp_total) * 100
+
+  ndc <- max(1, floor(1.41 * (dp_peca / dp_grr)))
+
+  df_comp <- data.frame(
+    Componente = c("Gage R&R Total", "  Repetibilidade (EV)", "  Reprodutibilidade (AV)", "Peça a Peça (PV)", "Variação Total (TV)"),
+    Variancia = c(var_grr, var_repetibilidade, var_reprodutibilidade, var_peca, var_total),
+    DP = c(dp_grr, dp_repetibilidade, dp_reprodutibilidade, dp_peca, dp_total),
+    Pct_Contrib = c(pct_contrib_grr, pct_contrib_rep, pct_contrib_op, pct_contrib_peca, 100),
+    Pct_Estudo = c(pct_sv_grr, pct_sv_rep, pct_sv_op, pct_sv_peca, 100),
+    stringsAsFactors = FALSE
+  )
+
+  cat("\n── ANÁLISE DO SISTEMA DE MEDIÇÃO (GAGE R&R — MÉTODO ANOVA) ────────────────\n\n")
+  cat(sprintf("  Medição Avaliada : %s\n", nome_med))
+  cat(sprintf("  Peças            : %d peças (%s)\n", p_num, nome_peca))
+  cat(sprintf("  Operadores       : %d operadores (%s)\n", o_num, nome_op))
+  cat(sprintf("  Réplicas         : %.0f réplicas por peça/operador\n", r_num))
+  cat(sprintf("  Total de Ensaios : %d medições\n\n", N_tot))
+
+  cat("  COMPONENTES DE VARIÂNCIA E CAPACIDADE DO SISTEMA DE MEDIÇÃO:\n")
+  sep_linha <- paste0("  ", strrep("\u2500", 75))
+  cat(sep_linha, "\n")
+  
+  pad_txt <- function(s, w) {
+    s <- as.character(s)
+    sp <- w - nchar(s)
+    if (sp <= 0) return(s)
+    paste0(s, strrep(" ", sp))
+  }
+  
+  wc_m <- c(comp = 27, var = 13, dp = 13, pc = 12, pe = 12)
+  hdr_m <- paste0(pad_txt("Fonte de Variação", wc_m["comp"]),
+                  pad_txt("Variância", wc_m["var"]),
+                  pad_txt("Desvio-Padrão", wc_m["dp"]),
+                  pad_txt("%Contribuição", wc_m["pc"]),
+                  pad_txt("%Var.Estudo", wc_m["pe"]))
+  cat("  ", hdr_m, "\n", sep = "")
+  cat(sep_linha, "\n")
+
+  for (i in seq_len(nrow(df_comp))) {
+    row <- df_comp[i, ]
+    cat("  ",
+        pad_txt(row$Componente, wc_m["comp"]),
+        pad_txt(formatC(row$Variancia, format = "f", digits = 4, decimal.mark = ","), wc_m["var"]),
+        pad_txt(formatC(row$DP, format = "f", digits = 4, decimal.mark = ","), wc_m["dp"]),
+        pad_txt(paste0(formatC(row$Pct_Contrib, format = "f", digits = 2, decimal.mark = ","), "%"), wc_m["pc"]),
+        pad_txt(paste0(formatC(row$Pct_Estudo, format = "f", digits = 2, decimal.mark = ","), "%"), wc_m["pe"]),
+        "\n", sep = "")
+  }
+  cat(sep_linha, "\n\n")
+
+  cat(sprintf("  Número de Categorias Distintas (ndc): %d\n", ndc))
+  cat("  (Critério AIAG: ndc \u2265 5 indica sistema com resolução suficiente)\n\n")
+
+  cat("  ▶ VEREDITO DO SISTEMA DE MEDIÇÃO (CRITÉRIOS AIAG)\n")
+  if (pct_sv_grr < 10) {
+    cat(sprintf("  O sistema de medição é EXCELENTE / ACEITÁVEL (%%GRR = %.2f%% < 10%%).\n", pct_sv_grr))
+    cat("  A variação do instrumento e dos avaliadores é desprezível frente à variação das peças.\n")
+  } else if (pct_sv_grr <= 30) {
+    cat(sprintf("  O sistema de medição é MARGINAL / CONDICIONAL (%%GRR = %.2f%% entre 10%% e 30%%).\n", pct_sv_grr))
+    cat("  Pode ser aceito dependendo da criticidade da aplicação e dos custos de melhoria.\n")
+  } else {
+    cat(sprintf("  O sistema de medição é INACEITÁVEL (%%GRR = %.2f%% > 30%%).\n", pct_sv_grr))
+    cat("  O sistema necessita de melhorias urgentes (recalibração, treinamento ou troca de dispositivo).\n")
+  }
+  cat("───────────────────────────────────────────────────────────────────────────\n\n")
+
+  p <- NULL
+  if (grafico && requireNamespace("ggplot2", quietly = TRUE)) {
+    df_plot_m <- data.frame(
+      Componente = rep(c("Gage R&R", "Repetibilidade", "Reprodutibilidade", "Peça a Peça"), 2),
+      Percentual = c(pct_contrib_grr, pct_contrib_rep, pct_contrib_op, pct_contrib_peca,
+                     pct_sv_grr, pct_sv_rep, pct_sv_op, pct_sv_peca),
+      Metrica    = rep(c("% Contribuição da Variância", "% Variação do Estudo (%SV)"), each = 4)
+    )
+
+    p <- ggplot2::ggplot(df_plot_m, ggplot2::aes(x = Componente, y = Percentual, fill = Metrica)) +
+      ggplot2::geom_col(position = "dodge", width = 0.65) +
+      ggplot2::geom_hline(yintercept = c(10, 30), linetype = "dashed", color = c("#008000", "#D90429"), linewidth = 0.7) +
+      ggplot2::scale_fill_manual(values = c("% Contribuição da Variância" = "#1E5B94", "% Variação do Estudo (%SV)" = "#E66101")) +
+      ggplot2::labs(
+        title = "Componentes de Variação do Sistema de Medição (Gage R&R)",
+        subtitle = sprintf("%%GRR = %.2f%%  |  ndc = %d categorias  |  Linhas de referência AIAG em 10%% e 30%%", pct_sv_grr, ndc),
+        x = NULL,
+        y = "Percentual (%)"
+      )
+
+    if (exists("meu_tema", mode = "function")) {
+      p <- p + meu_tema(grade = "dupla")
+    } else if (exists("tema_estatR", mode = "function")) {
+      p <- p + tema_estatR(estilo = 2, grade = "dupla")
+    } else {
+      p <- p + ggplot2::theme_minimal()
+    }
+    p <- p + ggplot2::theme(legend.position = "top", legend.title = ggplot2::element_blank())
+    suppressMessages(print(p))
+  }
+
+  res <- list(
+    anova = sm,
+    componentes = df_comp,
+    ndc = ndc,
+    pct_grr = pct_sv_grr,
+    pct_contrib = pct_contrib_grr,
+    grafico = p
+  )
+  class(res) <- c("estatR_gage_rr", "list")
+  invisible(res)
+}
+
+#' @rdname estudo_gage_rr
+#' @export
+gage_rr <- estudo_gage_rr

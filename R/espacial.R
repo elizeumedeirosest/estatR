@@ -41,33 +41,54 @@
 
 # ── 1. MATRIZ DE VIZINHANÇA ESPACIAL (W) ─────────────────────────────────────
 
-#' @title Matriz de Vizinhança Espacial (Pesos W)
-#' @description Constrói e padroniza matrizes de pesos espaciais por contiguidade
+# Operator de coalescência nula seguro
+`%||%` <- function(a, b) if (!is.null(a)) a else b
+
+#' @title Matriz de Pesos e Vizinhança Espacial (W)
+#' @description Constrói, diagnostica e padroniza matrizes de pesos espaciais por contiguidade
 #'   (Rainha e Torre para malhas poligonais) ou por proximidade euclidiana
-#'   (K-vizinhos mais próximos e distância inversa para dados tabulares com coordenadas).
+#'   (K-vizinhos mais próximos, banda de raio fixo e decaimento por distância inversa).
+#'   Possui métodos dedicados de impressão didática (\code{print}) e visualização gráfica (\code{plot})
+#'   da rede de vizinhança ou mapa de calor da conectividade.
 #'
+#' @aliases matriz_vizinhanca
 #' @param dados Data frame com coordenadas, matriz de coordenadas (X, Y) ou objeto espacial \code{sf}.
 #' @param tipo Tipo de vizinhança: \code{"auto"} (padrão), \code{"rainha"}, \code{"torre"},
-#'   \code{"knn"} ou \code{"distancia_inversa"}.
+#'   \code{"knn"}, \code{"banda_distancia"} ou \code{"distancia_inversa"}.
 #' @param k Número de vizinhos mais próximos para o método \code{"knn"} (padrão: \code{5}) ou \code{"auto"}.
+#' @param raio Raio de distância de corte para o método \code{"banda_distancia"}. Se \code{NULL},
+#'   calcula automaticamente a distância mínima necessária para garantir que nenhuma unidade fique isolada.
+#' @param alfa Expoente de decaimento de potência para \code{"distancia_inversa"} (padrão: \code{1}, onde peso = \eqn{1 / d^\alpha}).
 #' @param coordenadas Nomes das colunas de coordenadas ou matriz de coordenadas quando \code{dados} for data.frame tabular.
 #' @param padronizacao Método de padronização: \code{"linha"} (padrão, soma das linhas = 1),
 #'   \code{"binaria"} (0 e 1), \code{"global"} (soma total = 1) ou \code{"nenhuma"}.
 #'
-#' @return Matriz quadrada numérica \eqn{n \times n} de pesos espaciais com atributo de classe \code{estatR_matriz_pesos}.
+#' @return Matriz quadrada numérica \eqn{n \times n} de pesos espaciais com classe \code{c("estatR_matriz_pesos", "matrix")}
+#'   e atributos contendo os metadados de vizinhança e coordenadas.
 #' @export
-matriz_vizinhanca <- function(dados,
-                              tipo = c("auto", "rainha", "torre", "knn", "distancia_inversa"),
-                              k = 5,
-                              coordenadas = NULL,
-                              padronizacao = c("linha", "binaria", "global", "nenhuma")) {
+matriz_pesos_espaciais <- function(dados,
+                                   tipo = c("auto", "rainha", "torre", "knn", "distancia_inversa", "banda_distancia"),
+                                   k = 5,
+                                   raio = NULL,
+                                   alfa = 1,
+                                   coordenadas = NULL,
+                                   padronizacao = c("linha", "binaria", "global", "nenhuma")) {
 
   tipo <- match.arg(tipo)
   padronizacao <- match.arg(padronizacao)
 
+  coords_salvas <- NULL
+
   # 1. Objeto sf (Polígonos / Malha vetorial)
   if (inherits(dados, "sf")) {
     n <- nrow(dados)
+    if (requireNamespace("sf", quietly = TRUE)) {
+      suppressWarnings({
+        centr <- tryCatch(sf::st_centroid(dados), error = function(e) NULL)
+        if (!is.null(centr)) coords_salvas <- sf::st_coordinates(centr)
+      })
+    }
+
     if (tipo %in% c("auto", "rainha", "torre")) {
       is_queen <- (tipo != "torre")
       W <- matrix(0, nrow = n, ncol = n)
@@ -82,17 +103,16 @@ matriz_vizinhanca <- function(dados,
         }
       }
       # Se falhar ou não tiver vizinhos, extrai centroides
-      if (all(W == 0)) {
-        if (requireNamespace("sf", quietly = TRUE)) {
-          coords_pt <- sf::st_coordinates(suppressWarnings(sf::st_centroid(dados)))
-          return(matriz_vizinhanca(coords_pt, tipo = "knn", k = k, padronizacao = padronizacao))
-        }
+      if (all(W == 0) && !is.null(coords_salvas)) {
+        res <- matriz_pesos_espaciais(coords_salvas, tipo = "knn", k = k, padronizacao = padronizacao)
+        return(res)
       }
     } else {
       # Converte para centroides
-      if (requireNamespace("sf", quietly = TRUE)) {
-        coords_pt <- sf::st_coordinates(suppressWarnings(sf::st_centroid(dados)))
-        return(matriz_vizinhanca(coords_pt, tipo = tipo, k = k, padronizacao = padronizacao))
+      if (!is.null(coords_salvas)) {
+        res <- matriz_pesos_espaciais(coords_salvas, tipo = tipo, k = k, raio = raio,
+                                      alfa = alfa, padronizacao = padronizacao)
+        return(res)
       }
     }
   } else {
@@ -115,6 +135,7 @@ matriz_vizinhanca <- function(dados,
       coords <- as.matrix(dados)
     }
 
+    coords_salvas <- coords
     n <- nrow(coords)
     dists <- as.matrix(stats::dist(coords))
     diag(dists) <- Inf
@@ -132,10 +153,23 @@ matriz_vizinhanca <- function(dados,
         vzs <- order(dists[i, ])[seq_len(k_ef)]
         d_sub <- dists[i, vzs]
         d_sub[d_sub == 0] <- min(d_sub[d_sub > 0], na.rm = TRUE) / 2
-        W[i, vzs] <- 1 / d_sub
+        W[i, vzs] <- 1 / (d_sub ^ alfa)
+      }
+    } else if (tipo == "banda_distancia") {
+      if (is.null(raio) || is.na(raio)) {
+        min_dists <- apply(dists, 1, min)
+        raio <- max(min_dists) * 1.05
+      }
+      for (i in seq_len(n)) {
+        vzs <- which(dists[i, ] <= raio)
+        if (length(vzs) > 0) W[i, vzs] <- 1
       }
     }
   }
+
+  n <- nrow(W)
+  n_conexoes_cruas <- sum(W > 0)
+  viz_por_no <- rowSums(W > 0)
 
   # 3. Padronização da Matriz
   if (padronizacao == "linha") {
@@ -150,17 +184,158 @@ matriz_vizinhanca <- function(dados,
   }
 
   attr(W, "tipo") <- tipo
+  attr(W, "k") <- k
+  attr(W, "raio") <- raio
+  attr(W, "alfa") <- alfa
   attr(W, "padronizacao") <- padronizacao
+  attr(W, "coords") <- coords_salvas
+  attr(W, "n_conexoes") <- n_conexoes_cruas
+  attr(W, "viz_por_no") <- viz_por_no
   class(W) <- c("estatR_matriz_pesos", "matrix")
   W
 }
 
-#' @noRd
-.construir_matriz_pesos <- function(coords, k = 5, padronizacao = "linha") {
-  matriz_vizinhanca(coords, tipo = "knn", k = k, padronizacao = padronizacao)
+#' @rdname matriz_pesos_espaciais
+#' @export
+matriz_vizinhanca <- matriz_pesos_espaciais
+
+#' @export
+print.estatR_matriz_pesos <- function(x, ...) {
+  n <- nrow(x)
+  tipo <- attr(x, "tipo") %||% "auto"
+  padr <- attr(x, "padronizacao") %||% "linha"
+  k    <- attr(x, "k") %||% 5
+  raio <- attr(x, "raio")
+  n_con <- attr(x, "n_conexoes") %||% sum(x > 0)
+  vizs  <- attr(x, "viz_por_no") %||% rowSums(x > 0)
+
+  esparsidade <- (1 - (n_con / (n * n))) * 100
+  ilhas <- sum(vizs == 0)
+
+  desc_tipo <- switch(tipo,
+    "knn" = sprintf("K-Vizinhos Mais Próximos (k = %d)", as.integer(k)),
+    "auto" = "Automático (K-Vizinhos Mais Próximos / Contiguidade)",
+    "rainha" = "Contiguidade Rainha (Queen - compartilha borda ou vértice)",
+    "torre" = "Contiguidade Torre (Rook - compartilha borda linear)",
+    "distancia_inversa" = sprintf("Distância Inversa Ponderada (k = %d, expoente = %s)", as.integer(k), formatC(attr(x, "alfa") %||% 1, format="f", digits=1, decimal.mark=",")),
+    "banda_distancia" = sprintf("Banda de Distância (Raio de corte = %s)", formatC(as.numeric(raio), format="f", digits=2, decimal.mark=",")),
+    tipo
+  )
+
+  desc_padr <- switch(padr,
+    "linha" = "Padronizada por Linha (soma de cada linha = 1)",
+    "binaria" = "Binária (0 = não vizinho, 1 = vizinho)",
+    "global" = "Padronizada Globalmente (soma de toda a matriz = 1)",
+    "nenhuma" = "Sem padronização",
+    padr
+  )
+
+  cat("\n── MATRIZ DE PESOS ESPACIAIS (W) ──────────────────────────────────────────\n\n")
+  cat(sprintf("  Dimensões (n × n)    : %d × %d\n", n, n))
+  cat(sprintf("  Tipo de Vizinhança   : %s\n", desc_tipo))
+  cat(sprintf("  Padronização         : %s\n", desc_padr))
+  cat(sprintf("  Conexões Não-Nulas   : %d (Densidade: %s%% | Esparsidade: %s%%)\n",
+              n_con,
+              formatC(100 - esparsidade, format = "f", digits = 2, decimal.mark = ","),
+              formatC(esparsidade, format = "f", digits = 2, decimal.mark = ",")))
+  cat(sprintf("  Vizinhos por Unidade : Mín: %d  |  Média: %s  |  Máx: %d\n",
+              min(vizs),
+              formatC(mean(vizs), format = "f", digits = 2, decimal.mark = ","),
+              max(vizs)))
+
+  if (ilhas > 0) {
+    cat(sprintf("  [!] Alerta: %d unidade(s) isolada(s) (sem nenhum vizinho conectado).\n", ilhas))
+  } else {
+    cat("  Conectividade Total  : Nenhuma unidade isolada detectada.\n")
+  }
+
+  cat("\n  Dica: Acesse a matriz numérica bruta via as.matrix(obj) ou unclass(obj).\n")
+  cat("  Para visualizar a malha espacial, execute plot(obj).\n")
+  cat("───────────────────────────────────────────────────────────────────────────\n\n")
+  invisible(x)
 }
 
+#' @export
+plot.estatR_matriz_pesos <- function(x, y = NULL, tipo = c("auto", "rede", "matriz"), ...) {
+  if (!requireNamespace("ggplot2", quietly = TRUE)) {
+    stop("O pacote 'ggplot2' é necessário para plotar a matriz de pesos.", call. = FALSE)
+  }
+  tipo <- match.arg(tipo)
+  coords <- attr(x, "coords")
+  n <- nrow(x)
 
+  if (tipo == "auto") {
+    tipo <- if (!is.null(coords) && nrow(coords) == n && ncol(coords) >= 2) "rede" else "matriz"
+  }
+
+  if (tipo == "rede" && !is.null(coords) && nrow(coords) == n && ncol(coords) >= 2) {
+    df_pts <- data.frame(id = seq_len(n), x = coords[, 1], y = coords[, 2])
+
+    arestas_list <- list()
+    for (i in seq_len(n)) {
+      vzs <- which(x[i, ] > 0)
+      for (j in vzs) {
+        arestas_list[[length(arestas_list) + 1]] <- data.frame(
+          x = coords[i, 1], y = coords[i, 2],
+          xend = coords[j, 1], yend = coords[j, 2],
+          peso = as.numeric(x[i, j])
+        )
+      }
+    }
+    df_arestas <- do.call(rbind, arestas_list)
+
+    p <- ggplot2::ggplot()
+    if (!is.null(df_arestas) && nrow(df_arestas) > 0) {
+      p <- p + ggplot2::geom_segment(
+        data = df_arestas,
+        ggplot2::aes(x = x, y = y, xend = xend, yend = yend, alpha = peso),
+        color = "#1D70B8", linewidth = 0.6, show.legend = FALSE
+      )
+    }
+    p <- p + ggplot2::geom_point(
+      data = df_pts,
+      ggplot2::aes(x = x, y = y),
+      color = "#0B0C0C", fill = "#005EA5", shape = 21, size = 3, stroke = 0.8
+    ) +
+    ggplot2::labs(
+      title = "Rede de Vizinhança Espacial (Matriz W)",
+      subtitle = sprintf("n = %d unidades  |  Ligações: %d  |  Tipo: %s",
+                         n, if (!is.null(df_arestas)) nrow(df_arestas) else 0, attr(x, "tipo") %||% "knn"),
+      x = "Coordenada X (Longitude)",
+      y = "Coordenada Y (Latitude)"
+    )
+  } else {
+    df_mat <- expand.grid(Linha = seq_len(n), Coluna = seq_len(n))
+    df_mat$Peso <- as.vector(as.matrix(x))
+    df_mat$Conexao <- ifelse(df_mat$Peso > 0, "Vizinho", "Não Vizinho")
+
+    p <- ggplot2::ggplot(df_mat, ggplot2::aes(x = Coluna, y = rev(Linha), fill = Peso)) +
+      ggplot2::geom_tile(color = "white", linewidth = 0.1) +
+      ggplot2::scale_fill_gradient(low = "#F4F6F8", high = "#005EA5") +
+      ggplot2::labs(
+        title = "Matriz de Pesos Espaciais (W)",
+        subtitle = sprintf("Dimensões: %d × %d  |  Padronização: %s", n, n, attr(x, "padronizacao") %||% "linha"),
+        x = "Unidade (Coluna j)",
+        y = "Unidade (Linha i)"
+      )
+  }
+
+  if (exists("meu_tema", mode = "function")) {
+    p <- p + meu_tema(grade = "dupla")
+  } else if (exists("tema_estatR", mode = "function")) {
+    p <- p + tema_estatR(estilo = 2, grade = "dupla")
+  } else {
+    p <- p + ggplot2::theme_minimal()
+  }
+
+  print(p)
+  invisible(p)
+}
+
+#' @noRd
+.construir_matriz_pesos <- function(coords, k = 5, padronizacao = "linha") {
+  matriz_pesos_espaciais(coords, tipo = "knn", k = k, padronizacao = padronizacao)
+}
 # ── 2. AUTOCORRELAÇÃO ESPACIAL (MORAN GLOBAL E LISA) ─────────────────────────
 
 #' @title Análise de Autocorrelação Espacial Global e Local (Moran e LISA)

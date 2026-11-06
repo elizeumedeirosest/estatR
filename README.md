@@ -164,6 +164,15 @@ teste_t_bayesiano(x = grupo_a, y = grupo_b, r_escala = "auto", grafico = TRUE)
 # Teste A/B Bayesiano com probabilidade de vitória, uplift (%) e Odds Ratio
 teste_duas_proporcoes_bayesiano(k1 = 120, n1 = 1000, k2 = 165, n2 = 1000, nomes = c("A", "B"), grafico = TRUE)
 
+# Teste de Correlação Bayesiano (Pearson e Spearman com Fator de Bayes e HPD)
+teste_correlacao_bayesiano(mpg ~ wt, dados = mtcars, grafico = TRUE)
+
+# ANOVA One-Way Bayesiana (Fator de Bayes JZS e contrastes post-hoc)
+anova_bayesiana(Sepal.Length ~ Species, dados = iris, grafico = TRUE)
+
+# Regressão Linear Bayesiana (JZS / g-priori com HPD dos coeficientes)
+regressao_bayesiana(mpg ~ wt + hp, dados = mtcars, grafico = TRUE)
+
 # Intervalo de Maior Densidade a Posteriori (HPD Geral)
 ic_hpd(amostras_posteriori, confianca = 0.95)
 ```
@@ -1030,6 +1039,19 @@ carta_u(taxa_defeitos, tamanho_amostra = area)
 res_cap <- capacidade_processo(dados_processo, lie = 45, lse = 55, alvo = 50)
 ```
 
+**Controle Avançado (EWMA, CUSUM e MSA / Gage R&R)**
+
+```r
+# Carta EWMA (Média Móvel Exponencialmente Ponderada para pequenos desvios)
+carta_ewma(dados_processo, lambda = 0.20, L = 3.0, grafico = TRUE)
+
+# Carta CUSUM (Somas Cumulativas Tabulares bilaterais)
+carta_cusum(dados_processo, k = 0.50, h = 4.50, grafico = TRUE)
+
+# Análise do Sistema de Medição (Gage R&R ANOVA com métricas AIAG)
+estudo_gage_rr(medicao ~ peca + operador, dados = df_estudo, grafico = TRUE)
+```
+
 </details>
 
 ---
@@ -1094,6 +1116,15 @@ validacao_cruzada(mpg ~ wt + hp + qsec, dados = mtcars, k = 5, tipo = "regressao
 <details>
 <summary><strong> Estatística Espacial</strong></summary>
 <br>
+
+**Matriz de Pesos e Vizinhança Espacial (W)**
+
+```r
+# Gerador nativo de matriz W (KNN, Contiguidade Rainha/Torre, Raio ou Distância Inversa)
+W <- matriz_pesos_espaciais(dados_geo, tipo = "knn", k = 5, padronizacao = "linha")
+print(W)          # Resumo didático de conexões, densidade e diagnóstico de ilhas
+plot(W)           # Visualização da rede de vizinhança ou matriz de conectividade
+```
 
 **Autocorrelação Espacial (Moran Global e LISA)**
 
