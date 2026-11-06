@@ -88,7 +88,7 @@
 
 .tema_log <- function() {
   if (exists("tema_estatR", mode = "function"))
-    return(tema_estatR(estilo = 2))
+    return(meu_tema(grade = "dupla"))
   if (requireNamespace("estatR", quietly = TRUE)) {
     fn <- get("tema_estatR", envir = asNamespace("estatR"))
     return(fn(estilo = 2))

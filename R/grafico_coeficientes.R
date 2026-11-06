@@ -5,7 +5,7 @@
 #' @title Gráfico de Coeficientes do Modelo (Forest Plot)
 #' @description Gera um gráfico elegante de coeficientes com intervalos de confiança
 #'   de 95% (Forest Plot), nativo em \code{ggplot2}, com grade dupla por padrão
-#'   e integração ao \code{tema_estatR()}.
+#'   e integração ao \code{meu_tema(grade = "dupla")}.
 #'   Suporta modelos lineares (\code{lm}), generalizados (\code{glm}),
 #'   sobrevivência (\code{coxph}, \code{estatR_cox}) e outros.
 #'
@@ -16,7 +16,7 @@
 #'   Se \code{"auto"}, detecta automaticamente a família do modelo.
 #' @param cor Cor dos pontos e intervalos de confiança (padrão: \code{"#1E3A8A"}).
 #' @param tamanho_ponto Tamanho do ponto da estimativa (padrão: 3).
-#' @param tema_estilo Estilo do \code{tema_estatR()} a ser aplicado (padrão: 2 com grade dupla).
+#' @param tema_estilo Estilo do \code{meu_tema(grade = "dupla")} a ser aplicado (padrão: 2 com grade dupla).
 #'
 #' @return Um objeto \code{ggplot}.
 #' @export
@@ -122,7 +122,9 @@ grafico_coeficientes <- function(modelo,
     )
 
   # Aplica tema estatR com grade dupla ativada
-  if (exists("tema_estatR", mode = "function")) {
+  if (exists("meu_tema", mode = "function")) {
+    p <- p + meu_tema(grade = "dupla")
+  } else if (exists("tema_estatR", mode = "function")) {
     p <- p + tema_estatR(estilo = tema_estilo, grade = "dupla")
   } else {
     p <- p + ggplot2::theme_minimal() + ggplot2::theme(panel.grid.major = ggplot2::element_line(color = "gray90"))
@@ -130,4 +132,3 @@ grafico_coeficientes <- function(modelo,
 
   p
 }
-

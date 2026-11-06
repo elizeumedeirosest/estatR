@@ -406,7 +406,7 @@ analise_medidas_repetidas <- function(formula,
       }
 
       tema_fn <- if (exists("tema_estatR", mode = "function")) {
-        tema_estatR(estilo = 2, grade = "dupla")
+        meu_tema(grade = "dupla")
       } else {
         ggplot2::theme_minimal()
       }

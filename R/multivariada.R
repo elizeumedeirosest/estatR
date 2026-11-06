@@ -548,7 +548,7 @@ biplot_acp <- function(modelo,
   )
 
   if (exists("tema_estatR", mode = "function")) {
-    p <- p + tema_estatR(estilo = 2)
+    p <- p + meu_tema(grade = "dupla")
   } else {
     p <- p + ggplot2::theme_minimal()
   }
@@ -628,7 +628,7 @@ screeplot_acp <- function(modelo, analise_paralela = TRUE) {
     ggplot2::theme(legend.position = c(0.85, 0.85), legend.background = ggplot2::element_rect(fill = ggplot2::alpha("white", 0.7), color = "gray80"))
 
   if (exists("tema_estatR", mode = "function")) {
-    p <- p + tema_estatR(estilo = 2, grade = "dupla")
+    p <- p + meu_tema(grade = "dupla")
   } else {
     p <- p + ggplot2::theme_minimal()
   }
@@ -1206,7 +1206,7 @@ cargasplot_fatorial <- function(modelo, corte = 0.30) {
     )
 
   if (exists("tema_estatR", mode = "function")) {
-    p <- p + tema_estatR(estilo = 2)
+    p <- p + meu_tema(grade = "dupla")
   } else {
     p <- p + ggplot2::theme_minimal()
   }
@@ -1288,7 +1288,7 @@ screeplot_fatorial <- function(modelo, analise_paralela = TRUE) {
     ggplot2::theme(legend.position = c(0.85, 0.85), legend.background = ggplot2::element_rect(fill = ggplot2::alpha("white", 0.7), color = "gray80"))
 
   if (exists("tema_estatR", mode = "function")) {
-    p <- p + tema_estatR(estilo = 2, grade = "dupla")
+    p <- p + meu_tema(grade = "dupla")
   } else {
     p <- p + ggplot2::theme_minimal()
   }
@@ -1399,7 +1399,7 @@ biplot_fatorial <- function(modelo,
   )
 
   if (exists("tema_estatR", mode = "function")) {
-    p <- p + tema_estatR(estilo = 2)
+    p <- p + meu_tema(grade = "dupla")
   } else {
     p <- p + ggplot2::theme_minimal()
   }
@@ -2052,7 +2052,7 @@ plot_clusters <- function(modelo, elipses = TRUE) {
     )
 
   if (exists("tema_estatR", mode = "function")) {
-    p <- p + tema_estatR(estilo = 2)
+    p <- p + meu_tema(grade = "dupla")
   } else {
     p <- p + ggplot2::theme_minimal()
   }
@@ -2093,8 +2093,8 @@ cotovelo_plot <- function(modelo) {
     )
 
   if (exists("tema_estatR", mode = "function")) {
-    p1 <- p1 + tema_estatR(estilo = 2)
-    p2 <- p2 + tema_estatR(estilo = 2)
+    p1 <- p1 + meu_tema(grade = "dupla")
+    p2 <- p2 + meu_tema(grade = "dupla")
   } else {
     p1 <- p1 + ggplot2::theme_minimal()
     p2 <- p2 + ggplot2::theme_minimal()
@@ -2137,7 +2137,7 @@ dendrograma <- function(modelo, k = NULL) {
       )
 
     if (exists("tema_estatR", mode = "function")) {
-      p <- p + tema_estatR(estilo = 2) +
+      p <- p + meu_tema(grade = "dupla") +
         ggplot2::theme(axis.text.x = ggplot2::element_blank(), axis.ticks.x = ggplot2::element_blank())
     } else {
       p <- p + ggplot2::theme_minimal() +
@@ -2636,7 +2636,7 @@ plot_manova <- function(modelo) {
     )
 
   if (exists("tema_estatR", mode = "function")) {
-    p <- p + tema_estatR(estilo = 2, grade = "dupla")
+    p <- p + meu_tema(grade = "dupla")
   } else {
     p <- p + ggplot2::theme_minimal()
   }
@@ -3267,7 +3267,7 @@ biplot_lda <- function(modelo, elipses = TRUE) {
   }
 
   if (exists("tema_estatR", mode = "function")) {
-    p <- p + tema_estatR(estilo = 2, grade = "dupla")
+    p <- p + meu_tema(grade = "dupla")
   } else {
     p <- p + ggplot2::theme_minimal()
   }
@@ -3649,7 +3649,7 @@ biplot_correspondencia <- function(modelo) {
   if (exists("meu_tema", mode = "function")) {
     p <- p + meu_tema()
   } else if (exists("tema_estatR", mode = "function")) {
-    p <- p + tema_estatR(estilo = 2)
+    p <- p + meu_tema(grade = "dupla")
   } else {
     p <- p + ggplot2::theme_minimal()
   }
@@ -3965,7 +3965,7 @@ biplot_mca <- function(modelo) {
   if (exists("meu_tema", mode = "function")) {
     p <- p + meu_tema()
   } else if (exists("tema_estatR", mode = "function")) {
-    p <- p + tema_estatR(estilo = 2)
+    p <- p + meu_tema(grade = "dupla")
   } else {
     p <- p + ggplot2::theme_minimal()
   }
@@ -4256,7 +4256,7 @@ plot_cluster_misto <- function(modelo) {
   if (exists("meu_tema", mode = "function")) {
     p <- p + meu_tema()
   } else if (exists("tema_estatR", mode = "function")) {
-    p <- p + tema_estatR(estilo = 2)
+    p <- p + meu_tema(grade = "dupla")
   } else {
     p <- p + ggplot2::theme_minimal()
   }

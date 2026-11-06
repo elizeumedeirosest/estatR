@@ -6,7 +6,8 @@
 \usage{
 teste_mann_whitney(
   x,
-  grupo,
+  grupo = NULL,
+  dados = NULL,
   hipotese = c("bilateral", "maior", "menor"),
   confianca = 0.95,
   formato = c("resumo", "completo"),

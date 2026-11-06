@@ -4,7 +4,14 @@
 \alias{teste_levene}
 \title{Teste de Levene (Homogeneidade de Variâncias)}
 \usage{
-teste_levene(x, grupo, confianca = 0.95, decimais = 2, grafico = TRUE)
+teste_levene(
+  x,
+  grupo = NULL,
+  dados = NULL,
+  confianca = 0.95,
+  decimais = 2,
+  grafico = TRUE
+)
 }
 \arguments{
 \item{x}{Vetor numérico com os valores.}

@@ -294,7 +294,7 @@ bootstrap <- function(x = NULL,
       tema_padrao <- if (exists("meu_tema", mode = "function")) {
         meu_tema(grade = "dupla")
       } else if (exists("tema_estatR", mode = "function")) {
-        tema_estatR(estilo = 2, grade = "dupla")
+        meu_tema(grade = "dupla")
       } else {
         ggplot2::theme_minimal()
       }

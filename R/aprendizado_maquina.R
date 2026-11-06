@@ -365,7 +365,7 @@ previsao_aprend_maq <- function(formula,
       tema_padrao <- if (exists("meu_tema", mode = "function")) {
         meu_tema(grade = "dupla")
       } else if (exists("tema_estatR", mode = "function")) {
-        tema_estatR(estilo = 2, grade = "dupla")
+        meu_tema(grade = "dupla")
       } else {
         ggplot2::theme_minimal()
       }
@@ -786,7 +786,7 @@ classificacao_aprend_maq <- function(formula,
       tema_padrao <- if (exists("meu_tema", mode = "function")) {
         meu_tema(grade = "dupla")
       } else if (exists("tema_estatR", mode = "function")) {
-        tema_estatR(estilo = 2, grade = "dupla")
+        meu_tema(grade = "dupla")
       } else {
         ggplot2::theme_minimal()
       }
@@ -922,7 +922,7 @@ analise_residual_aprend_maq <- function(modelo, grafico = TRUE) {
       tema_padrao <- if (exists("meu_tema", mode = "function")) {
         meu_tema(grade = "dupla")
       } else if (exists("tema_estatR", mode = "function")) {
-        tema_estatR(estilo = 2, grade = "dupla")
+        meu_tema(grade = "dupla")
       } else {
         ggplot2::theme_minimal()
       }

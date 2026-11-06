@@ -204,7 +204,7 @@ teste_kruskal <- function(dados, formula = NULL, y = NULL, grupo = NULL,
         y = y_name
       ) +
       ggplot2::guides(fill = "none") +
-      tema_estatR(estilo = 2, grade = "dupla")
+      meu_tema(grade = "dupla")
 
     print(p_plot)
   }
@@ -413,7 +413,7 @@ teste_friedman <- function(dados, formula = NULL, y = NULL, grupo = NULL, bloco 
         x = g_name,
         y = y_name
       ) +
-      tema_estatR(estilo = 2, grade = "dupla")
+      meu_tema(grade = "dupla")
 
     print(p_plot)
   }
@@ -835,7 +835,7 @@ grafico_bland_altman <- function(dados, metodo1, metodo2, confianca = 0.95, graf
         x = paste("M\u00e9dia entre os M\u00e9todos (", m1_name, "+", m2_name, ") / 2"),
         y = paste("Diferen\u00e7a entre os M\u00e9todos (", m1_name, "-", m2_name, ")")
       ) +
-      tema_estatR(estilo = 2, grade = "dupla")
+      meu_tema(grade = "dupla")
 
     print(p_plot)
   }

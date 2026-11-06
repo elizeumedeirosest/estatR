@@ -242,9 +242,13 @@ gerar_amostra <- function(n, distribuicao = c("normal", "binomial", "poisson", "
       texto_sub <- "Barras (Amostra) vs Curva (Teórica)"
     }
     p <- p + ggplot2::labs(title = tit_graf, subtitle = texto_sub, y = if(distribuicao %in% c("binomial", "poisson")) "Proporção" else "Densidade")
-    if (exists("tema_estatR", mode = "function")) { p <- p + tema_estatR(estilo = 1, grade = "dupla") }
-    else if (requireNamespace("estatR", quietly = TRUE)) { fn <- get("tema_estatR", envir = asNamespace("estatR")); p <- p + fn(estilo = 1, grade = "dupla") }
-    else { p <- p + ggplot2::theme_minimal() }
+    if (exists("meu_tema", mode = "function")) {
+      p <- p + meu_tema(grade = "dupla")
+    } else if (exists("tema_estatR", mode = "function")) {
+      p <- p + tema_estatR(estilo = 1, grade = "dupla")
+    } else {
+      p <- p + ggplot2::theme_minimal()
+    }
     suppressMessages(print(p))
   }
   invisible(amostra)
@@ -461,7 +465,9 @@ prob_exponencial <- function(taxa = 1, q1 = NULL, q2 = NULL,
         x = "x", y = "Densidade"
       )
 
-    if (exists("tema_estatR", mode = "function")) {
+    if (exists("meu_tema", mode = "function")) {
+      p <- p + meu_tema(grade = "dupla")
+    } else if (exists("tema_estatR", mode = "function")) {
       p <- p + tema_estatR(estilo = 1, grade = "dupla")
     } else {
       p <- p + ggplot2::theme_minimal()

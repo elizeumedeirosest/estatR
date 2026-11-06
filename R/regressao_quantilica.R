@@ -389,7 +389,7 @@ plot_regressao_quantilica <- function(modelo) {
   if (exists("meu_tema", mode = "function")) {
     p <- p + meu_tema()
   } else if (exists("tema_estatR", mode = "function")) {
-    p <- p + tema_estatR(estilo = 2)
+    p <- p + meu_tema(grade = "dupla")
   } else {
     p <- p + ggplot2::theme_minimal()
   }

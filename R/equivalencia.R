@@ -257,7 +257,7 @@ teste_equivalencia <- function(x,
       label_verd <- if (equivalente) "Equivalentes" else "N\u00e3o equivalentes"
 
       tema_fn <- if (exists("tema_estatR", mode = "function")) {
-        tema_estatR(estilo = 2, grade = "dupla")
+        meu_tema(grade = "dupla")
       } else {
         ggplot2::theme_minimal()
       }

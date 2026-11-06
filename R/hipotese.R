@@ -233,7 +233,7 @@ teste_t_uma_amostra <- function(x, mu, hipotese = c("bilateral", "maior", "menor
 #' @param grafico Lógico. Se TRUE, exibe boxplot comparativo dos dois grupos.
 #' @return Retorna invisivelmente o objeto do teste (\code{htest}).
 #' @export
-teste_t_duas_amostras <- function(x, grupo, hipotese = c("bilateral", "maior", "menor"),
+teste_t_duas_amostras <- function(x, grupo = NULL, dados = NULL, hipotese = c("bilateral", "maior", "menor"),
                                    variancia_igual = FALSE, confianca = 0.95,
                                    formato = c("resumo", "completo"),
                                    decimais = 2, grafico = TRUE) {
@@ -241,35 +241,20 @@ teste_t_duas_amostras <- function(x, grupo, hipotese = c("bilateral", "maior", "
   formato  <- match.arg(formato)
 
   # NSE: aceita data.frame + nome de coluna sem aspas
-  grupo_sub  <- substitute(grupo)
-  grupo_nome <- sub(".*\\$", "", deparse(grupo_sub))
-  x_sub      <- substitute(x)
-  x_nome     <- sub(".*\\$", "", deparse(x_sub))
+  # Resolução transparente de fórmula, pipe (|>) ou vetores diretos
+  res_biv <- .resolver_dados_bivariados(x, grupo, dados, env = parent.frame())
+  y_raw      <- res_biv$y
+  grupo_raw  <- res_biv$grupo
+  var_nome   <- res_biv$nome_y
+  grupo_nome <- res_biv$nome_grupo
 
-  if (is.data.frame(x)) {
-    grupo_vec <- if (grupo_nome %in% names(x)) x[[grupo_nome]] else eval(grupo_sub, parent.frame())
-    x_vec     <- NULL  # será extraído por grupo abaixo
-  } else {
-    grupo_vec <- eval(grupo_sub, parent.frame())
-    x_vec     <- x
-  }
-
-  grupo_vec <- as.factor(grupo_vec)
+  grupo_vec <- as.factor(grupo_raw)
   niveis    <- levels(grupo_vec)
-  if (length(niveis) != 2) stop("'grupo' deve ter exatamente 2 n\u00edveis.")
+  if (length(niveis) != 2) stop("'grupo' deve ter exatamente 2 níveis.", call. = FALSE)
 
   g1 <- niveis[1]; g2 <- niveis[2]
-
-  if (is.data.frame(x)) {
-    vals1 <- x[[x_nome]][grupo_vec == g1 & !is.na(grupo_vec)]
-    vals2 <- x[[x_nome]][grupo_vec == g2 & !is.na(grupo_vec)]
-    var_nome <- x_nome
-  } else {
-    vals1 <- x_vec[grupo_vec == g1 & !is.na(grupo_vec)]
-    vals2 <- x_vec[grupo_vec == g2 & !is.na(grupo_vec)]
-    var_nome <- x_nome
-  }
-
+  vals1 <- y_raw[grupo_vec == g1 & !is.na(grupo_vec)]
+  vals2 <- y_raw[grupo_vec == g2 & !is.na(grupo_vec)]
   vals1 <- vals1[!is.na(vals1)]
   vals2 <- vals2[!is.na(vals2)]
 
@@ -905,24 +890,26 @@ teste_wilcoxon <- function(x, y = NULL, mu = 0, hipotese = c("bilateral", "maior
 #' @param decimais Casas decimais para exibição (padrão \code{2}).
 #' @return Retorna invisivelmente o objeto do teste (\code{htest}).
 #' @export
-teste_mann_whitney <- function(x, grupo, hipotese = c("bilateral", "maior", "menor"),
+teste_mann_whitney <- function(x, grupo = NULL, dados = NULL, hipotese = c("bilateral", "maior", "menor"),
                                confianca = 0.95,
                                formato = c("resumo", "completo"),
                                decimais = 2, grafico = TRUE) {
   hipotese <- match.arg(hipotese)
   formato  <- match.arg(formato)
-  grupo_sub  <- substitute(grupo)
-  grupo_nome <- sub(".*\\$", "", deparse(grupo_sub))
-  x_expr     <- deparse(substitute(x))
-  x_nome     <- sub(".*\\$", "", x_expr)
+  # Resolução transparente de fórmula, pipe (|>) ou vetores diretos
+  res_biv <- .resolver_dados_bivariados(x, grupo, dados, env = parent.frame())
+  y_raw      <- res_biv$y
+  grupo_raw  <- res_biv$grupo
+  x_nome     <- res_biv$nome_y
+  grupo_nome <- res_biv$nome_grupo
 
-  grupo_vec <- as.factor(eval(grupo_sub, parent.frame()))
+  grupo_vec <- as.factor(grupo_raw)
   niveis    <- levels(grupo_vec)
-  if (length(niveis) != 2) stop("'grupo' deve ter exatamente 2 n\u00edveis.")
+  if (length(niveis) != 2) stop("'grupo' deve ter exatamente 2 níveis.", call. = FALSE)
 
   g1 <- niveis[1]; g2 <- niveis[2]
-  vals1 <- x[grupo_vec == g1 & !is.na(grupo_vec)]; vals1 <- vals1[!is.na(vals1)]
-  vals2 <- x[grupo_vec == g2 & !is.na(grupo_vec)]; vals2 <- vals2[!is.na(vals2)]
+  vals1 <- y_raw[grupo_vec == g1 & !is.na(grupo_vec)]; vals1 <- vals1[!is.na(vals1)]
+  vals2 <- y_raw[grupo_vec == g2 & !is.na(grupo_vec)]; vals2 <- vals2[!is.na(vals2)]
 
   alt_r <- switch(hipotese, bilateral = "two.sided", maior = "greater", menor = "less")
   res   <- wilcox.test(vals1, vals2, alternative = alt_r,
@@ -1018,7 +1005,7 @@ teste_mann_whitney <- function(x, grupo, hipotese = c("bilateral", "maior", "men
                          ifelse(p_val < 0.001, "<", "="),
                          .th_fmt_p(p_val),
                          ifelse(nchar(p_ast) > 0, paste0(" ", p_ast), ""))
-        df_plot <- data.frame(grupo = grupo_vec, y = x)
+        df_plot <- data.frame(grupo = grupo_vec, y = y_raw)
         df_plot <- df_plot[!is.na(df_plot$grupo) & !is.na(df_plot$y), ]
         max_y <- max(df_plot$y, na.rm = TRUE)
         min_y <- min(df_plot$y, na.rm = TRUE)
@@ -1186,19 +1173,21 @@ teste_qui_quadrado <- function(dados, var_x, var_y, confianca = 0.95,
 #' @param decimais Casas decimais para exibição (padrão \code{2}).
 #' @return Retorna invisivelmente uma lista com a estatística F e p-valor.
 #' @export
-teste_levene <- function(x, grupo, confianca = 0.95, decimais = 2, grafico = TRUE) {
-  grupo_sub  <- substitute(grupo)
-  grupo_nome <- sub(".*\\$", "", deparse(grupo_sub))
-  x_expr     <- deparse(substitute(x))
-  x_nome     <- sub(".*\\$", "", x_expr)
+teste_levene <- function(x, grupo = NULL, dados = NULL, confianca = 0.95, decimais = 2, grafico = TRUE) {
+  # Resolução transparente de fórmula, pipe (|>) ou vetores diretos
+  res_biv <- .resolver_dados_bivariados(x, grupo, dados, env = parent.frame())
+  y_raw      <- res_biv$y
+  grupo_raw  <- res_biv$grupo
+  x_nome     <- res_biv$nome_y
+  grupo_nome <- res_biv$nome_grupo
 
-  grupo_vec <- as.factor(eval(grupo_sub, parent.frame()))
+  grupo_vec <- as.factor(grupo_raw)
   niveis    <- levels(grupo_vec)
-  if (length(niveis) < 2) stop("'grupo' deve ter pelo menos 2 n\u00edveis.")
+  if (length(niveis) < 2) stop("'grupo' deve ter pelo menos 2 níveis.", call. = FALSE)
 
   # Levene em base R: usa desvios em relação à mediana de cada grupo
-  medianas  <- tapply(x, grupo_vec, median, na.rm = TRUE)
-  z         <- abs(x - medianas[grupo_vec])
+  medianas  <- tapply(y_raw, grupo_vec, median, na.rm = TRUE)
+  z         <- abs(y_raw - medianas[grupo_vec])
   res_lev   <- summary(aov(z ~ grupo_vec))
   f_stat    <- res_lev[[1]]["grupo_vec", "F value"]
   p_val     <- res_lev[[1]]["grupo_vec", "Pr(>F)"]
@@ -1212,7 +1201,7 @@ teste_levene <- function(x, grupo, confianca = 0.95, decimais = 2, grafico = TRU
 
   # Variâncias por grupo
   for (niv in niveis) {
-    vals_niv <- x[grupo_vec == niv & !is.na(grupo_vec)]
+    vals_niv <- y_raw[grupo_vec == niv & !is.na(grupo_vec)]
     cat(sprintf("  Vari\u00e2ncia %s: %s\n", niv,
                 formatC(var(vals_niv, na.rm=TRUE), format="f", digits=decimais, decimal.mark=",")))
   }
@@ -1231,11 +1220,6 @@ teste_levene <- function(x, grupo, confianca = 0.95, decimais = 2, grafico = TRU
   cat(.th_sep(nchar(hdr_c)), "\n")
   .th_nota_sig(p_val)
   cat("\n")
-  n_total_tab <- sum(tab)
-  k_min <- min(nrow(tab) - 1, ncol(tab) - 1)
-  v_cramer <- if (k_min > 0 && n_total_tab > 0) sqrt(as.numeric(chi2) / (n_total_tab * k_min)) else 0
-  classif_v <- if (v_cramer < 0.10) "Desprezível" else if (v_cramer < 0.30) "Pequeno" else if (v_cramer < 0.50) "Médio" else "Grande"
-  cat(sprintf("  Tamanho do Efeito (V de Cramér): %.3f (%s)\n\n", v_cramer, classif_v))
 
   alpha <- 1 - confianca
   .print_topico("INTERPRETA\u00c7\u00c3O")

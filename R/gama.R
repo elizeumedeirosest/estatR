@@ -197,7 +197,7 @@ regressao_gama <- function(formula, dados, ligacao = "log", grafico = TRUE) {
         ggplot2::geom_point(color = "#555555", alpha = 0.7, size = 2) +
         ggplot2::geom_abline(intercept = 0, slope = 1, color = "#D90429", linetype = "dashed", linewidth = 1) +
         ggplot2::labs(title = "Ajuste do Modelo Gama", subtitle = "Valores Observados vs Preditos", x = "Valor Predito", y = "Valor Observado")
-      if (exists("tema_estatR", mode = "function")) p <- p + tema_estatR(estilo = 2) else p <- p + ggplot2::theme_minimal()
+      if (exists("tema_estatR", mode = "function")) p <- p + meu_tema(grade = "dupla") else p <- p + ggplot2::theme_minimal()
       print(p)
     }, error = function(e) { message("[Aviso] Não foi possível gerar o gráfico: ", e$message) })
   }
@@ -288,7 +288,8 @@ analise_residual_gama <- function(modelo, grafico = TRUE) {
       p2 <- ggplot2::ggplot(df_plot, ggplot2::aes(sample = Residuos)) + ggplot2::stat_qq(color = "#555555", alpha = 0.6) + ggplot2::stat_qq_line(color = "#D90429", linewidth = 1) + ggplot2::labs(title = "QQ-Plot", x = "Quantis Teóricos", y = "Quantis Amostrais")
       p3 <- ggplot2::ggplot(df_plot, ggplot2::aes(x = Index, y = CooksD)) + ggplot2::geom_segment(ggplot2::aes(xend = Index, yend = 0), color = "#555555") + ggplot2::geom_point(color = "#555555") + ggplot2::geom_hline(yintercept = corte_cook, linetype = "dashed", color = "#D90429") + ggplot2::labs(title = "Distância de Cook", x = "Índice", y = "Distância")
       p4 <- ggplot2::ggplot(df_plot, ggplot2::aes(x = PredLin, y = abs(Residuos))) + ggplot2::geom_point(color = "#555555", alpha = 0.6) + ggplot2::geom_smooth(method = "loess", se = FALSE, color = "#D90429", linewidth = 1) + ggplot2::labs(title = "Escala-Localização", x = "Preditor Linear", y = "|Resíduo|")
-      if (exists("tema_estatR", mode = "function")) { p1 <- p1+tema_estatR(estilo=2); p2 <- p2+tema_estatR(estilo=2); p3 <- p3+tema_estatR(estilo=2); p4 <- p4+tema_estatR(estilo=2) } else { p1 <- p1+ggplot2::theme_minimal(); p2 <- p2+ggplot2::theme_minimal(); p3 <- p3+ggplot2::theme_minimal(); p4 <- p4+ggplot2::theme_minimal() }
+      tema_diag <- if (exists("meu_tema", mode = "function")) meu_tema(grade = "dupla") else if (exists("tema_estatR", mode = "function")) tema_estatR(estilo = 2, grade = "dupla") else ggplot2::theme_minimal()
+      p1 <- p1 + tema_diag; p2 <- p2 + tema_diag; p3 <- p3 + tema_diag; p4 <- p4 + tema_diag
       print((p1 | p2) / (p3 | p4))
     }, error = function(e) { message("[Aviso] Erro ao gerar painel: ", e$message) })
   }

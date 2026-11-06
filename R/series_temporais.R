@@ -423,7 +423,7 @@ grafico_autocorrelacao <- function(serie, defasagens = 24,
       ggplot2::scale_y_continuous(limits = c(min(-ic_val * 1.2, min(df$Valor, na.rm = TRUE) * 1.1),
                                              max(ic_val * 1.2, max(df$Valor, na.rm = TRUE) * 1.1))) +
       ggplot2::labs(title = titulo, x = "Defasagem (Lag)", y = "Autocorrela\u00e7\u00e3o") +
-      tema_estatR(estilo = 2, grade = "dupla")
+      meu_tema(grade = "dupla")
   }
 
   p_acf  <- .plot_acf_panel(df_acf, "Fun\u00e7\u00e3o de Autocorrela\u00e7\u00e3o (FAC)")
@@ -791,7 +791,7 @@ previsao_serie <- function(serie, horizonte = 12, frequencia = 12,
         subtitle = sprintf("Horizonte: %d per\u00edodos | Faixas de Confian\u00e7a: 80%% e %.0f%%", horizonte, confianca * 100),
         x = "Tempo", y = "Valor"
       ) +
-      tema_estatR(estilo = 2, grade = "dupla")
+      meu_tema(grade = "dupla")
 
     print(p_graf)
   }
@@ -1292,7 +1292,7 @@ analise_residual_serie <- function(modelo, grafico = TRUE) {
       ggplot2::geom_line(color = "#3470a3", linewidth = 0.75) +
       ggplot2::geom_point(color = "#3470a3", size = 1.3) +
       ggplot2::labs(title = "Res\u00edduos ao Longo do Tempo", x = "\u00cdndice Temporal", y = "Res\u00edduo") +
-      tema_estatR(estilo = 2, grade = "dupla")
+      meu_tema(grade = "dupla")
 
     # 2. Histograma com Densidade
     p2 <- ggplot2::ggplot(df_res_plot, ggplot2::aes(x = Res)) +
@@ -1303,14 +1303,14 @@ analise_residual_serie <- function(modelo, grafico = TRUE) {
                              args = list(mean = mean(res), sd = stats::sd(res)),
                              color = "#0072CE", linewidth = 0.85) +
       ggplot2::labs(title = "Histograma & Densidade Normal", x = "Res\u00edduo", y = "Densidade") +
-      tema_estatR(estilo = 2, grade = "dupla")
+      meu_tema(grade = "dupla")
 
     # 3. QQ-Plot Normal
     p3 <- ggplot2::ggplot(df_res_plot, ggplot2::aes(sample = Res)) +
       ggplot2::stat_qq(color = "#3470a3", size = 1.5, alpha = 0.8) +
       ggplot2::stat_qq_line(color = "#0072CE", linewidth = 0.75, linetype = "dashed") +
       ggplot2::labs(title = "QQ-Plot Normal dos Res\u00edduos", x = "Quantis Te\u00f3ricos", y = "Quantis Amostrais") +
-      tema_estatR(estilo = 2, grade = "dupla")
+      meu_tema(grade = "dupla")
 
     # 4. ACF dos Resíduos (Autocorrelação com limites Bartlett)
     max_lag_acf <- min(24, n - 2)
@@ -1329,7 +1329,7 @@ analise_residual_serie <- function(modelo, grafico = TRUE) {
                             color = "#3470a3", linewidth = 0.75) +
       ggplot2::geom_point(color = "#3470a3", size = 1.6) +
       ggplot2::labs(title = "FAC dos Res\u00edduos (Ru\u00eddo Branco)", x = "Defasagem (Lag)", y = "Autocorrela\u00e7\u00e3o") +
-      tema_estatR(estilo = 2, grade = "dupla")
+      meu_tema(grade = "dupla")
 
     p_painel <- patchwork::wrap_plots(p1, p2, p3, p4, ncol = 2)
     print(p_painel)
@@ -1535,7 +1535,7 @@ previsao_serie_aprend_maq <- function(serie,
       tema_padrao <- if (exists("meu_tema", mode = "function")) {
         meu_tema(grade = "dupla")
       } else if (exists("tema_estatR", mode = "function")) {
-        tema_estatR(estilo = 2, grade = "dupla")
+        meu_tema(grade = "dupla")
       } else {
         ggplot2::theme_minimal()
       }

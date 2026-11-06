@@ -6,7 +6,8 @@
 \usage{
 teste_t_duas_amostras(
   x,
-  grupo,
+  grupo = NULL,
+  dados = NULL,
   hipotese = c("bilateral", "maior", "menor"),
   variancia_igual = FALSE,
   confianca = 0.95,

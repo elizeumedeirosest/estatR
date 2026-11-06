@@ -236,7 +236,7 @@ regressao_poisson <- function(formula, dados, ligacao = "log", grafico = TRUE) {
         )
         
       if (exists("tema_estatR", mode = "function")) {
-        p <- p + tema_estatR(estilo = 2)
+        p <- p + meu_tema(grade = "dupla")
       } else {
         p <- p + ggplot2::theme_minimal()
       }
@@ -404,8 +404,8 @@ analise_residual_poisson <- function(modelo, grafico = TRUE) {
         ggplot2::labs(title = "Escala-Localização", x = "Preditor Linear", y = "|Resíduo Pearson|")
         
       if (exists("tema_estatR", mode = "function")) {
-        p1 <- p1 + tema_estatR(estilo = 2); p2 <- p2 + tema_estatR(estilo = 2)
-        p3 <- p3 + tema_estatR(estilo = 2); p4 <- p4 + tema_estatR(estilo = 2)
+        p1 <- p1 + meu_tema(grade = "dupla"); p2 <- p2 + meu_tema(grade = "dupla")
+        p3 <- p3 + meu_tema(grade = "dupla"); p4 <- p4 + meu_tema(grade = "dupla")
       } else {
         p1 <- p1 + ggplot2::theme_minimal(); p2 <- p2 + ggplot2::theme_minimal()
         p3 <- p3 + ggplot2::theme_minimal(); p4 <- p4 + ggplot2::theme_minimal()

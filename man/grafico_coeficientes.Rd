@@ -26,7 +26,7 @@ Se \code{"auto"}, detecta automaticamente a família do modelo.}
 
 \item{tamanho_ponto}{Tamanho do ponto da estimativa (padrão: 3).}
 
-\item{tema_estilo}{Estilo do \code{tema_estatR()} a ser aplicado (padrão: 2 com grade dupla).}
+\item{tema_estilo}{Estilo do \code{meu_tema(grade = "dupla")} a ser aplicado (padrão: 2 com grade dupla).}
 }
 \value{
 Um objeto \code{ggplot}.
@@ -34,7 +34,7 @@ Um objeto \code{ggplot}.
 \description{
 Gera um gráfico elegante de coeficientes com intervalos de confiança
 de 95\% (Forest Plot), nativo em \code{ggplot2}, com grade dupla por padrão
-e integração ao \code{tema_estatR()}.
+e integração ao \code{meu_tema(grade = "dupla")}.
 Suporta modelos lineares (\code{lm}), generalizados (\code{glm}),
 sobrevivência (\code{coxph}, \code{estatR_cox}) e outros.
 }

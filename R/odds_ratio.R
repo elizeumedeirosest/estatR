@@ -433,7 +433,7 @@ grafico_odds_ratio <- function(x, cor_sig = "#0099FF", cor_ns = "gray50") {
     )
 
   if (exists("tema_estatR", mode = "function")) {
-    p <- p + tema_estatR(estilo = 2, grade = "dupla")
+    p <- p + meu_tema(grade = "dupla")
   } else {
     p <- p + ggplot2::theme_minimal()
   }
@@ -481,7 +481,7 @@ grafico_irr <- function(x, cor_sig = "#0099FF", cor_ns = "gray50") {
     )
 
   if (exists("tema_estatR", mode = "function")) {
-    p <- p + tema_estatR(estilo = 2, grade = "dupla")
+    p <- p + meu_tema(grade = "dupla")
   } else {
     p <- p + ggplot2::theme_minimal()
   }

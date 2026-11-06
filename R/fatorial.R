@@ -803,7 +803,7 @@ grafico_fatorial <- function(modelo, ...) {
 
   # Tema
   tema_fn <- if (exists("tema_estatR", mode = "function")) {
-    tema_estatR(estilo = 2, grade = "dupla")
+    meu_tema(grade = "dupla")
   } else if (exists("meu_tema", mode = "function")) {
     meu_tema(estilo = 2, grade = "dupla")
   } else {

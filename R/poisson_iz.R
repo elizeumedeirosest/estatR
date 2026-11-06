@@ -426,7 +426,7 @@
       tema_base <- if (exists("meu_tema", mode = "function")) {
         meu_tema(grade = "dupla")
       } else if (exists("tema_estatR", mode = "function")) {
-        tema_estatR(estilo = 2)
+        meu_tema(grade = "dupla")
       } else {
         ggplot2::theme_minimal()
       }

@@ -265,3 +265,60 @@ resumo <- function(modelo, ...) {
   }
   summary(modelo, ...)
 }
+
+
+# ── HELPER UNIVERSAL: RESOLUÇÃO DE DADOS, FÓRMULAS E PIPES ───────────────────
+
+#' @keywords internal
+.resolver_dados_bivariados <- function(x, grupo = NULL, dados = NULL, env = parent.frame()) {
+  # Caso 1: x é fórmula (ex: y ~ grupo, dados = df)
+  if (inherits(x, "formula")) {
+    df <- if (!is.null(dados)) dados else if (!is.null(grupo) && is.data.frame(grupo)) grupo else NULL
+    mf <- if (is.null(df)) stats::model.frame(x, data = env) else stats::model.frame(x, data = df)
+    return(list(
+      y = mf[[1]],
+      grupo = mf[[2]],
+      nome_y = names(mf)[1],
+      nome_grupo = names(mf)[2]
+    ))
+  }
+
+  # Caso 2: Pipe onde x é data.frame (ex: df |> teste(y ~ grupo) ou df |> teste(y, grupo))
+  if (is.data.frame(x)) {
+    df <- x
+    # Subcaso 2a: segundo argumento é fórmula (ex: df |> teste(y ~ grupo))
+    if (inherits(grupo, "formula")) {
+      mf <- stats::model.frame(grupo, data = df)
+      return(list(
+        y = mf[[1]],
+        grupo = mf[[2]],
+        nome_y = names(mf)[1],
+        nome_grupo = names(mf)[2]
+      ))
+    }
+    # Subcaso 2b: colunas passadas como strings ou nomes
+    if (!is.null(grupo) && is.character(grupo) && length(grupo) == 1 && grupo %in% names(df)) {
+      if (!is.null(dados) && is.character(dados) && length(dados) == 1 && dados %in% names(df)) {
+        return(list(
+          y = df[[grupo]],
+          grupo = df[[dados]],
+          nome_y = grupo,
+          nome_grupo = dados
+        ))
+      }
+    }
+  }
+
+  # Caso 3: Vetores diretos (x = vetor valores, grupo = vetor grupos)
+  nome_x_str <- tryCatch(deparse(substitute(x)), error = function(e) "y")
+  nome_g_str <- tryCatch(deparse(substitute(grupo)), error = function(e) "grupo")
+  nome_x_str <- sub(".*\\$", "", nome_x_str)
+  nome_g_str <- sub(".*\\$", "", nome_g_str)
+
+  list(
+    y = x,
+    grupo = grupo,
+    nome_y = nome_x_str,
+    nome_grupo = nome_g_str
+  )
+}

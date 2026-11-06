@@ -258,7 +258,7 @@ poder_estatistico <- function(
       df_curva <- data.frame(n = n_seq, poder = pod_seq)
 
       tema_fn <- if (exists("tema_estatR", mode = "function")) {
-        tema_estatR(estilo = 2, grade = "dupla")
+        meu_tema(grade = "dupla")
       } else {
         ggplot2::theme_minimal()
       }
@@ -309,7 +309,7 @@ poder_estatistico <- function(
         df_curva   <- data.frame(n = n_seq, poder = pod_seq)
 
         tema_fn <- if (exists("tema_estatR", mode = "function")) {
-          tema_estatR(estilo = 2, grade = "dupla")
+          meu_tema(grade = "dupla")
         } else {
           ggplot2::theme_minimal()
         }

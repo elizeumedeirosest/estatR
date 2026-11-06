@@ -559,7 +559,7 @@ grafico_sobrevivencia <- function(modelo,
   cores    <- pal[seq_len(n_grps)]
 
   tema_fn <- if (exists("tema_estatR", mode = "function")) {
-    tema_estatR(estilo = 2, grade = "dupla")
+    meu_tema(grade = "dupla")
   } else if (exists("meu_tema", mode = "function")) {
     meu_tema(estilo = 2, grade = "dupla")
   } else {
@@ -1111,7 +1111,7 @@ grafico_cox <- function(modelo, escala_log = TRUE, ...) {
   )
 
   tema_fn <- if (exists("tema_estatR", mode = "function")) {
-    tema_estatR(estilo = 2, grade = "dupla")
+    meu_tema(grade = "dupla")
   } else if (exists("meu_tema", mode = "function")) {
     meu_tema(estilo = 2, grade = "dupla")
   } else {
@@ -1228,7 +1228,7 @@ analise_residual_cox <- function(modelo, grafico = TRUE) {
   p_painel <- NULL
   if (isTRUE(grafico) && requireNamespace("ggplot2", quietly = TRUE)) {
     tema_fn <- if (exists("tema_estatR", mode = "function")) {
-      tema_estatR(estilo = 2, grade = "dupla")
+      meu_tema(grade = "dupla")
     } else {
       ggplot2::theme_minimal()
     }

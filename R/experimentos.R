@@ -1123,7 +1123,7 @@ grafico_medias <- function(modelo, cor_barras = "#008080") {
   }
   
   if (exists("tema_estatR", mode = "function")) {
-    p <- p + tema_estatR(estilo = 2, grade = "dupla")
+    p <- p + meu_tema(grade = "dupla")
   } else {
     p <- p + ggplot2::theme_minimal()
   }
@@ -1170,7 +1170,7 @@ grafico_ic <- function(modelo, cor_sig = "#0099FF", cor_ns = "gray40") {
     )
   
   if (exists("tema_estatR", mode = "function")) {
-    p <- p + tema_estatR(estilo = 2, grade = "dupla")
+    p <- p + meu_tema(grade = "dupla")
   } else {
     p <- p + ggplot2::theme_minimal()
   }
@@ -1256,7 +1256,7 @@ grafico_regressao <- function(modelo) {
   }
   
   if (exists("tema_estatR", mode = "function")) {
-    p <- p + tema_estatR(estilo = 2, grade = "dupla")
+    p <- p + meu_tema(grade = "dupla")
   } else {
     p <- p + ggplot2::theme_minimal()
   }
@@ -3458,7 +3458,7 @@ grafico_dunnett <- function(modelo, cor_sig = "#0099FF", cor_ns = "gray40") {
     )
 
   if (exists("tema_estatR", mode = "function")) {
-    p <- p + tema_estatR(estilo = 2, grade = "dupla")
+    p <- p + meu_tema(grade = "dupla")
   } else {
     p <- p + ggplot2::theme_minimal()
   }

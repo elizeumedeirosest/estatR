@@ -277,7 +277,7 @@ analise_fatorial_adicional <- function(
         )
 
       if (exists("tema_estatR", mode = "function")) {
-        p <- p + tema_estatR(estilo = 2, grade = "dupla")
+        p <- p + meu_tema(grade = "dupla")
       } else {
         p <- p + ggplot2::theme_minimal()
       }

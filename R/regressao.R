@@ -1227,7 +1227,7 @@ pontos_influentes <- function(modelo,
       tema_padrao <- if (exists("meu_tema", mode = "function")) {
         meu_tema(grade = "dupla")
       } else if (exists("tema_estatR", mode = "function")) {
-        tema_estatR(estilo = 2, grade = "dupla")
+        meu_tema(grade = "dupla")
       } else {
         ggplot2::theme_minimal()
       }
@@ -1486,7 +1486,7 @@ multicolinearidade <- function(modelo, grafico = FALSE) {
       tema_padrao <- if (exists("meu_tema", mode = "function")) {
         meu_tema(grade = "dupla")
       } else if (exists("tema_estatR", mode = "function")) {
-        tema_estatR(estilo = 2, grade = "dupla")
+        meu_tema(grade = "dupla")
       } else {
         ggplot2::theme_minimal()
       }
@@ -1743,8 +1743,8 @@ multicolinearidade <- function(modelo, grafico = FALSE) {
         p1 <- p1 + meu_tema(); p2 <- p2 + meu_tema()
         p3 <- p3 + meu_tema(); p4 <- p4 + meu_tema()
       } else if (exists("tema_estatR", mode = "function")) {
-        p1 <- p1 + tema_estatR(estilo = 2); p2 <- p2 + tema_estatR(estilo = 2)
-        p3 <- p3 + tema_estatR(estilo = 2); p4 <- p4 + tema_estatR(estilo = 2)
+        p1 <- p1 + meu_tema(grade = "dupla"); p2 <- p2 + meu_tema(grade = "dupla")
+        p3 <- p3 + meu_tema(grade = "dupla"); p4 <- p4 + meu_tema(grade = "dupla")
       } else {
         p1 <- p1 + ggplot2::theme_minimal(); p2 <- p2 + ggplot2::theme_minimal()
         p3 <- p3 + ggplot2::theme_minimal(); p4 <- p4 + ggplot2::theme_minimal()
