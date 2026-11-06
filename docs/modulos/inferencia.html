@@ -350,6 +350,59 @@ window.Quarto = {
 <span id="cb12-9"><a href="#cb12-9" aria-hidden="true" tabindex="-1"></a></span>
 <span id="cb12-10"><a href="#cb12-10" aria-hidden="true" tabindex="-1"></a><span class="co"># Gráfico de Bland-Altman para concordância contínua</span></span>
 <span id="cb12-11"><a href="#cb12-11" aria-hidden="true" tabindex="-1"></a><span class="fu">grafico_bland_altman</span>(metodo_novo, metodo_referencia)</span></code></pre></div><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></div>
+<hr>
+</section>
+</section>
+<section id="inferência-bayesiana-e-fatores-de-bayes" class="level2">
+<h2 class="anchored" data-anchor-id="inferência-bayesiana-e-fatores-de-bayes">4. Inferência Bayesiana e Fatores de Bayes</h2>
+<p>O <code>estatR</code> oferece suporte a métodos de <strong>Inferência Bayesiana analítica e de alta precisão em R puro</strong>, permitindo quantificar a incerteza probabilística direta sobre parâmetros e contrastar hipóteses por meio de <strong>Fatores de Bayes (BF)</strong> e <strong>Intervalos de Credibilidade de Maior Densidade a Posteriori (HPD)</strong>.</p>
+<section id="teste-de-proporção-bayesiano-modelo-beta-binomial" class="level3">
+<h3 class="anchored" data-anchor-id="teste-de-proporção-bayesiano-modelo-beta-binomial">Teste de Proporção Bayesiano (Modelo Beta-Binomial)</h3>
+<p>Atualiza a distribuição a priori via modelo conjugado Beta-Binomial, fornecendo estimativas pontuais (média, moda e mediana posteriores), intervalos HPD e ETI de 95%, além do Fator de Bayes de Savage-Dickey:</p>
+<div class="code-copy-outer-scaffold"><div class="sourceCode" id="cb13"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb13-1"><a href="#cb13-1" aria-hidden="true" tabindex="-1"></a><span class="co"># Teste bayesiano para uma proporção com priori de Jeffreys (Beta(0.5, 0.5))</span></span>
+<span id="cb13-2"><a href="#cb13-2" aria-hidden="true" tabindex="-1"></a>resultado_prop <span class="ot">&lt;-</span> <span class="fu">teste_proporcao_bayesiano</span>(</span>
+<span id="cb13-3"><a href="#cb13-3" aria-hidden="true" tabindex="-1"></a>  <span class="at">x =</span> <span class="dv">65</span>,</span>
+<span id="cb13-4"><a href="#cb13-4" aria-hidden="true" tabindex="-1"></a>  <span class="at">n =</span> <span class="dv">100</span>,</span>
+<span id="cb13-5"><a href="#cb13-5" aria-hidden="true" tabindex="-1"></a>  <span class="at">p0 =</span> <span class="fl">0.50</span>,</span>
+<span id="cb13-6"><a href="#cb13-6" aria-hidden="true" tabindex="-1"></a>  <span class="at">priori =</span> <span class="st">"auto"</span>,       <span class="co"># ou "uniforme", "manual"</span></span>
+<span id="cb13-7"><a href="#cb13-7" aria-hidden="true" tabindex="-1"></a>  <span class="at">confianca =</span> <span class="fl">0.95</span>,</span>
+<span id="cb13-8"><a href="#cb13-8" aria-hidden="true" tabindex="-1"></a>  <span class="at">grafico =</span> <span class="cn">TRUE</span></span>
+<span id="cb13-9"><a href="#cb13-9" aria-hidden="true" tabindex="-1"></a>)</span></code></pre></div><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></div>
+</section>
+<section id="teste-t-bayesiano-fator-de-bayes-jzs" class="level3">
+<h3 class="anchored" data-anchor-id="teste-t-bayesiano-fator-de-bayes-jzs">Teste t Bayesiano (Fator de Bayes JZS)</h3>
+<p>Calcula o Fator de Bayes analítico de Jeffreys-Zellner-Siow (JZS) com priori Cauchy no tamanho de efeito <span class="math inline">\(\delta\)</span> de Cohen, integrando numericamente a densidade marginal exata para uma amostra, duas amostras independentes ou pareadas:</p>
+<div class="code-copy-outer-scaffold"><div class="sourceCode" id="cb14"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb14-1"><a href="#cb14-1" aria-hidden="true" tabindex="-1"></a><span class="co"># Teste t bayesiano para uma amostra contra valor de referência</span></span>
+<span id="cb14-2"><a href="#cb14-2" aria-hidden="true" tabindex="-1"></a><span class="fu">teste_t_bayesiano</span>(mtcars<span class="sc">$</span>mpg, <span class="at">mu =</span> <span class="dv">20</span>, <span class="at">grafico =</span> <span class="cn">TRUE</span>)</span>
+<span id="cb14-3"><a href="#cb14-3" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb14-4"><a href="#cb14-4" aria-hidden="true" tabindex="-1"></a><span class="co"># Teste t bayesiano para duas amostras independentes</span></span>
+<span id="cb14-5"><a href="#cb14-5" aria-hidden="true" tabindex="-1"></a><span class="fu">teste_t_bayesiano</span>(</span>
+<span id="cb14-6"><a href="#cb14-6" aria-hidden="true" tabindex="-1"></a>  <span class="at">x =</span> mtcars<span class="sc">$</span>mpg[mtcars<span class="sc">$</span>am <span class="sc">==</span> <span class="dv">0</span>],</span>
+<span id="cb14-7"><a href="#cb14-7" aria-hidden="true" tabindex="-1"></a>  <span class="at">y =</span> mtcars<span class="sc">$</span>mpg[mtcars<span class="sc">$</span>am <span class="sc">==</span> <span class="dv">1</span>],</span>
+<span id="cb14-8"><a href="#cb14-8" aria-hidden="true" tabindex="-1"></a>  <span class="at">r_escala =</span> <span class="st">"auto"</span>,     <span class="co"># Priori Cauchy default r = sqrt(2)/2</span></span>
+<span id="cb14-9"><a href="#cb14-9" aria-hidden="true" tabindex="-1"></a>  <span class="at">grafico =</span> <span class="cn">TRUE</span></span>
+<span id="cb14-10"><a href="#cb14-10" aria-hidden="true" tabindex="-1"></a>)</span>
+<span id="cb14-11"><a href="#cb14-11" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb14-12"><a href="#cb14-12" aria-hidden="true" tabindex="-1"></a><span class="co"># Teste t pareado bayesiano</span></span>
+<span id="cb14-13"><a href="#cb14-13" aria-hidden="true" tabindex="-1"></a><span class="fu">teste_t_bayesiano</span>(dados<span class="sc">$</span>antes, dados<span class="sc">$</span>depois, <span class="at">pareado =</span> <span class="cn">TRUE</span>, <span class="at">grafico =</span> <span class="cn">TRUE</span>)</span></code></pre></div><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></div>
+</section>
+<section id="teste-ab-bayesiano-duas-proporções" class="level3">
+<h3 class="anchored" data-anchor-id="teste-ab-bayesiano-duas-proporções">Teste A/B Bayesiano (Duas Proporções)</h3>
+<p>Compara duas taxas binomiais independentes (ex.: conversão de páginas, eficácia de campanhas ou tratamentos), fornecendo a probabilidade a posteriori de superioridade de B sobre A (<span class="math inline">\(P(B &gt; A \mid \text{dados})\)</span>), a elevação percentual esperada (<em>uplift</em>), o risco relativo e a Odds Ratio:</p>
+<div class="code-copy-outer-scaffold"><div class="sourceCode" id="cb15"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb15-1"><a href="#cb15-1" aria-hidden="true" tabindex="-1"></a><span class="co"># Comparação A/B com 25.000 simulações de Monte Carlo</span></span>
+<span id="cb15-2"><a href="#cb15-2" aria-hidden="true" tabindex="-1"></a>resultado_ab <span class="ot">&lt;-</span> <span class="fu">teste_duas_proporcoes_bayesiano</span>(</span>
+<span id="cb15-3"><a href="#cb15-3" aria-hidden="true" tabindex="-1"></a>  <span class="at">k1 =</span> <span class="dv">120</span>, <span class="at">n1 =</span> <span class="dv">1000</span>,   <span class="co"># Grupo A: 12% conversão</span></span>
+<span id="cb15-4"><a href="#cb15-4" aria-hidden="true" tabindex="-1"></a>  <span class="at">k2 =</span> <span class="dv">165</span>, <span class="at">n2 =</span> <span class="dv">1000</span>,   <span class="co"># Grupo B: 16,5% conversão</span></span>
+<span id="cb15-5"><a href="#cb15-5" aria-hidden="true" tabindex="-1"></a>  <span class="at">nomes =</span> <span class="fu">c</span>(<span class="st">"Controle (A)"</span>, <span class="st">"Variante (B)"</span>),</span>
+<span id="cb15-6"><a href="#cb15-6" aria-hidden="true" tabindex="-1"></a>  <span class="at">confianca =</span> <span class="fl">0.95</span>,</span>
+<span id="cb15-7"><a href="#cb15-7" aria-hidden="true" tabindex="-1"></a>  <span class="at">grafico =</span> <span class="cn">TRUE</span></span>
+<span id="cb15-8"><a href="#cb15-8" aria-hidden="true" tabindex="-1"></a>)</span></code></pre></div><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></div>
+</section>
+<section id="intervalo-hpd-geral" class="level3">
+<h3 class="anchored" data-anchor-id="intervalo-hpd-geral">Intervalo HPD Geral</h3>
+<p>Função utilitária de alto desempenho para obter o intervalo HPD (<em>Highest Posterior Density</em>) sobre qualquer conjunto de amostras a posteriori:</p>
+<div class="code-copy-outer-scaffold"><div class="sourceCode" id="cb16"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb16-1"><a href="#cb16-1" aria-hidden="true" tabindex="-1"></a>amostras_mcmc <span class="ot">&lt;-</span> <span class="fu">rnorm</span>(<span class="dv">10000</span>, <span class="at">mean =</span> <span class="dv">15</span>, <span class="at">sd =</span> <span class="dv">3</span>)</span>
+<span id="cb16-2"><a href="#cb16-2" aria-hidden="true" tabindex="-1"></a><span class="fu">ic_hpd</span>(amostras_mcmc, <span class="at">confianca =</span> <span class="fl">0.95</span>)</span></code></pre></div><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></div>
 
 
 </section>

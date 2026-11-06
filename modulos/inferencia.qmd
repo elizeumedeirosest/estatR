@@ -126,3 +126,70 @@ concordancia_kappa(avaliador_1, avaliador_2)
 # Gráfico de Bland-Altman para concordância contínua
 grafico_bland_altman(metodo_novo, metodo_referencia)
 ```
+
+---
+
+## 4. Inferência Bayesiana e Fatores de Bayes
+
+O `estatR` oferece suporte a métodos de **Inferência Bayesiana analítica e de alta precisão em R puro**, permitindo quantificar a incerteza probabilística direta sobre parâmetros e contrastar hipóteses por meio de **Fatores de Bayes (BF)** e **Intervalos de Credibilidade de Maior Densidade a Posteriori (HPD)**.
+
+### Teste de Proporção Bayesiano (Modelo Beta-Binomial)
+
+Atualiza a distribuição a priori via modelo conjugado Beta-Binomial, fornecendo estimativas pontuais (média, moda e mediana posteriores), intervalos HPD e ETI de 95%, além do Fator de Bayes de Savage-Dickey:
+
+```r
+# Teste bayesiano para uma proporção com priori de Jeffreys (Beta(0.5, 0.5))
+resultado_prop <- teste_proporcao_bayesiano(
+  x = 65,
+  n = 100,
+  p0 = 0.50,
+  priori = "auto",       # ou "uniforme", "manual"
+  confianca = 0.95,
+  grafico = TRUE
+)
+```
+
+### Teste t Bayesiano (Fator de Bayes JZS)
+
+Calcula o Fator de Bayes analítico de Jeffreys-Zellner-Siow (JZS) com priori Cauchy no tamanho de efeito $\delta$ de Cohen, integrando numericamente a densidade marginal exata para uma amostra, duas amostras independentes ou pareadas:
+
+```r
+# Teste t bayesiano para uma amostra contra valor de referência
+teste_t_bayesiano(mtcars$mpg, mu = 20, grafico = TRUE)
+
+# Teste t bayesiano para duas amostras independentes
+teste_t_bayesiano(
+  x = mtcars$mpg[mtcars$am == 0],
+  y = mtcars$mpg[mtcars$am == 1],
+  r_escala = "auto",     # Priori Cauchy default r = sqrt(2)/2
+  grafico = TRUE
+)
+
+# Teste t pareado bayesiano
+teste_t_bayesiano(dados$antes, dados$depois, pareado = TRUE, grafico = TRUE)
+```
+
+### Teste A/B Bayesiano (Duas Proporções)
+
+Compara duas taxas binomiais independentes (ex.: conversão de páginas, eficácia de campanhas ou tratamentos), fornecendo a probabilidade a posteriori de superioridade de B sobre A ($P(B > A \mid \text{dados})$), a elevação percentual esperada (*uplift*), o risco relativo e a Odds Ratio:
+
+```r
+# Comparação A/B com 25.000 simulações de Monte Carlo
+resultado_ab <- teste_duas_proporcoes_bayesiano(
+  k1 = 120, n1 = 1000,   # Grupo A: 12% conversão
+  k2 = 165, n2 = 1000,   # Grupo B: 16,5% conversão
+  nomes = c("Controle (A)", "Variante (B)"),
+  confianca = 0.95,
+  grafico = TRUE
+)
+```
+
+### Intervalo HPD Geral
+
+Função utilitária de alto desempenho para obter o intervalo HPD (*Highest Posterior Density*) sobre qualquer conjunto de amostras a posteriori:
+
+```r
+amostras_mcmc <- rnorm(10000, mean = 15, sd = 3)
+ic_hpd(amostras_mcmc, confianca = 0.95)
+```
+
