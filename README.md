@@ -150,6 +150,23 @@ simular_tcl(mtcars$mpg, n_amostra = 30, repeticoes = 1000)
 monte_carlo(experimento = function() mean(rnorm(30)) > 0.3, repeticoes = 10000)
 ```
 
+
+**Inferência Bayesiana & Fatores de Bayes (JZS)**
+
+```r
+# Teste de Proporção Bayesiano (Beta-Binomial com HPD 95% e Fator de Bayes Savage-Dickey)
+teste_proporcao_bayesiano(x = 65, n = 100, p0 = 0.50, priori = "auto", grafico = TRUE)
+
+# Teste t Bayesiano com Fator de Bayes JZS analítico e HPD do efeito delta de Cohen
+teste_t_bayesiano(mtcars$mpg, mu = 20, grafico = TRUE)
+teste_t_bayesiano(x = grupo_a, y = grupo_b, r_escala = "auto", grafico = TRUE)
+
+# Teste A/B Bayesiano com probabilidade de vitória, uplift (%) e Odds Ratio
+teste_duas_proporcoes_bayesiano(k1 = 120, n1 = 1000, k2 = 165, n2 = 1000, nomes = c("A", "B"), grafico = TRUE)
+
+# Intervalo de Maior Densidade a Posteriori (HPD Geral)
+ic_hpd(amostras_posteriori, confianca = 0.95)
+```
 </details>
 
 ---
@@ -1088,6 +1105,37 @@ mod_sem <- regressao_espacial(renda ~ educacao + saneamento, dados = dados_geo, 
 analise_residual(mod_sar)
 ```
 
+
+**Análise de Padrões Pontuais & Kernel Espacial (KDE 2D)**
+
+```r
+# Estimativa de Densidade de Kernel 2D com raio ótimo de Silverman e Hotspots
+densidade_kernel_espacial(dados_pontos, x = "longitude", y = "latitude", grafico = TRUE)
+
+# Função K de Ripley e Teste de Clark-Evans para agrupamento espacial
+padroes_pontos_k(dados_pontos, raio_max = 50)
+teste_clark_evans(dados_pontos)
+```
+
+**Suavização Bayesiana Empírica de Taxas (Marshall 1991)**
+
+```r
+# Estimador Bayesiano Empírico Global e Local para taxas de pequenas áreas
+suavizador_bayesiano_espacial(dados_municipios, casos = "obitos", populacao = "pop", matriz_w = W)
+```
+
+**Geoestatística & Superfície Contínua**
+
+```r
+# Variograma experimental e modelagem teórica (Esférico, Exponencial, Gaussiano)
+v_ajustado <- variograma(renda ~ 1, dados = dados_geo, modelo = "auto")
+
+# Krigagem Ordinária / Simples com mapas de predição e variância de incerteza
+krigagem_espacial(renda ~ 1, dados = dados_geo, malha = grade, modelo = v_ajustado)
+
+# Validação cruzada Leave-One-Out (LOOCV)
+validar_krigagem(v_ajustado)
+```
 </details>
 
 ---
