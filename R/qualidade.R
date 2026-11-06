@@ -34,18 +34,119 @@
   .shewhart_consts[[nome]][idx]
 }
 
+# ── Helper de renderização gráfica unificada para Cartas de Shewhart ─────────
+.montar_grafico_shewhart <- function(pontos_x, valores, lc, lic, lsc, titulo, xlab, ylab, fora) {
+  df <- data.frame(
+    Ponto = pontos_x,
+    Valor = valores,
+    Fora  = fora
+  )
+
+  p <- ggplot2::ggplot(df, ggplot2::aes(x = Ponto, y = Valor))
+
+  if (length(lc) == 1) {
+    p <- p +
+      ggplot2::geom_hline(ggplot2::aes(yintercept = lc, color = "Linha Central", linetype = "Linha Central"), linewidth = 0.9) +
+      ggplot2::geom_hline(ggplot2::aes(yintercept = lsc, color = "Limite de Controle", linetype = "Limite de Controle"), linewidth = 0.9) +
+      ggplot2::geom_hline(ggplot2::aes(yintercept = lic, color = "Limite de Controle", linetype = "Limite de Controle"), linewidth = 0.9)
+  } else {
+    df$LC  <- lc
+    df$LSC <- lsc
+    df$LIC <- lic
+    p <- p +
+      ggplot2::geom_line(ggplot2::aes(y = LC, color = "Linha Central", linetype = "Linha Central"), linewidth = 0.9) +
+      ggplot2::geom_line(ggplot2::aes(y = LSC, color = "Limite de Controle", linetype = "Limite de Controle"), linewidth = 0.9) +
+      ggplot2::geom_line(ggplot2::aes(y = LIC, color = "Limite de Controle", linetype = "Limite de Controle"), linewidth = 0.9)
+  }
+
+  # Linha e pontos de dados
+  p <- p +
+    ggplot2::geom_line(ggplot2::aes(color = "Dados"), linewidth = 0.8) +
+    ggplot2::geom_point(ggplot2::aes(color = "Dados"), size = 3.0)
+
+  # Destaque de pontos fora de controle (anel/halo circular)
+  df_fora <- subset(df, Fora)
+  tem_fora <- nrow(df_fora) > 0
+  if (tem_fora) {
+    p <- p +
+      ggplot2::geom_point(data = df_fora, ggplot2::aes(color = "Valor Isolado"), shape = 1, size = 6.8, stroke = 1.3) +
+      ggplot2::geom_point(data = df_fora, color = "#D90429", size = 3.8)
+  }
+
+  cores <- c(
+    "Dados"              = "#1E5B94",
+    "Valor Isolado"      = "#D90429",
+    "Limite de Controle" = "#D90429",
+    "Linha Central"      = "#222222"
+  )
+
+  linetypes <- c(
+    "Dados"              = "solid",
+    "Valor Isolado"      = "blank",
+    "Limite de Controle" = "dashed",
+    "Linha Central"      = "solid"
+  )
+
+  niveis_legenda <- if (tem_fora) {
+    c("Dados", "Valor Isolado", "Limite de Controle", "Linha Central")
+  } else {
+    c("Dados", "Limite de Controle", "Linha Central")
+  }
+
+  shapes_override <- if (tem_fora) c(16, 1, NA, NA) else c(16, NA, NA)
+  sizes_override  <- if (tem_fora) c(3.0, 4.5, NA, NA) else c(3.0, NA, NA)
+  lt_override     <- if (tem_fora) c("solid", "blank", "dashed", "solid") else c("solid", "dashed", "solid")
+  lw_override     <- if (tem_fora) c(0.8, 0, 0.9, 0.9) else c(0.8, 0.9, 0.9)
+
+  p <- p +
+    ggplot2::scale_color_manual(name = "", values = cores, breaks = niveis_legenda) +
+    ggplot2::scale_linetype_manual(name = "", values = linetypes, breaks = niveis_legenda) +
+    ggplot2::guides(
+      color = ggplot2::guide_legend(override.aes = list(
+        shape = shapes_override,
+        size = sizes_override,
+        linetype = lt_override,
+        linewidth = lw_override
+      ))
+    ) +
+    ggplot2::labs(title = titulo, x = xlab, y = ylab)
+
+  if (exists("meu_tema", mode = "function")) {
+    p <- p + meu_tema(grade = "dupla")
+  } else if (exists("tema_estatR", mode = "function")) {
+    p <- p + tema_estatR(estilo = 1, grade = "dupla")
+  } else {
+    p <- p + ggplot2::theme_minimal()
+  }
+
+  p <- p + ggplot2::theme(
+    legend.position = "top",
+    legend.justification = "left",
+    legend.box = "horizontal",
+    legend.title = ggplot2::element_blank(),
+    legend.text = ggplot2::element_text(size = 9.5, color = "#333333"),
+    plot.title = ggplot2::element_text(size = 13, face = "bold", hjust = 0, margin = ggplot2::margin(b = 6))
+  )
+
+  p
+}
+
 
 #' @title Gráficos de Controle Estatístico de Processo (Cartas de Shewhart)
 #' @description Constrói cartas de controle de Shewhart para monitoramento de estabilidade
-#'   e controle de processos contínuos e por atributos, com detecção formal de causas
-#'   especiais (regras de Western Electric / Nelson) e visualização gráfica com grade dupla.
+#'   e controle de processos contínuos e por atributos, com limites 3\eqn{\sigma}, detecção
+#'   de causas especiais e visualização gráfica padronizada com legenda no topo.
 #'
 #' @param dados Vetor numérico ou matriz/data.frame com as medições de processo.
 #' @param tipo Tipo de carta de controle:
 #'   \itemize{
-#'     \item \code{"imr"}: Carta de Valores Individuais e Amplitude Móvel (I-MR).
-#'     \item \code{"xbar_r"}: Carta de Média e Amplitude (\eqn{\bar{X}}-R).
-#'     \item \code{"xbar_s"}: Carta de Média e Desvio-Padrão (\eqn{\bar{X}}-S).
+#'     \item \code{"imr"}: Carta de Valores Individuais e Amplitude Móvel (I-MR conjunta).
+#'     \item \code{"x"} ou \code{"i"}: Carta de Valores Individuais (X / I isolada).
+#'     \item \code{"xbar_r"}: Carta de Média e Amplitude (\eqn{\bar{X}}-R conjunta).
+#'     \item \code{"xbar_s"}: Carta de Média e Desvio-Padrão (\eqn{\bar{X}}-S conjunta).
+#'     \item \code{"xbar"}: Carta de Médias (\eqn{\bar{X}} isolada).
+#'     \item \code{"r"}: Carta de Amplitudes (R isolada).
+#'     \item \code{"s"}: Carta de Desvios-Padrão (S isolada).
 #'     \item \code{"p"}: Proporção de não-conformes (tamanho amostral variável ou constante).
 #'     \item \code{"np"}: Número de unidades defeituosas (tamanho amostral constante).
 #'     \item \code{"c"}: Contagem total de defeitos por amostra (tamanho constante).
@@ -53,32 +154,33 @@
 #'   }
 #' @param subgrupo Vetor indicando a identificação dos subgrupos racionais (opcional).
 #' @param tamanho_amostra Tamanho dos subgrupos \eqn{n} para cartas por atributos (\code{p}, \code{np}, \code{u}).
-#' @param regras Lógico. Se \code{TRUE} (padrão), testa as regras de causas especiais e destaca pontos fora de controle.
+#' @param regras Lógico. Se \code{TRUE} (padrão), identifica e destaca pontos além dos limites 3\eqn{\sigma}.
 #' @param grafico Lógico. Se \code{TRUE} (padrão), renderiza os gráficos de controle no padrão do estatR.
 #'
 #' @return Retorna um objeto da classe \code{estatR_ceq} contendo:
 #' \itemize{
 #'   \item \code{limites}: Tabela de Limites Estatísticos (LSC, Linha Média, LIC).
 #'   \item \code{pontos}: Tabela com os valores observados de cada subgrupo e status.
-#'   \item \code{alarmes}: Subgrupos que violaram regras de controle.
+#'   \item \code{alarmes}: Subgrupos que violaram os limites 3\eqn{\sigma}.
 #'   \item \code{estavel}: Lógico indicando se o processo está sob controle estatístico.
 #'   \item \code{grafico}: Objeto gráfico \code{ggplot2}.
 #' }
 #' @export
 grafico_controle <- function(dados,
-                             tipo            = c("imr", "xbar_r", "xbar_s", "p", "np", "c", "u"),
+                             tipo            = c("xbar_r", "xbar_s", "imr", "x", "xbar", "r", "s", "p", "np", "c", "u", "i"),
                              subgrupo        = NULL,
                              tamanho_amostra = NULL,
                              regras          = TRUE,
                              grafico         = TRUE) {
 
   tipo <- match.arg(tipo)
+  if (tipo == "i") tipo <- "x"
 
   # ── Despachar por tipo de carta ──────────────────────────────────────────────
-  if (tipo == "imr") {
-    res <- .carta_imr(dados, regras = regras, grafico = grafico)
-  } else if (tipo %in% c("xbar_r", "xbar_s")) {
-    res <- .carta_xbar(dados, tipo = tipo, subgrupo = subgrupo, regras = regras, grafico = grafico)
+  if (tipo %in% c("imr", "x")) {
+    res <- .carta_imr_internal(dados, isolada = (tipo == "x"), regras = regras, grafico = grafico)
+  } else if (tipo %in% c("xbar_r", "xbar_s", "xbar", "r", "s")) {
+    res <- .carta_xbar_internal(dados, tipo = tipo, subgrupo = subgrupo, regras = regras, grafico = grafico)
   } else {
     res <- .carta_atributos(dados, tipo = tipo, tamanho_amostra = tamanho_amostra, regras = regras, grafico = grafico)
   }
@@ -87,12 +189,12 @@ grafico_controle <- function(dados,
 }
 
 
-# ── Carta I-MR (Indivíduos e Amplitude Móvel) ──────────────────────────────────
-.carta_imr <- function(x, regras, grafico) {
+# ── Carta I-MR e Carta X Isolada ───────────────────────────────────────────────
+.carta_imr_internal <- function(x, isolada = FALSE, regras = TRUE, grafico = TRUE) {
   if (is.data.frame(x)) x <- x[[1]]
   x <- as.numeric(stats::na.omit(x))
   N <- length(x)
-  if (N < 4) stop("A carta I-MR necessita de pelo menos 4 medições.", call. = FALSE)
+  if (N < 4) stop("A carta necessita de pelo menos 4 medições.", call. = FALSE)
 
   # Amplitude móvel de ordem 2
   mr <- c(NA, abs(diff(x)))
@@ -110,143 +212,120 @@ grafico_controle <- function(dados,
   lsc_mr <- D4 * mr_bar
   lic_mr <- 0
 
-  # Regras de alarme
   fora_x <- (x > lsc_x) | (x < lic_x)
   fora_mr <- rep(FALSE, N)
   fora_mr[-1] <- (mr_val > lsc_mr) | (mr_val < lic_mr)
 
-  # Violações adicionais: 8 seguidos do mesmo lado da média
-  desloc_x <- rep(FALSE, N)
-  if (regras && N >= 8) {
-    sinais <- sign(x - x_bar)
-    for (i in 8:N) {
-      if (all(sinais[(i-7):i] == 1) || all(sinais[(i-7):i] == -1)) {
-        desloc_x[(i-7):i] <- TRUE
-      }
-    }
+  if (isolada) {
+    alarmes_idx <- which(fora_x)
+    estavel <- length(alarmes_idx) == 0
+    tb_lim <- data.frame(
+      Carta       = "Valores Individuais (X)",
+      LIC         = lic_x,
+      Linha_Media = x_bar,
+      LSC         = lsc_x,
+      Sigma_Curto = sigma_est
+    )
+  } else {
+    alarmes_idx <- which(fora_x | fora_mr)
+    estavel <- length(alarmes_idx) == 0
+    tb_lim <- data.frame(
+      Carta       = c("Indivíduos (I)", "Amplitude Móvel (MR)"),
+      LIC         = c(lic_x, lic_mr),
+      Linha_Media = c(x_bar, mr_bar),
+      LSC         = c(lsc_x, lsc_mr),
+      Sigma_Curto = c(sigma_est, NA)
+    )
   }
 
-  status_x <- ifelse(fora_x, "Fora 3s", ifelse(desloc_x, "Deslocamento", "Normal"))
-  alarmes_idx <- which(fora_x | desloc_x | fora_mr)
-  estavel <- length(alarmes_idx) == 0
-
-  tb_lim <- data.frame(
-    Carta       = c("Individuos (I)", "Amplitude Movel (MR)"),
-    LIC         = c(lic_x, lic_mr),
-    Linha_Media = c(x_bar, mr_bar),
-    LSC         = c(lsc_x, lsc_mr),
-    Sigma_Curto = c(sigma_est, NA)
-  )
-
   # ── Saída console ────────────────────────────────────────────────────────────
-  .print_titulo("CONTROLE ESTAT\u00cdSTICO DE PROCESSO: CARTA I-MR")
+  titulo_bloco <- if (isolada) "CONTROLE ESTATÍSTICO DE PROCESSO: CARTA X (VALORES INDIVIDUAIS)" else "CONTROLE ESTATÍSTICO DE PROCESSO: CARTA I-MR"
+  .print_titulo(titulo_bloco)
   cat(sprintf("  Medidas Analisadas: %d  |  σ̂: %s\n\n", N, formatC(sigma_est, format = "f", digits = 4, decimal.mark = ",")))
 
-  .print_topico("LIMITES DE CONTROLE ESTAT\u00cdSTICO (3\u03c3)")
+  .print_topico("LIMITES DE CONTROLE ESTATÍSTICO (3σ)")
   w_lim <- c(24, 16, 16, 16)
   cat(.th_sep(sum(w_lim)), "\n")
   cat("  ", .th_pad("Carta", w_lim[1], "left"), .th_pad("LIC (Inferior)", w_lim[2], "center"),
-      .th_pad("Linha M\u00e9dia", w_lim[3], "center"), .th_pad("LSC (Superior)", w_lim[4], "center"), "\n", sep = "")
+      .th_pad("Linha Média", w_lim[3], "center"), .th_pad("LSC (Superior)", w_lim[4], "center"), "\n", sep = "")
   cat(.th_sep(sum(w_lim)), "\n")
 
-  cat("  ", .th_pad("Valores Individuais (I)", w_lim[1], "left"),
-      .th_pad(formatC(lic_x, format = "f", digits = 3, decimal.mark = ","), w_lim[2], "center"),
-      .th_pad(formatC(x_bar, format = "f", digits = 3, decimal.mark = ","), w_lim[3], "center"),
-      .th_pad(formatC(lsc_x, format = "f", digits = 3, decimal.mark = ","), w_lim[4], "center"), "\n", sep = "")
-
-  cat("  ", .th_pad("Amplitude M\u00f3vel (MR)", w_lim[1], "left"),
-      .th_pad(formatC(lic_mr, format = "f", digits = 3, decimal.mark = ","), w_lim[2], "center"),
-      .th_pad(formatC(mr_bar, format = "f", digits = 3, decimal.mark = ","), w_lim[3], "center"),
-      .th_pad(formatC(lsc_mr, format = "f", digits = 3, decimal.mark = ","), w_lim[4], "center"), "\n", sep = "")
+  if (isolada) {
+    cat("  ", .th_pad("Valores Individuais (X)", w_lim[1], "left"),
+        .th_pad(formatC(lic_x, format = "f", digits = 3, decimal.mark = ","), w_lim[2], "center"),
+        .th_pad(formatC(x_bar, format = "f", digits = 3, decimal.mark = ","), w_lim[3], "center"),
+        .th_pad(formatC(lsc_x, format = "f", digits = 3, decimal.mark = ","), w_lim[4], "center"), "\n", sep = "")
+  } else {
+    cat("  ", .th_pad("Valores Individuais (I)", w_lim[1], "left"),
+        .th_pad(formatC(lic_x, format = "f", digits = 3, decimal.mark = ","), w_lim[2], "center"),
+        .th_pad(formatC(x_bar, format = "f", digits = 3, decimal.mark = ","), w_lim[3], "center"),
+        .th_pad(formatC(lsc_x, format = "f", digits = 3, decimal.mark = ","), w_lim[4], "center"), "\n", sep = "")
+    cat("  ", .th_pad("Amplitude Móvel (MR)", w_lim[1], "left"),
+        .th_pad(formatC(lic_mr, format = "f", digits = 3, decimal.mark = ","), w_lim[2], "center"),
+        .th_pad(formatC(mr_bar, format = "f", digits = 3, decimal.mark = ","), w_lim[3], "center"),
+        .th_pad(formatC(lsc_mr, format = "f", digits = 3, decimal.mark = ","), w_lim[4], "center"), "\n", sep = "")
+  }
   cat(.th_sep(sum(w_lim)), "\n\n")
 
-  .print_topico("DIAGN\u00d3STICO DE ESTABILIDADE E ALARMES")
+  .print_topico("INTERPRETAÇÃO E ESTABILIDADE DO PROCESSO")
   if (estavel) {
-    cat("  [✓] Processo sob controle estatístico (estável): nenhuma causa especial detectada.\n\n")
+    cat("  Processo sob controle estatístico (estável): todos os pontos estão contidos dentro dos limites 3σ.\n\n")
   } else {
-    cat(sprintf("  [!] Processo fora de controle estatístico (instável): %d ponto(s) indicando causas especiais:\n", length(alarmes_idx)))
+    cat(sprintf("  Processo fora de controle estatístico (instável): %d ponto(s) além dos limites 3σ de controle:\n", length(alarmes_idx)))
     for (idx in alarmes_idx) {
-      motivo <- c()
-      if (fora_x[idx]) motivo <- c(motivo, "Ponto além de 3σ em I")
-      if (desloc_x[idx]) motivo <- c(motivo, "8 pontos consecutivos do mesmo lado da média")
-      if (fora_mr[idx]) motivo <- c(motivo, "Amplitude Móvel excedeu LSC")
-      cat(sprintf("    * Ponto %d (Valor = %s): %s\n", idx, formatC(x[idx], format = "f", digits = 3, decimal.mark = ","), paste(motivo, collapse = " | ")))
+      motivos <- c()
+      if (fora_x[idx]) motivos <- c(motivos, sprintf("Valor (%.3f) excedeu limites de X", x[idx]))
+      if (!isolada && idx > 1 && fora_mr[idx]) motivos <- c(motivos, sprintf("Amplitude Móvel (%.3f) excedeu LSC", mr[idx]))
+      cat(sprintf("    * Ponto %d: %s\n", idx, paste(motivos, collapse = " | ")))
     }
     cat("\n")
   }
   .print_rodape()
 
-  # ── Gráfico ggplot2 ──────────────────────────────────────────────────────────
+  # ── Gráficos ggplot2 ─────────────────────────────────────────────────────────
   p_combined <- NULL
   if (grafico) {
-    df_plot_i <- data.frame(
-      Ponto  = 1:N,
-      Valor  = x,
-      Status = ifelse(fora_x | desloc_x, "Alarme", "Normal")
+    p1 <- .montar_grafico_shewhart(
+      pontos_x = 1:N,
+      valores  = x,
+      lc       = x_bar,
+      lic      = lic_x,
+      lsc      = lsc_x,
+      titulo   = if (isolada) "Carta de Valores Individuais (X)" else "Carta de Valores Individuais (I)",
+      xlab     = "Amostra / Observação",
+      ylab     = "Valor Individual",
+      fora     = fora_x
     )
-    df_plot_mr <- data.frame(
-      Ponto  = 2:N,
-      Valor  = mr[-1],
-      Status = ifelse(fora_mr[-1], "Alarme", "Normal")
-    )
 
-    p1 <- ggplot2::ggplot(df_plot_i, ggplot2::aes(x = Ponto, y = Valor)) +
-      ggplot2::geom_line(color = "#2B5C8F", linewidth = 0.8) +
-      ggplot2::geom_point(ggplot2::aes(color = Status, size = Status)) +
-      ggplot2::scale_color_manual(values = c("Normal" = "#2B5C8F", "Alarme" = "#D90429")) +
-      ggplot2::scale_size_manual(values = c("Normal" = 3.0, "Alarme" = 3.8)) +
-      ggplot2::geom_hline(yintercept = x_bar, color = "#222222", linewidth = 0.9) +
-      ggplot2::geom_hline(yintercept = c(lic_x, lsc_x), color = "#D90429", linetype = "solid", linewidth = 0.9) +
-      ggplot2::annotate("text", x = N * 1.01, y = lsc_x, label = sprintf("LSC = %.2f", lsc_x), color = "#D90429", size = 3.5, hjust = 0) +
-      ggplot2::annotate("text", x = N * 1.01, y = x_bar, label = sprintf("LM = %.2f", x_bar), color = "#222222", size = 3.5, hjust = 0) +
-      ggplot2::annotate("text", x = N * 1.01, y = lic_x, label = sprintf("LIC = %.2f", lic_x), color = "#D90429", size = 3.5, hjust = 0) +
-      ggplot2::labs(title = "Carta de Valores Individuais (I)", x = "Amostra / Observação", y = "Valor Individual") +
-      ggplot2::theme(legend.position = "none")
-
-    df_al_i <- subset(df_plot_i, Status == "Alarme")
-    if (nrow(df_al_i) > 0) {
-      p1 <- p1 + ggplot2::geom_point(data = df_al_i, shape = 1, size = 6.8, stroke = 1.3, color = "#D90429")
-    }
-
-    p2 <- ggplot2::ggplot(df_plot_mr, ggplot2::aes(x = Ponto, y = Valor)) +
-      ggplot2::geom_line(color = "#3470a3", linewidth = 0.8) +
-      ggplot2::geom_point(ggplot2::aes(color = Status, size = Status)) +
-      ggplot2::scale_color_manual(values = c("Normal" = "#3470a3", "Alarme" = "#D90429")) +
-      ggplot2::scale_size_manual(values = c("Normal" = 3.0, "Alarme" = 3.8)) +
-      ggplot2::geom_hline(yintercept = mr_bar, color = "#222222", linewidth = 0.9) +
-      ggplot2::geom_hline(yintercept = lsc_mr, color = "#D90429", linetype = "solid", linewidth = 0.9) +
-      ggplot2::annotate("text", x = N * 1.01, y = lsc_mr, label = sprintf("LSC = %.2f", lsc_mr), color = "#D90429", size = 3.5, hjust = 0) +
-      ggplot2::annotate("text", x = N * 1.01, y = mr_bar, label = sprintf("LM = %.2f", mr_bar), color = "#222222", size = 3.5, hjust = 0) +
-      ggplot2::labs(title = "Carta de Amplitude Móvel (MR)", x = "Amostra / Observação", y = "Amplitude Móvel (MR)") +
-      ggplot2::theme(legend.position = "none")
-
-    df_al_mr <- subset(df_plot_mr, Status == "Alarme")
-    if (nrow(df_al_mr) > 0) {
-      p2 <- p2 + ggplot2::geom_point(data = df_al_mr, shape = 1, size = 6.8, stroke = 1.3, color = "#D90429")
-    }
-    if (exists("meu_tema", mode = "function")) {
-      p1 <- p1 + meu_tema(grade = "dupla")
-      p2 <- p2 + meu_tema(grade = "dupla")
-    } else if (exists("tema_estatR", mode = "function")) {
-      p1 <- p1 + tema_estatR(estilo = 1, grade = "dupla")
-      p2 <- p2 + tema_estatR(estilo = 1, grade = "dupla")
-    } else {
-      p1 <- p1 + ggplot2::theme_minimal()
-      p2 <- p2 + ggplot2::theme_minimal()
-    }
-
-    if (requireNamespace("patchwork", quietly = TRUE)) {
-      p_combined <- patchwork::wrap_plots(p1, p2, ncol = 1)
-      suppressMessages(print(p_combined))
-    } else {
+    if (isolada) {
       p_combined <- p1
       suppressMessages(print(p1))
+    } else {
+      p2 <- .montar_grafico_shewhart(
+        pontos_x = 2:N,
+        valores  = mr_val,
+        lc       = mr_bar,
+        lic      = lic_mr,
+        lsc      = lsc_mr,
+        titulo   = "Carta de Amplitude Móvel (MR)",
+        xlab     = "Amostra / Observação",
+        ylab     = "Amplitude Móvel (MR)",
+        fora     = fora_mr[-1]
+      )
+
+      if (requireNamespace("patchwork", quietly = TRUE)) {
+        p_combined <- patchwork::wrap_plots(p1, p2, ncol = 1)
+        suppressMessages(print(p_combined))
+      } else {
+        p_combined <- p1
+        suppressMessages(print(p1))
+      }
     }
   }
 
   res <- list(
     limites = tb_lim,
-    pontos  = data.frame(Ponto = 1:N, Valor = x, MR = mr, Status = status_x),
+    pontos  = data.frame(Ponto = 1:N, Valor = x, MR = mr, Status = ifelse(fora_x, "Alarme", "Normal")),
     alarmes = alarmes_idx,
     estavel = estavel,
     grafico = p_combined
@@ -256,8 +335,8 @@ grafico_controle <- function(dados,
 }
 
 
-# ── Cartas Xbar-R e Xbar-S ─────────────────────────────────────────────────────
-.carta_xbar <- function(dados, tipo, subgrupo, regras, grafico) {
+# ── Cartas Xbar-R, Xbar-S e Cartas Isoladas (Xbar, R, S) ──────────────────────
+.carta_xbar_internal <- function(dados, tipo, subgrupo, regras, grafico) {
   # Organizar matriz de subgrupos
   if (is.matrix(dados) || is.data.frame(dados)) {
     mat <- as.matrix(dados)
@@ -266,12 +345,12 @@ grafico_controle <- function(dados,
     subg_nomes <- rownames(dados)
     if (is.null(subg_nomes)) subg_nomes <- paste0("Subg_", 1:k)
   } else {
-    if (is.null(subgrupo)) stop("Forne\u00e7a o vetor 'subgrupo' para agrupar as medi\u00e7\u00f5es.", call. = FALSE)
+    if (is.null(subgrupo)) stop("Forneça o vetor 'subgrupo' para agrupar as medições.", call. = FALSE)
     df_temp <- data.frame(y = dados, g = as.factor(subgrupo))
     lst <- split(df_temp$y, df_temp$g)
     k <- length(lst)
     n <- unique(sapply(lst, length))
-    if (length(n) > 1) stop("Para cartas Xbar-R/S, os subgrupos devem ter o mesmo tamanho n.", call. = FALSE)
+    if (length(n) > 1) stop("Para cartas baseadas em subgrupos, todos os subgrupos devem ter tamanho n constante.", call. = FALSE)
     mat <- do.call(rbind, lst)
     subg_nomes <- names(lst)
   }
@@ -281,7 +360,10 @@ grafico_controle <- function(dados,
   medias <- apply(mat, 1, mean)
   x_dbar <- mean(medias)
 
-  if (tipo == "xbar_r") {
+  usa_desvio <- tipo %in% c("xbar_s", "s")
+
+  if (!usa_desvio) {
+    # Baseado em Amplitude (R)
     amplitudes <- apply(mat, 1, function(row) max(row) - min(row))
     r_bar <- mean(amplitudes)
     A2 <- .get_const("A2", n)
@@ -298,6 +380,7 @@ grafico_controle <- function(dados,
     sec_bar  <- r_bar
     nome_sec <- "Amplitude (R)"
   } else {
+    # Baseado em Desvio-Padrão (S)
     desvios <- apply(mat, 1, stats::sd)
     s_bar <- mean(desvios)
     A3 <- .get_const("A3", n)
@@ -312,53 +395,85 @@ grafico_controle <- function(dados,
     lic_sec <- B3 * s_bar
     sec_vals <- desvios
     sec_bar  <- s_bar
-    nome_sec <- "Desvio-Padr\u00e3o (S)"
+    nome_sec <- "Desvio-Padrão (S)"
   }
 
-  fora_x <- (medias > lsc_x) | (medias < lic_x)
+  fora_x   <- (medias > lsc_x) | (medias < lic_x)
   fora_sec <- (sec_vals > lsc_sec) | (sec_vals < lic_sec)
-  alarmes_idx <- which(fora_x | fora_sec)
-  estavel <- length(alarmes_idx) == 0
 
-  tb_lim <- data.frame(
-    Carta       = c("X̄ (Média)", nome_sec),
-    LIC         = c(lic_x, lic_sec),
-    Linha_Media = c(x_dbar, sec_bar),
-    LSC         = c(lsc_x, lsc_sec),
-    Sigma_Curto = c(sigma_est, NA)
-  )
+  # Determinar modo de exibição (isolada vs conjunta)
+  if (tipo == "xbar") {
+    alarmes_idx <- which(fora_x)
+    estavel <- length(alarmes_idx) == 0
+    tb_lim <- data.frame(
+      Carta       = "Média (X̄)",
+      LIC         = lic_x,
+      Linha_Media = x_dbar,
+      LSC         = lsc_x
+    )
+    titulo_console <- "CONTROLE ESTATÍSTICO DE PROCESSO: CARTA X̄ (MÉDIAS)"
+  } else if (tipo == "r") {
+    alarmes_idx <- which(fora_sec)
+    estavel <- length(alarmes_idx) == 0
+    tb_lim <- data.frame(
+      Carta       = "Amplitude (R)",
+      LIC         = lic_sec,
+      Linha_Media = sec_bar,
+      LSC         = lsc_sec
+    )
+    titulo_console <- "CONTROLE ESTATÍSTICO DE PROCESSO: CARTA R (AMPLITUDE)"
+  } else if (tipo == "s") {
+    alarmes_idx <- which(fora_sec)
+    estavel <- length(alarmes_idx) == 0
+    tb_lim <- data.frame(
+      Carta       = "Desvio-Padrão (S)",
+      LIC         = lic_sec,
+      Linha_Media = sec_bar,
+      LSC         = lsc_sec
+    )
+    titulo_console <- "CONTROLE ESTATÍSTICO DE PROCESSO: CARTA S (DESVIO-PADRÃO)"
+  } else {
+    # Conjunta (xbar_r ou xbar_s)
+    alarmes_idx <- which(fora_x | fora_sec)
+    estavel <- length(alarmes_idx) == 0
+    tb_lim <- data.frame(
+      Carta       = c("Média (X̄)", nome_sec),
+      LIC         = c(lic_x, lic_sec),
+      Linha_Media = c(x_dbar, sec_bar),
+      LSC         = c(lsc_x, lsc_sec)
+    )
+    titulo_console <- if (tipo == "xbar_r") "CONTROLE ESTATÍSTICO DE PROCESSO: CARTA X̄-R (MÉDIAS E AMPLITUDES)" else "CONTROLE ESTATÍSTICO DE PROCESSO: CARTA X̄-S (MÉDIAS E DESVIOS)"
+  }
 
-  nome_carta_tit <- if (tipo == "xbar_r") "X̄-R (MÉDIAS E AMPLITUDES)" else "X̄-S (MÉDIAS E DESVIOS-PADRÃO)"
-  .print_titulo(sprintf("CONTROLE ESTATÍSTICO DE PROCESSO: CARTA %s", nome_carta_tit))
-  cat(sprintf("  Subgrupos: %d  |  Tamanho por Subgrupo (n): %d  |  σ̂: %s\n\n", k, n, formatC(sigma_est, format = "f", digits = 4, decimal.mark = ",")))
+  # ── Saída console ────────────────────────────────────────────────────────────
+  .print_titulo(titulo_console)
+  cat(sprintf("  Subgrupos: %d  |  Tamanho por Subgrupo (n): %d  |  σ̂: %s\n\n",
+              k, n, formatC(sigma_est, format = "f", digits = 4, decimal.mark = ",")))
 
-  .print_topico("LIMITES DE CONTROLE ESTAT\u00cdSTICO (3\u03c3)")
+  .print_topico("LIMITES DE CONTROLE ESTATÍSTICO (3σ)")
   w_lim <- c(24, 16, 16, 16)
   cat(.th_sep(sum(w_lim)), "\n")
   cat("  ", .th_pad("Carta", w_lim[1], "left"), .th_pad("LIC (Inferior)", w_lim[2], "center"),
-      .th_pad("Linha M\u00e9dia", w_lim[3], "center"), .th_pad("LSC (Superior)", w_lim[4], "center"), "\n", sep = "")
+      .th_pad("Linha Média", w_lim[3], "center"), .th_pad("LSC (Superior)", w_lim[4], "center"), "\n", sep = "")
   cat(.th_sep(sum(w_lim)), "\n")
 
-  cat("  ", .th_pad("X̄ (Média)", w_lim[1], "left"),
-      .th_pad(formatC(lic_x, format = "f", digits = 3, decimal.mark = ","), w_lim[2], "center"),
-      .th_pad(formatC(x_dbar, format = "f", digits = 3, decimal.mark = ","), w_lim[3], "center"),
-      .th_pad(formatC(lsc_x, format = "f", digits = 3, decimal.mark = ","), w_lim[4], "center"), "\n", sep = "")
-
-  cat("  ", .th_pad(nome_sec, w_lim[1], "left"),
-      .th_pad(formatC(lic_sec, format = "f", digits = 3, decimal.mark = ","), w_lim[2], "center"),
-      .th_pad(formatC(sec_bar, format = "f", digits = 3, decimal.mark = ","), w_lim[3], "center"),
-      .th_pad(formatC(lsc_sec, format = "f", digits = 3, decimal.mark = ","), w_lim[4], "center"), "\n", sep = "")
+  for (i in 1:nrow(tb_lim)) {
+    cat("  ", .th_pad(tb_lim$Carta[i], w_lim[1], "left"),
+        .th_pad(formatC(tb_lim$LIC[i], format = "f", digits = 3, decimal.mark = ","), w_lim[2], "center"),
+        .th_pad(formatC(tb_lim$Linha_Media[i], format = "f", digits = 3, decimal.mark = ","), w_lim[3], "center"),
+        .th_pad(formatC(tb_lim$LSC[i], format = "f", digits = 3, decimal.mark = ","), w_lim[4], "center"), "\n", sep = "")
+  }
   cat(.th_sep(sum(w_lim)), "\n\n")
 
-  .print_topico("DIAGN\u00d3STICO DE ESTABILIDADE E ALARMES")
+  .print_topico("INTERPRETAÇÃO E ESTABILIDADE DO PROCESSO")
   if (estavel) {
-    cat("  [✓] Processo sob controle estatístico (estável): nenhum subgrupo violou os limites 3σ.\n\n")
+    cat("  Processo sob controle estatístico (estável): nenhum subgrupo violou os limites 3σ.\n\n")
   } else {
-    cat(sprintf("  [!] Processo fora de controle estatístico (instável): %d subgrupo(s) violaram os limites 3σ:\n", length(alarmes_idx)))
+    cat(sprintf("  Processo fora de controle estatístico (instável): %d subgrupo(s) violaram os limites 3σ:\n", length(alarmes_idx)))
     for (idx in alarmes_idx) {
       motivo <- c()
-      if (fora_x[idx]) motivo <- c(motivo, "Média excedeu limites 3σ")
-      if (fora_sec[idx]) motivo <- c(motivo, sprintf("%s excedeu limites 3σ", nome_sec))
+      if (fora_x[idx] && tipo != "r" && tipo != "s") motivo <- c(motivo, "Média excedeu limites 3σ")
+      if (fora_sec[idx] && tipo != "xbar") motivo <- c(motivo, sprintf("%s excedeu limites 3σ", nome_sec))
       cat(sprintf("    * Subgrupo %s: %s\n", subg_nomes[idx], paste(motivo, collapse = " | ")))
     }
     cat("\n")
@@ -367,55 +482,44 @@ grafico_controle <- function(dados,
 
   p_combined <- NULL
   if (grafico) {
-    df_p1 <- data.frame(Ponto = 1:k, Valor = medias, Status = ifelse(fora_x, "Alarme", "Normal"))
-    df_p2 <- data.frame(Ponto = 1:k, Valor = sec_vals, Status = ifelse(fora_sec, "Alarme", "Normal"))
+    p_x <- .montar_grafico_shewhart(
+      pontos_x = 1:k,
+      valores  = medias,
+      lc       = x_dbar,
+      lic      = lic_x,
+      lsc      = lsc_x,
+      titulo   = bquote("Carta de Médias (" ~ bar(X) ~ ")"),
+      xlab     = "Subgrupo",
+      ylab     = expression(bar(X)),
+      fora     = fora_x
+    )
 
-    p1 <- ggplot2::ggplot(df_p1, ggplot2::aes(x = Ponto, y = Valor)) +
-      ggplot2::geom_line(color = "#2B5C8F", linewidth = 0.8) +
-      ggplot2::geom_point(ggplot2::aes(color = Status, size = Status)) +
-      ggplot2::scale_color_manual(values = c("Normal" = "#2B5C8F", "Alarme" = "#D90429")) +
-      ggplot2::scale_size_manual(values = c("Normal" = 3.0, "Alarme" = 3.8)) +
-      ggplot2::geom_hline(yintercept = x_dbar, color = "#222222", linewidth = 0.9) +
-      ggplot2::geom_hline(yintercept = c(lic_x, lsc_x), color = "#D90429", linetype = "solid", linewidth = 0.9) +
-      ggplot2::labs(title = bquote("Carta de Médias (" ~ bar(X) ~ ") [n = " * .(n) * "]"), x = "Subgrupo", y = expression(bar(X))) +
-      ggplot2::theme(legend.position = "none")
+    p_sec <- .montar_grafico_shewhart(
+      pontos_x = 1:k,
+      valores  = sec_vals,
+      lc       = sec_bar,
+      lic      = lic_sec,
+      lsc      = lsc_sec,
+      titulo   = sprintf("Carta de Dispersão: %s", nome_sec),
+      xlab     = "Subgrupo",
+      ylab     = nome_sec,
+      fora     = fora_sec
+    )
 
-    df_al_x <- subset(df_p1, Status == "Alarme")
-    if (nrow(df_al_x) > 0) {
-      p1 <- p1 + ggplot2::geom_point(data = df_al_x, shape = 1, size = 6.8, stroke = 1.3, color = "#D90429")
-    }
-
-    p2 <- ggplot2::ggplot(df_p2, ggplot2::aes(x = Ponto, y = Valor)) +
-      ggplot2::geom_line(color = "#3470a3", linewidth = 0.8) +
-      ggplot2::geom_point(ggplot2::aes(color = Status, size = Status)) +
-      ggplot2::scale_color_manual(values = c("Normal" = "#3470a3", "Alarme" = "#D90429")) +
-      ggplot2::scale_size_manual(values = c("Normal" = 3.0, "Alarme" = 3.8)) +
-      ggplot2::geom_hline(yintercept = sec_bar, color = "#222222", linewidth = 0.9) +
-      ggplot2::geom_hline(yintercept = c(lic_sec, lsc_sec), color = "#D90429", linetype = "solid", linewidth = 0.9) +
-      ggplot2::labs(title = sprintf("Carta de Dispersão: %s", nome_sec), x = "Subgrupo", y = nome_sec) +
-      ggplot2::theme(legend.position = "none")
-
-    df_al_sec <- subset(df_p2, Status == "Alarme")
-    if (nrow(df_al_sec) > 0) {
-      p2 <- p2 + ggplot2::geom_point(data = df_al_sec, shape = 1, size = 6.8, stroke = 1.3, color = "#D90429")
-    }
-    if (exists("meu_tema", mode = "function")) {
-      p1 <- p1 + meu_tema(grade = "dupla")
-      p2 <- p2 + meu_tema(grade = "dupla")
-    } else if (exists("tema_estatR", mode = "function")) {
-      p1 <- p1 + tema_estatR(estilo = 1, grade = "dupla")
-      p2 <- p2 + tema_estatR(estilo = 1, grade = "dupla")
+    if (tipo == "xbar") {
+      p_combined <- p_x
+      suppressMessages(print(p_x))
+    } else if (tipo %in% c("r", "s")) {
+      p_combined <- p_sec
+      suppressMessages(print(p_sec))
     } else {
-      p1 <- p1 + ggplot2::theme_minimal()
-      p2 <- p2 + ggplot2::theme_minimal()
-    }
-
-    if (requireNamespace("patchwork", quietly = TRUE)) {
-      p_combined <- patchwork::wrap_plots(p1, p2, ncol = 1)
-      suppressMessages(print(p_combined))
-    } else {
-      p_combined <- p1
-      suppressMessages(print(p1))
+      if (requireNamespace("patchwork", quietly = TRUE)) {
+        p_combined <- patchwork::wrap_plots(p_x, p_sec, ncol = 1)
+        suppressMessages(print(p_combined))
+      } else {
+        p_combined <- p_x
+        suppressMessages(print(p_x))
+      }
     }
   }
 
@@ -436,22 +540,20 @@ grafico_controle <- function(dados,
   k <- length(dados)
 
   if (tipo %in% c("p", "u")) {
-    if (is.null(tamanho_amostra)) stop("Para cartas 'p' e 'u', forne\u00e7a 'tamanho_amostra'.", call. = FALSE)
+    if (is.null(tamanho_amostra)) stop("Para cartas 'p' e 'u', forneça 'tamanho_amostra'.", call. = FALSE)
     n_vec <- if (length(tamanho_amostra) == 1) rep(tamanho_amostra, k) else tamanho_amostra
     if (length(n_vec) != k) stop("'tamanho_amostra' deve ter o mesmo comprimento dos dados.", call. = FALSE)
 
     if (tipo == "p") {
-      # Fração defeituosa
       p_bar <- sum(dados) / sum(n_vec)
       taxa_obs <- dados / n_vec
       lsc <- p_bar + 3 * sqrt(p_bar * (1 - p_bar) / n_vec)
       lic <- pmax(0, p_bar - 3 * sqrt(p_bar * (1 - p_bar) / n_vec))
       lm  <- p_bar
-      tit <- "Carta p (Fra\u00e7\u00e3o N\u00e3o-Conforme)"
-      ylab <- "Fra\u00e7\u00e3o Defeituosa (p)"
+      tit <- "Carta p (Fração Não-Conforme)"
+      ylab <- "Fração Defeituosa (p)"
       y_plot <- taxa_obs
     } else {
-      # Taxa u
       u_bar <- sum(dados) / sum(n_vec)
       taxa_obs <- dados / n_vec
       lsc <- u_bar + 3 * sqrt(u_bar / n_vec)
@@ -470,8 +572,8 @@ grafico_controle <- function(dados,
     lm <- n * p_bar
     lsc <- lm + 3 * sqrt(n * p_bar * (1 - p_bar))
     lic <- max(0, lm - 3 * sqrt(n * p_bar * (1 - p_bar)))
-    tit <- sprintf("Carta np (N\u00famero de Defeituosos) [n = %d]", n)
-    ylab <- "Contagem de N\u00e3o-Conformes (np)"
+    tit <- "Carta np (Número de Defeituosos)"
+    ylab <- "Contagem de Não-Conformes (np)"
     y_plot <- dados
   } else {
     # tipo == "c"
@@ -479,8 +581,8 @@ grafico_controle <- function(dados,
     lm <- c_bar
     lsc <- c_bar + 3 * sqrt(c_bar)
     lic <- max(0, c_bar - 3 * sqrt(c_bar))
-    tit <- "Carta c (Contagem Total de Defeitos)"
-    ylab <- "N\u00famero de Defeitos (c)"
+    tit <- "Carta c (Contagem de Defeitos)"
+    ylab <- "Contagem de Defeitos (c)"
     y_plot <- dados
   }
 
@@ -488,23 +590,38 @@ grafico_controle <- function(dados,
   alarmes_idx <- which(fora)
   estavel <- length(alarmes_idx) == 0
 
-  .print_titulo(sprintf("CONTROLE ESTAT\u00cdSTICO DE PROCESSO: %s", toupper(tit)))
-  cat(sprintf("  Amostras Inspecionadas: %d  |  Linha M\u00e9dia: %.4f\n\n", k, mean(lm)))
+  # ── Saída console ────────────────────────────────────────────────────────────
+  .print_titulo(sprintf("CONTROLE ESTATÍSTICO DE PROCESSO: %s", toupper(tit)))
+  cat(sprintf("  Subgrupos / Amostras Inspecionadas: %d\n\n", k))
 
-  .print_topico("LIMITES DE CONTROLE ESTAT\u00cdSTICO (3\u03c3)")
-  cat(sprintf("  LIC: %.4f  |  Linha M\u00e9dia: %.4f  |  LSC: %.4f\n\n", min(lic), mean(lm), max(lsc)))
+  .print_topico("LIMITES DE CONTROLE ESTATÍSTICO (3σ)")
+  w_lim <- c(24, 16, 16, 16)
+  cat(.th_sep(sum(w_lim)), "\n")
+  cat("  ", .th_pad("Parâmetro", w_lim[1], "left"), .th_pad("LIC (Inferior)", w_lim[2], "center"),
+      .th_pad("Linha Média", w_lim[3], "center"), .th_pad("LSC (Superior)", w_lim[4], "center"), "\n", sep = "")
+  cat(.th_sep(sum(w_lim)), "\n")
 
-  .print_topico("DIAGN\u00d3STICO DE ESTABILIDADE E ALARMES")
-  if (estavel) {
-    cat("  [✓] Processo sob controle estatístico (estável): nenhuma violação detectada.\n\n")
+  if (length(lsc) == 1) {
+    cat("  ", .th_pad("Limites Constantes", w_lim[1], "left"),
+        .th_pad(formatC(lic, format = "f", digits = 3, decimal.mark = ","), w_lim[2], "center"),
+        .th_pad(formatC(lm, format = "f", digits = 3, decimal.mark = ","), w_lim[3], "center"),
+        .th_pad(formatC(lsc, format = "f", digits = 3, decimal.mark = ","), w_lim[4], "center"), "\n", sep = "")
   } else {
-    cat(sprintf("  [!] Processo fora de controle estatístico (instável): %d amostra(s) violaram os limites de controle:\n", length(alarmes_idx)))
+    cat("  ", .th_pad("Limites Variáveis (médios)", w_lim[1], "left"),
+        .th_pad(formatC(mean(lic), format = "f", digits = 3, decimal.mark = ","), w_lim[2], "center"),
+        .th_pad(formatC(lm, format = "f", digits = 3, decimal.mark = ","), w_lim[3], "center"),
+        .th_pad(formatC(mean(lsc), format = "f", digits = 3, decimal.mark = ","), w_lim[4], "center"), "\n", sep = "")
+  }
+  cat(.th_sep(sum(w_lim)), "\n\n")
+
+  .print_topico("INTERPRETAÇÃO E ESTABILIDADE DO PROCESSO")
+  if (estavel) {
+    cat("  Processo sob controle estatístico (estável): nenhuma amostra violou os limites 3σ.\n\n")
+  } else {
+    cat(sprintf("  Processo fora de controle estatístico (instável): %d amostra(s) além dos limites 3σ de controle:\n", length(alarmes_idx)))
     for (idx in alarmes_idx) {
-      cat(sprintf("    * Amostra %d (Valor = %s) fora dos limites [LIC = %s, LSC = %s]\n",
-                  idx,
-                  formatC(y_plot[idx], format = "f", digits = 3, decimal.mark = ","),
-                  formatC(lic[min(idx, length(lic))], format = "f", digits = 3, decimal.mark = ","),
-                  formatC(lsc[min(idx, length(lsc))], format = "f", digits = 3, decimal.mark = ",")))
+      cat(sprintf("    * Amostra %d (Valor = %s): além dos limites 3σ\n",
+                  idx, formatC(y_plot[idx], format = "f", digits = 3, decimal.mark = ",")))
     }
     cat("\n")
   }
@@ -512,37 +629,17 @@ grafico_controle <- function(dados,
 
   p_out <- NULL
   if (grafico) {
-    df_p <- data.frame(
-      Amostra = 1:k,
-      Valor   = y_plot,
-      LSC     = lsc,
-      LM      = lm,
-      LIC     = lic,
-      Status  = ifelse(fora, "Alarme", "Normal")
+    p_out <- .montar_grafico_shewhart(
+      pontos_x = 1:k,
+      valores  = y_plot,
+      lc       = lm,
+      lic      = lic,
+      lsc      = lsc,
+      titulo   = tit,
+      xlab     = "Amostra / Subgrupo",
+      ylab     = ylab,
+      fora     = fora
     )
-
-    p_out <- ggplot2::ggplot(df_p, ggplot2::aes(x = Amostra, y = Valor)) +
-      ggplot2::geom_line(color = "#2B5C8F", linewidth = 0.8) +
-      ggplot2::geom_point(ggplot2::aes(color = Status, size = Status)) +
-      ggplot2::scale_size_manual(values = c("Normal" = 3.0, "Alarme" = 3.8)) +
-      ggplot2::scale_color_manual(values = c("Normal" = "#2B5C8F", "Alarme" = "#D90429")) +
-      ggplot2::geom_line(ggplot2::aes(y = LM), color = "#222222", linewidth = 0.9) +
-      ggplot2::geom_line(ggplot2::aes(y = LSC), color = "#D90429", linetype = "solid", linewidth = 0.9) +
-      ggplot2::geom_line(ggplot2::aes(y = LIC), color = "#D90429", linetype = "solid", linewidth = 0.9) +
-      ggplot2::labs(title = tit, x = "Amostra / Subgrupo", y = ylab) +
-      ggplot2::theme(legend.position = "none")
-
-    df_al_atr <- subset(df_p, Status == "Alarme")
-    if (nrow(df_al_atr) > 0) {
-      p_out <- p_out + ggplot2::geom_point(data = df_al_atr, shape = 1, size = 6.8, stroke = 1.3, color = "#D90429")
-    }
-    if (exists("meu_tema", mode = "function")) {
-      p_out <- p_out + meu_tema(grade = "dupla")
-    } else if (exists("tema_estatR", mode = "function")) {
-      p_out <- p_out + tema_estatR(estilo = 1, grade = "dupla")
-    } else {
-      p_out <- p_out + ggplot2::theme_minimal()
-    }
     suppressMessages(print(p_out))
   }
 
@@ -555,6 +652,79 @@ grafico_controle <- function(dados,
   )
   class(res) <- c("estatR_ceq", "list")
   return(res)
+}
+
+
+# ── Funções Diretas e Aliases Exportados ──────────────────────────────────────
+
+#' @title Carta de Controle X (Valores Individuais)
+#' @description Constrói a carta de controle para valores individuais isolada.
+#' @inheritParams grafico_controle
+#' @export
+carta_x <- function(dados, regras = TRUE, grafico = TRUE) {
+  grafico_controle(dados, tipo = "x", regras = regras, grafico = grafico)
+}
+
+#' @title Carta de Controle I (Valores Individuais)
+#' @description Alias para \code{carta_x}.
+#' @inheritParams grafico_controle
+#' @export
+carta_i <- carta_x
+
+#' @title Carta de Controle Xbar (Médias)
+#' @description Constrói a carta de controle de médias (\eqn{\bar{X}}) isolada.
+#' @inheritParams grafico_controle
+#' @export
+carta_xbar <- function(dados, subgrupo = NULL, regras = TRUE, grafico = TRUE) {
+  grafico_controle(dados, tipo = "xbar", subgrupo = subgrupo, regras = regras, grafico = grafico)
+}
+
+#' @title Carta de Controle R (Amplitude)
+#' @description Constrói a carta de controle de amplitudes (R) isolada.
+#' @inheritParams grafico_controle
+#' @export
+carta_r <- function(dados, subgrupo = NULL, regras = TRUE, grafico = TRUE) {
+  grafico_controle(dados, tipo = "r", subgrupo = subgrupo, regras = regras, grafico = grafico)
+}
+
+#' @title Carta de Controle S (Desvio-Padrão)
+#' @description Constrói a carta de controle de desvios-padrão (S) isolada.
+#' @inheritParams grafico_controle
+#' @export
+carta_s <- function(dados, subgrupo = NULL, regras = TRUE, grafico = TRUE) {
+  grafico_controle(dados, tipo = "s", subgrupo = subgrupo, regras = regras, grafico = grafico)
+}
+
+#' @title Carta de Controle c (Contagem de Defeitos)
+#' @description Constrói a carta de controle c para contagem de defeitos por amostra de tamanho constante.
+#' @inheritParams grafico_controle
+#' @export
+carta_c <- function(dados, regras = TRUE, grafico = TRUE) {
+  grafico_controle(dados, tipo = "c", regras = regras, grafico = grafico)
+}
+
+#' @title Carta de Controle np (Número de Defeituosos)
+#' @description Constrói a carta de controle np para número de itens não-conformes em amostras de tamanho constante.
+#' @inheritParams grafico_controle
+#' @export
+carta_np <- function(dados, tamanho_amostra, regras = TRUE, grafico = TRUE) {
+  grafico_controle(dados, tipo = "np", tamanho_amostra = tamanho_amostra, regras = regras, grafico = grafico)
+}
+
+#' @title Carta de Controle p (Fração Defeituosa)
+#' @description Constrói a carta de controle p para fração de não-conformes.
+#' @inheritParams grafico_controle
+#' @export
+carta_p <- function(dados, tamanho_amostra, regras = TRUE, grafico = TRUE) {
+  grafico_controle(dados, tipo = "p", tamanho_amostra = tamanho_amostra, regras = regras, grafico = grafico)
+}
+
+#' @title Carta de Controle u (Taxa de Defeitos por Unidade)
+#' @description Constrói a carta de controle u para taxa de defeitos por unidade de inspeção.
+#' @inheritParams grafico_controle
+#' @export
+carta_u <- function(dados, tamanho_amostra, regras = TRUE, grafico = TRUE) {
+  grafico_controle(dados, tipo = "u", tamanho_amostra = tamanho_amostra, regras = regras, grafico = grafico)
 }
 
 
@@ -673,19 +843,19 @@ capacidade_processo <- function(dados,
   tb_indices <- tb_indices[!is.na(tb_indices$Estimativa), ]
 
   # ── Saída console ────────────────────────────────────────────────────────────
-  .print_titulo("AN\u00c1LISE DE CAPACIDADE DO PROCESSO (SIX SIGMA)")
+  .print_titulo("ANÁLISE DE CAPACIDADE DO PROCESSO (SIX SIGMA)")
 
-  cat(sprintf("  Amostras (n): %d  |  M\u00e9dia: %.4f  |  Alvo (Target): %s\n",
+  cat(sprintf("  Amostras (n): %d  |  Média: %.4f  |  Alvo (Target): %s\n",
               n, media_obs, if (!is.null(alvo)) formatC(alvo, format = "f", digits = 2) else "N/A"))
-  cat(sprintf("  Especifica\u00e7\u00f5es: LIE = %s  |  LSE = %s\n",
+  cat(sprintf("  Especificações: LIE = %s  |  LSE = %s\n",
               if (!is.null(lie)) formatC(lie, format = "f", digits = 2) else "-Inf",
               if (!is.null(lse)) formatC(lse, format = "f", digits = 2) else "+Inf"))
-  cat(sprintf("  Dispers\u00e3o: \u03c3 Curto Prazo = %.4f  |  s Longo Prazo = %.4f\n\n", s_curto, s_longo))
+  cat(sprintf("  Dispersão: σ Curto Prazo = %.4f  |  s Longo Prazo = %.4f\n\n", s_curto, s_longo))
 
-  .print_topico("\u00cdNDICES DE CAPACIDADE E DESEMPENHO")
+  .print_topico("ÍNDICES DE CAPACIDADE E DESEMPENHO")
   w_cap <- c(28, 16)
   cat(.th_sep(sum(w_cap)), "\n")
-  cat("  ", .th_pad("\u00cdndice", w_cap[1], "left"), .th_pad("Valor", w_cap[2], "center"), "\n", sep = "")
+  cat("  ", .th_pad("Índice", w_cap[1], "left"), .th_pad("Valor", w_cap[2], "center"), "\n", sep = "")
   cat(.th_sep(sum(w_cap)), "\n")
 
   for (i in 1:nrow(tb_indices)) {
@@ -694,14 +864,14 @@ capacidade_processo <- function(dados,
   }
   cat(.th_sep(sum(w_cap)), "\n\n")
 
-  .print_topico("DESEMPENHO DO PROCESSO (PPM E N\u00cdVEL SIGMA)")
-  cat(sprintf("  PPM Esperado (Te\u00f3rico):   %.1f defeitos por milh\u00e3o\n", ppm_esp_total))
-  cat(sprintf("  PPM Observado na Amostra: %.1f defeitos por milh\u00e3o (%d pe\u00e7as n\u00e3o-conformes)\n",
+  .print_topico("DESEMPENHO DO PROCESSO (PPM E NÍVEL SIGMA)")
+  cat(sprintf("  PPM Esperado (Teórico):   %.1f defeitos por milhão\n", ppm_esp_total))
+  cat(sprintf("  PPM Observado na Amostra: %.1f defeitos por milhão (%d peças não-conformes)\n",
               ppm_obs_total, n_inf_obs + n_sup_obs))
-  cat(sprintf("  N\u00edvel Sigma (\u03c3-level):      %.2f \u03c3\n\n", nivel_sigma))
+  cat(sprintf("  Nível Sigma (σ-level):      %.2f σ\n\n", nivel_sigma))
 
   .print_topico("VEREDITO")
-  cat(sprintf("  Diagn\u00f3stico: %s\n", classif))
+  cat(sprintf("  Diagnóstico: %s\n", classif))
   .print_rodape()
 
   # ── Gráfico ggplot2 ──────────────────────────────────────────────────────────
@@ -736,9 +906,9 @@ capacidade_processo <- function(dados,
     p_cap <- p_cap +
       ggplot2::labs(
         title    = "Capacidade do Processo",
-        subtitle = sprintf("Cp = %.2f  |  Cpk = %.2f  |  PPM Esp = %.0f  |  N\u00edvel = %.2f\u03c3",
+        subtitle = sprintf("Cp = %.2f  |  Cpk = %.2f  |  PPM Esp = %.0f  |  Nível = %.2fσ",
                            if (!is.na(cp)) cp else cpk, cpk, ppm_esp_total, nivel_sigma),
-        x = "Caracter\u00edstica de Qualidade",
+        x = "Característica de Qualidade",
         y = "Densidade"
       )
 

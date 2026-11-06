@@ -53,27 +53,42 @@ res_xs <- grafico_controle(
 )
 ```
 
+### Cartas Isoladas por Variáveis (X, $\bar{X}$, R, S)
+
+Além dos painéis empilhados, o `estatR` permite gerar cada carta de Shewhart de forma totalmente isolada:
+
+```r
+# Carta X (Valores Individuais isolada)
+carta_x(dados_individuais, grafico = TRUE)
+
+# Carta Xbar (Médias dos subgrupos isolada)
+carta_xbar(dados_subgrupos, subgrupo = lote, grafico = TRUE)
+
+# Carta R (Amplitudes isolada)
+carta_r(dados_subgrupos, subgrupo = lote, grafico = TRUE)
+
+# Carta S (Desvios-Padrão isolada)
+carta_s(dados_subgrupos, subgrupo = lote, grafico = TRUE)
+```
+
 ---
 
 ## Cartas de Controle por Atributos (p, np, c, u)
 
-Monitoramento de contagem de não-conformidades e produtos defeituosos:
+Monitoramento de contagem de não-conformidades e produtos defeituosos, tanto via `grafico_controle()` quanto através das funções dedicadas:
 
 ```r
-# Carta p (Fração Defeituosa com tamanho amostral)
-res_p <- grafico_controle(
-  dados           = defeitos_por_amostra,
-  tipo            = "p",
-  tamanho_amostra = tamanho_amostras,
-  grafico         = TRUE
-)
+# Carta p (Fração Defeituosa)
+carta_p(dados = defeitos, tamanho_amostra = n_amostras, grafico = TRUE)
 
-# Carta c (Contagem Total de Defeitos por unidade fixa)
-res_c <- grafico_controle(
-  dados   = contagem_defeitos,
-  tipo    = "c",
-  grafico = TRUE
-)
+# Carta np (Número de Defeituosos para n constante)
+carta_np(dados = contagem_np, tamanho_amostra = 100, grafico = TRUE)
+
+# Carta c (Contagem Total de Defeitos por amostra de tamanho fixo)
+carta_c(dados = contagem_defeitos, grafico = TRUE)
+
+# Carta u (Taxa de Defeitos por unidade de inspeção)
+carta_u(dados = defeitos_u, tamanho_amostra = area_inspecionada, grafico = TRUE)
 ```
 
 ---

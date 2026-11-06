@@ -1011,6 +1011,16 @@ res_xs <- grafico_controle(dados_processo, tipo = "xbar_s", subgrupo = lote)
 # Cartas por atributos (p, np, c, u)
 res_p <- grafico_controle(defeitos, tipo = "p", tamanho_amostra = n_amostras)
 res_c <- grafico_controle(defeitos, tipo = "c")
+
+# Cartas isoladas por variáveis e atributos
+carta_x(dados_individuais)
+carta_xbar(dados_subgrupos, subgrupo = lote)
+carta_r(dados_subgrupos, subgrupo = lote)
+carta_s(dados_subgrupos, subgrupo = lote)
+carta_c(contagem_defeitos)
+carta_np(itens_defeituosos, tamanho_amostra = 100)
+carta_p(itens_defeituosos, tamanho_amostra = n_amostras)
+carta_u(taxa_defeitos, tamanho_amostra = area)
 ```
 
 **Capacidade do Processo (Six Sigma)**

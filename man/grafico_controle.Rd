@@ -6,7 +6,7 @@
 \usage{
 grafico_controle(
   dados,
-  tipo = c("imr", "xbar_r", "xbar_s", "p", "np", "c", "u"),
+  tipo = c("xbar_r", "xbar_s", "imr", "x", "xbar", "r", "s", "p", "np", "c", "u", "i"),
   subgrupo = NULL,
   tamanho_amostra = NULL,
   regras = TRUE,
@@ -18,9 +18,13 @@ grafico_controle(
 
 \item{tipo}{Tipo de carta de controle:
 \itemize{
-\item \code{"imr"}: Carta de Valores Individuais e Amplitude Móvel (I-MR).
-\item \code{"xbar_r"}: Carta de Média e Amplitude (\eqn{\bar{X}}-R).
-\item \code{"xbar_s"}: Carta de Média e Desvio-Padrão (\eqn{\bar{X}}-S).
+\item \code{"imr"}: Carta de Valores Individuais e Amplitude Móvel (I-MR conjunta).
+\item \code{"x"} ou \code{"i"}: Carta de Valores Individuais (X / I isolada).
+\item \code{"xbar_r"}: Carta de Média e Amplitude (\eqn{\bar{X}}-R conjunta).
+\item \code{"xbar_s"}: Carta de Média e Desvio-Padrão (\eqn{\bar{X}}-S conjunta).
+\item \code{"xbar"}: Carta de Médias (\eqn{\bar{X}} isolada).
+\item \code{"r"}: Carta de Amplitudes (R isolada).
+\item \code{"s"}: Carta de Desvios-Padrão (S isolada).
 \item \code{"p"}: Proporção de não-conformes (tamanho amostral variável ou constante).
 \item \code{"np"}: Número de unidades defeituosas (tamanho amostral constante).
 \item \code{"c"}: Contagem total de defeitos por amostra (tamanho constante).
@@ -31,7 +35,7 @@ grafico_controle(
 
 \item{tamanho_amostra}{Tamanho dos subgrupos \eqn{n} para cartas por atributos (\code{p}, \code{np}, \code{u}).}
 
-\item{regras}{Lógico. Se \code{TRUE} (padrão), testa as regras de causas especiais e destaca pontos fora de controle.}
+\item{regras}{Lógico. Se \code{TRUE} (padrão), identifica e destaca pontos além dos limites 3\eqn{\sigma}.}
 
 \item{grafico}{Lógico. Se \code{TRUE} (padrão), renderiza os gráficos de controle no padrão do estatR.}
 }
@@ -40,13 +44,13 @@ Retorna um objeto da classe \code{estatR_ceq} contendo:
 \itemize{
 \item \code{limites}: Tabela de Limites Estatísticos (LSC, Linha Média, LIC).
 \item \code{pontos}: Tabela com os valores observados de cada subgrupo e status.
-\item \code{alarmes}: Subgrupos que violaram regras de controle.
+\item \code{alarmes}: Subgrupos que violaram os limites 3\eqn{\sigma}.
 \item \code{estavel}: Lógico indicando se o processo está sob controle estatístico.
 \item \code{grafico}: Objeto gráfico \code{ggplot2}.
 }
 }
 \description{
 Constrói cartas de controle de Shewhart para monitoramento de estabilidade
-e controle de processos contínuos e por atributos, com detecção formal de causas
-especiais (regras de Western Electric / Nelson) e visualização gráfica com grade dupla.
+e controle de processos contínuos e por atributos, com limites 3\eqn{\sigma}, detecção
+de causas especiais e visualização gráfica padronizada com legenda no topo.
 }
