@@ -193,3 +193,36 @@ amostras_mcmc <- rnorm(10000, mean = 15, sd = 3)
 ic_hpd(amostras_mcmc, confianca = 0.95)
 ```
 
+### Teste de Correlação Bayesiano (Pearson e Spearman)
+
+Avalia a evidência de associação linear (Pearson) ou monotônica por postos (Spearman) fornecendo o **Fator de Bayes $BF_{10}$ analítico exato** (Ly, Verhagen & Wagenmakers, 2016) via densidade conjunta, estimativas pontuais (média, moda e mediana posteriores), intervalos HPD 95% e probabilidade direcional $P(ho > 0)$. Totalmente compatível com fórmulas e pipes:
+
+```r
+# Sintaxe por fórmula com dados
+res_corr <- teste_correlacao_bayesiano(mpg ~ wt, dados = mtcars, metodo = "pearson", grafico = TRUE)
+
+# Uso com pipe nativo
+mtcars |> correlacao_bayesiana(mpg ~ wt)
+```
+
+### ANOVA One-Way Bayesiana (Fator de Bayes JZS)
+
+Compara múltiplos grupos sob a ótica bayesiana através do **Fator de Bayes JZS** (Rouder et al., 2012 / Liang et al., 2008) confrontando a presença do efeito de grupo versus a hipótese nula de médias homogêneas, fornecendo intervalos HPD 95% para as médias e **contrastes pareados post-hoc bayesianos**:
+
+```r
+# Avaliação de múltiplos tratamentos com contraste post-hoc
+res_anova <- anova_bayesiana(Sepal.Length ~ Species, dados = iris, grafico = TRUE)
+
+# Ou via pipe nativo
+iris |> anova_bayesiana(Sepal.Length ~ Species)
+```
+
+### Regressão Linear Bayesiana (JZS / g-priori de Zellner)
+
+Estima modelos lineares múltiplos sob priori conjugada Normal-Inversa-Gama com g-priori de Zellner e Fator de Bayes JZS global para o coeficiente de determinação $R^2$ (Liang et al., 2008), fornecendo encolhimento empírico (*EB shrinkage*) dos coeficientes, intervalos de credibilidade HPD 95% e probabilidades direcionais $P(eta_j > 0)$:
+
+```r
+# Regressão bayesiana com preditores múltiplos e painel gráfico dos coeficientes
+res_reg <- regressao_bayesiana(mpg ~ wt + hp, dados = mtcars, grafico = TRUE)
+```
+

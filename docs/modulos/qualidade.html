@@ -349,6 +349,26 @@ window.Quarto = {
 <span id="cb5-13"><a href="#cb5-13" aria-hidden="true" tabindex="-1"></a><span class="co"># PPM e Nível Sigma</span></span>
 <span id="cb5-14"><a href="#cb5-14" aria-hidden="true" tabindex="-1"></a>res_cap<span class="sc">$</span>ppm</span>
 <span id="cb5-15"><a href="#cb5-15" aria-hidden="true" tabindex="-1"></a>res_cap<span class="sc">$</span>sigma_nivel</span></code></pre></div><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></div>
+<hr>
+</section>
+<section id="cartas-de-controle-avançadas-ewma-cusum" class="level2">
+<h2 class="anchored" data-anchor-id="cartas-de-controle-avançadas-ewma-cusum">Cartas de Controle Avançadas (EWMA &amp; CUSUM)</h2>
+<p>Para monitoramento de processos de alta sensibilidade e detecção precoce de <strong>pequenos deslocamentos de média (<span class="math inline">\(\\le 1{,}5\\sigma\)</span>)</strong>, onde cartas de Shewhart tradicionais demoram a acusar alarme:</p>
+<div class="code-copy-outer-scaffold"><div class="sourceCode" id="cb6"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb6-1"><a href="#cb6-1" aria-hidden="true" tabindex="-1"></a><span class="co"># Carta EWMA (Média Móvel Exponencialmente Ponderada) com limites dinâmicos no tempo</span></span>
+<span id="cb6-2"><a href="#cb6-2" aria-hidden="true" tabindex="-1"></a><span class="fu">carta_ewma</span>(<span class="at">dados =</span> dados_processo, <span class="at">lambda =</span> <span class="fl">0.20</span>, <span class="at">L =</span> <span class="fl">3.0</span>, <span class="at">grafico =</span> <span class="cn">TRUE</span>)</span>
+<span id="cb6-3"><a href="#cb6-3" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb6-4"><a href="#cb6-4" aria-hidden="true" tabindex="-1"></a><span class="co"># Carta CUSUM (Somas Cumulativas Tabulares bilaterais C+ e C-)</span></span>
+<span id="cb6-5"><a href="#cb6-5" aria-hidden="true" tabindex="-1"></a><span class="fu">carta_cusum</span>(<span class="at">dados =</span> dados_processo, <span class="at">k =</span> <span class="fl">0.50</span>, <span class="at">h =</span> <span class="fl">4.50</span>, <span class="at">grafico =</span> <span class="cn">TRUE</span>)</span></code></pre></div><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></div>
+<hr>
+</section>
+<section id="análise-do-sistema-de-medição-gage-rr-msa" class="level2">
+<h2 class="anchored" data-anchor-id="análise-do-sistema-de-medição-gage-rr-msa">Análise do Sistema de Medição (Gage R&amp;R / MSA)</h2>
+<p>Avaliação da repetibilidade do equipamento (EV) e da reprodutibilidade dos avaliadores (AV) pelo método <strong>ANOVA two-way com interação</strong>, calculando componentes de variância, percentuais de contribuição, variação do estudo (%GRR), número de categorias distintas (<span class="math inline">\(ndc\)</span>) e veredito segundo critérios AIAG:</p>
+<div class="code-copy-outer-scaffold"><div class="sourceCode" id="cb7"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb7-1"><a href="#cb7-1" aria-hidden="true" tabindex="-1"></a><span class="co"># Gage R&amp;R via fórmula (medicao ~ peca + operador)</span></span>
+<span id="cb7-2"><a href="#cb7-2" aria-hidden="true" tabindex="-1"></a><span class="fu">estudo_gage_rr</span>(medicao <span class="sc">~</span> peca <span class="sc">+</span> operador, <span class="at">dados =</span> df_estudo, <span class="at">grafico =</span> <span class="cn">TRUE</span>)</span>
+<span id="cb7-3"><a href="#cb7-3" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb7-4"><a href="#cb7-4" aria-hidden="true" tabindex="-1"></a><span class="co"># Ou via pipe nativo e alias direto</span></span>
+<span id="cb7-5"><a href="#cb7-5" aria-hidden="true" tabindex="-1"></a>df_estudo <span class="sc">|&gt;</span> <span class="fu">gage_rr</span>(peca, operador, medicao)</span></code></pre></div><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></div>
 
 
 </section>

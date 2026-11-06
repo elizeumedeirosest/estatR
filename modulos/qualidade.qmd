@@ -114,3 +114,31 @@ res_cap$indices
 res_cap$ppm
 res_cap$sigma_nivel
 ```
+
+---
+
+## Cartas de Controle Avançadas (EWMA & CUSUM)
+
+Para monitoramento de processos de alta sensibilidade e detecção precoce de **pequenos deslocamentos de média ($\\le 1{,}5\\sigma$)**, onde cartas de Shewhart tradicionais demoram a acusar alarme:
+
+```r
+# Carta EWMA (Média Móvel Exponencialmente Ponderada) com limites dinâmicos no tempo
+carta_ewma(dados = dados_processo, lambda = 0.20, L = 3.0, grafico = TRUE)
+
+# Carta CUSUM (Somas Cumulativas Tabulares bilaterais C+ e C-)
+carta_cusum(dados = dados_processo, k = 0.50, h = 4.50, grafico = TRUE)
+```
+
+---
+
+## Análise do Sistema de Medição (Gage R&R / MSA)
+
+Avaliação da repetibilidade do equipamento (EV) e da reprodutibilidade dos avaliadores (AV) pelo método **ANOVA two-way com interação**, calculando componentes de variância, percentuais de contribuição, variação do estudo (%GRR), número de categorias distintas ($ndc$) e veredito segundo critérios AIAG:
+
+```r
+# Gage R&R via fórmula (medicao ~ peca + operador)
+estudo_gage_rr(medicao ~ peca + operador, dados = df_estudo, grafico = TRUE)
+
+# Ou via pipe nativo e alias direto
+df_estudo |> gage_rr(peca, operador, medicao)
+```

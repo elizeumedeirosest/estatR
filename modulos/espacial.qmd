@@ -16,7 +16,7 @@ Todos os gráficos utilizam `ggplot2` com `meu_tema(grade = "dupla")` para mante
 
 ## 1. Matrizes de Vizinhança e Pesos Espaciais
 
-A função `matriz_vizinhanca()` constrói matrizes espaciais padronizadas para polígonos ou coordenadas pontuais:
+A função `matriz_pesos_espaciais()` (com alias `matriz_vizinhanca()`) constrói, diagnostica e padroniza matrizes espaciais $W$ para polígonos ou coordenadas pontuais com métodos dedicados de diagnóstico (`print`) e visualização de malha espacial (`plot`):
 
 * **Contiguidade Geográfica** (polígonos `sf`): `"rainha"` (vértices e arestas) e `"torre"` (apenas arestas compartilhadas).
 * **Proximidade Métria / KNN**: `"knn"` ($k$ vizinhos mais próximos) e `"distancia_inversa"` ($1 / d_{ij}^\alpha$).
@@ -26,13 +26,19 @@ A função `matriz_vizinhanca()` constrói matrizes espaciais padronizadas para 
 library(estatR)
 
 # Matriz por k vizinhos mais próximos padronizada por linha
-W <- matriz_vizinhanca(
+W <- matriz_pesos_espaciais(
   dados        = dados_municipios,
   tipo         = "knn",
   k            = 5,
   coordenadas  = c("longitude", "latitude"),
   padronizacao = "linha"
 )
+
+# Resumo didático no console (densidade, conexões e detecção de ilhas isoladas)
+print(W)
+
+# Visualização gráfica da rede espacial conectada ou mapa de calor da matriz
+plot(W, tipo = "rede")
 ```
 
 ---

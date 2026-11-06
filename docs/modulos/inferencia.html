@@ -403,6 +403,31 @@ window.Quarto = {
 <p>Função utilitária de alto desempenho para obter o intervalo HPD (<em>Highest Posterior Density</em>) sobre qualquer conjunto de amostras a posteriori:</p>
 <div class="code-copy-outer-scaffold"><div class="sourceCode" id="cb16"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb16-1"><a href="#cb16-1" aria-hidden="true" tabindex="-1"></a>amostras_mcmc <span class="ot">&lt;-</span> <span class="fu">rnorm</span>(<span class="dv">10000</span>, <span class="at">mean =</span> <span class="dv">15</span>, <span class="at">sd =</span> <span class="dv">3</span>)</span>
 <span id="cb16-2"><a href="#cb16-2" aria-hidden="true" tabindex="-1"></a><span class="fu">ic_hpd</span>(amostras_mcmc, <span class="at">confianca =</span> <span class="fl">0.95</span>)</span></code></pre></div><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></div>
+</section>
+<section id="teste-de-correlação-bayesiano-pearson-e-spearman" class="level3">
+<h3 class="anchored" data-anchor-id="teste-de-correlação-bayesiano-pearson-e-spearman">Teste de Correlação Bayesiano (Pearson e Spearman)</h3>
+<p>Avalia a evidência de associação linear (Pearson) ou monotônica por postos (Spearman) fornecendo o <strong>Fator de Bayes <span class="math inline">\(BF_{10}\)</span> analítico exato</strong> (Ly, Verhagen &amp; Wagenmakers, 2016) via densidade conjunta, estimativas pontuais (média, moda e mediana posteriores), intervalos HPD 95% e probabilidade direcional <span class="math inline">\(P(
+ho &gt; 0)\)</span>. Totalmente compatível com fórmulas e pipes:</p>
+<div class="code-copy-outer-scaffold"><div class="sourceCode" id="cb17"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb17-1"><a href="#cb17-1" aria-hidden="true" tabindex="-1"></a><span class="co"># Sintaxe por fórmula com dados</span></span>
+<span id="cb17-2"><a href="#cb17-2" aria-hidden="true" tabindex="-1"></a>res_corr <span class="ot">&lt;-</span> <span class="fu">teste_correlacao_bayesiano</span>(mpg <span class="sc">~</span> wt, <span class="at">dados =</span> mtcars, <span class="at">metodo =</span> <span class="st">"pearson"</span>, <span class="at">grafico =</span> <span class="cn">TRUE</span>)</span>
+<span id="cb17-3"><a href="#cb17-3" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb17-4"><a href="#cb17-4" aria-hidden="true" tabindex="-1"></a><span class="co"># Uso com pipe nativo</span></span>
+<span id="cb17-5"><a href="#cb17-5" aria-hidden="true" tabindex="-1"></a>mtcars <span class="sc">|&gt;</span> <span class="fu">correlacao_bayesiana</span>(mpg <span class="sc">~</span> wt)</span></code></pre></div><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></div>
+</section>
+<section id="anova-one-way-bayesiana-fator-de-bayes-jzs" class="level3">
+<h3 class="anchored" data-anchor-id="anova-one-way-bayesiana-fator-de-bayes-jzs">ANOVA One-Way Bayesiana (Fator de Bayes JZS)</h3>
+<p>Compara múltiplos grupos sob a ótica bayesiana através do <strong>Fator de Bayes JZS</strong> (Rouder et al., 2012 / Liang et al., 2008) confrontando a presença do efeito de grupo versus a hipótese nula de médias homogêneas, fornecendo intervalos HPD 95% para as médias e <strong>contrastes pareados post-hoc bayesianos</strong>:</p>
+<div class="code-copy-outer-scaffold"><div class="sourceCode" id="cb18"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb18-1"><a href="#cb18-1" aria-hidden="true" tabindex="-1"></a><span class="co"># Avaliação de múltiplos tratamentos com contraste post-hoc</span></span>
+<span id="cb18-2"><a href="#cb18-2" aria-hidden="true" tabindex="-1"></a>res_anova <span class="ot">&lt;-</span> <span class="fu">anova_bayesiana</span>(Sepal.Length <span class="sc">~</span> Species, <span class="at">dados =</span> iris, <span class="at">grafico =</span> <span class="cn">TRUE</span>)</span>
+<span id="cb18-3"><a href="#cb18-3" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb18-4"><a href="#cb18-4" aria-hidden="true" tabindex="-1"></a><span class="co"># Ou via pipe nativo</span></span>
+<span id="cb18-5"><a href="#cb18-5" aria-hidden="true" tabindex="-1"></a>iris <span class="sc">|&gt;</span> <span class="fu">anova_bayesiana</span>(Sepal.Length <span class="sc">~</span> Species)</span></code></pre></div><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></div>
+</section>
+<section id="regressão-linear-bayesiana-jzs-g-priori-de-zellner" class="level3">
+<h3 class="anchored" data-anchor-id="regressão-linear-bayesiana-jzs-g-priori-de-zellner">Regressão Linear Bayesiana (JZS / g-priori de Zellner)</h3>
+<p>Estima modelos lineares múltiplos sob priori conjugada Normal-Inversa-Gama com g-priori de Zellner e Fator de Bayes JZS global para o coeficiente de determinação <span class="math inline">\(R^2\)</span> (Liang et al., 2008), fornecendo encolhimento empírico (<em>EB shrinkage</em>) dos coeficientes, intervalos de credibilidade HPD 95% e probabilidades direcionais <span class="math inline">\(P(eta_j &gt; 0)\)</span>:</p>
+<div class="code-copy-outer-scaffold"><div class="sourceCode" id="cb19"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb19-1"><a href="#cb19-1" aria-hidden="true" tabindex="-1"></a><span class="co"># Regressão bayesiana com preditores múltiplos e painel gráfico dos coeficientes</span></span>
+<span id="cb19-2"><a href="#cb19-2" aria-hidden="true" tabindex="-1"></a>res_reg <span class="ot">&lt;-</span> <span class="fu">regressao_bayesiana</span>(mpg <span class="sc">~</span> wt <span class="sc">+</span> hp, <span class="at">dados =</span> mtcars, <span class="at">grafico =</span> <span class="cn">TRUE</span>)</span></code></pre></div><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></div>
 
 
 </section>

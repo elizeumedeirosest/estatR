@@ -263,7 +263,7 @@ window.Quarto = {
 <hr>
 <section id="matrizes-de-vizinhança-e-pesos-espaciais" class="level2">
 <h2 class="anchored" data-anchor-id="matrizes-de-vizinhança-e-pesos-espaciais">1. Matrizes de Vizinhança e Pesos Espaciais</h2>
-<p>A função <code>matriz_vizinhanca()</code> constrói matrizes espaciais padronizadas para polígonos ou coordenadas pontuais:</p>
+<p>A função <code>matriz_pesos_espaciais()</code> (com alias <code>matriz_vizinhanca()</code>) constrói, diagnostica e padroniza matrizes espaciais <span class="math inline">\(W\)</span> para polígonos ou coordenadas pontuais com métodos dedicados de diagnóstico (<code>print</code>) e visualização de malha espacial (<code>plot</code>):</p>
 <ul>
 <li><strong>Contiguidade Geográfica</strong> (polígonos <code>sf</code>): <code>"rainha"</code> (vértices e arestas) e <code>"torre"</code> (apenas arestas compartilhadas).</li>
 <li><strong>Proximidade Métria / KNN</strong>: <code>"knn"</code> (<span class="math inline">\(k\)</span> vizinhos mais próximos) e <code>"distancia_inversa"</code> (<span class="math inline">\(1 / d_{ij}^\alpha\)</span>).</li>
@@ -272,13 +272,19 @@ window.Quarto = {
 <div class="code-copy-outer-scaffold"><div class="sourceCode" id="cb1"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb1-1"><a href="#cb1-1" aria-hidden="true" tabindex="-1"></a><span class="fu">library</span>(estatR)</span>
 <span id="cb1-2"><a href="#cb1-2" aria-hidden="true" tabindex="-1"></a></span>
 <span id="cb1-3"><a href="#cb1-3" aria-hidden="true" tabindex="-1"></a><span class="co"># Matriz por k vizinhos mais próximos padronizada por linha</span></span>
-<span id="cb1-4"><a href="#cb1-4" aria-hidden="true" tabindex="-1"></a>W <span class="ot">&lt;-</span> <span class="fu">matriz_vizinhanca</span>(</span>
+<span id="cb1-4"><a href="#cb1-4" aria-hidden="true" tabindex="-1"></a>W <span class="ot">&lt;-</span> <span class="fu">matriz_pesos_espaciais</span>(</span>
 <span id="cb1-5"><a href="#cb1-5" aria-hidden="true" tabindex="-1"></a>  <span class="at">dados        =</span> dados_municipios,</span>
 <span id="cb1-6"><a href="#cb1-6" aria-hidden="true" tabindex="-1"></a>  <span class="at">tipo         =</span> <span class="st">"knn"</span>,</span>
 <span id="cb1-7"><a href="#cb1-7" aria-hidden="true" tabindex="-1"></a>  <span class="at">k            =</span> <span class="dv">5</span>,</span>
 <span id="cb1-8"><a href="#cb1-8" aria-hidden="true" tabindex="-1"></a>  <span class="at">coordenadas  =</span> <span class="fu">c</span>(<span class="st">"longitude"</span>, <span class="st">"latitude"</span>),</span>
 <span id="cb1-9"><a href="#cb1-9" aria-hidden="true" tabindex="-1"></a>  <span class="at">padronizacao =</span> <span class="st">"linha"</span></span>
-<span id="cb1-10"><a href="#cb1-10" aria-hidden="true" tabindex="-1"></a>)</span></code></pre></div><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></div>
+<span id="cb1-10"><a href="#cb1-10" aria-hidden="true" tabindex="-1"></a>)</span>
+<span id="cb1-11"><a href="#cb1-11" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb1-12"><a href="#cb1-12" aria-hidden="true" tabindex="-1"></a><span class="co"># Resumo didático no console (densidade, conexões e detecção de ilhas isoladas)</span></span>
+<span id="cb1-13"><a href="#cb1-13" aria-hidden="true" tabindex="-1"></a><span class="fu">print</span>(W)</span>
+<span id="cb1-14"><a href="#cb1-14" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb1-15"><a href="#cb1-15" aria-hidden="true" tabindex="-1"></a><span class="co"># Visualização gráfica da rede espacial conectada ou mapa de calor da matriz</span></span>
+<span id="cb1-16"><a href="#cb1-16" aria-hidden="true" tabindex="-1"></a><span class="fu">plot</span>(W, <span class="at">tipo =</span> <span class="st">"rede"</span>)</span></code></pre></div><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></div>
 <hr>
 </section>
 <section id="autocorrelação-espacial-global-e-local-moran-e-lisa" class="level2">
