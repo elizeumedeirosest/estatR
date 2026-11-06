@@ -140,7 +140,7 @@ grafico_controle <- function(dados,
 
   # ── Saída console ────────────────────────────────────────────────────────────
   .print_titulo("CONTROLE ESTAT\u00cdSTICO DE PROCESSO: CARTA I-MR")
-  cat(sprintf("  Medidas Analisadas: %d  |  Estimativa de \u03c3 (Curto Prazo): %.4f\n\n", N, sigma_est))
+  cat(sprintf("  Medidas Analisadas: %d  |  σ̂: %s\n\n", N, formatC(sigma_est, format = "f", digits = 4, decimal.mark = ",")))
 
   .print_topico("LIMITES DE CONTROLE ESTAT\u00cdSTICO (3\u03c3)")
   w_lim <- c(24, 16, 16, 16)
@@ -162,16 +162,17 @@ grafico_controle <- function(dados,
 
   .print_topico("DIAGN\u00d3STICO DE ESTABILIDADE E ALARMES")
   if (estavel) {
-    cat("  \u2713 Processo SOB CONTROLE ESTAT\u00cdSTICO. Nenhuma causa especial detectada.\n")
+    cat("  [✓] Processo sob controle estatístico (estável): nenhuma causa especial detectada.\n\n")
   } else {
-    cat(sprintf("  \u26a0 ATEN\u00c7\u00c3O: Foram detectados %d pontos indicando INSTABILIDADE / Causas Especiais:\n", length(alarmes_idx)))
+    cat(sprintf("  [!] Processo fora de controle estatístico (instável): %d ponto(s) indicando causas especiais:\n", length(alarmes_idx)))
     for (idx in alarmes_idx) {
       motivo <- c()
-      if (fora_x[idx]) motivo <- c(motivo, "Ponto al\u00e9m de 3\u03c3 em I")
-      if (desloc_x[idx]) motivo <- c(motivo, "8 pontos consecutivos do mesmo lado da m\u00e9dia")
-      if (fora_mr[idx]) motivo <- c(motivo, "Amplitude M\u00f3vel excedeu LSC")
-      cat(sprintf("    * Ponto %d (Valor = %.3f): %s\n", idx, x[idx], paste(motivo, collapse = " | ")))
+      if (fora_x[idx]) motivo <- c(motivo, "Ponto além de 3σ em I")
+      if (desloc_x[idx]) motivo <- c(motivo, "8 pontos consecutivos do mesmo lado da média")
+      if (fora_mr[idx]) motivo <- c(motivo, "Amplitude Móvel excedeu LSC")
+      cat(sprintf("    * Ponto %d (Valor = %s): %s\n", idx, formatC(x[idx], format = "f", digits = 3, decimal.mark = ","), paste(motivo, collapse = " | ")))
     }
+    cat("\n")
   }
   .print_rodape()
 
@@ -191,27 +192,38 @@ grafico_controle <- function(dados,
 
     p1 <- ggplot2::ggplot(df_plot_i, ggplot2::aes(x = Ponto, y = Valor)) +
       ggplot2::geom_line(color = "#2B5C8F", linewidth = 0.8) +
-      ggplot2::geom_point(ggplot2::aes(color = Status), size = 2.5) +
+      ggplot2::geom_point(ggplot2::aes(color = Status, size = Status)) +
       ggplot2::scale_color_manual(values = c("Normal" = "#2B5C8F", "Alarme" = "#D90429")) +
+      ggplot2::scale_size_manual(values = c("Normal" = 3.0, "Alarme" = 3.8)) +
       ggplot2::geom_hline(yintercept = x_bar, color = "#222222", linewidth = 0.9) +
-      ggplot2::geom_hline(yintercept = c(lic_x, lsc_x), color = "#D90429", linetype = "dashed", linewidth = 0.8) +
+      ggplot2::geom_hline(yintercept = c(lic_x, lsc_x), color = "#D90429", linetype = "solid", linewidth = 0.9) +
       ggplot2::annotate("text", x = N * 1.01, y = lsc_x, label = sprintf("LSC = %.2f", lsc_x), color = "#D90429", size = 3.5, hjust = 0) +
       ggplot2::annotate("text", x = N * 1.01, y = x_bar, label = sprintf("LM = %.2f", x_bar), color = "#222222", size = 3.5, hjust = 0) +
       ggplot2::annotate("text", x = N * 1.01, y = lic_x, label = sprintf("LIC = %.2f", lic_x), color = "#D90429", size = 3.5, hjust = 0) +
-      ggplot2::labs(title = "Carta de Valores Individuais (I)", x = "Amostra / Observa\u00e7\u00e3o", y = "Valor Individual") +
+      ggplot2::labs(title = "Carta de Valores Individuais (I)", x = "Amostra / Observação", y = "Valor Individual") +
       ggplot2::theme(legend.position = "none")
+
+    df_al_i <- subset(df_plot_i, Status == "Alarme")
+    if (nrow(df_al_i) > 0) {
+      p1 <- p1 + ggplot2::geom_point(data = df_al_i, shape = 1, size = 6.8, stroke = 1.3, color = "#D90429")
+    }
 
     p2 <- ggplot2::ggplot(df_plot_mr, ggplot2::aes(x = Ponto, y = Valor)) +
       ggplot2::geom_line(color = "#3470a3", linewidth = 0.8) +
-      ggplot2::geom_point(ggplot2::aes(color = Status), size = 2.3) +
+      ggplot2::geom_point(ggplot2::aes(color = Status, size = Status)) +
       ggplot2::scale_color_manual(values = c("Normal" = "#3470a3", "Alarme" = "#D90429")) +
+      ggplot2::scale_size_manual(values = c("Normal" = 3.0, "Alarme" = 3.8)) +
       ggplot2::geom_hline(yintercept = mr_bar, color = "#222222", linewidth = 0.9) +
-      ggplot2::geom_hline(yintercept = lsc_mr, color = "#D90429", linetype = "dashed", linewidth = 0.8) +
+      ggplot2::geom_hline(yintercept = lsc_mr, color = "#D90429", linetype = "solid", linewidth = 0.9) +
       ggplot2::annotate("text", x = N * 1.01, y = lsc_mr, label = sprintf("LSC = %.2f", lsc_mr), color = "#D90429", size = 3.5, hjust = 0) +
       ggplot2::annotate("text", x = N * 1.01, y = mr_bar, label = sprintf("LM = %.2f", mr_bar), color = "#222222", size = 3.5, hjust = 0) +
-      ggplot2::labs(title = "Carta de Amplitude M\u00f3vel (MR)", x = "Amostra / Observa\u00e7\u00e3o", y = "Amplitude M\u00f3vel (MR)") +
+      ggplot2::labs(title = "Carta de Amplitude Móvel (MR)", x = "Amostra / Observação", y = "Amplitude Móvel (MR)") +
       ggplot2::theme(legend.position = "none")
 
+    df_al_mr <- subset(df_plot_mr, Status == "Alarme")
+    if (nrow(df_al_mr) > 0) {
+      p2 <- p2 + ggplot2::geom_point(data = df_al_mr, shape = 1, size = 6.8, stroke = 1.3, color = "#D90429")
+    }
     if (exists("meu_tema", mode = "function")) {
       p1 <- p1 + meu_tema(grade = "dupla")
       p2 <- p2 + meu_tema(grade = "dupla")
@@ -309,15 +321,16 @@ grafico_controle <- function(dados,
   estavel <- length(alarmes_idx) == 0
 
   tb_lim <- data.frame(
-    Carta       = c("Media (X-Barra)", nome_sec),
+    Carta       = c("X̄ (Média)", nome_sec),
     LIC         = c(lic_x, lic_sec),
     Linha_Media = c(x_dbar, sec_bar),
     LSC         = c(lsc_x, lsc_sec),
     Sigma_Curto = c(sigma_est, NA)
   )
 
-  .print_titulo(sprintf("CONTROLE ESTAT\u00cdSTICO DE PROCESSO: CARTA %s", toupper(tipo)))
-  cat(sprintf("  Subgrupos: %d  |  Tamanho por Subgrupo (n): %d  |  \u03c3 Estimado: %.4f\n\n", k, n, sigma_est))
+  nome_carta_tit <- if (tipo == "xbar_r") "X̄-R (MÉDIAS E AMPLITUDES)" else "X̄-S (MÉDIAS E DESVIOS-PADRÃO)"
+  .print_titulo(sprintf("CONTROLE ESTATÍSTICO DE PROCESSO: CARTA %s", nome_carta_tit))
+  cat(sprintf("  Subgrupos: %d  |  Tamanho por Subgrupo (n): %d  |  σ̂: %s\n\n", k, n, formatC(sigma_est, format = "f", digits = 4, decimal.mark = ",")))
 
   .print_topico("LIMITES DE CONTROLE ESTAT\u00cdSTICO (3\u03c3)")
   w_lim <- c(24, 16, 16, 16)
@@ -326,7 +339,7 @@ grafico_controle <- function(dados,
       .th_pad("Linha M\u00e9dia", w_lim[3], "center"), .th_pad("LSC (Superior)", w_lim[4], "center"), "\n", sep = "")
   cat(.th_sep(sum(w_lim)), "\n")
 
-  cat("  ", .th_pad("M\u00e9dia (X-Barra)", w_lim[1], "left"),
+  cat("  ", .th_pad("X̄ (Média)", w_lim[1], "left"),
       .th_pad(formatC(lic_x, format = "f", digits = 3, decimal.mark = ","), w_lim[2], "center"),
       .th_pad(formatC(x_dbar, format = "f", digits = 3, decimal.mark = ","), w_lim[3], "center"),
       .th_pad(formatC(lsc_x, format = "f", digits = 3, decimal.mark = ","), w_lim[4], "center"), "\n", sep = "")
@@ -339,15 +352,16 @@ grafico_controle <- function(dados,
 
   .print_topico("DIAGN\u00d3STICO DE ESTABILIDADE E ALARMES")
   if (estavel) {
-    cat("  \u2713 Processo SOB CONTROLE ESTAT\u00cdSTICO. Nenhum subgrupo fora de controle.\n")
+    cat("  [✓] Processo sob controle estatístico (estável): nenhum subgrupo violou os limites 3σ.\n\n")
   } else {
-    cat(sprintf("  \u26a0 ATEN\u00c7\u00c3O: Foram detectados %d subgrupos indicando INSTABILIDADE:\n", length(alarmes_idx)))
+    cat(sprintf("  [!] Processo fora de controle estatístico (instável): %d subgrupo(s) violaram os limites 3σ:\n", length(alarmes_idx)))
     for (idx in alarmes_idx) {
       motivo <- c()
-      if (fora_x[idx]) motivo <- c(motivo, "M\u00e9dia excedeu limites 3\u03c3")
-      if (fora_sec[idx]) motivo <- c(motivo, sprintf("%s excedeu limites 3\u03c3", nome_sec))
+      if (fora_x[idx]) motivo <- c(motivo, "Média excedeu limites 3σ")
+      if (fora_sec[idx]) motivo <- c(motivo, sprintf("%s excedeu limites 3σ", nome_sec))
       cat(sprintf("    * Subgrupo %s: %s\n", subg_nomes[idx], paste(motivo, collapse = " | ")))
     }
+    cat("\n")
   }
   .print_rodape()
 
@@ -358,22 +372,33 @@ grafico_controle <- function(dados,
 
     p1 <- ggplot2::ggplot(df_p1, ggplot2::aes(x = Ponto, y = Valor)) +
       ggplot2::geom_line(color = "#2B5C8F", linewidth = 0.8) +
-      ggplot2::geom_point(ggplot2::aes(color = Status), size = 2.5) +
+      ggplot2::geom_point(ggplot2::aes(color = Status, size = Status)) +
       ggplot2::scale_color_manual(values = c("Normal" = "#2B5C8F", "Alarme" = "#D90429")) +
+      ggplot2::scale_size_manual(values = c("Normal" = 3.0, "Alarme" = 3.8)) +
       ggplot2::geom_hline(yintercept = x_dbar, color = "#222222", linewidth = 0.9) +
-      ggplot2::geom_hline(yintercept = c(lic_x, lsc_x), color = "#D90429", linetype = "dashed", linewidth = 0.8) +
-      ggplot2::labs(title = sprintf("Carta de M\u00e9dias (\u00afX) [n = %d]", n), x = "Subgrupo", y = "M\u00e9dia (\u00afX)") +
+      ggplot2::geom_hline(yintercept = c(lic_x, lsc_x), color = "#D90429", linetype = "solid", linewidth = 0.9) +
+      ggplot2::labs(title = bquote("Carta de Médias (" ~ bar(X) ~ ") [n = " * .(n) * "]"), x = "Subgrupo", y = expression(bar(X))) +
       ggplot2::theme(legend.position = "none")
+
+    df_al_x <- subset(df_p1, Status == "Alarme")
+    if (nrow(df_al_x) > 0) {
+      p1 <- p1 + ggplot2::geom_point(data = df_al_x, shape = 1, size = 6.8, stroke = 1.3, color = "#D90429")
+    }
 
     p2 <- ggplot2::ggplot(df_p2, ggplot2::aes(x = Ponto, y = Valor)) +
       ggplot2::geom_line(color = "#3470a3", linewidth = 0.8) +
-      ggplot2::geom_point(ggplot2::aes(color = Status), size = 2.5) +
+      ggplot2::geom_point(ggplot2::aes(color = Status, size = Status)) +
       ggplot2::scale_color_manual(values = c("Normal" = "#3470a3", "Alarme" = "#D90429")) +
+      ggplot2::scale_size_manual(values = c("Normal" = 3.0, "Alarme" = 3.8)) +
       ggplot2::geom_hline(yintercept = sec_bar, color = "#222222", linewidth = 0.9) +
-      ggplot2::geom_hline(yintercept = c(lic_sec, lsc_sec), color = "#D90429", linetype = "dashed", linewidth = 0.8) +
-      ggplot2::labs(title = sprintf("Carta de Dispers\u00e3o: %s", nome_sec), x = "Subgrupo", y = nome_sec) +
+      ggplot2::geom_hline(yintercept = c(lic_sec, lsc_sec), color = "#D90429", linetype = "solid", linewidth = 0.9) +
+      ggplot2::labs(title = sprintf("Carta de Dispersão: %s", nome_sec), x = "Subgrupo", y = nome_sec) +
       ggplot2::theme(legend.position = "none")
 
+    df_al_sec <- subset(df_p2, Status == "Alarme")
+    if (nrow(df_al_sec) > 0) {
+      p2 <- p2 + ggplot2::geom_point(data = df_al_sec, shape = 1, size = 6.8, stroke = 1.3, color = "#D90429")
+    }
     if (exists("meu_tema", mode = "function")) {
       p1 <- p1 + meu_tema(grade = "dupla")
       p2 <- p2 + meu_tema(grade = "dupla")
@@ -471,13 +496,17 @@ grafico_controle <- function(dados,
 
   .print_topico("DIAGN\u00d3STICO DE ESTABILIDADE E ALARMES")
   if (estavel) {
-    cat("  \u2713 Processo SOB CONTROLE ESTAT\u00cdSTICO. Nenhuma viola\u00e7\u00e3o detectada.\n")
+    cat("  [✓] Processo sob controle estatístico (estável): nenhuma violação detectada.\n\n")
   } else {
-    cat(sprintf("  \u26a0 ATEN\u00c7\u00c3O: %d amostras violaram os limites de controle:\n", length(alarmes_idx)))
+    cat(sprintf("  [!] Processo fora de controle estatístico (instável): %d amostra(s) violaram os limites de controle:\n", length(alarmes_idx)))
     for (idx in alarmes_idx) {
-      cat(sprintf("    * Amostra %d (Valor = %.3f) fora dos limites [LIC = %.3f, LSC = %.3f]\n",
-                  idx, y_plot[idx], lic[min(idx, length(lic))], lsc[min(idx, length(lsc))]))
+      cat(sprintf("    * Amostra %d (Valor = %s) fora dos limites [LIC = %s, LSC = %s]\n",
+                  idx,
+                  formatC(y_plot[idx], format = "f", digits = 3, decimal.mark = ","),
+                  formatC(lic[min(idx, length(lic))], format = "f", digits = 3, decimal.mark = ","),
+                  formatC(lsc[min(idx, length(lsc))], format = "f", digits = 3, decimal.mark = ",")))
     }
+    cat("\n")
   }
   .print_rodape()
 
@@ -494,14 +523,19 @@ grafico_controle <- function(dados,
 
     p_out <- ggplot2::ggplot(df_p, ggplot2::aes(x = Amostra, y = Valor)) +
       ggplot2::geom_line(color = "#2B5C8F", linewidth = 0.8) +
-      ggplot2::geom_point(ggplot2::aes(color = Status), size = 2.5) +
+      ggplot2::geom_point(ggplot2::aes(color = Status, size = Status)) +
+      ggplot2::scale_size_manual(values = c("Normal" = 3.0, "Alarme" = 3.8)) +
       ggplot2::scale_color_manual(values = c("Normal" = "#2B5C8F", "Alarme" = "#D90429")) +
       ggplot2::geom_line(ggplot2::aes(y = LM), color = "#222222", linewidth = 0.9) +
-      ggplot2::geom_line(ggplot2::aes(y = LSC), color = "#D90429", linetype = "dashed", linewidth = 0.8) +
-      ggplot2::geom_line(ggplot2::aes(y = LIC), color = "#D90429", linetype = "dashed", linewidth = 0.8) +
+      ggplot2::geom_line(ggplot2::aes(y = LSC), color = "#D90429", linetype = "solid", linewidth = 0.9) +
+      ggplot2::geom_line(ggplot2::aes(y = LIC), color = "#D90429", linetype = "solid", linewidth = 0.9) +
       ggplot2::labs(title = tit, x = "Amostra / Subgrupo", y = ylab) +
       ggplot2::theme(legend.position = "none")
 
+    df_al_atr <- subset(df_p, Status == "Alarme")
+    if (nrow(df_al_atr) > 0) {
+      p_out <- p_out + ggplot2::geom_point(data = df_al_atr, shape = 1, size = 6.8, stroke = 1.3, color = "#D90429")
+    }
     if (exists("meu_tema", mode = "function")) {
       p_out <- p_out + meu_tema(grade = "dupla")
     } else if (exists("tema_estatR", mode = "function")) {
