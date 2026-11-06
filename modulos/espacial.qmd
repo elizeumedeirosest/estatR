@@ -168,6 +168,33 @@ comparar_modelos(
 
 ---
 
+## 7. Suavizador Bayesiano Empírico — Taxas em Pequenas Áreas
+
+A função `suavizador_bayesiano_espacial()` (alias `taxa_bayesiana_espacial()`) aplica os estimadores Bayesianos Empíricos Global (EBG) e Local (EBL) de Marshall (1991) para corrigir a variabilidade espúria e a instabilidade das taxas brutas em áreas geográficas com populações pequenas e desiguais:
+
+$$\theta_i = w_i r_i + (1 - w_i) \mu_i$$
+
+onde $w_i \in [0, 1]$ é o peso bayesiano de encolhimento (*shrinkage*). Em áreas com grandes populações ($w_i \to 1$), prevalece a taxa observada; em áreas pequenas com poucos habitantes ($w_i \to 0$), a taxa local é encolhida em direção à média global ou da vizinhança geográfica.
+
+* `metodo = "auto"` (seleciona local se coordenadas/pesos existirem, senão global), `"local"` ou `"global"`.
+* `base`: fator multiplicador da taxa (padrão `100000` para taxas por 100 mil habitantes, ou `1000`).
+* Diagnóstico quantitativo de redução de ruído amostral com `[✓]`.
+
+```r
+# Suavização Bayesiana Local com base por 100 mil habitantes
+taxas_suavizadas <- suavizador_bayesiano_espacial(
+  dados       = dados_mortalidade,
+  eventos     = "obitos",
+  populacao   = "populacao",
+  coordenadas = c("x", "y"),
+  metodo      = "local",
+  base        = 100000
+)
+```
+
+O gráfico em grade dupla exibe o **diagrama de funil de encolhimento (população vs. taxa)** e a **densidade comparativa** da taxa bruta vs. suavizada com `meu_tema(grade = "dupla")`.
+
+
 ## Parte II — Processos Pontuais (Point Pattern Analysis)
 
 A análise de **Processos Pontuais** responde à pergunta fundamental: **os eventos observados no espaço ocorrem de forma Aleatória, Agrupada (*cluster*) ou Regular (dispersa)?** O `estatR` implementa os métodos clássicos com saídas ricas no console, testes formais com `[✓]`/`[!]` e gráficos editoriais em `ggplot2`.
@@ -304,13 +331,37 @@ O gráfico exibe a curva empírica $G(r)$ observada (linha azul), a curva teóri
 
 ---
 
+## 11. Densidade de Kernel Espacial (KDE 2D) — Superfície de Intensidade
+
+A função `densidade_kernel_espacial()` (alias `kde_espacial()`) estima a intensidade espacial de primeira ordem $\lambda(s)$ gerando manchas ou mapas de calor contínuos a partir de pontos discretos de eventos:
+
+$$\hat{\lambda}_\tau(s) = \frac{1}{\tau^2} \sum_{i=1}^N K\left(\frac{s - s_i}{\tau}\right)$$
+
+* `raio = "auto"` (largura de banda ótima de Silverman 2D) ou valor numérico manual.
+* `kernel = "quatico"` (biweight compacto, padrão em SIG) ou `"gaussiano"`.
+* `resolucao = "auto"` (malha regular de $50 \times 50$) ou número de divisões.
+* Detecção automática das coordenadas e intensidade do ponto de pico máximo (*Hotspot*).
+
+```r
+# Densidade de Kernel com raio automático ótimo e mapa de calor
+kde <- densidade_kernel_espacial(
+  dados       = dados_ocorrencias,
+  coordenadas = c("x", "y"),
+  raio        = "auto",
+  kernel      = "quatico"
+)
+```
+
+O gráfico exibe lado a lado o **mapa de calor contínuo com os pontos sobrepostos** e as **curvas de nível de iso-densidade com identificação do Hotspot** em `meu_tema(grade = "dupla")`.
+
+
 ## Parte III — Superfície Contínua (Geoestatística / Interpolação)
 
 Na geoestatística, os dados consistem em medições de uma variável contínua (ex: precipitação, temperatura, teor de minério, poluentes) coletadas em coordenadas espaciais pontuais $(x, y)$, com o objetivo de **modelar a estrutura de dependência espacial** e **interpolar a variável** em todo o contínuo geográfico.
 
 ---
 
-## 11. Variograma — Semivariância Empírica e Modelos Teóricos
+## 12. Variograma — Semivariância Empírica e Modelos Teóricos
 
 A função `variograma()` calcula a semivariância empírica por classes de distância (lags) e ajusta modelos teóricos clássicos via mínimos quadrados com busca automática ou seleção manual:
 
@@ -345,7 +396,7 @@ O gráfico exibe dois painéis com `meu_tema(grade = "dupla")`: à esquerda, os 
 
 ---
 
-## 12. Krigagem Ordinária — Interpolação Espacial BLUE
+## 13. Krigagem Ordinária — Interpolação Espacial BLUE
 
 A função `krigagem()` aplica o estimador linear não viesado de variância mínima (**BLUE** - *Best Linear Unbiased Estimator*) para estimar valores da variável em qualquer local do domínio:
 
@@ -377,7 +428,7 @@ O painel gráfico exibe lado a lado o **mapa da superfície predita** (com os po
 
 ---
 
-## 13. Validação Cruzada Leave-One-Out (LOO)
+## 14. Validação Cruzada Leave-One-Out (LOO)
 
 A função `validar_krigagem()` remove iterativamente cada ponto amostral, prediz seu valor utilizando as demais amostras e compara as estimativas com os valores reais:
 
@@ -398,7 +449,7 @@ Gera gráficos em grade dupla: diagrama de dispersão **Observado vs. Predito** 
 
 ---
 
-## 14. Diagnóstico e Avaliação Polimórfica
+## 15. Diagnóstico e Avaliação Polimórfica
 
 Assim como nos modelos de regressão linear e espacial de área, os objetos de geoestatística se integram ao fluxo de trabalho polimórfico do pacote:
 

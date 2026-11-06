@@ -1155,6 +1155,295 @@ impactos_espaciais <- function(modelo) {
 
 
 
+
+
+# ── 7. SUAVIZADOR BAYESIANO EMPÍRICO ESPACIAL (DADOS DE ÁREA) ──────────────────
+
+#' @title Suavizador Bayesiano Empírico Espacial (Taxas em Pequenas Áreas)
+#' @description Aplica os estimadores Bayesianos Empíricos Global (EBG) e Local (EBL)
+#'   de Marshall (1991) para suavizar a variabilidade espúria de taxas de eventos raros
+#'   ou mortalidade em áreas geográficas com populações pequenas e desiguais (shrinkage).
+#'
+#' @param dados Data frame ou objeto \code{sf} contendo as colunas de eventos e população.
+#' @param eventos Nome da coluna com a contagem de casos/eventos (string ou símbolo).
+#' @param populacao Nome da coluna com a população exposta ao risco (string ou símbolo).
+#' @param metodo Método de suavização: \code{"auto"} (seleciona local se coordenadas/pesos existirem,
+#'   senão global), \code{"local"} (encolhimento em direção à vizinhança geográfica) ou
+#'   \code{"global"} (encolhimento em direção à média global).
+#' @param matriz_pesos Matriz quadrada de vizinhança espacial \eqn{W} opcional.
+#' @param k_vizinhos Número de vizinhos mais próximos se for necessário construir a matriz de pesos (padrão 5).
+#' @param coordenadas Vetor com os nomes das colunas de coordenadas para matriz local se \code{matriz_pesos} for \code{NULL}.
+#' @param base Fator multiplicativo da taxa (padrão \code{100000} para taxas por 100 mil habitantes, ou \code{1000}, \code{1}).
+#' @param grafico Lógico. Se TRUE (padrão), plota gráfico de dispersão com efeito funil (shrinkage) e densidade comparativa.
+#'
+#' @return Objeto invisível da classe \code{estatR_suavizador_bayesiano}.
+#' @export
+suavizador_bayesiano_espacial <- function(dados,
+                                          eventos = NULL,
+                                          populacao = NULL,
+                                          metodo = c("auto", "global", "local"),
+                                          matriz_pesos = NULL,
+                                          k_vizinhos = 5,
+                                          coordenadas = NULL,
+                                          base = 100000,
+                                          grafico = TRUE) {
+
+  metodo <- match.arg(metodo)
+  if (!is.data.frame(dados)) stop("O argumento 'dados' deve ser um data.frame.", call. = FALSE)
+  df <- as.data.frame(dados)
+
+  # Identificação das colunas de eventos e população
+  nome_ev <- if (!is.null(eventos)) as.character(substitute(eventos))[1] else NULL
+  if (is.null(nome_ev) || !nome_ev %in% names(df)) {
+    if (is.character(eventos) && eventos %in% names(df)) {
+      nome_ev <- eventos
+    } else {
+      # Procura colunas como 'casos', 'obitos', 'eventos', 'mortes'
+      cands <- grep("^(casos|obitos|eventos|mortes|y|count|n_casos)$", names(df), ignore.case = TRUE, value = TRUE)
+      if (length(cands) > 0) nome_ev <- cands[1] else stop("Coluna de 'eventos' não identificada.", call. = FALSE)
+    }
+  }
+
+  nome_pop <- if (!is.null(populacao)) as.character(substitute(populacao))[1] else NULL
+  if (is.null(nome_pop) || !nome_pop %in% names(df)) {
+    if (is.character(populacao) && populacao %in% names(df)) {
+      nome_pop <- populacao
+    } else {
+      # Procura colunas como 'pop', 'populacao', 'habitantes', 'n'
+      cands <- grep("^(pop|populacao|habitantes|pop_total|n_pop)$", names(df), ignore.case = TRUE, value = TRUE)
+      if (length(cands) > 0) nome_pop <- cands[1] else stop("Coluna de 'populacao' não identificada.", call. = FALSE)
+    }
+  }
+
+  y <- as.numeric(df[[nome_ev]])
+  n_pop <- as.numeric(df[[nome_pop]])
+
+  # Validações
+  val <- stats::complete.cases(y, n_pop) & n_pop > 0 & y >= 0
+  if (sum(val) < 4) stop("São necessárias pelo menos 4 observações válidas com população positiva.", call. = FALSE)
+  df_val <- df[val, , drop = FALSE]
+  y <- y[val]
+  n_pop <- n_pop[val]
+  N <- length(y)
+
+  # Taxa bruta observada
+  r_bruta <- (y / n_pop)
+
+  # Estimador Global de Marshall (1991)
+  # mu = média global ponderada pela população
+  mu_global <- sum(y) / sum(n_pop)
+  s2_global <- sum(n_pop * (r_bruta - mu_global)^2) / sum(n_pop)
+  n_barra   <- sum(n_pop) / N
+  sigma2_global <- max(1e-10, s2_global - (mu_global / n_barra))
+
+  # Pesos bayesianos globais
+  w_global <- sigma2_global / (sigma2_global + (mu_global / n_pop))
+  taxa_ebg <- w_global * r_bruta + (1 - w_global) * mu_global
+
+  # Estimador Local (se solicitado ou auto com vizinhança)
+  tem_vizinhança <- !is.null(matriz_pesos) || !is.null(coordenadas) || any(grepl("^(x|y|lon|lat)$", names(df_val), ignore.case = TRUE))
+  metodo_efetivo <- metodo
+  if (metodo == "auto") {
+    metodo_efetivo <- if (tem_vizinhança) "local" else "global"
+  }
+
+  taxa_ebl <- NULL
+  w_local  <- NULL
+  if (metodo_efetivo == "local") {
+    W <- NULL
+    if (!is.null(matriz_pesos)) {
+      W <- as.matrix(matriz_pesos)[val, val, drop = FALSE]
+    } else {
+      # Cria matriz knn a partir de coordenadas
+      coords_df <- NULL
+      if (!is.null(coordenadas)) {
+        coords_df <- df_val[, coordenadas, drop = FALSE]
+      } else {
+        cand_c <- grep("^(x|y|lon|lat|longitude|latitude)$", names(df_val), ignore.case = TRUE, value = TRUE)
+        if (length(cand_c) >= 2) coords_df <- df_val[, cand_c[1:2], drop = FALSE]
+      }
+      if (!is.null(coords_df) && ncol(coords_df) == 2) {
+        d_mat <- as.matrix(stats::dist(as.matrix(coords_df)))
+        diag(d_mat) <- Inf
+        k_ef <- min(as.integer(k_vizinhos), N - 1)
+        W <- matrix(0, nrow = N, ncol = N)
+        for (i in seq_len(N)) {
+          vzs <- order(d_mat[i, ])[seq_len(k_ef)]
+          W[i, vzs] <- 1
+        }
+      }
+    }
+
+    if (!is.null(W)) {
+      taxa_ebl <- numeric(N)
+      w_local  <- numeric(N)
+      for (i in seq_len(N)) {
+        vzs <- which(W[i, ] > 0)
+        vzs_com_i <- unique(c(i, vzs))
+        y_loc <- y[vzs_com_i]
+        n_loc <- n_pop[vzs_com_i]
+        mu_loc <- sum(y_loc) / sum(n_loc)
+        s2_loc <- sum(n_loc * (r_bruta[vzs_com_i] - mu_loc)^2) / sum(n_loc)
+        n_bar_loc <- mean(n_loc)
+        sigma2_loc <- max(1e-10, s2_loc - (mu_loc / n_bar_loc))
+        w_i <- sigma2_loc / (sigma2_loc + (mu_loc / n_pop[i]))
+        w_i <- max(0, min(1, w_i))
+        w_local[i]  <- w_i
+        taxa_ebl[i] <- w_i * r_bruta[i] + (1 - w_i) * mu_loc
+      }
+    } else {
+      metodo_efetivo <- "global"
+    }
+  }
+
+  taxa_final <- if (metodo_efetivo == "local") taxa_ebl else taxa_ebg
+  w_final    <- if (metodo_efetivo == "local") w_local else w_global
+
+  # Multiplicação pela base
+  taxa_bruta_b <- r_bruta * base
+  taxa_suav_b  <- taxa_final * base
+
+  # Variâncias para diagnóstico
+  var_bruta <- stats::var(taxa_bruta_b)
+  var_suav  <- stats::var(taxa_suav_b)
+  red_var   <- if (var_bruta > 0) ((var_bruta - var_suav) / var_bruta) * 100 else 0
+
+  # Estatísticas descritivas das taxas
+  q_b <- stats::quantile(taxa_bruta_b, probs = c(0, 0.25, 0.5, 0.75, 1))
+  q_s <- stats::quantile(taxa_suav_b, probs = c(0, 0.25, 0.5, 0.75, 1))
+
+  # ── Console Output ──────────────────────────────────────────────────────────
+  nome_met_pt <- if (metodo_efetivo == "local") "Bayesiano Empírico Local (EBL)" else "Bayesiano Empírico Global (EBG)"
+  .print_titulo("SUAVIZADOR BAYESIANO ESPACIAL (TAXAS EM PEQUENAS ÁREAS)")
+  cat(sprintf("  Variável de Eventos : %s (Total: %s casos)\n", nome_ev, .esp_fmt_num(sum(y), 0)))
+  cat(sprintf("  População sob Risco : %s (Total: %s habitantes)\n", nome_pop, .esp_fmt_num(sum(n_pop), 0)))
+  cat(sprintf("  Unidades Espaciais  : %d áreas geográficas\n", N))
+  cat(sprintf("  Fator de Base       : por %s habitantes\n", .esp_fmt_num(base, 0)))
+  cat(sprintf("  Método de Suavização: %s\n\n", nome_met_pt))
+
+  .print_topico("COMPARAÇÃO DISTRIBUTIVA: TAXA BRUTA VS SUAVIZADA")
+  w_col <- c(est = 18, bruta = 18, suav = 20)
+  cat(.esp_sep(sum(w_col)), "\n")
+  cat("  ",
+      .esp_pad("Estatística", w_col["est"]),
+      .esp_pad("Taxa Bruta", w_col["bruta"], "right"),
+      .esp_pad("Taxa Suavizada", w_col["suav"], "right"),
+      "\n", sep = "")
+  cat(.esp_sep(sum(w_col)), "\n")
+
+  imprime_linha <- function(rotulo, vb, vs) {
+    cat("  ",
+        .esp_pad(rotulo, w_col["est"]),
+        .esp_pad(.esp_fmt_num(vb, 2), w_col["bruta"], "right"),
+        .esp_pad(.esp_fmt_num(vs, 2), w_col["suav"], "right"),
+        "\n", sep = "")
+  }
+
+  imprime_linha("Mínimo", q_b[1], q_s[1])
+  imprime_linha("1º Quartil", q_b[2], q_s[2])
+  imprime_linha("Mediana", q_b[3], q_s[3])
+  imprime_linha("Média Ponderada", mean(taxa_bruta_b), mean(taxa_suav_b))
+  imprime_linha("3º Quartil", q_b[4], q_s[4])
+  imprime_linha("Máximo", q_b[5], q_s[5])
+  imprime_linha("Desvio Padrão", stats::sd(taxa_bruta_b), stats::sd(taxa_suav_b))
+  cat(.esp_sep(sum(w_col)), "\n\n")
+
+  .print_topico("DIAGNÓSTICO DE ENCOLHIMENTO (SHRINKAGE)")
+  cat(sprintf("  Variância da Taxa Bruta     : %s\n", .esp_fmt_num(var_bruta, 2)))
+  cat(sprintf("  Variância da Taxa Suavizada : %s\n", .esp_fmt_num(var_suav, 2)))
+  cat(sprintf("  Redução de Ruído Amostral   : %s%%\n", .esp_fmt_num(red_var, 1)))
+  cat(sprintf("  Peso Médio Local (w̄)        : %s  (0 = 100%% encolhimento | 1 = 100%% taxa local)\n\n",
+              .esp_fmt_num(mean(w_final), 3)))
+
+  if (red_var >= 10) {
+    cat("  [✓] A suavização bayesiana reduziu com sucesso a instabilidade espúria causada\n")
+    cat("      por pequenas populações, preservando a variabilidade genuína das áreas maiores.\n\n")
+  } else {
+    cat("  [✓] As taxas brutas já apresentavam alta estabilidade (populações suficientemente grandes).\n\n")
+  }
+  .print_rodape()
+
+  # ── Gráficos em ggplot2 com meu_tema(grade = "dupla") ───────────────────────
+  p_combined <- NULL
+  if (grafico && requireNamespace("ggplot2", quietly = TRUE)) {
+    df_plot <- data.frame(
+      Populacao      = n_pop,
+      Taxa_Bruta     = taxa_bruta_b,
+      Taxa_Suavizada = taxa_suav_b,
+      Peso           = w_final
+    )
+
+    # Painel 1: Efeito Funil (População vs Taxa)
+    p1 <- ggplot2::ggplot(df_plot) +
+      ggplot2::geom_point(ggplot2::aes(x = Populacao, y = Taxa_Bruta),
+                          color = "gray60", size = 2.2, alpha = 0.6) +
+      ggplot2::geom_point(ggplot2::aes(x = Populacao, y = Taxa_Suavizada),
+                          color = "#1D3557", size = 2.4, alpha = 0.85) +
+      ggplot2::scale_x_log10(labels = function(x) formatC(x, big.mark = ".", decimal.mark = ",")) +
+      ggplot2::labs(
+        title    = "Efeito Funil e Encolhimento Bayesiano (Shrinkage)",
+        subtitle = "Pontos Cinzas: Taxa Bruta | Pontos Azuis: Taxa Suavizada",
+        x        = "População sob Risco (Escala Logarítmica)",
+        y        = sprintf("Taxa por %s hab.", .esp_fmt_num(base, 0))
+      ) +
+      meu_tema(grade = "dupla")
+
+    # Painel 2: Densidades Comparativas
+    df_dens <- data.frame(
+      Taxa = c(taxa_bruta_b, taxa_suav_b),
+      Tipo = factor(rep(c("Taxa Bruta", "Taxa Suavizada"), each = N),
+                    levels = c("Taxa Bruta", "Taxa Suavizada"))
+    )
+
+    p2 <- ggplot2::ggplot(df_dens, ggplot2::aes(x = Taxa, color = Tipo, fill = Tipo)) +
+      ggplot2::geom_density(alpha = 0.25, linewidth = 1.0) +
+      ggplot2::scale_color_manual(values = c("Taxa Bruta" = "#E63946", "Taxa Suavizada" = "#1D3557")) +
+      ggplot2::scale_fill_manual(values = c("Taxa Bruta" = "#E63946", "Taxa Suavizada" = "#457B9D")) +
+      ggplot2::labs(
+        title    = "Distribuição de Densidade das Taxas",
+        subtitle = sprintf("Redução de variância de %s%% na cauda de outliers", .esp_fmt_num(red_var, 1)),
+        x        = sprintf("Taxa por %s hab.", .esp_fmt_num(base, 0)),
+        y        = "Densidade",
+        color    = "", fill = ""
+      ) +
+      meu_tema(grade = "dupla") +
+      ggplot2::theme(legend.position = "top")
+
+    if (requireNamespace("gridExtra", quietly = TRUE)) {
+      gridExtra::grid.arrange(p1, p2, ncol = 2)
+      p_combined <- list(painel_funil = p1, painel_densidade = p2)
+    } else {
+      print(p1)
+      p_combined <- p1
+    }
+  }
+
+  res <- list(
+    dados_suavizados = data.frame(
+      eventos        = y,
+      populacao      = n_pop,
+      taxa_bruta     = taxa_bruta_b,
+      taxa_suavizada = taxa_suav_b,
+      peso_bayesiano = w_final
+    ),
+    metodo           = metodo_efetivo,
+    base             = base,
+    reducao_var_pct  = red_var,
+    var_bruta        = var_bruta,
+    var_suavizada    = var_suav,
+    n                = N,
+    grafico          = p_combined
+  )
+  class(res) <- c("estatR_suavizador_bayesiano", "list")
+  invisible(res)
+}
+
+#' @export
+taxa_bayesiana_espacial <- suavizador_bayesiano_espacial
+
+
+
+
 # ==============================================================================
 # PARTE II: PROCESSOS PONTUAIS ESPACIAIS (POINT PATTERN ANALYSIS)
 # ==============================================================================
@@ -1839,6 +2128,224 @@ funcao_g_pontos <- function(dados,
   class(res) <- c("estatR_g_pontos", "list")
   invisible(res)
 }
+
+
+
+
+# ── 12. ESTIMATIVA DE DENSIDADE DE KERNEL ESPACIAL (KDE 2D) ───────────────────
+
+#' @title Estimativa de Densidade de Kernel Espacial 2D (KDE)
+#' @description Gera uma superfície contínua de intensidade espacial de eventos pontuais
+#'   (mancha / mapa de calor de primeira ordem) utilizando estimador de Kernel bivariado
+#'   com raio ótimo automático (regra de Silverman 2D) ou largura de banda manual.
+#'
+#' @param dados Data frame, matriz ou objeto \code{sf} contendo coordenadas dos pontos.
+#' @param coordenadas Vetor com nomes ou índices das colunas de coordenadas (ex: \code{c("x", "y")}).
+#' @param raio Raio de busca / largura de banda (\eqn{\tau}): \code{"auto"} (regra de Silverman 2D)
+#'   ou valor numérico positivo em unidades de distância dos dados.
+#' @param kernel Função de Kernel utilizada: \code{"quatico"} (biweight esférico, padrão em SIG)
+#'   ou \code{"gaussiano"}.
+#' @param resolucao Resolução da malha regular: \code{"auto"} (grade 50×50 = 2.500 células) ou inteiro.
+#' @param janela Limites espaciais \code{c(xmin, xmax, ymin, ymax)} ou \code{"auto"}.
+#' @param grafico Lógico. Se TRUE (padrão), exibe painel duplo com o mapa de calor contínuo
+#'   e curvas de nível de iso-densidade via \code{meu_tema(grade = "dupla")}.
+#'
+#' @return Objeto invisível da classe \code{estatR_kernel_espacial}.
+#' @export
+densidade_kernel_espacial <- function(dados,
+                                      coordenadas = NULL,
+                                      raio = "auto",
+                                      kernel = c("quatico", "gaussiano"),
+                                      resolucao = "auto",
+                                      janela = "auto",
+                                      grafico = TRUE) {
+
+  kernel <- match.arg(kernel)
+  coords <- .esp_extrair_coords_pontos(dados, coordenadas)
+  N <- nrow(coords)
+  if (N < 4) stop("São necessários pelo menos 4 pontos para a densidade de Kernel.", call. = FALSE)
+
+  j <- .esp_definir_janela(coords, janela)
+  Lx <- j["xmax"] - j["xmin"]
+  Ly <- j["ymax"] - j["ymin"]
+
+  # 1. Determinação da largura de banda (raio tau)
+  # Regra de Silverman bivariada robusta
+  raio_auto <- identical(raio, "auto")
+  if (raio_auto) {
+    sx <- stats::sd(coords$x, na.rm = TRUE)
+    sy <- stats::sd(coords$y, na.rm = TRUE)
+    iqr_x <- stats::IQR(coords$x, na.rm = TRUE) / 1.34
+    iqr_y <- stats::IQR(coords$y, na.rm = TRUE) / 1.34
+    
+    sigma_x <- if (iqr_x > 0 && iqr_x < sx) iqr_x else sx
+    sigma_y <- if (iqr_y > 0 && iqr_y < sy) iqr_y else sy
+    
+    sigma_ref <- min(sigma_x, sigma_y)
+    if (sigma_ref <= 0) sigma_ref <- max(sigma_x, sigma_y, 1)
+    
+    # Regra de Silverman para 2D: h = 0.9 * A * n^(-1/6)
+    tau <- 0.9 * sigma_ref * (N^(-1/6))
+    if (tau <= 0) tau <- min(Lx, Ly) * 0.1
+  } else {
+    tau <- as.numeric(raio)
+    if (tau <= 0) stop("O argumento 'raio' deve ser estritamente positivo.", call. = FALSE)
+  }
+
+  # 2. Resolução da grade
+  res_val <- if (identical(resolucao, "auto")) 50L else as.integer(resolucao)
+  if (res_val < 5) res_val <- 5L
+
+  gx <- seq(j["xmin"], j["xmax"], length.out = res_val)
+  gy <- seq(j["ymin"], j["ymax"], length.out = res_val)
+  grade <- expand.grid(x = gx, y = gy)
+  n_grade <- nrow(grade)
+
+  # 3. Estimativa de densidade vetorizada
+  coords_mat <- as.matrix(coords[, c("x", "y")])
+  grade_mat  <- as.matrix(grade[, c("x", "y")])
+
+  dens_vec <- numeric(n_grade)
+  bloco_tam <- 1000L
+  n_blocos <- ceiling(n_grade / bloco_tam)
+
+  # Área do pixel para integração
+  dx_p <- (j["xmax"] - j["xmin"]) / (res_val - 1)
+  dy_p <- (j["ymax"] - j["ymin"]) / (res_val - 1)
+  area_pixel <- dx_p * dy_p
+
+  for (b in seq_len(n_blocos)) {
+    idx_b <- seq((b - 1) * bloco_tam + 1, min(b * bloco_tam, n_grade))
+    sub_g <- grade_mat[idx_b, , drop = FALSE]
+    nb <- length(idx_b)
+
+    # dist_ij entre cada ponto de sub_g e coords_mat
+    dx_b <- outer(coords_mat[, 1], sub_g[, 1], "-")
+    dy_b <- outer(coords_mat[, 2], sub_g[, 2], "-")
+    D_b  <- sqrt(dx_b^2 + dy_b^2)
+    U_b  <- D_b / tau
+
+    if (kernel == "quatico") {
+      # Kernel biweight / quártico: K(u) = (3 / pi) * (1 - u^2)^2 para u <= 1
+      mask_u <- (U_b <= 1)
+      K_val <- (3 / pi) * ((1 - U_b^2)^2) * mask_u
+      dens_vec[idx_b] <- colSums(K_val) / (tau^2)
+    } else {
+      # Kernel gaussiano 2D: (1 / (2*pi)) * exp(-0.5 * u^2)
+      K_val <- (1 / (2 * pi)) * exp(-0.5 * (U_b^2))
+      dens_vec[idx_b] <- colSums(K_val) / (tau^2)
+    }
+  }
+
+  grade$densidade <- dens_vec
+
+  # Estatísticas da superfície
+  q_d <- stats::quantile(dens_vec, probs = c(0, 0.25, 0.5, 0.75, 1))
+  vol_estimado <- sum(dens_vec) * area_pixel
+
+  # Identificação do Hotspot (ponto de pico máximo)
+  idx_max <- which.max(dens_vec)
+  hotspot_x <- grade$x[idx_max]
+  hotspot_y <- grade$y[idx_max]
+  pico_dens <- grade$densidade[idx_max]
+
+  # ── Console Output ──────────────────────────────────────────────────────────
+  nome_k_pt <- if (kernel == "quatico") "Quártico / Biweight (Compacto)" else "Gaussiano (Cauda Infinita)"
+  .print_titulo("ESTIMATIVA DE DENSIDADE DE KERNEL ESPACIAL (KDE 2D)")
+  cat(sprintf("  Nº de Eventos       : %d pontos observados\n", N))
+  cat(sprintf("  Janela de Estudo    : [%s, %s] × [%s, %s]\n",
+              .esp_fmt_num(j["xmin"], 2), .esp_fmt_num(j["xmax"], 2),
+              .esp_fmt_num(j["ymin"], 2), .esp_fmt_num(j["ymax"], 2)))
+  modo_tau <- if (raio_auto) " (largura de banda ótima de Silverman 2D)" else ""
+  cat(sprintf("  Raio de Busca (\u03c4) : %s unidades%s\n", .esp_fmt_num(tau, 3), modo_tau))
+  cat(sprintf("  Kernel Selecionado  : %s\n", nome_k_pt))
+  cat(sprintf("  Malha de Resolução  : %d × %d (%d células regulares)\n\n", res_val, res_val, n_grade))
+
+  .print_topico("DISTRIBUIÇÃO DA DENSIDADE ESTIMADA")
+  w_kd <- c(est = 18, val = 18)
+  cat(.esp_sep(sum(w_kd)), "\n")
+  cat("  ", .esp_pad("Estatística", w_kd["est"]), .esp_pad("Densidade", w_kd["val"], "right"), "\n", sep = "")
+  cat(.esp_sep(sum(w_kd)), "\n")
+  cat("  ", .esp_pad("Mínimo", w_kd["est"]), .esp_pad(.esp_fmt_num(q_d[1], 4), w_kd["val"], "right"), "\n", sep = "")
+  cat("  ", .esp_pad("1º Quartil", w_kd["est"]), .esp_pad(.esp_fmt_num(q_d[2], 4), w_kd["val"], "right"), "\n", sep = "")
+  cat("  ", .esp_pad("Mediana", w_kd["est"]), .esp_pad(.esp_fmt_num(q_d[3], 4), w_kd["val"], "right"), "\n", sep = "")
+  cat("  ", .esp_pad("Média", w_kd["est"]), .esp_pad(.esp_fmt_num(mean(dens_vec), 4), w_kd["val"], "right"), "\n", sep = "")
+  cat("  ", .esp_pad("3º Quartil", w_kd["est"]), .esp_pad(.esp_fmt_num(q_d[4], 4), w_kd["val"], "right"), "\n", sep = "")
+  cat("  ", .esp_pad("Pico Máximo", w_kd["est"]), .esp_pad(.esp_fmt_num(q_d[5], 4), w_kd["val"], "right"), "\n", sep = "")
+  cat(.esp_sep(sum(w_kd)), "\n\n")
+
+  .print_topico("PICO DE INTENSIDADE ESPACIAL (HOTSPOT)")
+  cat(sprintf("  Densidade Máxima    : %s eventos/unidade²\n", .esp_fmt_num(pico_dens, 4)))
+  cat(sprintf("  Local do Hotspot    : X = %s | Y = %s\n\n",
+              .esp_fmt_num(hotspot_x, 2), .esp_fmt_num(hotspot_y, 2)))
+  .print_rodape()
+
+  # ── Gráficos em ggplot2 com meu_tema(grade = "dupla") ───────────────────────
+  p_combined <- NULL
+  if (grafico && requireNamespace("ggplot2", quietly = TRUE)) {
+    # Painel 1: Heatmap com pontos discretos sobrepostos
+    p1 <- ggplot2::ggplot(grade, ggplot2::aes(x = x, y = y)) +
+      ggplot2::geom_tile(ggplot2::aes(fill = densidade)) +
+      ggplot2::scale_fill_gradientn(
+        colours = c("#F7FBFF", "#DEEBF7", "#C6DBEF", "#9ECAE1", "#6BAED6", "#4292C6", "#2171B5", "#084594"),
+        name = "Densidade"
+      ) +
+      ggplot2::geom_point(data = coords, ggplot2::aes(x = x, y = y),
+                          color = "#D90429", size = 1.6, alpha = 0.65) +
+      ggplot2::labs(
+        title    = "Mapa de Calor de Intensidade Espacial (KDE 2D)",
+        subtitle = sprintf("Kernel %s | \u03c4 = %s | Pontos vermelhos: Eventos", kernel, .esp_fmt_num(tau, 2)),
+        x        = "Coordenada X",
+        y        = "Coordenada Y"
+      ) +
+      meu_tema(grade = "dupla")
+
+    # Painel 2: Curvas de nível (Iso-densidade)
+    p2 <- ggplot2::ggplot(grade, ggplot2::aes(x = x, y = y, z = densidade)) +
+      ggplot2::geom_contour(ggplot2::aes(color = ggplot2::after_stat(level)), linewidth = 0.85) +
+      ggplot2::scale_color_gradientn(
+        colours = c("#457B9D", "#E63946", "#800026"),
+        name = "Iso-Nível"
+      ) +
+      ggplot2::geom_point(ggplot2::aes(x = hotspot_x, y = hotspot_y),
+                          color = "#800026", shape = 4, size = 3.5, stroke = 1.5) +
+      ggplot2::annotate("text", x = hotspot_x, y = hotspot_y, label = " Hotspot",
+                        color = "#800026", fontface = "bold", hjust = -0.1, vjust = -0.5, size = 3.5) +
+      ggplot2::labs(
+        title    = "Curvas de Nível de Concentração (Iso-Densidade)",
+        subtitle = "Linhas concêntricas delimitam núcleos de alta aglomeração",
+        x        = "Coordenada X",
+        y        = "Coordenada Y"
+      ) +
+      meu_tema(grade = "dupla")
+
+    if (requireNamespace("gridExtra", quietly = TRUE)) {
+      gridExtra::grid.arrange(p1, p2, ncol = 2)
+      p_combined <- list(painel_heatmap = p1, painel_contornos = p2)
+    } else {
+      print(p1)
+      p_combined <- p1
+    }
+  }
+
+  res <- list(
+    grade          = grade,
+    densidade      = dens_vec,
+    raio           = tau,
+    kernel         = kernel,
+    hotspot        = c(x = hotspot_x, y = hotspot_y, pico = pico_dens),
+    resolucao      = c(x = res_val, y = res_val),
+    janela         = j,
+    pontos         = coords,
+    n              = N,
+    grafico        = p_combined
+  )
+  class(res) <- c("estatR_kernel_espacial", "list")
+  invisible(res)
+}
+
+#' @export
+kde_espacial <- densidade_kernel_espacial
 
 
 # ==============================================================================
